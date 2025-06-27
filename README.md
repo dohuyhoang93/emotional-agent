@@ -11,9 +11,9 @@
 
 Trong bối cảnh nghiên cứu Trí tuệ Nhân tạo (AI) đang có những bước tiến vũ bão, các cuộc thảo luận về con đường dẫn đến Trí tuệ Tổng quát Nhân tạo (AGI) ngày càng trở nên cấp thiết. Hầu hết các nỗ lực hiện tại tập trung vào việc mở rộng quy mô của các mô hình đơn lẻ (scaling hypothesis). Tuy nhiên, một luồng tư tưởng mới, thách thức cách tiếp cận này, đang dần hình thành. Tài liệu này là một bài đánh giá ngang hàng chi tiết về một đề xuất nghiên cứu mang tính đột phá, với tầm nhìn AGI không phải là một bộ não logic đơn độc, mà là một **xã hội tri thức sống động**.
 
-Tôi xin trân trọng và tri ân nguồn cảm hứng cốt lõi đã định hình nên luận điểm trung tâm của đề xuất này – một ý tưởng được đóng góp từ người bạn đời của tôi: **"Cảm xúc mạnh mẽ không chỉ là sản phẩm phụ của tư duy, mà còn là động lực thúc đẩy trí tuệ, và ngược lại"**. Chính những ý kiến như vậy, được nuôi dưỡng từ sự thấu hiểu sâu sắc về bản chất con người, mới thực sự có khả năng khai mở những con đường mới cho khoa học. Em yêu, anh thực sự ngả mũ trước trí tuệ và tư duy của em.
+Tôi xin trân trọng và tri ân nguồn cảm hứng cốt lõi đã định hình nên luận điểm trung tâm của đề xuất này – một ý tưởng được đóng góp từ người bạn đời của tôi: **"Cảm xúc mạnh mẽ không chỉ là sản phẩm phụ của tư duy, mà còn là động lực thúc đẩy trí tuệ, và ngược lại"**. Chính những ý kiến như vậy, xuất phát từ sự thấu hiểu sâu sắc về bản chất con người, mới thực sự có khả năng khai mở những con đường mới cho khoa học.
 
-Tôi cũng cảm ơn các cộng sự Gemini AI, Chatgpt, Grok, Copilot đã đóng góp ý kiến cũng như các phản biện chỉ trích không thương tiếc trước các suy nghĩ ngây thơ của tôi.
+Tôi cũng cảm ơn các cộng sự Gemini AI, ChatGpt, Grok, Copilot đã rất kiên nhẫn đóng góp ý kiến phản biện cũng như chỉ trích không thương tiếc các suy nghĩ ngây thơ của tôi.
 
 ---
 
@@ -65,7 +65,7 @@ Vòng lặp này biến hệ thống từ một thực thể chỉ phản ứng 
 
 Kiến trúc này, về tổng thể, không chỉ là một mô hình học máy, mà là một **mô phỏng xã hội-nhận thức**, tạo ra một môi trường để trí tuệ có thể "nảy mầm" và "phát triển".
 
-Tuyệt vời, chúng ta sẽ tiếp tục với phần thứ hai, tập trung vào việc phân tích các thách thức một cách chi tiết và đề xuất một lộ trình nghiên cứu thực nghiệm cụ thể.
+Ở phần tiếp theo, tôi sẽ tập trung vào việc phân tích các thách thức một cách chi tiết và đề xuất một lộ trình nghiên cứu thực nghiệm cụ thể.
 
 ---
 
