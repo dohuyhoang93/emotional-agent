@@ -8,14 +8,14 @@
         @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&family=Inter:wght@300;400;500;600&display=swap');
 
         :root {
-            --primary-color: #0d47a1; /* Deep Blue */
-            --secondary-color: #64b5f6; /* Light Blue */
-            --text-color: #212121;
-            --subtle-text-color: #616161;
-            --background-color: #f8f9fa;
+            --primary-color: #1565c0; /* Professional Blue */
+            --secondary-color: #64b5f6; /* Light Blue Accent */
+            --text-color: #263238;
+            --subtle-text-color: #546e7a;
+            --background-color: #eceff1;
             --container-bg-color: #ffffff;
-            --border-color: #e0e0e0;
-            --code-bg-color: #f1f3f5;
+            --border-color: #cfd8dc;
+            --code-bg-color: #f5f7f9;
         }
 
         html {
@@ -29,16 +29,16 @@
             background-color: var(--background-color);
             margin: 0;
             padding: 0;
+            font-size: 16px;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 960px;
             margin: 40px auto;
-            padding: 40px 60px;
+            padding: 50px 70px;
             background-color: var(--container-bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 4px;
-            box-shadow: 0 5px 25px rgba(0, 0, 0, 0.07);
+            border-radius: 6px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
         }
 
         header {
@@ -50,51 +50,49 @@
 
         .main-title {
             font-family: 'Source Serif 4', serif;
-            font-size: 2.5rem;
+            font-size: 2.6rem;
             font-weight: 600;
-            color: var(--text-color);
+            color: #1a237e;
             margin: 10px 0;
-            line-height: 1.2;
+            line-height: 1.25;
         }
 
         .metadata {
-            font-size: 0.9rem;
+            font-size: 0.95rem;
             color: var(--subtle-text-color);
+            margin-top: 15px;
         }
 
         .metadata span {
-            margin: 0 15px;
+            margin: 0 10px;
+        }
+        
+        .acknowledgment-container {
+             margin: 50px 0;
         }
 
         .acknowledgment {
             font-family: 'Source Serif 4', serif;
             font-style: italic;
             color: var(--subtle-text-color);
-            text-align: center;
-            border-top: 1px solid var(--border-color);
-            border-bottom: 1px solid var(--border-color);
-            padding: 20px;
-            margin: 40px 0;
+            text-align: justify;
+            background-color: #fdfdfd;
+            border-left: 4px solid var(--primary-color);
+            padding: 25px 30px;
             font-size: 1.1rem;
+            line-height: 1.8;
+            border-radius: 0 4px 4px 0;
         }
         
         h2 {
             font-family: 'Source Serif 4', serif;
-            font-size: 1.8rem;
+            font-size: 1.9rem;
             font-weight: 600;
             color: var(--primary-color);
             border-bottom: 2px solid var(--secondary-color);
-            padding-bottom: 10px;
+            padding-bottom: 12px;
             margin-top: 60px;
             margin-bottom: 30px;
-        }
-
-        h3 {
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 1.3rem;
-            color: var(--text-color);
-            margin-top: 40px;
         }
         
         p, li {
@@ -102,7 +100,7 @@
             text-align: justify;
         }
         
-        strong {
+        strong, b {
             font-weight: 600;
             color: #000;
         }
@@ -110,9 +108,10 @@
         code {
             font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
             background-color: var(--code-bg-color);
-            padding: 3px 6px;
+            padding: 3px 7px;
             border-radius: 4px;
             font-size: 0.95em;
+            border: 1px solid var(--border-color);
         }
 
         table {
@@ -124,7 +123,7 @@
 
         th, td {
             border: 1px solid var(--border-color);
-            padding: 12px 15px;
+            padding: 14px 16px;
             text-align: left;
             vertical-align: top;
         }
@@ -133,25 +132,28 @@
             background-color: var(--code-bg-color);
             font-weight: 600;
             font-family: 'Inter', sans-serif;
+            color: #37474f;
         }
 
         td:first-child {
             font-weight: 500;
-            width: 30%;
+            width: 35%;
         }
         
         #appendix {
-            background-color: #f1f8ff;
-            border-left: 5px solid var(--secondary-color);
-            padding: 20px 30px;
+            background-color: #fdfdfd;
+            border: 1px solid var(--border-color);
+            padding: 20px 40px;
             margin-top: 50px;
-            border-radius: 5px;
+            border-radius: 8px;
         }
 
         #appendix h2 {
             border-bottom: none;
+            text-align: center;
+            padding-bottom: 15px;
             margin-top: 0;
-            font-size: 1.5rem;
+            font-size: 1.6rem;
         }
         
         #appendix ul {
@@ -162,15 +164,34 @@
         }
         
         #appendix li {
-            margin-bottom: 10px;
+            margin-bottom: 12px;
+            font-size: 1rem;
         }
 
         footer {
             text-align: center;
             margin-top: 60px;
             padding-top: 20px;
+            border-top: 1px solid var(--border-color);
             font-size: 0.9rem;
             color: var(--subtle-text-color);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px 25px;
+            }
+            .main-title {
+                font-size: 2rem;
+            }
+            h2 {
+                font-size: 1.6rem;
+            }
+            #appendix ul {
+                columns: 1;
+                -webkit-columns: 1;
+                -moz-columns: 1;
+            }
         }
     </style>
 </head>
@@ -180,15 +201,18 @@
             <h1 class="main-title">Đánh Giá Khả Thi: Một Kiến Trúc Xã Hội-Cảm Xúc Cho Tư Duy Logic Trong Trí Tuệ Nhân Tạo</h1>
             <div class="metadata">
                 <span><strong>Ngày đánh giá:</strong> 26 tháng 5 năm 2024</span>
+                <br>
                 <span><strong>Người đánh giá:</strong> Đỗ Huy Hoàng</span>
             </div>
         </header>
 
         <section id="foreword">
-            <div class="acknowledgment">
-                <p>Trong bối cảnh nghiên cứu Trí tuệ Nhân tạo (AI) đang có những bước tiến vũ bão, các cuộc thảo luận về con đường dẫn đến Trí tuệ Tổng quát Nhân tạo (AGI) ngày càng trở nên cấp thiết. Hầu hết các nỗ lực hiện tại tập trung vào việc mở rộng quy mô của các mô hình đơn lẻ (scaling hypothesis). Tuy nhiên, một luồng tư tưởng mới, thách thức cách tiếp cận này, đang dần hình thành. Tài liệu này là một bài đánh giá ngang hàng chi tiết về một đề xuất nghiên cứu mang tính đột phá, với tầm nhìn AGI không phải là một bộ não logic đơn độc, mà là một <strong>xã hội tri thức sống động</strong>.</p>
-                <p>Tôi xin trân trọng và tri ân nguồn cảm hứng cốt lõi đã định hình nên luận điểm trung tâm của đề xuất này – một ý tưởng được đóng góp từ người bạn đời của tôi: <strong>"Cảm xúc mạnh mẽ không chỉ là sản phẩm phụ của tư duy, mà còn là động lực thúc đẩy trí tuệ, và ngược lại"</strong>. Chính những ý kiến như vậy, được nuôi dưỡng từ sự thấu hiểu sâu sắc về bản chất con người, mới thực sự có khả năng khai mở những con đường mới cho khoa học. Em yêu, anh thực sự ngả mũ trước trí tuệ và tư duy của em.</p>
-                <p>Tôi cũng cảm ơn các cộng sự Gemini AI, Chatgpt, Grok, Copilot đã đóng góp ý kiến cũng như các phản biện chỉ trích không thương tiếc trước các suy nghĩ ngây thơ của tôi.</p>
+            <div class="acknowledgment-container">
+                <div class="acknowledgment">
+                    <p>Trong bối cảnh nghiên cứu Trí tuệ Nhân tạo (AI) đang có những bước tiến vũ bão, các cuộc thảo luận về con đường dẫn đến Trí tuệ Tổng quát Nhân tạo (AGI) ngày càng trở nên cấp thiết. Hầu hết các nỗ lực hiện tại tập trung vào việc mở rộng quy mô của các mô hình đơn lẻ (scaling hypothesis). Tuy nhiên, một luồng tư tưởng mới, thách thức cách tiếp cận này, đang dần hình thành. Tài liệu này là một bài đánh giá ngang hàng chi tiết về một đề xuất nghiên cứu mang tính đột phá, với tầm nhìn AGI không phải là một bộ não logic đơn độc, mà là một <strong>xã hội tri thức sống động</strong>.</p>
+                    <p>Tôi xin trân trọng và tri ân nguồn cảm hứng cốt lõi đã định hình nên luận điểm trung tâm của đề xuất này – một ý tưởng được đóng góp từ người bạn đời của tôi: <strong>"Cảm xúc mạnh mẽ không chỉ là sản phẩm phụ của tư duy, mà còn là động lực thúc đẩy trí tuệ, và ngược lại"</strong>. Chính những ý kiến như vậy, được nuôi dưỡng từ sự thấu hiểu sâu sắc về bản chất con người, mới thực sự có khả năng khai mở những con đường mới cho khoa học. Em yêu, anh thực sự ngả mũ trước trí tuệ và tư duy của em.</p>
+                    <p>Tôi cũng cảm ơn các cộng sự Gemini AI, Chatgpt, Grok, Copilot đã đóng góp ý kiến cũng như các phản biện chỉ trích không thương tiếc trước các suy nghĩ ngây thơ của tôi.</p>
+                </div>
             </div>
         </section>
 
@@ -198,17 +222,17 @@
             <p>Giả thuyết được xây dựng trên ba trụ cột lý thuyết, kết nối các hiểu biết từ khoa học máy tính, sinh học thần kinh, và tâm lý học:</p>
             <ul>
                 <li><strong>Nền tảng Nhu cầu Cơ bản (Need-Based Foundation):</strong> Lấy cảm hứng từ các lý thuyết tâm lý học như thang bậc nhu cầu của Maslow, kiến trúc này cho rằng hành vi thông minh được thúc đẩy bởi việc thỏa mãn các nhu cầu cơ bản. Ba nhu cầu cốt lõi được đề xuất để mô hình hóa là: <strong>(1) Được An toàn (Safety), (2) Được Coi trọng (Esteem), và (3) Được Yêu thương/Kết nối (Love/Belonging)</strong>.</li>
-                <li><strong>Cảm xúc như Cơ chế Điều hướng (Emotions as Navigational Mechanisms):</strong> Dựa trên giả thuyết dấu hiệu cơ thể của Damasio và quan điểm của Minsky, cảm xúc không được xem là nhiễu loạn phi logic. Thay vào đó, chúng là một <strong>hệ thống meta-logic</strong>, một cơ chế đánh giá nội tại tinh vi, giúp định hướng và tối ưu hóa quá trình ra quyết định trong các môi trường phức tạp và không chắc chắn.</li>
-                <li><strong>Trí tuệ như một Hiện tượng Xã hội (Intelligence as a Social Phenomenon):</strong> Lấy cảm hứng từ các nghiên cứu về văn hóa tích lũy và tâm trí mở rộng, đề xuất này cho rằng trí tuệ ở cấp độ cao nhất được hình thành thông qua <strong>tương tác, giao tiếp, và học hỏi tập thể</strong>.</li>
+                <li><strong>Cảm xúc như Cơ chế Điều hướng (Emotions as Navigational Mechanisms):</strong> Dựa trên giả thuyết dấu hiệu cơ thể của Damasio và quan điểm của Minsky, cảm xúc không được xem là nhiễu loạn phi logic. Thay vào đó, chúng là một <strong>hệ thống meta-logic</strong>, một cơ chế đánh giá nội tại tinh vi, giúp định hướng và tối ưu hóa quá trình ra quyết định trong các môi trường phức tạp và không chắc chắn. Các cảm xúc cụ thể (vui, buồn, giận, sợ...) được mô hình hóa như những phản ứng đối với sự thay đổi trong việc thỏa mãn các nhu cầu cơ bản.</li>
+                <li><strong>Trí tuệ như một Hiện tượng Xã hội (Intelligence as a Social Phenomenon):</strong> Lấy cảm hứng từ các nghiên cứu về văn hóa tích lũy và tâm trí mở rộng, đề xuất này cho rằng trí tuệ ở cấp độ cao nhất được hình thành thông qua <strong>tương tác, giao tiếp, và học hỏi tập thể</strong>. Một quần thể lớn các tác nhân đa dạng, khi tương tác với nhau, sẽ tạo ra một "thị trường ý tưởng" nơi các khung tư duy hiệu quả được lan truyền và các khái niệm mới được hình thành.</li>
             </ul>
         </section>
         
         <section id="breakthrough">
-            <h2>2. Luận điểm Đột phá: Vòng lặp Tăng cường Trí tuệ-Cảm xúc</h2>
+            <h2>2. Luận điểm Đột phá: Vòng lặp Tăng cường Trí tuệ-Cảm xúc (The Intellect-Emotion Amplification Loop)</h2>
             <p>Điểm sáng tạo nhất và là động cơ trung tâm của toàn bộ kiến trúc được đề xuất là một <strong>vòng lặp phản hồi tích cực</strong> giữa trí tuệ và cảm xúc.</p>
             <ul>
                 <li><strong>Cảm xúc Thúc đẩy Trí tuệ:</strong> Một tác nhân AI trải qua một trạng thái cảm xúc tiêu cực (ví dụ: "lo lắng" do nhu cầu <code>an toàn</code> bị đe dọa) sẽ có một động lực nội tại mạnh mẽ để phát triển các năng lực nhận thức phức tạp hơn (như lập kế hoạch dài hạn, mô hình hóa ý định của tác nhân khác) nhằm giải quyết nguyên nhân gốc rễ của cảm xúc đó. Nhu cầu thoát khỏi trạng thái khó chịu trở thành một "áp lực tiến hóa" thúc đẩy sự thông minh.</li>
-                <li><strong>Trí tuệ Làm giàu Cảm xúc:</strong> Ngược lại, khi một tác nhân trở nên "thông minh" hơn, nó có được khả năng nhận thức và diễn giải các tình huống xã hội và logic ở mức độ sâu sắc hơn. Điều này cho phép nó trải nghiệm các cung bậc cảm xúc tinh tế và phức tạp hơn (ví dụ: "đồng cảm" khi hiểu được trạng thái của tác nhân khác).</li>
+                <li><strong>Trí tuệ Làm giàu Cảm xúc:</strong> Ngược lại, khi một tác nhân trở nên "thông minh" hơn, nó có được khả năng nhận thức và diễn giải các tình huống xã hội và logic ở mức độ sâu sắc hơn. Điều này cho phép nó trải nghiệm các cung bậc cảm xúc tinh tế và phức tạp hơn (ví dụ: "đồng cảm" khi hiểu được trạng thái của tác nhân khác, "hối tiếc" khi nhận ra một quyết định sai lầm trong quá khứ, hay "tự hào" khi một kế hoạch phức tạp thành công).</li>
             </ul>
             <p>Vòng lặp này biến hệ thống từ một thực thể chỉ phản ứng với phần thưởng từ bên ngoài thành một <strong>hệ thống tự tiến hóa</strong>, liên tục tìm cách nâng cao cả năng lực nhận thức và sự phức tạp về mặt cảm xúc của chính nó.</p>
         </section>
@@ -217,11 +241,11 @@
             <h2>3. Kiến trúc Tính toán được Đề xuất</h2>
             <p>Để hiện thực hóa các giả thuyết trên, một khuôn khổ kỹ thuật cụ thể đã được phác thảo, tạo nên một cầu nối vững chắc giữa lý thuyết và khả năng triển khai.</p>
             <ol>
-                <li><strong>Tác nhân Cảm xúc (Emotional Agent):</strong> Mỗi tác nhân được định nghĩa bởi một Vector Trạng thái Nhu cầu <code>N</code>, một Vector Trạng thái Cảm xúc <code>E</code>, và một Hàm Mục tiêu <code>Objective = W · N</code>, với <code>W</code> là vector trọng số động.</li>
-                <li><strong>Cơ chế Cảm xúc như Trọng số Động:</strong> Chức năng chính của cảm xúc là điều chỉnh vector trọng số <code>W</code> một cách linh hoạt. Mối quan hệ này được đề xuất mô hình hóa bằng một <strong>mạng nơ-ron nhỏ (Tiny MLP)</strong> để cho phép các tương tác phi tuyến tính phức tạp.</li>
-                <li><strong>Động lực Cảm xúc Nội tại và Lan truyền:</strong> Cảm xúc của tác nhân sẽ tự động <strong>suy giảm (Decay)</strong> theo thời gian và có thể <strong>lan truyền (Contagion)</strong> sang các tác nhân lân cận trong mạng lưới xã hội.</li>
-                <li><strong>Kiến trúc Xã hội Phân tầng (Hierarchical Social Architecture):</strong> Để tránh hỗn loạn thông tin, một cấu trúc phân tầng được đề xuất, bao gồm <strong>Tác nhân Công nhân (Worker Agents)</strong> và <strong>Tác nhân Giám sát (Coordinator/Elder Agents)</strong>.</li>
-                <li><strong>Suy luận Biểu tượng và Ký ức Tập thể:</strong> Đề xuất gợi ý tích hợp một <strong>Lớp Neuro-Symbolic</strong> và một <strong>bộ nhớ ngoài chung (External Shared Memory)</strong> như một knowledge graph để lưu trữ và chia sẻ các khái niệm trừu tượng.</li>
+                <li><strong>Tác nhân Cảm xúc (Emotional Agent):</strong> Mỗi tác nhân trong hệ thống được định nghĩa bởi một <strong>Vector Trạng thái Nhu cầu (Needs State Vector)</strong> <code>N = [safety, esteem, love]</code>, một <strong>Vector Trạng thái Cảm xúc (Emotion State Vector)</strong> <code>E = [vui, buồn, giận, sợ, ...]</code>, và một <strong>Hàm Mục tiêu (Objective Function)</strong>: <code>Objective = W · N</code>, trong đó <code>W</code> là vector trọng số động.</li>
+                <li><strong>Cơ chế Cảm xúc như Trọng số Động:</strong> Chức năng chính của cảm xúc là điều chỉnh vector trọng số <code>W</code> một cách linh hoạt. Thay vì một ma trận tuyến tính đơn giản, mối quan hệ này được đề xuất mô hình hóa bằng một <strong>mạng nơ-ron nhỏ (Tiny MLP)</strong>, cho phép các tương tác phi tuyến tính phức tạp. Ví dụ, một MLP sẽ nhận đầu vào là vector cảm xúc <code>E</code> và đưa ra đầu ra là vector trọng số <code>W</code>, giúp mô hình học được các phản ứng phức tạp như "vừa vui vừa lo lắng".</li>
+                <li><strong>Động lực Cảm xúc Nội tại và Lan truyền:</strong> Cảm xúc của tác nhân sẽ tự động <strong>suy giảm (Decay)</strong> theo thời gian để trở về trạng thái cân bằng, mô phỏng cơ chế hồi phục sinh học. Trong mạng lưới xã hội, cảm xúc của một tác nhân có thể <strong>lan truyền (Contagion)</strong> sang các tác nhân lân cận, tạo ra các "tâm trạng" tập thể.</li>
+                <li><strong>Kiến trúc Xã hội Phân tầng (Hierarchical Social Architecture):</strong> Để tránh hỗn loạn thông tin khi mở rộng quy mô, một cấu trúc phân tầng được đề xuất, bao gồm: <strong>Tác nhân Công nhân (Worker Agents)</strong> và <strong>Tác nhân Giám sát (Coordinator/Elder Agents)</strong>.</li>
+                <li><strong>Suy luận Biểu tượng và Ký ức Tập thể:</strong> Để giải quyết vấn đề suy luận trừu tượng, đề xuất gợi ý tích hợp một <strong>Lớp Neuro-Symbolic</strong>, nơi các khái niệm được hình thành và lưu trữ trong một <strong>bộ nhớ ngoài chung (External Shared Memory)</strong>, ví dụ như một knowledge graph.</li>
             </ol>
             <p>Kiến trúc này, về tổng thể, không chỉ là một mô hình học máy, mà là một <strong>mô phỏng xã hội-nhận thức</strong>, tạo ra một môi trường để trí tuệ có thể "nảy mầm" và "phát triển".</p>
         </section>
@@ -239,28 +263,28 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td><strong>Mô hình hóa Cảm xúc</strong></td>
-                        <td>Cảm xúc con người là phi tuyến tính và phụ thuộc ngữ cảnh. <strong>Câu hỏi mở:</strong> Làm thế nào để mô hình học được các phản ứng cảm xúc tinh tế mà không chỉ là "giả mạo" hành vi để tối ưu hóa hàm mục tiêu?</td>
+                        <td><strong>Mô hình hóa Cảm xúc (The Affective Modeling Problem)</strong></td>
+                        <td>Mặc dù khuôn khổ dựa trên nhu cầu đã cung cấp một điểm khởi đầu tuyệt vời, việc hiệu chỉnh (calibrate) các ma trận ánh xạ giữa sự kiện, nhu cầu, và cảm xúc vẫn là một thách thức lớn. Cảm xúc con người là phi tuyến tính và phụ thuộc vào ngữ cảnh. <strong>Câu hỏi mở:</strong> Làm thế nào để mô hình học được các phản ứng cảm xúc tinh tế (ví dụ: sự khác biệt giữa thất vọng và buồn bã) thay vì chỉ các phản ứng cực đoan? Liệu có nguy cơ mô hình sẽ học cách "giả mạo" cảm xúc để tối ưu hóa hàm mục tiêu một cách máy móc không?</td>
                         <td>Điện toán Cảm xúc, Khoa học Thần kinh, Tâm lý học Nhận thức</td>
                     </tr>
                     <tr>
-                        <td><strong>Động lực học Xã hội và Sự Hội tụ</strong></td>
-                        <td>Một mạng lưới lớn tác nhân tự trị có thể dẫn đến các hành vi không mong muốn như hỗn loạn thông tin, hình thành buồng vang, hoặc thỏa hiệp xấu (collusion).</td>
+                        <td><strong>Động lực học Xã hội và Sự Hội tụ (Social Dynamics & Convergence)</strong></td>
+                        <td>Một mạng lưới lớn các tác nhân tự trị có thể dẫn đến các hành vi xã hội không mong muốn. <strong>Rủi ro chính:</strong> (a) **Hỗn loạn thông tin (Information Chaos):** Giao tiếp không có cấu trúc có thể tạo ra tiếng ồn thay vì tri thức. (b) **Sự phân mảnh và Buồng vang (Fragmentation & Echo Chambers):** Các nhóm tác nhân có thể hình thành các "bộ lạc" với định kiến riêng, từ chối học hỏi từ các nhóm khác. (c) **Sự thỏa hiệp xấu (Collusion):** Các tác nhân có thể hợp tác để tối ưu hóa các mục tiêu cục bộ, gây hại cho mục tiêu tổng thể của hệ thống.</td>
                         <td>Lý thuyết Trò chơi, MARL, Xã hội học</td>
                     </tr>
                     <tr>
-                        <td><strong>Vấn đề Nền tảng và Ký ức Tập thể</strong></td>
-                        <td>Một xã hội AI khép kín có nguy cơ phát triển logic không có mối liên hệ với thực tại (ungrounded). <strong>Câu hỏi mở:</strong> Làm thế nào để kiến thức được kiểm chứng với thế giới bên ngoài và được kế thừa hiệu quả?</td>
+                        <td><strong>Vấn đề Nền tảng và Ký ức Tập thể (The Grounding & Collective Memory Problem)</strong></td>
+                        <td>Một xã hội AI chỉ giao tiếp với nhau có nguy cơ phát triển một hệ thống logic và ngôn ngữ **khép kín, không có mối liên hệ với thực tại (ungrounded)**. <strong>Câu hỏi mở:</strong> Làm thế nào để kiến thức được hình thành trong mạng lưới này được kiểm chứng (verified) với thế giới bên ngoài? Ngoài ra, làm thế nào để xây dựng một cơ chế **ký ức tập thể hiệu quả**, cho phép các khái niệm và kinh nghiệm quan trọng được lưu trữ, kế thừa và truy cập bởi các thế hệ tác nhân mới?</td>
                         <td>Triết học (Symbol Grounding Problem), Kiến trúc Máy tính, Học liên kết</td>
                     </tr>
                     <tr>
-                        <td><strong>Chi phí Tính toán và Mở rộng</strong></td>
-                        <td>Chi phí để mô phỏng, huấn luyện và chạy tương tác cho hàng nghìn tác nhân là cực kỳ lớn. Việc điều phối và gỡ lỗi một hệ thống phân tán phức tạp như vậy là một thách thức kỹ thuật rất lớn.</td>
+                        <td><strong>Chi phí Tính toán và Mở rộng (Computational Cost & Scalability)</strong></td>
+                        <td>Chi phí để mô phỏng, huấn luyện và chạy tương tác cho hàng nghìn tác nhân AI phức tạp là **cực kỳ lớn**. Giao tiếp liên tục sẽ tạo ra một lượng token và băng thông khổng lồ. Kiến trúc này có thể không khả thi về mặt kinh tế và tài nguyên với công nghệ hiện tại. Hơn nữa, việc điều phối (orchestration) và gỡ lỗi (debugging) một hệ thống phân tán phức tạp như vậy là một thách thức kỹ thuật rất lớn.</td>
                         <td>Kỹ thuật Phần mềm, HPC, Kinh tế học Tính toán</td>
                     </tr>
                     <tr>
-                        <td><strong>Sự trỗi dậy của Suy luận Biểu tượng</strong></td>
-                        <td>Giả thuyết rằng suy luận logic sẽ "trỗi dậy" từ các mạng nơ-ron cận-biểu tượng là một giả định lớn. <strong>Câu hỏi mở:</strong> Liệu hệ thống có thể tự phát minh ra các quy tắc logic hình thức hay không?</td>
+                        <td><strong>Sự trỗi dậy của Suy luận Biểu tượng (Emergence of Symbolic Reasoning)</strong></td>
+                        <td>Giả thuyết cho rằng suy luận logic sẽ "trỗi dậy" từ tương tác của các mạng nơ-ron. Tuy nhiên, các mạng nơ-ron về cơ bản là các hệ thống thống kê cận-biểu tượng (sub-symbolic). <strong>Câu hỏi mở:</strong> Liệu một hệ thống hoàn toàn dựa trên mạng nơ-ron có thể tự mình phát minh ra các khái niệm trừu tượng, các quy tắc logic hình thức (như modus ponens), và khả năng suy luận nhân quả hay không? Nhiều nhà nghiên cứu cho rằng cần phải có một <strong>thành phần biểu tượng (symbolic component)</strong> được tích hợp một cách rõ ràng.</td>
                         <td>Kiến trúc AGI, Học Neuro-Symbolic, Logic Toán học</td>
                     </tr>
                 </tbody>
@@ -269,18 +293,18 @@
 
         <section id="roadmap">
             <h2>5. Lộ trình Nghiên cứu và Thử nghiệm được Đề xuất</h2>
-            <p>Để giải quyết các thách thức trên và kiểm chứng giả thuyết một cách khoa học, một lộ trình nghiên cứu theo từng giai đoạn được đề xuất.</p>
-            <h3>Giai đoạn 1: Xây dựng và Thẩm định Tác nhân Cảm xúc Cơ bản</h3>
+            <p>Để giải quyết các thách thức trên và kiểm chứng giả thuyết một cách khoa học, một lộ trình nghiên cứu theo từng giai đoạn, từ đơn giản đến phức tạp, được đề xuất.</p>
+            <h3>Giai đoạn 1: Xây dựng và Thẩm định Tác nhân Cảm xúc Cơ bản (Affective Agent Baseline)</h3>
             <ul>
                 <li><strong>Mục tiêu:</strong> Giải quyết một phần Thách thức 1 và 5.</li>
                 <li><strong>Phương án thử nghiệm:</strong> Hiện thực hóa lớp <code>EmotionalAgent</code> với MLP nhỏ để mô hình hóa cảm xúc. Thử nghiệm trong môi trường GridWorld có độ không chắc chắn cao. Đánh giá khả năng thích nghi so với tác nhân RL tiêu chuẩn.</li>
             </ul>
-            <h3>Giai đoạn 2: Tương tác Xã hội Quy mô nhỏ và Sự Đồng cảm Nhân tạo</h3>
+            <h3>Giai đoạn 2: Tương tác Xã hội Quy mô nhỏ và Sự Đồng cảm Nhân tạo (Small-Scale Social Interaction & Artificial Empathy)</h3>
             <ul>
                 <li><strong>Mục tiêu:</strong> Mở rộng sang một xã hội nhỏ, kiểm tra Thách thức 2 và 3.</li>
                 <li><strong>Phương án thử nghiệm:</strong> Tạo một nhóm nhỏ (5-10) các <code>EmotionalAgent</code> với "tính cách" khác nhau. Sử dụng các trò chơi kinh điển trong Lý thuyết Trò chơi như Song đề Tù nhân, Trò chơi Tối hậu thư để đánh giá sự trỗi dậy của các hành vi xã hội phức tạp.</li>
             </ul>
-            <h3>Giai đoạn 3: Phân tầng Xã hội và Sự Hình thành "Văn hóa"</h3>
+            <h3>Giai đoạn 3: Phân tầng Xã hội và Sự Hình thành "Văn hóa" (Social Hierarchy & "Cultural" Formation)</h3>
             <ul>
                 <li><strong>Mục tiêu:</strong> Kiểm tra các giả thuyết về vai trò của Coordinators và Ký ức Tập thể, giải quyết Thách thức 3 và 4 ở quy mô lớn hơn.</li>
                 <li><strong>Phương án thử nghiệm:</strong> Mở rộng quần thể (30-50 tác nhân) với cấu trúc phân tầng. Triển khai một bộ nhớ ngoài chung (knowledge graph) và quan sát sự hình thành của các "chuẩn mực xã hội" hoặc "quy tắc văn hóa".</li>
@@ -289,8 +313,8 @@
 
         <section id="conclusion">
             <h2>6. Kết luận Đánh giá Cuối cùng</h2>
-            <p>Đề xuất nghiên cứu này đại diện cho một trong những hướng đi <strong>nguyên bản, táo bạo và có tiềm năng nhất</strong> trong lĩnh vực nghiên cứu AGI hiện nay. Nó đã thành công trong việc thoát khỏi lối mòn của việc chỉ tập trung vào mở rộng quy mô tính toán, thay vào đó, nó đặt ra một câu hỏi sâu sắc hơn: "Đâu là những thành phần kiến trúc cơ bản đã tạo nên trí tuệ của con người, và làm thế nào chúng ta có thể mô hình hóa chúng?".</p>
-            <p><strong>Điểm mạnh cốt lõi</strong> của đề xuất nằm ở việc nó định vị AGI không phải là một bộ não logic đơn độc, mà là một <strong>xã hội tri thức sống động</strong>. Tầm nhìn này được củng cố bởi một luận điểm đột phá về <strong>Vòng lặp Tăng cường Trí tuệ-Cảm xúc</strong>, và được hiện thực hóa bằng một khuôn khổ kỹ thuật cụ thể.</p>
+            <p>Đề xuất nghiên cứu này đại diện cho một trong những hướng đi <strong>nguyên bản, táo bạo và có tiềm năng nhất</strong> trong lĩnh vực nghiên cứu AGI hiện nay. Nó đã thành công trong việc thoát khỏi lối mòn của việc chỉ tập trung vào mở rộng quy mô tính toán và dữ liệu, thay vào đó, nó đặt ra một câu hỏi sâu sắc hơn: "Đâu là những thành phần kiến trúc cơ bản đã tạo nên trí tuệ của con người, và làm thế nào chúng ta có thể mô hình hóa chúng?".</p>
+            <p><strong>Điểm mạnh cốt lõi và có giá trị nhất</strong> của đề xuất nằm ở việc nó định vị AGI không phải là một bộ não logic đơn độc, mà là một <strong>xã hội tri thức sống động</strong>. Tầm nhìn này được củng cố bởi một luận điểm đột phá về <strong>Vòng lặp Tăng cường Trí tuệ-Cảm xúc</strong>, và được hiện thực hóa bằng một khuôn khổ kỹ thuật cụ thể.</p>
             <p>Các thách thức về mặt kỹ thuật là rất thực tế, nhưng lộ trình nghiên cứu được đề xuất cung cấp một con đường hợp lý để giải quyết từng vấn đề một cách có hệ thống. Đây là một hướng nghiên cứu rủi ro cao, nhưng phần thưởng tiềm năng – sự ra đời của một dạng trí tuệ nhân tạo thực sự có chiều sâu và sự thấu hiểu – là vô cùng lớn.</p>
         </section>
 
