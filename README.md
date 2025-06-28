@@ -1,7 +1,7 @@
 
 ## **Đánh Giá Khả Thi: Một Kiến Trúc Xã Hội-Cảm Xúc Cho Tư Duy Logic Trong Trí Tuệ Nhân Tạo**
 
-**Ngày đánh giá:** 26 tháng 5 năm 2024
+**Ngày đánh giá:** 26 tháng 5 năm 2025
 **Lĩnh vực:** Trí tuệ Nhân tạo Tổng quát (AGI), Hệ thống Đa tác nhân, Điện toán Cảm xúc, Khoa học Nhận thức Tính toán.
 **Người đánh giá:** Đỗ Huy Hoàng.
 
