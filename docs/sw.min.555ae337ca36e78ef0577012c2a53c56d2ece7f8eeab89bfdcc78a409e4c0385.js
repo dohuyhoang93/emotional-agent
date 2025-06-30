@@ -1,1 +1,0 @@
-navigator.serviceWorker&&navigator.serviceWorker.register("/emotional-agent/sw.js",{scope:"/emotional-agent/"})
