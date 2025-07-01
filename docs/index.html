@@ -1,43 +1,3 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -61,20 +21,20 @@
             font-weight: 700;
         }
         h1 {
-            font-size: 2.5rem;
+            font-size: 1.8rem !important;
             text-align: center;
-            margin-bottom: 1rem;
+            margin-bottom: 1rem !important;
             text-shadow: 0 0 10px rgba(96, 165, 250, 0.5);
         }
         h2 {
-            font-size: 1.8rem;
-            margin-top: 2rem;
+            font-size: 1.3rem !important;
+            margin-top: 2rem !important;
             border-bottom: 2px solid #60a5fa;
             padding-bottom: 0.5rem;
         }
         h3 {
-            font-size: 1.4rem;
-            margin-top: 1.5rem;
+            font-size: 1.1rem !important;
+            margin-top: 0.5rem !important;
         }
         p {
             margin-bottom: 1rem;
@@ -137,7 +97,6 @@
             <p><strong>Fields:</strong> General Artificial Intelligence (AGI), Multi-Agent Systems, Affective Computing, Computational Cognitive Science, AI Safety</p>
             <p><strong>Evaluator:</strong> Do Huy Hoang</p>
         </div>
-
         <h2>Preface and Acknowledgments</h2>
         <p>Amid rapid advancements in Artificial Intelligence (AI), discussions about the path to Artificial General Intelligence (AGI) are increasingly urgent. Most efforts focus on scaling single models (the scaling hypothesis). However, a new perspective challenges this approach. This document provides a detailed peer review of a groundbreaking research proposal, envisioning AGI not as a singular logical brain but as a vibrant intellectual society.</p>
         <p>I express deep gratitude for the core inspiration shaping this proposal’s central thesis, contributed by my life partner: <em>"Strong emotions are not merely byproducts of thought but drivers of intelligence, and vice versa."</em> Such creative sparks, rooted in profound human understanding, unlock new paths for science.</p>
@@ -206,7 +165,7 @@
             </tr>
             <tr>
                 <td>Social Dynamics & Convergence</td>
-                <td>A large network of autonomous agents can lead to undesirable social behaviors. Key risks: (a) Information Chaos: Unstructured communication may generate noise. (b) Fragmentation & Echo Chambers: Groups of agents may form "tribes" with distinct biases. (c) Collusion and Toxic Competition: The emergence of "envy" and individual goals may lead to destructive behavior or endless competitive races.</td>
+                <td>A large network of autonomous agents can lead to undesirable social behaviors. Key risks:<br> (a) Information Chaos: Unstructured communication may generate noise.<br> (b) Fragmentation & Echo Chambers: Groups of agents may form "tribes" with distinct biases.<br> (c) Collusion and Toxic Competition: The emergence of "envy" and individual goals may lead to destructive behavior or endless competitive races.</td>
                 <td>Game Theory, Multi-Agent Reinforcement Learning (MARL), Sociology, AI Safety</td>
             </tr>
             <tr>
