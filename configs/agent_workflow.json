@@ -1,0 +1,13 @@
+{
+  "name": "Agent Lifecycle Tick",
+  "steps": [
+    "observe",
+    "update_belief",
+    "calculate_emotions",
+    "calculate_rewards",
+    "adjust_policy",
+    "select_action",
+    "execute_action",
+    "record_consequences"
+  ]
+}
