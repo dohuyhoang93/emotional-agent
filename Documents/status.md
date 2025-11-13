@@ -54,13 +54,32 @@ Chúng ta đã xây dựng một tác nhân có khả năng học hỏi thông q
 
 ---
 
-**Kết luận chung:**
+## 3. Kết nối Lý thuyết và Thực thi: Hàm Mục tiêu `J`
 
-Dự án đã hoàn thành xuất sắc Bước 1, tạo ra một nền tảng vững chắc và chứng minh tính khả thi của mô hình. Các bước tiếp theo sẽ tập trung vào việc tối ưu hóa hiệu suất của tác nhân đơn lẻ và mở rộng các thành phần còn lại để đạt được tầm nhìn dài hạn của dự án.
+Tài liệu `spec.md` định nghĩa hàm mục tiêu tổng hợp `J` mà tác nhân cần tối ưu:
+
+`J = E[ Σ γ^t ( R_ngoại_t + λ * R_nội_t(E_t, N_t) ) ]`
+
+Công thức này là mục tiêu triết học và toán học ("Cái gì" và "Tại sao") của dự án. Nó đại diện cho tổng giá trị kỳ vọng của tất cả các phần thưởng (đã được chiết khấu) mà tác nhân có thể nhận được trong tương lai.
+
+Trong mã nguồn của dự án, chúng ta **không tính toán trực tiếp giá trị `J`**. Thay vào đó, chúng ta sử dụng thuật toán **Q-Learning**, một phương pháp đã được chứng minh là có thể **gián tiếp tối ưu hóa hàm mục tiêu `J`**.
+
+**Sự tương ứng giữa công thức lý thuyết và mã nguồn thực tế:**
+
+*   **Mục tiêu tối đa hóa `J`:** Được thực hiện bằng cách học một **bảng Q (`q_table`)**. Mỗi giá trị `Q(s, a)` trong bảng đại diện cho ước tính tốt nhất hiện tại về tổng phần thưởng trong tương lai nếu tác nhân bắt đầu từ trạng thái `s`, thực hiện hành động `a`, và sau đó hành động một cách tối ưu.
+*   **Các thành phần phần thưởng:**
+    *   `R_ngoại_t`: Tương ứng với `reward_extrinsic` trong mã nguồn.
+    *   `λ * R_nội_t`: Tương ứng với `context.intrinsic_reward_weight * abs(context.td_error)` được tính trong `p4_reward_calc.py`. `context.intrinsic_reward_weight` chính là `λ`.
+*   **Hệ số giảm giá (`γ`):** Tương ứng với `context.discount_factor`.
+*   **Tổng và Kỳ vọng (`Σ` và `E[]`):** Được xử lý một cách **ngầm định** bởi quá trình cập nhật lặp đi lặp lại của Q-learning qua hàng trăm episodes.
+
+**Kết luận:** Mã nguồn của chúng ta là một **phương pháp thực thi** hiệu quả để đạt được mục tiêu được định nghĩa bởi công thức `J` lý thuyết.
 
 ---
 
-## Kết quả Chạy thử lần 1 (Ngày 13 tháng 11 năm 2025)
+## 4. Kết quả Chạy thử và Gỡ lỗi
+
+### Chạy thử lần 1 (Ngày 13 tháng 11 năm 2025)
 
 Sau khi hoàn thiện các thành phần cho Bước 1 và chạy mô phỏng 500 episodes, kết quả thu được như sau:
 
@@ -68,12 +87,12 @@ Sau khi hoàn thiện các thành phần cho Bước 1 và chạy mô phỏng 50
 *   **Số bước trung bình cho các episode thành công:** 28.79
 
 **Đánh giá:**
-Kết quả này cho thấy hiệu suất của tác nhân đã **giảm đáng kể** so với lần chạy trước (tỷ lệ thành công từ ~41% xuống ~15%). Điều này chỉ ra rằng các thay đổi mới, mặc dù đúng về mặt lý thuyết và kiến trúc, đã gây ra một vấn đề không mong muốn trong hành vi học hỏi của tác nhân.
+Kết quả này cho thấy hiệu suất của tác nhân đã **giảm đáng kể** so với lần chạy trước khi hoàn thiện (tỷ lệ thành công từ ~41% xuống ~15%). Điều này chỉ ra rằng các thay đổi mới, mặc dù đúng về mặt lý thuyết, đã gây ra một vấn đề không mong muốn trong hành vi học hỏi của tác nhân.
 
 **Các nguyên nhân tiềm năng:**
 1.  **Xung đột giữa các cơ chế:**
-    *   **`p2_belief_update.py`:** Việc thêm hình phạt trực tiếp vào Q-table khi đâm vào tường có thể đã gây nhiễu cho quá trình học chính của Q-learning.
-    *   **`p5_policy_adjust.py`:** Việc điều chỉnh `exploration_rate` linh hoạt dựa trên `E_vector` có thể đã không hoạt động như mong đợi, khiến tác nhân giảm khám phá quá nhanh hoặc không hiệu quả.
+    *   **`p2_belief_update.py`:** Việc thêm hình phạt trực tiếp vào Q-table có thể đã gây nhiễu cho quá trình học chính.
+    *   **`p5_policy_adjust.py`:** Việc điều chỉnh `exploration_rate` linh hoạt có thể đã không hoạt động như mong đợi.
     *   **`R_nội`:** Việc thêm `R_nội` có thể đã làm tác nhân quá tập trung vào "sự ngạc nhiên" thay vì mục tiêu chính.
 2.  **Siêu tham số chưa phù hợp:** Các siêu tham số hiện tại có thể không còn tối ưu cho mô hình phức tạp hơn.
 
