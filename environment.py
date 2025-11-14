@@ -2,38 +2,48 @@ import os
 
 class GridWorld:
     """
-    Môi trường Thế giới Lưới (Grid World).
+    Môi trường Thế giới Lưới (Grid World) được tạo động từ settings.
     Tác nhân (A) phải di chuyển từ vị trí bắt đầu đến mục tiêu (G).
     '#' là tường. '.' là đường đi.
     """
     def __init__(self, settings):
-        print("Khởi tạo GridWorld...")
-        self.grid = [
-            ['.', '.', '.', '#', '.'],
-            ['.', '#', '.', '.', '.'],
-            ['.', '.', '#', 'G', '.'],
-            ['A', '.', '.', '.', '.'],
-            ['.', '#', '.', '.', '.']
-        ]
-        self.size = len(self.grid)
-        self.start_pos = self._find_char('A')
-        self.agent_pos = list(self.start_pos)
-        self.goal_pos = self._find_char('G')
+        print("Khởi tạo GridWorld động...")
+        
+        # Lấy các cấu hình môi trường từ settings
+        env_config = settings.get("environment_config", {})
+        self.size = env_config.get("grid_size", 5)
+        self.start_pos = tuple(env_config.get("start_pos", [0, 0]))
+        self.goal_pos = tuple(env_config.get("goal_pos", [self.size - 1, self.size - 1]))
+        walls = env_config.get("walls", [])
+        
+        # Ghi đè các tham số nếu chúng tồn tại ở cấp cao nhất (cho tương thích ngược)
+        self.size = settings.get("grid_size", self.size)
+        self.start_pos = tuple(settings.get("start_pos", self.start_pos))
+        self.goal_pos = tuple(settings.get("goal_pos", self.goal_pos))
+        walls = settings.get("walls", walls)
+
         self.max_steps = settings.get("max_steps_per_episode", 25)
+        self.agent_pos = list(self.start_pos)
         self.current_step = 0
 
-    def _find_char(self, char):
-        for r, row in enumerate(self.grid):
-            for c, val in enumerate(row):
-                if val == char:
-                    return (r, c)
-        return None
+        # Tạo lưới một cách linh động
+        self.grid = [['.' for _ in range(self.size)] for _ in range(self.size)]
+        
+        # Đặt mục tiêu
+        goal_r, goal_c = self.goal_pos
+        if 0 <= goal_r < self.size and 0 <= goal_c < self.size:
+            self.grid[goal_r][goal_c] = 'G'
+
+        # Đặt tường
+        for r, c in walls:
+            if 0 <= r < self.size and 0 <= c < self.size:
+                self.grid[r][c] = '#'
 
     def reset(self):
         """Reset môi trường về trạng thái ban đầu."""
         self.agent_pos = list(self.start_pos)
         self.current_step = 0
-        print("Môi trường: Đã reset.")
+        # print("Môi trường: Đã reset.") # Tắt để đỡ rối console khi chạy orchestrator
         return self.get_observation()
 
     def get_observation(self):
@@ -44,7 +54,6 @@ class GridWorld:
         """Thực hiện hành động và trả về phần thưởng ngoại sinh."""
         self.current_step += 1
         
-        # Tính toán vị trí mới
         r, c = self.agent_pos
         if action == 'up':
             r -= 1
@@ -77,12 +86,13 @@ class GridWorld:
 
     def render(self):
         """Hiển thị trạng thái hiện tại của lưới."""
-        # Xóa màn hình console để hiển thị sạch sẽ
         os.system('cls' if os.name == 'nt' else 'clear')
         
         print(f"Step: {self.current_step}/{self.max_steps}")
         temp_grid = [row[:] for row in self.grid]
         r, c = self.agent_pos
+        
+        # Đảm bảo agent không vẽ đè lên mục tiêu
         if temp_grid[r][c] == '.':
             temp_grid[r][c] = 'A'
         

@@ -10,5 +10,16 @@
   "discount_factor": 0.95,
   "mlp_learning_rate": 0.001,
   "intrinsic_reward_weight": 0.05,
-  "visual_mode": true
+  "visual_mode": false,
+
+  "environment_config": {
+    "grid_size": 5,
+    "start_pos": [0, 0],
+    "goal_pos": [4, 4],
+    "walls": [
+      [1, 1],
+      [2, 2],
+      [3, 3]
+    ]
+  }
 }

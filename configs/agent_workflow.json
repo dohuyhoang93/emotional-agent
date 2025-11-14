@@ -1,13 +1,13 @@
 {
-  "name": "Agent Lifecycle Tick",
+  "name": "Default Agent Workflow",
   "steps": [
-    "observe",
-    "update_belief",
-    "calculate_emotions",
-    "calculate_rewards",
-    "adjust_policy",
-    "select_action",
-    "execute_action",
-    "record_consequences"
+    "p2_belief_update",
+    "p3_emotion_calc",
+    "p4_reward_calc",
+    "p5_policy_adjust",
+    "p6_action_select",
+    "p7_execution",
+    "p8_consequence"
   ]
 }
+
