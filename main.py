@@ -84,7 +84,8 @@ def run_simulation(num_episodes: int, output_path: str, settings_override: Dict[
 
     # 3. Chạy vòng lặp mô phỏng theo từng episode
     for episode in range(num_episodes):
-        # print(f"\n{'='*10} Bắt đầu Episode {episode + 1}/{num_episodes} {'='*10}")
+        if settings['visual_mode']:
+            print(f"\n{'='*10} Bắt đầu Episode {episode + 1}/{num_episodes} {'='*10}")
         
         # Reset môi trường và các trạng thái tạm thời của context
         environment.reset()
@@ -97,23 +98,31 @@ def run_simulation(num_episodes: int, output_path: str, settings_override: Dict[
         is_successful = False
 
         while not environment.is_done():
-            # environment.render() # Tắt render để chạy nhanh hơn
-            # print(f"Episode {episode + 1} | Step {environment.current_step}")
-            # print(f"Trạng thái tác nhân:\n{context}")
+            if settings['visual_mode']:
+                environment.render()
+                print(f"Episode {episode + 1} | Step {environment.current_step}")
+                print(f"Trạng thái tác nhân:\n{context}")
             
             context = run_workflow(workflow['steps'], context, environment)
             episode_total_reward += context.last_reward['extrinsic'] + context.last_reward['intrinsic']
             
-            # time.sleep(0.01) # Giảm thời gian chờ để chạy nhanh hơn
+            if settings['visual_mode']:
+                time.sleep(0.01) # Giảm thời gian chờ để chạy nhanh hơn
 
-        # environment.render() # Tắt render để chạy nhanh hơn
+        # Xác định trạng thái thành công bất kể visual mode
         if tuple(environment.agent_pos) == environment.goal_pos:
-            # print(f"*** THÀNH CÔNG! Tác nhân đã đến đích sau {environment.current_step} bước. ***")
             is_successful = True
-        # else:
-            # print(f"--- THẤT BẠI! Tác nhân không đến được đích sau {environment.max_steps} bước. ---")
+
+        # Hiển thị kết quả nếu ở chế độ trực quan
+        if settings['visual_mode']:
+            environment.render()
+            if is_successful:
+                print(f"*** THÀNH CÔNG! Tác nhân đã đến đích sau {environment.current_step} bước. ***")
+            else:
+                print(f"--- THẤT BẠI! Tác nhân không đến được đích sau {environment.max_steps} bước. ---")
+            time.sleep(0.1) # Giảm thời gian chờ
         
-        # Lưu dữ liệu của episode
+        # Lưu dữ liệu của episode (với giá trị 'success' đã đúng)
         episode_data.append({
             'episode': episode + 1,
             'success': is_successful,
@@ -130,6 +139,23 @@ def run_simulation(num_episodes: int, output_path: str, settings_override: Dict[
         os.makedirs(os.path.dirname(output_path), exist_ok=True)
         df.to_csv(output_path, index=False)
         print(f"Đã lưu kết quả mô phỏng vào: {output_path}")
+
+    # In ra tóm tắt cuối cùng nếu ở chế độ trực quan
+    if settings.get('visual_mode', False):
+        successful_episodes = sum(1 for d in episode_data if d['success'])
+        num_episodes_run = len(episode_data)
+        
+        print("\n--- TÓM TẮT KẾT QUẢ ---")
+        if num_episodes_run > 0:
+            success_rate = successful_episodes / num_episodes_run * 100
+            print(f"Tỷ lệ thành công: {success_rate:.1f}% ({successful_episodes}/{num_episodes_run})")
+            
+            if successful_episodes > 0:
+                avg_steps_on_success = sum(d['steps'] for d in episode_data if d['success']) / successful_episodes
+                print(f"Số bước trung bình cho các episode thành công: {avg_steps_on_success:.2f}")
+        else:
+            print("Không có episode nào được chạy.")
+
 
 def main():
     parser = argparse.ArgumentParser(description="Chạy mô phỏng tác nhân học tập cảm xúc.")
