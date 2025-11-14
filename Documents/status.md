@@ -1,102 +1,96 @@
-# Trạng thái Dự án: EmotionAgent - Bước 1 Hoàn thiện
-
-**Ngày:** 13 tháng 11 năm 2025
-
-**Tổng kết:**
-Dự án đã hoàn thành việc triển khai **Bước 1: Prototype tác nhân đơn lẻ** theo tầm nhìn đã được thống nhất trong `spec.md` và triết lý Kiến trúc Hướng Quy trình (POP). Tính khả thi của mô hình cốt lõi đã được chứng minh ở cấp độ prototype.
-
-Chúng ta đã xây dựng một tác nhân có khả năng học hỏi thông qua Q-Learning, với một vòng lặp phản hồi Trí tuệ-Cảm xúc tích hợp. Tác nhân sử dụng "cảm xúc máy" (được huấn luyện bởi MLP) để điều chỉnh hành vi và học hỏi từ phần thưởng nội sinh dựa trên sự "ngạc nhiên".
+# Trạng thái Dự án: EmotionAgent
 
 ---
-
-## 1. Tính khả thi của mô hình: Đã chứng minh
-
-*   **Kiến trúc cốt lõi:** Đã hiện thực hóa được tất cả các thành phần lý thuyết đã nêu trong `spec.md` cho một tác nhân đơn lẻ.
-*   **Vòng lặp Trí tuệ-Cảm xúc:** Đã tạo ra một vòng lặp phản hồi hoàn chỉnh:
-    *   **Trí tuệ (Q-Learning):** Tác nhân học hỏi từ kinh nghiệm để cải thiện hành vi.
-    *   **Trí tuệ → Cảm xúc:** Quá trình học tạo ra tín hiệu "ngạc nhiên" (`td_error`), dùng làm phần thưởng nội sinh (`R_nội`), và giá trị học được (`max_q`) huấn luyện mô hình cảm xúc MLP.
-    *   **Cảm xúc → Trí tuệ:** Phần thưởng nội sinh ảnh hưởng đến quá trình cập nhật Q-table, và `E_vector` điều chỉnh chính sách hành vi.
-*   **Kết quả có thể đo lường:** Chương trình chạy ổn định, tác nhân cho thấy dấu hiệu học hỏi (số bước trung bình giảm, tỷ lệ thành công tăng) sau khi sửa lỗi nghiêm trọng.
-
+*Tài liệu này được cập nhật theo thời gian để ghi lại tiến trình, các kết quả thử nghiệm và những thay đổi trong định hướng của dự án. Các cập nhật mới nhất sẽ được thêm vào cuối tệp.*
 ---
 
-## 2. Trạng thái các thành phần
+## Giai đoạn 1: Prototype Tác nhân Đơn lẻ (Ngày 13/11/2025)
 
-#### **A. Các thành phần đã hoàn thiện cho Bước 1:**
+### 1.1. Mục tiêu
+Hoàn thành việc triển khai **Bước 1: Prototype tác nhân đơn lẻ** theo tầm nhìn đã được thống nhất trong `spec.md` và triết lý Kiến trúc Hướng Quy trình (POP).
 
+### 1.2. Tổng kết
+Tính khả thi của mô hình cốt lõi đã được chứng minh ở cấp độ prototype. Đã xây dựng một tác nhân có khả năng học hỏi thông qua Q-Learning, với một vòng lặp phản hồi Trí tuệ-Cảm xúc tích hợp.
+
+### 1.3. Trạng thái các thành phần khi hoàn thành Giai đoạn 1
+
+#### A. Các thành phần đã hoàn thiện:
 *   **Kiến trúc Hướng Quy trình (POP):** Đã triển khai đầy đủ và hoạt động ổn định (Workflow Engine, Process Registry, AgentContext, cấu trúc thư mục).
-*   **Môi trường (`GridWorld`):** Hoàn chỉnh cho mục đích thử nghiệm Bước 1.
+*   **Môi trường (`GridWorld`):** Hoàn chỉnh cho mục đích thử nghiệm Giai đoạn 1.
 *   **Cơ chế học hỏi cốt lõi (Q-Learning):** Đã triển khai đầy đủ, bao gồm cập nhật Q-table và chiến lược chọn hành động epsilon-greedy.
 *   **Mô hình Cảm xúc Máy (MLP):** Đã được định nghĩa, tích hợp và huấn luyện với mục tiêu kép (tự tin và tò mò).
 *   **Vòng lặp phản hồi Trí tuệ-Cảm xúc:** Đã được kết nối hoàn chỉnh và hoạt động.
-*   **Các Process:**
-    *   `p1_observation.py`: Hoàn thiện.
-    *   `p2_belief_update.py`: Hoàn thiện (logic phạt khi đâm tường).
-    *   `p3_emotion_calc.py`: Hoàn thiện (MLP forward pass và tính `E_vector`).
-    *   `p4_reward_calc.py`: Hoàn thiện (tính `R_nội`).
-    *   `p5_policy_adjust.py`: Hoàn thiện (điều chỉnh `exploration_rate` dựa trên `E_vector`).
-    *   `p6_action_select.py`: Hoàn thiện.
-    *   `p7_execution.py`: Hoàn thiện.
-    *   `p8_consequence.py`: Hoàn thiện (cập nhật Q-learning, huấn luyện MLP, ghi log vào bộ nhớ ngắn hạn).
+*   **Các Process:** `p1` đến `p8` đã hoàn thiện các chức năng cơ bản.
 
-#### **B. Các thành phần vẫn là Placeholder hoặc cần mở rộng/tinh chỉnh:**
-
-1.  **Bộ nhớ dài hạn (`long_term_memory`):**
-    *   **Trạng thái:** Hoàn toàn chưa được triển khai. Đây là một khái niệm lớn trong `spec.md` và thuộc về các giai đoạn phát triển sau.
-2.  **Sử dụng Bộ nhớ ngắn hạn (`short_term_memory`):**
-    *   **Trạng thái:** Đã được ghi log và sử dụng một cách cơ bản trong `p2_belief_update.py`. Có thể mở rộng để ảnh hưởng đến các quyết định phức tạp hơn.
-3.  **`p2_belief_update.py` (Cập nhật Niềm tin):**
-    *   **Trạng thái:** Logic hiện tại là cơ bản. Có thể mở rộng để bao gồm việc xây dựng và cập nhật một mô hình nội tại về động lực học của môi trường.
-4.  **`N_vector` (Vector Nhu cầu):**
-    *   **Trạng thái:** Hiện tại là tĩnh. Trong tầm nhìn dài hạn, `N_vector` nên là động và ảnh hưởng đến `E_vector` một cách sâu sắc hơn.
-5.  **Các chiều khác của `E_vector`:**
-    *   **Trạng thái:** Hiện tại chỉ huấn luyện 2 chiều (tự tin và tò mò). `spec.md` liệt kê nhiều "cảm xúc máy" khác. Có thể mở rộng MLP để huấn luyện và sử dụng các chiều này.
+#### B. Các thành phần vẫn là Placeholder hoặc cần mở rộng/tinh chỉnh:
+1.  **Bộ nhớ dài hạn (`long_term_memory`):** Hoàn toàn chưa được triển khai.
+2.  **Sử dụng Bộ nhớ ngắn hạn (`short_term_memory`):** Mới chỉ được sử dụng ở mức cơ bản.
+3.  **`p2_belief_update.py` (Cập nhật Niềm tin):** Logic còn cơ bản, có thể mở rộng.
+4.  **`N_vector` (Vector Nhu cầu):** Hiện tại là tĩnh.
+5.  **Các chiều khác của `E_vector`:** Hiện tại chỉ huấn luyện 2 chiều.
 
 ---
 
-## 3. Kết nối Lý thuyết và Thực thi: Hàm Mục tiêu `J`
+## Giai đoạn 2: Xây dựng Hệ thống Dàn dựng Thử nghiệm (Ngày 14/11/2025)
 
-Tài liệu `spec.md` định nghĩa hàm mục tiêu tổng hợp `J` mà tác nhân cần tối ưu:
+### 2.1. Mục tiêu
+Xây dựng một hệ thống tự động để chạy các thử nghiệm quy mô lớn, thu thập dữ liệu và phân tích một cách khoa học, tuân thủ triết lý POP.
 
-`J = E[ Σ γ^t ( R_ngoại_t + λ * R_nội_t(E_t, N_t) ) ]`
+### 2.2. Tổng kết
+Hệ thống đã hoàn thiện, cho phép cấu hình và thực thi các kịch bản thử nghiệm phức tạp một cách tự động.
 
-Công thức này là mục tiêu triết học và toán học ("Cái gì" và "Tại sao") của dự án. Nó đại diện cho tổng giá trị kỳ vọng của tất cả các phần thưởng (đã được chiết khấu) mà tác nhân có thể nhận được trong tương lai.
-
-Trong mã nguồn của dự án, chúng ta **không tính toán trực tiếp giá trị `J`**. Thay vào đó, chúng ta sử dụng thuật toán **Q-Learning**, một phương pháp đã được chứng minh là có thể **gián tiếp tối ưu hóa hàm mục tiêu `J`**.
-
-**Sự tương ứng giữa công thức lý thuyết và mã nguồn thực tế:**
-
-*   **Mục tiêu tối đa hóa `J`:** Được thực hiện bằng cách học một **bảng Q (`q_table`)**. Mỗi giá trị `Q(s, a)` trong bảng đại diện cho ước tính tốt nhất hiện tại về tổng phần thưởng trong tương lai nếu tác nhân bắt đầu từ trạng thái `s`, thực hiện hành động `a`, và sau đó hành động một cách tối ưu.
-*   **Các thành phần phần thưởng:**
-    *   `R_ngoại_t`: Tương ứng với `reward_extrinsic` trong mã nguồn.
-    *   `λ * R_nội_t`: Tương ứng với `context.intrinsic_reward_weight * abs(context.td_error)` được tính trong `p4_reward_calc.py`. `context.intrinsic_reward_weight` chính là `λ`.
-*   **Hệ số giảm giá (`γ`):** Tương ứng với `context.discount_factor`.
-*   **Tổng và Kỳ vọng (`Σ` và `E[]`):** Được xử lý một cách **ngầm định** bởi quá trình cập nhật lặp đi lặp lại của Q-learning qua hàng trăm episodes.
-
-**Kết luận:** Mã nguồn của chúng ta là một **phương pháp thực thi** hiệu quả để đạt được mục tiêu được định nghĩa bởi công thức `J` lý thuyết.
+### 2.3. Trạng thái các thành phần khi hoàn thành Giai đoạn 2
+*   **Kiến trúc POP:** Toàn bộ hệ thống dàn dựng được thiết kế tuân thủ triết lý POP.
+*   **Các thành phần chính:**
+    *   **`experiments.json`:** Tệp cấu hình trung tâm.
+    *   **`run_experiments.py`:** Bộ máy thực thi (Workflow Engine) chính.
+    *   **`main.py` (Worker):** Được tái cấu trúc để hoạt động như một "worker" độc lập.
+    *   **`src/orchestration_processes/`:** Thư mục chứa các quy trình độc lập cho từng bước dàn dựng.
+*   **Tính năng:** Hệ thống có khả năng chạy N thử nghiệm, mỗi thử nghiệm M lần, tự động thu thập kết quả, vẽ biểu đồ tổng hợp và tạo báo cáo phân tích.
 
 ---
 
-## 4. Kết quả Chạy thử và Gỡ lỗi
+## Nhật ký Chạy thử và Phân tích
 
-### Chạy thử lần 1 (Ngày 13 tháng 11 năm 2025)
+### Chạy thử lần 1 (Ngày 13/11/2025) - Môi trường Đơn giản
+*   **Mục tiêu:** Thử nghiệm ban đầu sau khi hoàn thiện Giai đoạn 1.
+*   **Thiết lập:** 500 episodes, môi trường 5x5.
+*   **Kết quả:** Tỷ lệ thành công: 15.6%.
+*   **Đánh giá:** Hiệu suất giảm đáng kể so với các phiên bản sơ khai. **Câu hỏi đặt ra: Tại sao?** Nguyên nhân tiềm năng được cho là do xung đột cơ chế hoặc siêu tham số chưa phù hợp.
 
-Sau khi hoàn thiện các thành phần cho Bước 1 và chạy mô phỏng 500 episodes, kết quả thu được như sau:
+### Chạy thử lần 2 (Ngày 14/11/2025): So sánh Mức độ Tò mò trong Môi trường Đơn giản
+*   **Mục tiêu:** Tìm hiểu nguyên nhân của sự suy giảm hiệu suất bằng cách so sánh ảnh hưởng của `intrinsic_reward_weight`.
+*   **Thiết lập:** Môi trường 5x5, 3 thử nghiệm (Low/Baseline/High Curiosity), mỗi thử nghiệm chạy 3 lần, 1000 episode/lần.
+*   **Kết quả:** Agent `Low_Curiosity` (ít tò mò) cho hiệu suất tốt nhất (Tỷ lệ thành công 35.00%).
+*   **Phân tích:**
+    *   **Giả thuyết về sự "Xao lãng" (The "Distraction" Hypothesis):** Trong môi trường đơn giản, phần thưởng nội sinh (sự tò mò) hoạt động như một yếu tố gây xao lãng, khuyến khích agent khám phá những hành vi vô ích thay vì tập trung vào mục tiêu chính.
+    *   **Kết luận:** Sự suy giảm hiệu suất không phải là lỗi, mà là một đặc tính của mô hình. Hiệu quả của sự tò mò phụ thuộc vào độ phức tạp của môi trường.
 
-*   **Tỷ lệ thành công:** 15.6%
-*   **Số bước trung bình cho các episode thành công:** 28.79
+### Chạy thử lần 3 (Ngày 14/11/2025): Kiểm chứng Giả thuyết Tò mò trong Môi trường Phức tạp
+*   **Mục tiêu:** Kiểm chứng giả thuyết rằng sự tò mò sẽ có lợi trong môi trường phức tạp hơn.
+*   **Thiết lập Môi trường:** Lưới 15x15, có nhiều tường, số bước tối đa 250.
+*   **Thiết lập Thử nghiệm:** 2 thử nghiệm (Complex_Low_Curiosity và Complex_High_Curiosity), mỗi thử nghiệm chạy 3 lần, 2000 episode/lần.
+*   **Kết quả:** Agent `Complex_Low_Curiosity` vẫn cho hiệu suất tốt hơn (Tỷ lệ thành công 43.58% so với 35.62%).
+*   **Phân tích:**
+    *   **Giả thuyết KHÔNG được xác nhận:** Việc tăng độ phức tạp về không gian và chướng ngại vật là chưa đủ để làm cho sự tò mò trở nên có lợi.
+    *   **Giả thuyết "Xao lãng" được củng cố:** Agent `High_Curiosity` vẫn bị "lạc lối" trong việc khám phá những điều mới lạ nhưng không giúp đạt được mục tiêu.
+    *   **Lý do:** Môi trường tuy phức tạp hơn về không gian nhưng vẫn có thể đoán trước được (deterministic). Các "bất ngờ" vẫn chưa đủ "thú vị" và mang tính toàn cục.
+*   **Hướng đi tiếp theo:**
+    Để thực sự kiểm chứng giá trị của sự tò mò, cần một môi trường mà ở đó, việc chỉ khám phá ngẫu nhiên là gần như vô vọng. **Bước tiếp theo hợp lý nhất là giới thiệu yếu tố Ngẫu nhiên (Stochasticity) vào Môi trường.**
+    *   **Ý tưởng:** Thay đổi môi trường để các hành động của agent không còn đáng tin cậy 100% (ví dụ: bị "trượt").
+    *   **Kỳ vọng:** Trong một thế giới không thể đoán trước, khả năng mô hình hóa và hiểu các kết quả "bất ngờ" của agent `High_Curiosity` có thể sẽ trở nên có giá trị hơn.
 
-**Đánh giá:**
-Kết quả này cho thấy hiệu suất của tác nhân đã **giảm đáng kể** so với lần chạy trước khi hoàn thiện (tỷ lệ thành công từ ~41% xuống ~15%). Điều này chỉ ra rằng các thay đổi mới, mặc dù đúng về mặt lý thuyết, đã gây ra một vấn đề không mong muốn trong hành vi học hỏi của tác nhân.
+---
+---
 
-**Các nguyên nhân tiềm năng:**
-1.  **Xung đột giữa các cơ chế:**
-    *   **`p2_belief_update.py`:** Việc thêm hình phạt trực tiếp vào Q-table có thể đã gây nhiễu cho quá trình học chính.
-    *   **`p5_policy_adjust.py`:** Việc điều chỉnh `exploration_rate` linh hoạt có thể đã không hoạt động như mong đợi.
-    *   **`R_nội`:** Việc thêm `R_nội` có thể đã làm tác nhân quá tập trung vào "sự ngạc nhiên" thay vì mục tiêu chính.
-2.  **Siêu tham số chưa phù hợp:** Các siêu tham số hiện tại có thể không còn tối ưu cho mô hình phức tạp hơn.
+## Mẫu Cập nhật Trạng thái Thử nghiệm (Template)
 
-**Hướng gỡ lỗi tiếp theo:**
-Để xác định nguyên nhân chính, chúng ta sẽ áp dụng phương pháp cô lập biến số:
-1.  **Tạm thời vô hiệu hóa logic mới:** Vô hiệu hóa các logic mới trong `p2_belief_update.py` và `p5_policy_adjust.py`.
-2.  **Chạy lại mô phỏng:** Chạy lại chương trình để xem hiệu suất có quay trở lại mức trước đó hay không, từ đó xác định tác động của từng thành phần.
+*Sao chép và điền thông tin cho các lần chạy thử nghiệm trong tương lai.*
+
+### Chạy thử lần X (Ngày XX/XX/XXXX): [Tên thử nghiệm]
+*   **Mục tiêu:** [Mô tả mục tiêu của thử nghiệm này]
+*   **Thiết lập Môi trường:** [Mô tả các thay đổi về môi trường, ví dụ: Stochastic, Slippery=0.2]
+*   **Thiết lập Thử nghiệm:** [Mô tả các nhóm thử nghiệm, số lần chạy, số episode]
+*   **Kết quả:** [Bảng hoặc tóm tắt kết quả chính]
+*   **Phân tích:** [Phân tích kết quả, giả thuyết có được xác nhận không, tại sao?]
+*   **Hướng đi tiếp theo:** [Dựa trên kết quả, bước tiếp theo là gì?]

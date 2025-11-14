@@ -98,7 +98,7 @@ Một đề xuất mang tính cách mạng và toàn diện như vậy chắc ch
 *   **Thiết kế quần thể:** Tạo một nhóm nhỏ (5-10) các EmotionalAgent với "tính cách" khác nhau.
 *   **Môi trường hợp tác/cạnh tranh:** Sử dụng các trò chơi kinh điển trong Lý thuyết Trò chơi (Song đề Tù nhân, Trò chơi Tối hậu thư) để đánh giá sự trỗi dậy của các hành vi xã hội phức tạp.
 *   **Cơ chế Hỏi:** Khi một tác nhân ở trạng thái "không biết", nó có thể gửi một "truy vấn" đến các tác nhân khác.
-*   **Đo lường:** Phân tích nhật ký giao tiếp để xem liệu các "chuẩn mực xã hội" (ví dụ: quy tắc "có đi có lại") có được hình thành để tối đa hóa lợi ích chung hay không. Quan sát sự xuất hiện Châu Âu các hành vi liên quan đến "ghen tị" hoặc "đồng cảm".
+*   **Đo lường:** Phân tích nhật ký giao tiếp để xem liệu các "chuẩn mực xã hội" (ví dụ: quy tắc "có đi có lại") có được hình thành để tối đa hóa lợi ích chung hay không. Quan sát sự xuất hiện của các hành vi liên quan đến "ghen tị" hoặc "đồng cảm".
 
 ### Giai đoạn 3: Phân tầng xã hội, ký ức tập thể và động lực liên thế hệ
 

@@ -1,10 +1,25 @@
 import json
 import time
 import torch
+import random
+import numpy as np
+import pandas as pd
+import argparse
+import os
+from typing import Dict, Any
 from src.context import AgentContext
 from src.process_registry import REGISTRY, ENVIRONMENT_AWARE_PROCESSES
 from environment import GridWorld
 from src.models import EmotionCalculatorMLP
+
+def recursive_update(d, u):
+    """Recursively update a dictionary."""
+    for k, v in u.items():
+        if isinstance(v, dict):
+            d[k] = recursive_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
 
 def run_workflow(workflow_steps: list, context: AgentContext, environment: GridWorld):
     """
@@ -26,25 +41,38 @@ def run_workflow(workflow_steps: list, context: AgentContext, environment: GridW
             context = process_func(context)
     return context
 
-def main():
+def run_simulation(num_episodes: int, output_path: str, settings_override: Dict[str, Any], seed: int):
     """
-    Điểm khởi chạy chính của chương trình.
+    Chạy vòng lặp mô phỏng chính của tác nhân.
     """
     print("--- BẮT ĐẦU CHƯƠNG TRÌNH MÔ PHỎNG TÁC NHÂN HỌC TẬP ---")
 
-    # 1. Tải cấu hình
+    # 1. Tải cấu hình mặc định
     with open("configs/settings.json", "r") as f:
         settings = json.load(f)
     with open("configs/agent_workflow.json", "r") as f:
         workflow = json.load(f)
+
+    # Áp dụng ghi đè cấu hình từ tham số
+    if settings_override:
+        settings = recursive_update(settings, settings_override)
+        print(f"Đã áp dụng ghi đè cấu hình: {settings_override}")
+    print(f"DEBUG: Settings after override: {settings}")
+
+    # Áp dụng seed
+    if seed is not None:
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        print(f"Đã đặt seed ngẫu nhiên: {seed}")
 
     # 2. Khởi tạo Môi trường, Tác nhân và Model (CHỈ MỘT LẦN)
     environment = GridWorld(settings)
     context = AgentContext(settings)
     
     n_dim = len(settings['initial_needs'])
-    b_dim = 2
-    m_dim = 1
+    b_dim = 2 # agent_pos (x, y)
+    m_dim = 1 # m_vector is currently a placeholder, so 1 dimension
     e_dim = len(settings['initial_emotions'])
     emotion_model = EmotionCalculatorMLP(n_dim, b_dim, m_dim, e_dim)
     optimizer = torch.optim.Adam(emotion_model.parameters(), lr=settings['mlp_learning_rate'])
@@ -52,43 +80,79 @@ def main():
     context.emotion_model = emotion_model
     context.emotion_optimizer = optimizer
 
-    # 3. Chạy vòng lặp mô phỏng theo từng episode
-    num_episodes = settings.get("num_episodes", 10)
-    all_episode_steps = []
+    episode_data = [] # Danh sách để lưu dữ liệu của từng episode
 
+    # 3. Chạy vòng lặp mô phỏng theo từng episode
     for episode in range(num_episodes):
-        print(f"\n{'='*10} Bắt đầu Episode {episode + 1}/{num_episodes} {'='*10}")
+        # print(f"\n{'='*10} Bắt đầu Episode {episode + 1}/{num_episodes} {'='*10}")
         
         # Reset môi trường và các trạng thái tạm thời của context
-        context.current_observation = environment.reset()
+        environment.reset()
+        context.current_observation = environment.get_observation() # Lấy quan sát ban đầu sau reset
         context.previous_observation = None
         context.td_error = 0.0
+        context.last_reward = {'extrinsic': 0.0, 'intrinsic': 0.0} # Reset rewards for new episode
+        
+        episode_total_reward = 0
+        is_successful = False
 
         while not environment.is_done():
-            environment.render()
-            print(f"Episode {episode + 1} | Step {environment.current_step}")
-            print(f"Trạng thái tác nhân:\n{context}")
+            # environment.render() # Tắt render để chạy nhanh hơn
+            # print(f"Episode {episode + 1} | Step {environment.current_step}")
+            # print(f"Trạng thái tác nhân:\n{context}")
             
             context = run_workflow(workflow['steps'], context, environment)
+            episode_total_reward += context.last_reward['extrinsic'] + context.last_reward['intrinsic']
             
-            time.sleep(0.01) # Giảm thời gian chờ để chạy nhanh hơn
+            # time.sleep(0.01) # Giảm thời gian chờ để chạy nhanh hơn
 
-        environment.render()
+        # environment.render() # Tắt render để chạy nhanh hơn
         if tuple(environment.agent_pos) == environment.goal_pos:
-            print(f"*** THÀNH CÔNG! Tác nhân đã đến đích sau {environment.current_step} bước. ***")
-        else:
-            print(f"--- THẤT BẠI! Tác nhân không đến được đích sau {environment.max_steps} bước. ---")
+            # print(f"*** THÀNH CÔNG! Tác nhân đã đến đích sau {environment.current_step} bước. ***")
+            is_successful = True
+        # else:
+            # print(f"--- THẤT BẠI! Tác nhân không đến được đích sau {environment.max_steps} bước. ---")
         
-        all_episode_steps.append(environment.current_step)
-        # time.sleep(0.1) # Giảm thời gian chờ
+        # Lưu dữ liệu của episode
+        episode_data.append({
+            'episode': episode + 1,
+            'success': is_successful,
+            'steps': environment.current_step,
+            'total_reward': episode_total_reward,
+            'final_exploration_rate': context.policy['exploration_rate']
+        })
 
-    print("\n--- KẾT THÚC CHƯƠNG TRÌNH MÔ PHỎNG ---")
-    successful_episodes = sum(1 for s in all_episode_steps if s < settings['max_steps_per_episode'])
-    print(f"Tỷ lệ thành công: {successful_episodes / num_episodes * 100:.1f}%")
-    if successful_episodes > 0:
-        avg_steps_on_success = sum(s for s in all_episode_steps if s < settings['max_steps_per_episode']) / successful_episodes
-        print(f"Số bước trung bình cho các episode thành công: {avg_steps_on_success:.2f}")
+    print(f"\n--- KẾT THÚC CHƯƠNG TRÌNH MÔ PHỎNG sau {num_episodes} episodes ---")
+    
+    # Lưu dữ liệu vào CSV nếu output_path được cung cấp
+    if output_path:
+        df = pd.DataFrame(episode_data)
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        df.to_csv(output_path, index=False)
+        print(f"Đã lưu kết quả mô phỏng vào: {output_path}")
 
+def main():
+    parser = argparse.ArgumentParser(description="Chạy mô phỏng tác nhân học tập cảm xúc.")
+    parser.add_argument("--num-episodes", type=int, default=None,
+                        help="Số lượng episode để chạy. Mặc định lấy từ settings.json.")
+    parser.add_argument("--output-path", type=str, default=None,
+                        help="Đường dẫn để lưu file CSV kết quả của mỗi episode.")
+    parser.add_argument("--settings-override", type=str, default="{}",
+                        help="JSON string để ghi đè các thiết lập trong settings.json.")
+    parser.add_argument("--seed", type=int, default=None,
+                        help="Seed ngẫu nhiên để đảm bảo khả năng tái lập.")
+
+    args = parser.parse_args()
+
+    # Tải cấu hình mặc định để lấy giá trị num_episodes nếu không được cung cấp qua CLI
+    with open("configs/settings.json", "r") as f:
+        default_settings = json.load(f)
+    
+    num_episodes = args.num_episodes if args.num_episodes is not None else default_settings.get("num_episodes", 10)
+    
+    settings_override_dict = json.loads(args.settings_override)
+
+    run_simulation(num_episodes, args.output_path, settings_override_dict, args.seed)
 
 if __name__ == "__main__":
     main()
