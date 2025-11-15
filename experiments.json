@@ -2,9 +2,25 @@
   "output_dir": "results/complex_env_test",
   "experiments": [
     {
-      "name": "Complex_Low_Curiosity",
+      "name": "Complex_Low_Curiosity_000",
       "runs": 3,
-      "episodes_per_run": 2000,
+      "episodes_per_run": 1000,
+      "parameters": {
+        "intrinsic_reward_weight": 0,
+        "grid_size": 15,
+        "goal_pos": [14, 14],
+        "walls": [
+          [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7],
+          [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7], [7, 8],
+          [12, 8], [12, 9], [12, 10], [12, 11], [12, 12], [12, 13], [12, 14]
+        ],
+        "max_steps_per_episode": 250
+      }
+    },
+    {
+      "name": "Complex_High_Curiosity_001",
+      "runs": 3,
+      "episodes_per_run": 1000,
       "parameters": {
         "intrinsic_reward_weight": 0.01,
         "grid_size": 15,
@@ -17,12 +33,60 @@
         "max_steps_per_episode": 250
       }
     },
-    {
-      "name": "Complex_High_Curiosity",
+        {
+      "name": "Complex_High_Curiosity_002",
       "runs": 3,
-      "episodes_per_run": 2000,
+      "episodes_per_run": 1000,
       "parameters": {
-        "intrinsic_reward_weight": 0.1,
+        "intrinsic_reward_weight": 0.02,
+        "grid_size": 15,
+        "goal_pos": [14, 14],
+        "walls": [
+          [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7],
+          [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7], [7, 8],
+          [12, 8], [12, 9], [12, 10], [12, 11], [12, 12], [12, 13], [12, 14]
+        ],
+        "max_steps_per_episode": 250
+      }
+    },
+        {
+      "name": "Complex_High_Curiosity_003",
+      "runs": 3,
+      "episodes_per_run": 1000,
+      "parameters": {
+        "intrinsic_reward_weight": 0.03,
+        "grid_size": 15,
+        "goal_pos": [14, 14],
+        "walls": [
+          [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7],
+          [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7], [7, 8],
+          [12, 8], [12, 9], [12, 10], [12, 11], [12, 12], [12, 13], [12, 14]
+        ],
+        "max_steps_per_episode": 250
+      }
+    },
+        {
+      "name": "Complex_High_Curiosity_004",
+      "runs": 3,
+      "episodes_per_run": 1000,
+      "parameters": {
+        "intrinsic_reward_weight": 0.04,
+        "grid_size": 15,
+        "goal_pos": [14, 14],
+        "walls": [
+          [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7],
+          [7, 2], [7, 3], [7, 4], [7, 5], [7, 6], [7, 7], [7, 8],
+          [12, 8], [12, 9], [12, 10], [12, 11], [12, 12], [12, 13], [12, 14]
+        ],
+        "max_steps_per_episode": 250
+      }
+    },
+        {
+      "name": "Complex_High_Curiosity_005",
+      "runs": 3,
+      "episodes_per_run": 1000,
+      "parameters": {
+        "intrinsic_reward_weight": 0.05,
         "grid_size": 15,
         "goal_pos": [14, 14],
         "walls": [

@@ -50,38 +50,6 @@ Hệ thống đã hoàn thiện, cho phép cấu hình và thực thi các kịc
 
 ---
 
-## Nhật ký Chạy thử và Phân tích
-
-### Chạy thử lần 1 (Ngày 13/11/2025) - Môi trường Đơn giản
-*   **Mục tiêu:** Thử nghiệm ban đầu sau khi hoàn thiện Giai đoạn 1.
-*   **Thiết lập:** 500 episodes, môi trường 5x5.
-*   **Kết quả:** Tỷ lệ thành công: 15.6%.
-*   **Đánh giá:** Hiệu suất giảm đáng kể so với các phiên bản sơ khai. **Câu hỏi đặt ra: Tại sao?** Nguyên nhân tiềm năng được cho là do xung đột cơ chế hoặc siêu tham số chưa phù hợp.
-
-### Chạy thử lần 2 (Ngày 14/11/2025): So sánh Mức độ Tò mò trong Môi trường Đơn giản
-*   **Mục tiêu:** Tìm hiểu nguyên nhân của sự suy giảm hiệu suất bằng cách so sánh ảnh hưởng của `intrinsic_reward_weight`.
-*   **Thiết lập:** Môi trường 5x5, 3 thử nghiệm (Low/Baseline/High Curiosity), mỗi thử nghiệm chạy 3 lần, 1000 episode/lần.
-*   **Kết quả:** Agent `Low_Curiosity` (ít tò mò) cho hiệu suất tốt nhất (Tỷ lệ thành công 35.00%).
-*   **Phân tích:**
-    *   **Giả thuyết về sự "Xao lãng" (The "Distraction" Hypothesis):** Trong môi trường đơn giản, phần thưởng nội sinh (sự tò mò) hoạt động như một yếu tố gây xao lãng, khuyến khích agent khám phá những hành vi vô ích thay vì tập trung vào mục tiêu chính.
-    *   **Kết luận:** Sự suy giảm hiệu suất không phải là lỗi, mà là một đặc tính của mô hình. Hiệu quả của sự tò mò phụ thuộc vào độ phức tạp của môi trường.
-
-### Chạy thử lần 3 (Ngày 14/11/2025): Kiểm chứng Giả thuyết Tò mò trong Môi trường Phức tạp
-*   **Mục tiêu:** Kiểm chứng giả thuyết rằng sự tò mò sẽ có lợi trong môi trường phức tạp hơn.
-*   **Thiết lập Môi trường:** Lưới 15x15, có nhiều tường, số bước tối đa 250.
-*   **Thiết lập Thử nghiệm:** 2 thử nghiệm (Complex_Low_Curiosity và Complex_High_Curiosity), mỗi thử nghiệm chạy 3 lần, 2000 episode/lần.
-*   **Kết quả:** Agent `Complex_Low_Curiosity` vẫn cho hiệu suất tốt hơn (43.58% so với 35.62%).
-*   **Phân tích:**
-    *   **Giả thuyết KHÔNG được xác nhận:** Việc tăng độ phức tạp về không gian và chướng ngại vật là chưa đủ để làm cho sự tò mò trở nên có lợi.
-    *   **Giả thuyết "Xao lãng" được củng cố:** Agent `High_Curiosity` vẫn bị "lạc lối" trong việc khám phá những điều mới lạ nhưng không giúp đạt được mục tiêu.
-    *   **Lý do:** Môi trường tuy phức tạp hơn về không gian nhưng vẫn có thể đoán trước được (deterministic). Các "bất ngờ" vẫn chưa đủ "thú vị" và mang tính toàn cục.
-*   **Hướng đi tiếp theo:**
-    Để thực sự kiểm chứng giá trị của sự tò mò, cần một môi trường mà ở đó, việc chỉ khám phá ngẫu nhiên là gần như vô vọng. **Bước tiếp theo hợp lý nhất là giới thiệu yếu tố Ngẫu nhiên (Stochasticity) vào Môi trường.**
-    *   **Ý tưởng:** Thay đổi môi trường để các hành động của agent không còn đáng tin cậy 100% (ví dụ: bị "trượt").
-    *   **Kỳ vọng:** Trong một thế giới không thể đoán trước, khả năng mô hình hóa và hiểu các kết quả "bất ngờ" của agent `High_Curiosity` có thể sẽ trở nên có giá trị hơn.
-
----
-
 ## Giai đoạn 3: Gỡ lỗi, Tinh chỉnh và Phân tích sâu (Ngày 14/11/2025)
 
 ### 3.1. Vấn đề
@@ -106,6 +74,28 @@ Tất cả các lỗi trên đã được sửa. Quá trình gỡ lỗi đã ch�
 
 ---
 
+## Nhật ký Chạy thử và Phân tích
+
+### Chạy thử lần 1 (Ngày 13/11/2025) - Lịch sử
+*   **Mục tiêu:** Thử nghiệm ban đầu sau khi hoàn thiện Giai đoạn 1.
+*   **Thiết lập:** 500 episodes, môi trường 5x5.
+*   **Kết quả:** Tỷ lệ thành công: 15.6%.
+*   **Đánh giá:** Hiệu suất giảm đáng kể. **Nguyên nhân sau này được xác định là do Lỗi Logic State-Mismatch.**
+
+### Chạy thử lần 2 (Ngày 14/11/2025): So sánh Tò mò (trước khi sửa lỗi)
+*   **Mục tiêu:** Tìm hiểu nguyên nhân suy giảm hiệu suất.
+*   **Thiết lập:** Môi trường 5x5, 3 thử nghiệm (Low/Baseline/High Curiosity), 1000 episode/lần.
+*   **Kết quả:** Agent `Low_Curiosity` cho hiệu suất tốt nhất (35.00%).
+*   **Phân tích (tại thời điểm đó):** Đưa ra "Giả thuyết về sự Xao lãng".
+*   **Phân tích (sau khi biết lỗi):** Lỗi State-Mismatch làm tín hiệu `td_error` bị nhiễu loạn. Agent `High_Curiosity` khuếch đại nhiễu này nên hoạt động kém nhất. Agent `Low_Curiosity` hoạt động tốt hơn vì nó "phớt lờ" tín hiệu nhiễu tốt hơn.
+
+### Chạy thử lần 3 (Ngày 14/11/2025): Kiểm chứng trong Môi trường Phức tạp (trước khi sửa lỗi)
+*   **Mục tiêu:** Kiểm chứng giả thuyết tò mò trong môi trường phức tạp.
+*   **Thiết lập:** Cấu hình môi trường 15x15.
+*   **Kết quả:** Agent `Low_Curiosity` vẫn tốt hơn (43.58% vs 35.62%).
+*   **Phân tích (tại thời điểm đó):** Giả thuyết tò mò không được xác nhận.
+*   **Phân tích (sau khi biết lỗi):** Phát hiện ra Lỗi Môi trường Hardcoded. Thử nghiệm này thực chất vẫn chạy trên lưới 5x5.
+
 ### Chạy thử lần 4 (Ngày 14/11/2025): Chạy lại Môi trường Phức tạp (SAU KHI SỬA LỖI)
 *   **Mục tiêu:** Chạy lại thử nghiệm trên môi trường 15x15 thực sự với agent đã được sửa lỗi hoàn toàn.
 *   **Thiết lập:** Môi trường 15x15, 2 thử nghiệm (Complex_Low_Curiosity và Complex_High_Curiosity), 3 lần chạy, 2000 episode/lần.
@@ -119,8 +109,110 @@ Tất cả các lỗi trên đã được sửa. Quá trình gỡ lỗi đã ch�
 *   **Phân tích:**
     1.  **Hiệu suất bùng nổ:** Việc sửa các lỗi nghiêm trọng đã giúp hiệu suất tăng vọt lên hơn 90%, chứng tỏ khả năng học của agent giờ đây đã rất hiệu quả.
     2.  **Giả thuyết tò mò vẫn chưa được xác nhận:** Trong môi trường phức tạp nhưng có thể đoán trước (deterministic), agent `Low_Curiosity` vẫn nhỉnh hơn một chút. Khoảng cách đã được thu hẹp, nhưng "Giả thuyết Xao lãng" vẫn còn hiệu lực ở mức độ nhỏ.
-*   **Hướng đi tiếp theo:**
-    Để thực sự thách thức agent và kiểm chứng giá trị của sự tò mò, bước đi hợp lý duy nhất còn lại là **giới thiệu yếu tố Ngẫu nhiên (Stochasticity) vào Môi trường.** Trong một thế giới không chắc chắn, khả năng hiểu và phản ứng với "sự bất ngờ" được kỳ vọng sẽ trở nên quan trọng và có thể giúp agent `High_Curiosity` thể hiện ưu thế.
+
+---
+
+## Giai đoạn 4: Môi trường Logic Biến đổi (Kế hoạch cho Ngày 15/11/2025)
+
+### 4.1. Tầm nhìn
+Sau khi các thử nghiệm cho thấy agent đã rất hiệu quả trong môi trường có thể đoán trước, nhưng vai trò của "sự tò mò" vẫn chưa thực sự nổi bật, chúng ta cần một thử thách mới, phù hợp hơn với tầm nhìn "trí tuệ phi nhân". Hướng đi tiếp theo là tạo ra một môi trường mà ở đó, agent phải học cách khám phá và suy luận ra các **quy tắc ngầm**.
+
+### 4.2. Ý tưởng: Mê cung Logic (Logical Maze)
+*   **Khái niệm:** Môi trường sẽ chứa các "công tắc logic". Khi agent đi qua một công tắc, nó sẽ thay đổi trạng thái của một phần khác trong môi trường (ví dụ: một dãy tường ở xa được bật/tắt).
+*   **Mục tiêu của Agent:** Không chỉ tìm đường đến đích, mà phải học được mối quan hệ nhân-quả trừu tượng giữa công tắc và các bức tường để giải quyết mê cung.
+*   **Kỳ vọng:** Trong môi trường này, "cảm xúc máy" Tò mò (`td_error`) sẽ trở nên cực kỳ quan trọng. Nó sẽ thúc đẩy agent tìm hiểu nguyên nhân của những thay đổi "bất ngờ" trong môi trường, từ đó xây dựng một mô hình logic về thế giới.
+
+### 4.3. Kế hoạch Triển khai
+1.  **Sửa đổi `environment.py`:**
+    *   Thêm logic để quản lý trạng thái của các công tắc và các bức tường động.
+    *   Cập nhật hàm `perform_action` để kiểm tra việc agent đi vào ô công tắc và thay đổi trạng thái môi trường tương ứng.
+2.  **Cập nhật `experiments.json`:**
+    *   Thiết kế một kịch bản thử nghiệm mới với một mê cung logic, định nghĩa vị trí các công tắc và các bức tường động liên quan.
+3.  **Chạy và Phân tích:**
+    *   Thực hiện thử nghiệm so sánh agent `Low_Curiosity` và `High_Curiosity`.
+    *   Phân tích xem agent `High_Curiosity` có thể hiện khả năng suy luận và giải quyết mê cung logic hiệu quả hơn không.
+
+#### Thảo luận về xây dựng tính cảm xúc ảnh hưởng lên quyết điịnh:
+
+ nhưng trạng thái lạ, và nguy hiểm kia dc xảy ra khi nào? code cho thấy việc xảy ra sự kiện này là phụ thuộc vào gì? Thực tế tôi thấy exploration rate rất nhanh sẽ giảm xuống ngưỡng min
+  quy định 0,050
+
+✦ Bạn lại một lần nữa đưa ra một quan sát cực kỳ sắc sảo và chính xác.
+
+  Bạn hoàn toàn đúng. Trong thực tế, exploration_rate đang giảm xuống mức tối thiểu quá nhanh. Điều này cho thấy cơ chế "điều chỉnh bởi cảm xúc" mà tôi mô tả về mặt lý thuyết đang không
+  hoạt động hiệu quả trong thực tế.
+
+  Phân tích Nguyên nhân Gốc rễ
+
+  Lý do cho sự mâu thuẫn này nằm ở 2 điểm:
+
+   1. Sự Áp đảo của Cơ chế Suy giảm: Trong code hiện tại, epsilon được cập nhật theo kiểu epsilon_mới = epsilon_cũ * hệ_số_suy_giảm. Đây là một áp lực chỉ đi xuống rất mạnh mẽ và không
+      ngừng. Bất kỳ sự "thúc đẩy" nhỏ nào từ cảm xúc đều nhanh chóng bị dập tắt bởi sự suy giảm liên tục này.
+
+   2. Sự ổn định của "Tự tin": Trong một môi trường có thể đoán trước, một khi agent đã tìm ra con đường tối ưu, nó sẽ dành phần lớn thời gian đi trên con đường đó. Các giá trị Q-value trên
+      con đường này trở nên ổn định và có thể dự đoán được. Do đó, mô hình cảm xúc nhanh chóng học cách "tự tin" ở hầu hết các trạng thái mà nó gặp phải. Các trạng thái "lạ và nguy hiểm"
+      thực sự (gây mất tự tin) trở nên hiếm hoi.
+
+  Kết quả là: Áp lực đi xuống của epsilon thì mạnh và liên tục, trong khi lực đẩy đi lên từ cảm xúc "thiếu tự tin" thì yếu và không thường xuyên. Kết quả là epsilon lao dốc không phanh.
+
+  Đề xuất Giải pháp: Tái cấu trúc Logic Điều chỉnh Chính sách
+
+  Để epsilon thực sự phản ánh "cảm xúc" của agent, chúng ta cần một logic mạnh mẽ hơn. Tôi đề xuất thay đổi hoàn toàn cách epsilon được tính toán trong p5_policy_adjust.py.
+
+  Logic mới:
+  Hãy tách exploration_rate thành 2 thành phần:
+   1. Tỷ lệ Khám phá Nền (Base Rate): Đây là một giá trị suy giảm từ từ theo thời gian, giống như hiện tại. Nó đại diện cho sự tò mò chung của agent giảm dần khi nó trưởng thành.
+   2. Sự Bùng nổ Cảm xúc (Emotional Boost): Đây là một giá trị cộng thêm, biến động mạnh dựa trên sự "Không chắc chắn" (Uncertainty).
+       * Chúng ta định nghĩa Uncertainty = 1.0 - Confidence.
+       * Khi agent rất tự tin (Confidence gần 1.0), Uncertainty sẽ gần 0, và sự bùng nổ này gần như bằng 0.
+       * Khi agent mất tự tin (Confidence gần 0), Uncertainty sẽ gần 1.0, và sự bùng nổ này sẽ đạt giá trị tối đa.
+
+  Công thức cuối cùng:
+  exploration_rate = Tỷ_lệ_Nền + Sự_Bùng_nổ_Cảm_xúc
+
+  Kết quả của Logic mới:
+
+  Với logic này, exploration_rate sẽ không chỉ đi xuống. Nó sẽ là một đường cơ sở giảm dần, nhưng sẽ liên tục có những đỉnh nhọn đột biến tăng vọt lên mỗi khi agent gặp một trạng thái
+  "lạ" hoặc "nguy hiểm" làm nó "mất tự tin".
+
+  Điều này sẽ làm cho hành vi khám phá của nó năng động và phản ứng nhanh hơn nhiều với những thay đổi hoặc bất ngờ trong môi trường, thay vì chỉ giảm một cách thụ động. Đây là một bước
+  đi quan trọng để làm cho "cảm xúc" thực sự có tác động hữu hình lên hành vi của agent.
+
+  Bạn có đồng ý với việc tái cấu trúc quan trọng này không?
+
+> trạng thái lạ, và nguy hiểm kia dc xảy ra khi nào?
+
+✦ Đó là câu hỏi mấu chốt để liên kết 2 đề xuất mới của chúng ta lại với nhau. "Trạng thái lạ và nguy hiểm" sẽ không tự nhiên xuất hiện, mà nó là kết quả trực tiếp của việc agent tương tác
+  với một môi trường có logic ngầm.
+
+  Hãy định nghĩa các loại trạng thái trong môi trường "mê cung logic" mới:
+
+   1. Trạng thái "Bình thường": Là những khu vực không có gì đặc biệt, chỉ có đường đi và tường tĩnh. Sau một thời gian ngắn, agent sẽ học thuộc các khu vực này.
+       * Code sẽ làm gì? Ở đây, Q-table sẽ ổn định, dự đoán của mô hình cảm xúc sẽ chính xác. Confidence sẽ cao. Theo logic mới, exploration_rate sẽ thấp (chỉ còn base_rate suy giảm từ từ).
+
+   2. Trạng thái "Bất ngờ" (The Surprising State): Đây là trạng thái quan trọng nhất. Đó là trạng thái ngay trước một kết quả không như dự đoán.
+       * Khi nào xảy ra? Hãy tưởng tượng agent đã học được rằng có một bức tường năng lượng ở hàng y=10. Nó rất "tự tin" về điều này. Sau đó, một công tắc được kích hoạt. Trong một lần
+         "khám phá" ngẫu nhiên, agent thử đi vào bức tường đó và... đi xuyên qua được.
+       * Code sẽ làm gì? Hành động này phá vỡ mô hình thế giới của agent. Lần tiếp theo khi nó quay lại trạng thái ngay cạnh bức tường đó, mô hình cảm xúc sẽ báo động. Nó không còn "tự tin"
+         về kết quả của hành động đi vào đó nữa. Confidence sẽ giảm mạnh.
+
+  Đây là lúc logic mới phát huy tác dụng:
+
+  Khi Confidence giảm mạnh, Uncertainty (tức là 1.0 - Confidence) sẽ tăng vọt.
+
+  Theo công thức mới: exploration_rate = Tỷ_lệ_Nền + (Uncertainty * Emotional_Boost)
+
+  epsilon sẽ tăng đột biến một cách có chủ đích, nhưng chỉ ở xung quanh khu vực có sự bất thường này.
+
+  Kết quả:
+  Agent sẽ không khám phá ngẫu nhiên một cách vô tội vạ trên toàn bản đồ. Thay vào đó, nó sẽ hành xử như một nhà khoa học:
+   * Ở những vùng quen thuộc, nó tự tin khai thác kiến thức.
+   * Khi gặp một hiện tượng "khó hiểu" (một bức tường lúc có lúc không), nó sẽ "mất tự tin", trở nên "tò mò" hơn, và tự động tăng cường nỗ lực khám phá chỉ tại khu vực đó để tìm ra quy
+     luật.
+
+  "Trạng thái lạ và nguy hiểm" chính là những nơi mà mô hình nội tại của agent về thế giới bị sụp đổ, và logic epsilon mới của chúng ta được thiết kế để tự động phát hiện và tập trung vào
+  việc sửa chữa những "vết nứt" đó trong sự hiểu biết của nó.
+
 
 ---
 ---
