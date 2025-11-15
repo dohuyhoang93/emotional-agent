@@ -228,3 +228,28 @@ Sau khi các thử nghiệm cho thấy agent đã rất hiệu quả trong môi 
 *   **Kết quả:** [Bảng hoặc tóm tắt kết quả chính]
 *   **Phân tích:** [Phân tích kết quả, giả thuyết có được xác nhận không, tại sao?]
 *   **Hướng đi tiếp theo:** [Dựa trên kết quả, bước tiếp theo là gì?]
+
+
+---
+
+### Chạy thử lần 5 (Ngày 15/11/2025): Thử nghiệm "Mê cung Logic"
+
+*   **Mục tiêu:** Kiểm chứng giả thuyết rằng tác nhân có "sự tò mò" cao (HighCuriosity) sẽ hoạt động hiệu quả hơn trong một môi trường đòi hỏi phải suy luận ra các quy tắc ngầm (mê cung có công tắc và tường động).
+*   **Thiết lập Môi trường:** Môi trường 10x10 với một công tắc tại [5, 2] điều khiển một bức tường động chặn đường đến đích [9, 9].
+*   **Thiết lập Thử nghiệm:**
+    *   LogicalMaze_LowCuriosity: emotional_boost_factor = 0.1, intrinsic_reward_weight = 0.01.
+    *   LogicalMaze_HighCuriosity: emotional_boost_factor = 0.8, intrinsic_reward_weight = 0.1.
+    *   Cả hai đều sử dụng logic exploration_rate mới. 3 lần chạy, 2000 episode/lần.
+*   **Kết quả:**
+
+| Thử nghiệm | Tỷ lệ Thành công | Số bước Trung bình (khi thành công) |
+| :--- | :--- | :--- |
+| **LogicalMaze_LowCuriosity** | **100.00%** | **9.20** |
+| **LogicalMaze_HighCuriosity** | 99.95% | 35.53 |
+
+*   **Phân tích:**
+    1.  **Giả thuyết thất bại:** Kết quả hoàn toàn trái ngược với kỳ vọng. Tác nhân LowCuriosity không chỉ thành công mà còn tìm ra lời giải nhanh hơn gần 4 lần so với tác nhân HighCuriosity.
+    2.  **"Giả thuyết Xao lãng" được củng cố:** Một khi con đường tối ưu (đi qua công tắc -> đến đích) được tìm thấy, nó trở thành một chuỗi hành động có thể đoán trước. Tác nhân LowCuriosity nhanh chóng khai thác con đường này. Ngược lại, tác nhân HighCuriosity quá nhạy cảm với sự thay đổi của môi trường. Việc kích hoạt công tắc có thể gây ra một "cú sốc" (TD-error lớn), làm nó "mất tự tin" và thúc đẩy các hành vi khám phá không cần thiết, làm giảm hiệu quả một cách đáng kể.
+    3.  **Bài học rút ra:** Môi trường "Mê cung Logic" với một quy tắc đơn lẻ vẫn chưa đủ phức tạp để chứng minh giá trị của sự tò mò. Sau khi quy tắc được học, môi trường lại trở nên có thể dự đoán được.
+
+*   **Hướng đi tiếp theo:** Cần một môi trường thực sự phi xác định (stochastic) hoặc có nhiều quy tắc logic phức tạp hơn, chồng chéo lên nhau để sự tò mò không chỉ là một công cụ tìm ra một "bí mật" duy nhất, mà là một chiến lược cần thiết để liên tục thích ứng.

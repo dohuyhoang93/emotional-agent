@@ -9,6 +9,7 @@ class AgentContext:
         # Các vector trạng thái nội tại
         self.N_vector: torch.Tensor = torch.tensor(settings['initial_needs'], dtype=torch.float32)
         self.E_vector: torch.Tensor = torch.tensor(settings['initial_emotions'], dtype=torch.float32)
+        self.confidence: float = 0.0 # Tách riêng để dễ truy cập, là E_vector[0]
 
         # Bộ nhớ
         self.short_term_memory: list = []
@@ -16,10 +17,14 @@ class AgentContext:
 
         # Chính sách và Hành động
         self.policy: dict = {
-            'exploration_rate': settings['initial_exploration'],
-            'exploration_decay': settings['exploration_decay'],
-            'min_exploration': settings['min_exploration']
+            'exploration_rate': settings.get('initial_exploration', 1.0),
+            'min_exploration': settings.get('min_exploration', 0.05)
         }
+        # Các tham số cho logic khám phá mới
+        self.base_exploration_rate: float = settings.get('initial_exploration', 1.0)
+        self.base_exploration_decay: float = settings.get('exploration_decay', 0.995)
+        self.emotional_boost_factor: float = settings.get('emotional_boost_factor', 0.5)
+
         self.selected_action = None
 
         # Dữ liệu từ môi trường
@@ -29,21 +34,21 @@ class AgentContext:
 
         # Các thành phần cho việc học
         self.q_table: dict = {}
-        self.learning_rate: float = settings['learning_rate']
-        self.discount_factor: float = settings['discount_factor']
+        self.learning_rate: float = settings.get('learning_rate', 0.1)
+        self.discount_factor: float = settings.get('discount_factor', 0.95)
         self.td_error: float = 0.0 # Lỗi chênh lệch thời gian, dùng làm thước đo "ngạc nhiên"
         
         # Các thành phần cho việc học của MLP Cảm xúc
         self.emotion_model = None
         self.emotion_optimizer = None
-        self.intrinsic_reward_weight: float = settings['intrinsic_reward_weight']
+        self.intrinsic_reward_weight: float = settings.get('intrinsic_reward_weight', 0.1)
 
 
     def __str__(self):
-        # Giả sử E_vector[0] là 'tin cậy', E_vector[1] là 'ngạc nhiên'
+        # Giả sử E_vector[0] là 'tin cậy' (confidence)
         return (
-            f"  E_vector: [tin cậy: {self.E_vector.detach().numpy()[0]:.3f}, ngạc nhiên: {self.E_vector.detach().numpy()[1]:.3f}, ...]\n"
-            f"  Policy: exploration_rate={self.policy['exploration_rate']:.3f}\n"
+            f"  Confidence: {self.confidence:.3f}\n"
+            f"  Policy: exploration_rate={self.policy['exploration_rate']:.3f} (base={self.base_exploration_rate:.3f})\n"
             f"  Last TD Error: {self.td_error:.3f}"
         )
 

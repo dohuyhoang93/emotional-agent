@@ -1,0 +1,21 @@
+--- BÁO CÁO TỔNG KẾT THỬ NGHIỆM ---
+Thời gian chạy: 2025-11-15 16:04:00
+Thư mục kết quả: results/logical_maze_test
+
+=== Thử nghiệm: LogicalMaze_LowCuriosity ===
+  Số lần chạy: 3
+  Số episode mỗi lần chạy: 2000
+  Tham số: {'grid_size': 10, 'start_pos': [0, 0], 'goal_pos': [9, 9], 'max_steps_per_episode': 300, 'initial_exploration': 1.0, 'min_exploration': 0.05, 'exploration_decay': 0.998, 'intrinsic_reward_weight': 0.01, 'emotional_boost_factor': 0.1, 'walls': [[0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5]], 'logical_switches': [{'pos': [5, 2], 'wall_id': 'wall_A'}], 'dynamic_walls': [{'id': 'wall_A', 'pos': [[9, 7], [8, 7], [7, 7], [6, 7]]}]}
+  Tỷ lệ thành công trung bình (tất cả episode): 100.00%
+  Số bước trung bình cho episode thành công: 9.20
+  Tỷ lệ khám phá cuối cùng trung bình: 0.1000
+
+
+=== Thử nghiệm: LogicalMaze_HighCuriosity ===
+  Số lần chạy: 3
+  Số episode mỗi lần chạy: 2000
+  Tham số: {'grid_size': 10, 'start_pos': [0, 0], 'goal_pos': [9, 9], 'max_steps_per_episode': 300, 'initial_exploration': 1.0, 'min_exploration': 0.05, 'exploration_decay': 0.998, 'intrinsic_reward_weight': 0.1, 'emotional_boost_factor': 0.8, 'walls': [[0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5]], 'logical_switches': [{'pos': [5, 2], 'wall_id': 'wall_A'}], 'dynamic_walls': [{'id': 'wall_A', 'pos': [[9, 7], [8, 7], [7, 7], [6, 7]]}]}
+  Tỷ lệ thành công trung bình (tất cả episode): 99.95%
+  Số bước trung bình cho episode thành công: 35.53
+  Tỷ lệ khám phá cuối cùng trung bình: 0.8000
+
