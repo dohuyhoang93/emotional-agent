@@ -253,3 +253,68 @@ Sau khi các thử nghiệm cho thấy agent đã rất hiệu quả trong môi 
     3.  **Bài học rút ra:** Môi trường "Mê cung Logic" với một quy tắc đơn lẻ vẫn chưa đủ phức tạp để chứng minh giá trị của sự tò mò. Sau khi quy tắc được học, môi trường lại trở nên có thể dự đoán được.
 
 *   **Hướng đi tiếp theo:** Cần một môi trường thực sự phi xác định (stochastic) hoặc có nhiều quy tắc logic phức tạp hơn, chồng chéo lên nhau để sự tò mò không chỉ là một công cụ tìm ra một "bí mật" duy nhất, mà là một chiến lược cần thiết để liên tục thích ứng.
+
+
+---
+
+### Chạy thử lần 6 (Ngày 15/11/2025): Thử nghiệm "Mê cung Logic Đa tầng" (4x4)
+
+*   **Mục tiêu:** Thử nghiệm quyết định nhằm xác định giá trị của sự tò mò trong một môi trường có độ phức tạp logic cao, bao gồm cả cổng AND và XOR.
+*   **Thiết lập Môi trường:** Môi trường 15x15 với 4 công tắc và 4 tường động, yêu cầu tác nhân phải học và thực hiện một chuỗi logic phụ thuộc lẫn nhau (ví dụ: (A và B) -> qua C, (C xor D) -> qua D).
+*   **Thiết lập Thử nghiệm:** 5 nhóm tác nhân với mức độ tò mò tăng dần từ 0 (không tò mò) đến 4 (rất tò mò). 3 lần chạy, 4000 episode/lần.
+*   **Kết quả:**
+
+| Mức độ Tò mò | Tỷ lệ Thành công | Số bước Trung bình (khi thành công) |
+| :--- | :--- | :--- |
+| 0 (Không) | **100.00%** | **8.87** |
+| 1 (Thấp) | 100.00% | 10.60 |
+| 2 (Vừa) | 100.00% | 16.28 |
+| 3 (Cao) | 99.98% | 35.32 |
+| 4 (Rất cao) | 99.62% | 123.56 |
+
+*   **Phân tích:**
+    1.  **Giả thuyết cuối cùng đã bị bác bỏ:** Kết quả không thể rõ ràng hơn. Ngay cả trong môi trường phức tạp nhất, tác nhân không có sự tò mò vẫn là tác nhân hiệu quả nhất.
+    2.  **Sự tò mò là một sự xao lãng có thể định lượng:** Có một mối tương quan trực tiếp, gần như tuyến tính trên thang log, giữa việc tăng độ tò mò và tăng số bước cần thiết để giải quyết vấn đề. Tác nhân tò mò nhất đã lãng phí tài nguyên gấp ~14 lần so với tác nhân không tò mò.
+    3.  **Bản chất của vấn đề:** Tác nhân tò mò dành quá nhiều thời gian để "hiểu" các quy tắc. Nó bị thu hút bởi sự bất ngờ của các cổng logic và thực hiện các thí nghiệm lặp đi lặp lại để xây dựng một mô hình nội tại hoàn chỉnh. Trong khi đó, tác nhân không tò mò chỉ cần tìm ra một chuỗi hành động hiệu quả một cách tình cờ và khai thác nó mãi mãi.
+
+---
+
+## KẾT LUẬN TOÀN BỘ DỰ ÁN
+
+Sau một loạt các thử nghiệm được thiết kế và thực thi một cách có hệ thống, từ các môi trường đơn giản đến các mê cung logic đa tầng phức tạp, chúng ta có thể rút ra một kết luận vững chắc, mặc dù nó trái với giả thuyết ban đầu của dự án:
+
+**Trong bối cảnh một tác nhân đơn lẻ hoạt động trong một môi trường có quy tắc ẩn nhưng cố định, với một mục tiêu đã được xác định rõ ràng, thì sự tò mò (được định nghĩa là một cơ chế tìm kiếm sự bất ngờ và được tưởng thưởng nội tại) là một trở ngại, làm giảm hiệu suất và lãng phí tài nguyên.**
+
+Dự án đã thành công trong việc:
+1.  Xây dựng một kiến trúc hướng quy trình (POP) mạnh mẽ để dàn dựng các thử nghiệm khoa học về AI.
+2.  Triển khai một tác nhân học tăng cường với "cảm xúc máy" có thể đo lường và có tác động đến hành vi.
+3.  Kiểm chứng và bác bỏ một cách thuyết phục "Giả thuyết về giá trị của sự tò mò" trong các điều kiện đã nêu.
+
+Kết quả này không làm giảm giá trị của sự tò mò nói chung, mà nó giúp chúng ta xác định rõ hơn những điều kiện mà ở đó sự tò mò thực sự cần thiết và có giá trị. Các hướng đi trong tương lai nên tập trung vào các môi trường có đặc tính khác, chẳng hạn như:
+*   **Môi trường có quy tắc thay đổi liên tục (non-stationary).**
+*   **Môi trường có nhiều tác nhân cạnh tranh/hợp tác.**
+*   **Các nhiệm vụ không có mục tiêu cụ thể ngoài việc khám phá và lập bản đồ thế giới.**
+
+Dự án EmotionAgent, với kết quả này, đã hoàn thành sứ mệnh của nó là trả lời một câu hỏi khoa học cụ thể.
+
+---
+
+### Phân tích Bổ sung: Tốc độ Tìm ra Lời giải Tối ưu
+
+Để hiểu rõ hơn về tác động của sự tò mò, chúng ta đã phân tích số episode đầu tiên mà mỗi tác nhân tìm thấy con đường ngắn nhất (8 bước) trong bất kỳ lần chạy nào.
+
+| Mức độ Tò mò | Episode đầu tiên đạt 8 bước (Tổng thể) |
+| :--- | :--- |
+| 0 (Không) | **30** |
+| 1 (Thấp) | **23** |
+| 2 (Vừa) | 67 |
+| 3 (Cao) | 513 |
+| 4 (Rất cao) | 869 |
+
+**Diễn giải:**
+
+*   **Tác nhân tò mò thấp học nhanh hơn:** Tác nhân `Lvl_1` (tò mò thấp) là tác nhân đầu tiên tìm thấy con đường tối ưu (8 bước) chỉ sau **23 episode** trong một lần chạy. Tác nhân `Lvl_0` (không tò mò) cũng khá nhanh, với 30 episode.
+*   **Tò mò quá cao làm chậm quá trình học:** Khi mức độ tò mò tăng lên, số episode cần thiết để lần đầu tiên tìm thấy con đường tối ưu cũng tăng lên đáng kể. Tác nhân `Lvl_4` (rất tò mò) phải mất tới **869 episode** trong lần chạy tốt nhất của nó, và thậm chí trong một lần chạy khác, nó không bao giờ tìm thấy con đường 8 bước.
+*   **Sự "xao lãng" ngay từ đầu:** Điều này cho thấy rằng sự tò mò cao không chỉ làm giảm hiệu quả sau khi học, mà còn làm chậm quá trình học ban đầu. Tác nhân tò mò cao có thể bị phân tâm bởi quá nhiều "sự bất ngờ" nhỏ nhặt trong môi trường, khiến nó mất nhiều thời gian hơn để tập trung vào việc giải quyết vấn đề chính.
+
+Phân tích này củng cố mạnh mẽ kết luận rằng sự tò mò, trong môi trường này, là một yếu tố gây xao lãng. Nó không chỉ làm tăng số bước trung bình mà còn làm chậm đáng kể thời gian cần thiết để tác nhân lần đầu tiên tìm thấy giải pháp tối ưu.
