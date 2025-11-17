@@ -68,10 +68,18 @@ def run_simulation(num_episodes: int, output_path: str, settings_override: Dict[
 
     # 2. Khởi tạo Môi trường, Tác nhân và Model (CHỈ MỘT LẦN)
     environment = GridWorld(settings)
+    
+    # Chuyển đổi logical_switches từ list of dicts sang dict {id: pos}
+    processed_switch_locations = {}
+    if 'environment_config' in settings and 'logical_switches' in settings['environment_config']:
+        for s in settings['environment_config']['logical_switches']:
+            processed_switch_locations[s['id']] = tuple(s['pos'])
+    settings['switch_locations'] = processed_switch_locations
+
     context = AgentContext(settings)
     
     n_dim = len(settings['initial_needs'])
-    b_dim = 2 # agent_pos (x, y)
+    b_dim = 6 # agent_pos (y, x) + 4 believed_switch_states
     m_dim = 1 # m_vector is currently a placeholder, so 1 dimension
     e_dim = len(settings['initial_emotions'])
     emotion_model = EmotionCalculatorMLP(n_dim, b_dim, m_dim, e_dim)

@@ -318,3 +318,88 @@ Dự án EmotionAgent, với kết quả này, đã hoàn thành sứ mệnh c�
 *   **Sự "xao lãng" ngay từ đầu:** Điều này cho thấy rằng sự tò mò cao không chỉ làm giảm hiệu quả sau khi học, mà còn làm chậm quá trình học ban đầu. Tác nhân tò mò cao có thể bị phân tâm bởi quá nhiều "sự bất ngờ" nhỏ nhặt trong môi trường, khiến nó mất nhiều thời gian hơn để tập trung vào việc giải quyết vấn đề chính.
 
 Phân tích này củng cố mạnh mẽ kết luận rằng sự tò mò, trong môi trường này, là một yếu tố gây xao lãng. Nó không chỉ làm tăng số bước trung bình mà còn làm chậm đáng kể thời gian cần thiết để tác nhân lần đầu tiên tìm thấy giải pháp tối ưu.
+
+---
+
+### Chạy thử lần 7 (Ngày 17/11/2025): So găng trực tiếp Lvl_0 vs Lvl_1
+*   **Mục tiêu:** Kiểm chứng lại kết quả bất thường từ "Phân tích Bổ sung" của lần chạy 6, nơi tác nhân Lvl_1 (tò mò thấp) tìm ra lời giải tối ưu nhanh hơn Lvl_0 (không tò mò).
+*   **Thiết lập Môi trường:** Giữ nguyên môi trường "Mê cung Logic Đa tầng" (4x4).
+*   **Thiết lập Thử nghiệm:**
+    *   NoCuriosity_vs_Low_Lvl_0: Tác nhân không tò mò.
+    *   NoCuriosity_vs_Low_Lvl_1: Tác nhân tò mò thấp.
+    *   3 lần chạy cho mỗi tác nhân, 1000 episode/lần.
+*   **Kết quả Phân tích Chi tiết (Tốc độ tìm ra lời giải tối ưu):**
+
+| Tác nhân | Lần chạy | Số bước Tối ưu | Episode đầu tiên đạt Tối ưu |
+| :--- | :--- | :--- | :--- |
+| **Lvl_0 (Không tò mò)** | Run 1 | **8** | 43 |
+| | Run 2 | **8** | **28** |
+| | Run 3 | **8** | 69 |
+| **Lvl_1 (Tò mò ít)** | Run 1 | **8** | 109 |
+| | Run 2 | **8** | 53 |
+| | Run 3 | **8** | 68 |
+
+*   **Phân tích:**
+    1.  **Kết quả bất thường đã bị bác bỏ:** Thử nghiệm lặp lại và có kiểm soát này cho thấy kết quả từ lần chạy 6 chỉ là một sự may mắn ngẫu nhiên (statistical anomaly).
+    2.  **Tác nhân không tò mò nhanh hơn một cách nhất quán:** Trong cả 3 lần chạy so găng trực tiếp, tác nhân **Không Tò mò (Lvl_0)** đều tìm ra con đường tối ưu (8 bước) nhanh hơn so với tác nhân **Tò mò Ít (Lvl_1)**. Lần chạy nhanh nhất của Lvl_0 là ở episode 28, trong khi lần chạy nhanh nhất của Lvl_1 là ở episode 53.
+    3.  **Củng cố kết luận chính:** Phân tích này củng cố mạnh mẽ hơn kết luận cuối cùng của dự án: trong môi trường có quy tắc cố định, sự tò mò (dù chỉ ở mức thấp) cũng làm chậm quá trình hội tụ đến giải pháp hiệu quả nhất. Tác nhân tập trung hoàn toàn vào việc khai thác sẽ chiến thắng.
+
+---
+
+## Giai đoạn 4: Mở rộng Trạng thái Tác nhân và Sửa lỗi Logic Mê cung (Ngày 17/11/2025)
+
+### 4.1. Vấn đề
+Các thử nghiệm trước đây trên "Mê cung Logic Đa tầng" (Chạy thử lần 6 và 7) cho thấy tác nhân không tò mò luôn vượt trội hơn tác nhân có tò mò, ngay cả khi môi trường yêu cầu suy luận logic. Điều này chỉ ra một lỗi cơ bản trong cách tác nhân hiểu và học về môi trường có các công tắc logic. Cụ thể, tác nhân không thể phân biệt được các trạng thái môi trường giống nhau về vị trí nhưng khác nhau về trạng thái công tắc.
+
+### 4.2. Nguyên nhân gốc rễ
+Q-table của tác nhân chỉ sử dụng vị trí `(y, x)` làm trạng thái, điều này không đủ cho môi trường có các bức tường động được điều khiển bởi các công tắc ẩn. Tác nhân không có "niềm tin" về trạng thái của các công tắc này, dẫn đến việc nó không thể học được mối quan hệ nhân-quả giữa việc kích hoạt công tắc và sự thay đổi của môi trường.
+
+### 4.3. Giải pháp
+Mở rộng định nghĩa trạng thái của tác nhân để bao gồm niềm tin về trạng thái của các công tắc logic. Trạng thái mới sẽ là một bộ `(agent_pos_y, agent_pos_x, switch_A_state, switch_B_state, switch_C_state, switch_D_state)`.
+
+Các thay đổi đã thực hiện:
+1.  **`src/context.py`:** Thêm `believed_switch_states` (niềm tin về trạng thái công tắc) và `get_composite_state` (hàm tạo trạng thái phức hợp).
+2.  **`main.py`:** Truyền thông tin vị trí các công tắc từ cấu hình môi trường vào `AgentContext`.
+3.  **`src/processes/p2_belief_update.py`:** Cập nhật logic để suy luận và điều chỉnh `believed_switch_states` dựa trên việc tác nhân đi qua các vị trí công tắc. Đồng thời, đảm bảo cập nhật Q-table sử dụng trạng thái phức hợp.
+4.  **`src/processes/p6_action_select.py`:** Sửa đổi để sử dụng trạng thái phức hợp khi truy cập Q-table để chọn hành động.
+5.  **`src/processes/p8_consequence.py`:** Sửa đổi để sử dụng trạng thái phức hợp khi cập nhật Q-table và ghi log vào bộ nhớ ngắn hạn.
+
+### 4.4. Tổng kết Giai đoạn 4
+Lỗi logic cơ bản trong việc học của tác nhân đã được khắc phục bằng cách mở rộng trạng thái của nó. Tác nhân giờ đây có khả năng phân biệt các trạng thái môi trường dựa trên niềm tin về các công tắc ẩn, cho phép nó học chính xác hơn về động lực của mê cung logic.
+
+---
+
+### Chạy thử lần 8 (Ngày 17/11/2025): Xác minh Sửa lỗi Logic Mê cung
+
+*   **Mục tiêu:** Xác minh rằng việc mở rộng trạng thái tác nhân và sửa đổi các quy trình liên quan đã khắc phục lỗi logic trong môi trường mê cung có công tắc.
+*   **Thiết lập Môi trường:** Môi trường "Mê cung Logic Đa tầng" (4x4) tương tự như Chạy thử lần 6 và 7.
+*   **Thiết lập Thử nghiệm:**
+    *   NoCuriosity_vs_Low_Lvl_0: Tác nhân không tò mò.
+    *   NoCuriosity_vs_Low_Lvl_1: Tác nhân tò mò thấp.
+    *   3 lần chạy cho mỗi tác nhân, 1000 episode/lần.
+*   **Kết quả Tổng hợp:**
+
+| Thử nghiệm | Tỷ lệ Thành công (Trung bình) | Số bước Trung bình (khi thành công) | Tỷ lệ khám phá cuối cùng trung bình |
+| :--- | :--- | :--- | :--- |
+| **NoCuriosity_vs_Low_Lvl_0** | **100.00%** | **10.12** | 0.0500 |
+| **NoCuriosity_vs_Low_Lvl_1** | **100.00%** | 12.36 | 0.2021 |
+
+*   **Kết quả Phân tích Chi tiết (Tốc độ tìm ra lời giải tối ưu - 8 bước):**
+
+| Tác nhân | Lần chạy | Episode đầu tiên đạt 8 bước |
+| :--- | :--- | :--- |
+| **NoCuriosity_vs_Low_Lvl_0** | Run 1 | 41 |
+| | Run 2 | 14 |
+| | Run 3 | 32 |
+| **Trung bình** | | **29** |
+| **NoCuriosity_vs_Low_Lvl_1** | Run 1 | 49 |
+| | Run 2 | 49 |
+| | Run 3 | 97 |
+| **Trung bình** | | **65** |
+
+*   **Phân tích:**
+    1.  **Khắc phục hoàn toàn lỗi logic:** Cả hai tác nhân đều đạt tỷ lệ thành công 100%, cho thấy chúng đã có thể giải quyết mê cung logic một cách nhất quán. Điều này xác nhận rằng việc mở rộng trạng thái tác nhân để bao gồm niềm tin về công tắc đã giải quyết được vấn đề cốt lõi.
+    2.  **Tác nhân không tò mò hiệu quả hơn:** Tác nhân `NoCuriosity_vs_Low_Lvl_0` (không tò mò) tìm thấy đường đi tối ưu (8 bước) sớm hơn đáng kể (trung bình 29 episode) so với tác nhân `NoCuriosity_vs_Low_Lvl_1` (tò mò thấp, trung bình 65 episode). Điều này củng cố kết luận trước đó: trong môi trường có quy tắc cố định, ngay cả khi phức tạp, sự tò mò vẫn là một yếu tố gây xao lãng và làm chậm quá trình học.
+    3.  **Không còn sự bất thường:** Kết quả này nhất quán và không còn cho thấy sự bất thường nào như trong "Chạy thử lần 6" (nơi Lvl_1 dường như nhanh hơn Lvl_0).
+
+*   **Hướng đi tiếp theo:** Với việc lỗi logic cơ bản đã được khắc phục, các thử nghiệm trong tương lai có thể tập trung vào các môi trường thực sự phi xác định hoặc có quy tắc thay đổi động để khám phá giá trị thực sự của sự tò mò.

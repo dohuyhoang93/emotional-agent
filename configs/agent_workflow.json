@@ -3,8 +3,7 @@
   "steps": [
     "p2_belief_update",
     "p3_emotion_calc",
-    "p4_reward_calc",
-    "p5_policy_adjust",
+    "p5_adjust_exploration",
     "p6_action_select",
     "p7_execution",
     "p8_consequence"

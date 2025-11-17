@@ -43,10 +43,27 @@ class AgentContext:
         self.emotion_optimizer = None
         self.intrinsic_reward_weight: float = settings.get('intrinsic_reward_weight', 0.1)
 
+        # --- Trạng thái niềm tin về thế giới ---
+        # Vị trí các công tắc, ví dụ: {'A': (1, 8), ...}
+        self.switch_locations: dict = settings.get('switch_locations', {}) 
+        # Niềm tin về trạng thái các công tắc, ví dụ: {'A': False, 'B': True, ...}
+        self.believed_switch_states: dict = {switch_id: False for switch_id in "ABCD"}
+
+
+    def get_composite_state(self, agent_pos: tuple) -> tuple:
+        """
+        Tạo ra một "trạng thái phức hợp" đầy đủ bằng cách kết hợp vị trí của agent
+        với niềm tin về trạng thái của các công tắc.
+        Đây sẽ là key cho Q-table.
+        """
+        # Lấy trạng thái của các công tắc theo thứ tự alphabet để đảm bảo nhất quán
+        switch_states = tuple(self.believed_switch_states[key] for key in sorted(self.believed_switch_states.keys()))
+        return agent_pos + switch_states
 
     def __str__(self):
         # Giả sử E_vector[0] là 'tin cậy' (confidence)
         return (
+            f"  Believed Switches: {{'A': {self.believed_switch_states['A']}, 'B': {self.believed_switch_states['B']}, 'C': {self.believed_switch_states['C']}, 'D': {self.believed_switch_states['D']}}}\n"
             f"  Confidence: {self.confidence:.3f}\n"
             f"  Policy: exploration_rate={self.policy['exploration_rate']:.3f} (base={self.base_exploration_rate:.3f})\n"
             f"  Last TD Error: {self.td_error:.3f}"

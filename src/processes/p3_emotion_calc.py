@@ -10,7 +10,15 @@ def calculate_emotions(context: AgentContext) -> AgentContext:
     
     # Chuẩn bị các vector đầu vào cho MLP
     n_vector = context.N_vector
-    b_vector = torch.tensor(context.current_observation['agent_pos'], dtype=torch.float32)
+    
+    # Tạo b_vector phức hợp: vị trí + niềm tin công tắc
+    pos_tensor = torch.tensor(context.current_observation['agent_pos'], dtype=torch.float32)
+    switch_states_tensor = torch.tensor(
+        [float(context.believed_switch_states[key]) for key in sorted(context.believed_switch_states.keys())],
+        dtype=torch.float32
+    )
+    b_vector = torch.cat((pos_tensor, switch_states_tensor))
+
     m_vector = torch.zeros(1) 
 
     # Nối các vector lại

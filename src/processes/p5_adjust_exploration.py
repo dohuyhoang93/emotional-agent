@@ -1,6 +1,6 @@
 from src.context import AgentContext
 
-def p5_policy_adjust(context: AgentContext) -> AgentContext:
+def adjust_exploration(context: AgentContext) -> AgentContext:
     """
     Process điều chỉnh chính sách hành vi dựa trên Cảm xúc Máy (E_vector).
     Sử dụng logic mới: exploration_rate = base_rate + emotional_boost.

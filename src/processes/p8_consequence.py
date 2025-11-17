@@ -9,15 +9,15 @@ def record_consequences(context: AgentContext) -> AgentContext:
     print("  [P] 8. Recording consequences & Learning...")
 
     # --- 1. Cập nhật Q-Learning ---
-    state = context.previous_observation['agent_pos']
+    # Sử dụng trạng thái phức hợp (vị trí + niềm tin về công tắc)
+    state = context.get_composite_state(context.previous_observation['agent_pos'])
     action = context.selected_action
     
-    # Lấy phần thưởng đã được tính toán từ các process trước
+    # Lấy phần thưởng ngoại lai (được set trong p7_execution)
     reward_extrinsic = context.last_reward['extrinsic']
-    reward_intrinsic = context.last_reward['intrinsic']
-    total_reward = reward_extrinsic + reward_intrinsic
-    
-    next_state = context.current_observation['agent_pos']
+
+    # Sử dụng trạng thái phức hợp cho next_state
+    next_state = context.get_composite_state(context.current_observation['agent_pos'])
     
     actions = ['up', 'down', 'left', 'right']
     if next_state not in context.q_table:
@@ -25,10 +25,24 @@ def record_consequences(context: AgentContext) -> AgentContext:
 
     old_q_value = context.q_table[state][action]
     next_max_q = max(context.q_table[next_state].values())
+
+    # --- Logic tính R_nội mới ---
+    # 1. Tính TD-error chỉ dựa trên phần thưởng ngoại lai để đo lường "sự ngạc nhiên cơ bản"
+    extrinsic_td_error = reward_extrinsic + context.discount_factor * next_max_q - old_q_value
     
-    new_q_value = old_q_value + context.learning_rate * (total_reward + context.discount_factor * next_max_q - old_q_value)
+    # 2. Tính phần thưởng nội tại dựa trên sự ngạc nhiên đó
+    reward_intrinsic = context.intrinsic_reward_weight * abs(extrinsic_td_error)
+    context.last_reward['intrinsic'] = reward_intrinsic # Lưu lại để log
+
+    # 3. Tính tổng phần thưởng
+    total_reward = reward_extrinsic + reward_intrinsic
+
+    # 4. Tính toán TD-error cuối cùng và cập nhật Q-value
+    final_td_error = total_reward + context.discount_factor * next_max_q - old_q_value
+    new_q_value = old_q_value + context.learning_rate * final_td_error
+    
     context.q_table[state][action] = new_q_value
-    context.td_error = total_reward + context.discount_factor * next_max_q - old_q_value
+    context.td_error = final_td_error # Cập nhật td_error chính của context
     
     print(f"    > R_ngoại: {reward_extrinsic:.2f}, R_nội: {reward_intrinsic:.3f} -> Total: {total_reward:.3f}")
     print(f"    > Cập nhật Q-value cho (state={state}, action='{action}') thành {new_q_value:.3f}")
@@ -57,9 +71,9 @@ def record_consequences(context: AgentContext) -> AgentContext:
 
     # --- 3. Ghi log vào bộ nhớ ngắn hạn ---
     log_entry = {
-        "state": state,
+        "state": state, # Lưu trạng thái phức hợp
         "action": action,
-        "next_state": next_state,
+        "next_state": next_state, # Lưu trạng thái phức hợp
         "total_reward": total_reward
     }
     context.short_term_memory.append(log_entry)

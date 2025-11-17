@@ -1,0 +1,21 @@
+--- BÁO CÁO TỔNG KẾT THỬ NGHIỆM ---
+Thời gian chạy: 2025-11-17 09:38:37
+Thư mục kết quả: results/no_vs_low_curiosity_test
+
+=== Thử nghiệm: NoCuriosity_vs_Low_Lvl_0 ===
+  Số lần chạy: 3
+  Số episode mỗi lần chạy: 1000
+  Tham số: {'grid_size': 15, 'start_pos': [0, 0], 'goal_pos': [14, 14], 'max_steps_per_episode': 600, 'initial_exploration': 1.0, 'min_exploration': 0.05, 'exploration_decay': 0.9995, 'intrinsic_reward_weight': 0.0, 'emotional_boost_factor': 0.0, 'walls': [[0, 4], [1, 4], [2, 4], [3, 4], [4, 1], [4, 2], [4, 3], [4, 4], [11, 0], [11, 1], [11, 2], [11, 3], [10, 4], [10, 5], [10, 6], [10, 7], [10, 8], [10, 9], [10, 10], [4, 10], [5, 10], [6, 10], [7, 10], [8, 10], [9, 10]], 'logical_switches': [{'pos': [1, 8], 'id': 'A'}, {'pos': [8, 1], 'id': 'B'}, {'pos': [8, 13], 'id': 'C'}, {'pos': [13, 8], 'id': 'D'}], 'dynamic_walls': [{'id': 'wall_A', 'pos': [[1, 1]]}, {'id': 'wall_B', 'pos': [[2, 2]]}, {'id': 'wall_C', 'pos': [[0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [8, 7], [9, 7]]}, {'id': 'wall_D', 'pos': [[12, 11], [12, 12], [12, 13], [12, 14]]}]}
+  Tỷ lệ thành công trung bình (tất cả episode): 100.00%
+  Số bước trung bình cho episode thành công: 10.14
+  Tỷ lệ khám phá cuối cùng trung bình: 0.0500
+
+
+=== Thử nghiệm: NoCuriosity_vs_Low_Lvl_1 ===
+  Số lần chạy: 3
+  Số episode mỗi lần chạy: 1000
+  Tham số: {'grid_size': 15, 'start_pos': [0, 0], 'goal_pos': [14, 14], 'max_steps_per_episode': 600, 'initial_exploration': 1.0, 'min_exploration': 0.05, 'exploration_decay': 0.9995, 'intrinsic_reward_weight': 0.02, 'emotional_boost_factor': 0.2, 'walls': [[0, 4], [1, 4], [2, 4], [3, 4], [4, 1], [4, 2], [4, 3], [4, 4], [11, 0], [11, 1], [11, 2], [11, 3], [10, 4], [10, 5], [10, 6], [10, 7], [10, 8], [10, 9], [10, 10], [4, 10], [5, 10], [6, 10], [7, 10], [8, 10], [9, 10]], 'logical_switches': [{'pos': [1, 8], 'id': 'A'}, {'pos': [8, 1], 'id': 'B'}, {'pos': [8, 13], 'id': 'C'}, {'pos': [13, 8], 'id': 'D'}], 'dynamic_walls': [{'id': 'wall_A', 'pos': [[1, 1]]}, {'id': 'wall_B', 'pos': [[2, 2]]}, {'id': 'wall_C', 'pos': [[0, 7], [1, 7], [2, 7], [3, 7], [4, 7], [5, 7], [6, 7], [8, 7], [9, 7]]}, {'id': 'wall_D', 'pos': [[12, 11], [12, 12], [12, 13], [12, 14]]}]}
+  Tỷ lệ thành công trung bình (tất cả episode): 100.00%
+  Số bước trung bình cho episode thành công: 12.30
+  Tỷ lệ khám phá cuối cùng trung bình: 0.2021
+

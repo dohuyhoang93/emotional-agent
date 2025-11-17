@@ -1,4 +1,5 @@
 import json
+import argparse
 from src.experiment_context import OrchestrationContext
 from src.orchestration_processes.p_load_config import p_load_config
 from src.orchestration_processes.p_run_simulations import p_run_simulations
@@ -38,10 +39,22 @@ def run_orchestration_workflow(workflow_steps: list, context: OrchestrationConte
     return context
 
 def main():
-    print("--- BẮT ĐẦU QUY TRÌNH DÀN DỰNG THỬ NGHIỆM ---")
+    # --- Sửa lỗi: Thêm xử lý tham số dòng lệnh ---
+    parser = argparse.ArgumentParser(description="Chạy quy trình dàn dựng thử nghiệm cho các agent cảm xúc.")
+    parser.add_argument(
+        '--config',
+        type=str,
+        default='experiments.json',
+        help='Đường dẫn đến file JSON cấu hình thử nghiệm.'
+    )
+    args = parser.parse_args()
+    # ---------------------------------------------
 
-    # 1. Khởi tạo OrchestrationContext
-    context = OrchestrationContext(config_path="experiments.json")
+    print("--- BẮT ĐẦU QUY TRÌNH DÀN DỰNG THỬ NGHIỆM ---")
+    print(f"--- Sử dụng file cấu hình: {args.config} ---")
+
+    # 1. Khởi tạo OrchestrationContext với đường dẫn file cấu hình từ tham số
+    context = OrchestrationContext(config_path=args.config)
 
     # 2. Tải định nghĩa workflow
     with open("configs/orchestration_workflow.json", "r", encoding="utf-8") as f:

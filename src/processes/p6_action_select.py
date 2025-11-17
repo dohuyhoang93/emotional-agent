@@ -6,7 +6,8 @@ def select_action(context: AgentContext) -> AgentContext:
     print("  [P] 6. Selecting action...")
     
     actions = ['up', 'down', 'left', 'right']
-    state = context.current_observation['agent_pos']
+    # Sử dụng trạng thái phức hợp (vị trí + niềm tin về công tắc)
+    state = context.get_composite_state(context.current_observation['agent_pos'])
 
     # Khởi tạo Q-value cho trạng thái mới nếu chưa có
     if state not in context.q_table:
