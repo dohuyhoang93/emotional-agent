@@ -5,12 +5,12 @@
   "exploration_decay": 0.998,
   "min_exploration": 0.05,
   "num_episodes": 100,
-  "max_steps_per_episode": 3000,
+  "max_steps_per_episode": 500,
   "learning_rate": 0.11,
   "discount_factor": 0.95,
   "mlp_learning_rate": 0.001,
-  "intrinsic_reward_weight": 0.01,
-  "visual_mode": true,
+  "intrinsic_reward_weight": 0.02,
+  "visual_mode": false,
 
   "environment_config": {
           "grid_size": 25,

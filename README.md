@@ -97,7 +97,15 @@ Nếu bạn chỉ muốn chạy nhanh một lần mô phỏng để kiểm tra h
     ```
     Lưu ý: Chế độ này sẽ không lưu kết quả ra tệp CSV hoặc vẽ biểu đồ.
 
-## 4. Trạng thái Hiện tại và Hiểu biết Mới nhất
+## 4. Utility Scripts
+
+Ngoài các script cốt lõi của agent và hệ thống dàn dựng, dự án còn sử dụng một số script tiện ích để hỗ trợ quá trình phát triển, cấu hình và phân tích thử nghiệm:
+
+*   **`generate_config.py`**: Script này được sử dụng để tự động tạo ra các tệp cấu hình thử nghiệm phức tạp (ví dụ: `experiments_balanced_maze_v2.json`). Nó cho phép định nghĩa các mê cung phức tạp với tường tĩnh, công tắc logic và tường động một cách có hệ thống, giúp dễ dàng tạo ra các kịch bản thử nghiệm đa dạng.
+*   **`verify_environment.py`**: Dùng để trực quan hóa (render) một môi trường mê cung được định nghĩa trong tệp cấu hình JSON. Script này rất hữu ích trong quá trình thiết kế và gỡ lỗi môi trường, đảm bảo rằng cấu trúc mê cung và các yếu tố động hoạt động đúng như mong đợi trước khi chạy các thử nghiệm quy mô lớn.
+*   **`analyze_complexity_results.py`**: Script này được thiết kế để thực hiện phân tích sâu hơn trên dữ liệu kết quả của các thử nghiệm. Nó có thể tính toán các chỉ số như episode trung bình mà agent tìm thấy đường đi tối ưu, giúp đánh giá hiệu suất học tập và hội tụ của các agent một cách chi tiết hơn.
+
+## 5. Trạng thái Hiện tại và Hiểu biết Mới nhất
 
 *   **Hoàn thành:** Đã hoàn thành **Bước 1 (Prototype Agent)** và **Bước 2 (Hệ thống Dàn dựng Thử nghiệm)**.
 *   **Phát hiện chính:** Các thử nghiệm trên môi trường đơn giản (5x5) và phức tạp hơn (15x15) đều cho thấy một kết quả nhất quán và có phần phản trực giác: **agent có tính tò mò thấp (`Low_Curiosity`) cho hiệu suất tốt hơn agent có tính tò mò cao (`High_Curiosity`)**.

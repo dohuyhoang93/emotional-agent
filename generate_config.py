@@ -19,7 +19,8 @@ def generate_config():
     base_parameters = {
         "initial_exploration": 1.0,
         "min_exploration": 0.05,
-        "exploration_decay": 0.9995
+        "exploration_decay": 0.9995,
+        "visual_mode": False
     }
     
     # "Balanced Maze" v2 design
@@ -99,7 +100,7 @@ def generate_config():
         experiments.append({
             "name": f"BalancedMaze_{name}",
             "runs": 1,
-            "episodes_per_run": 500,
+            "episodes_per_run": 1000,
             "parameters": params
         })
 

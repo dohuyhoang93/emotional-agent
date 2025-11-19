@@ -403,3 +403,43 @@ Lỗi logic cơ bản trong việc học của tác nhân đã được khắc p
     3.  **Không còn sự bất thường:** Kết quả này nhất quán và không còn cho thấy sự bất thường nào như trong "Chạy thử lần 6" (nơi Lvl_1 dường như nhanh hơn Lvl_0).
 
 *   **Hướng đi tiếp theo:** Với việc lỗi logic cơ bản đã được khắc phục, các thử nghiệm trong tương lai có thể tập trung vào các môi trường thực sự phi xác định hoặc có quy tắc thay đổi động để khám phá giá trị thực sự của sự tò mò.
+
+### Chạy thử độc lập main.py lần 1 (Ngày 17/11/2025)
+
+Quan sát khi chạy debug visual_mode : true với logic belief_update và maze mới -> confidence nhanh chóng -> 0.0 và uncertainty -> 1.0
+
+---
+
+## Giai đoạn 5: Thử nghiệm Mê cung Cân bằng và Phân tích Sâu (Ngày 19/11/2025)
+
+### 5.1. Bối cảnh
+Sau khi khắc phục các lỗi logic cơ bản, các thử nghiệm trước đây vẫn cho thấy tác nhân không tò mò vượt trội trong các môi trường có quy tắc cố định. Tuy nhiên, các môi trường đó có thể chưa đủ phức tạp hoặc có những sai sót trong thiết kế (ví dụ: tạo ra các "lồng" không thể thoát ra). Giai đoạn này tập trung vào việc thiết kế một mê cung mới, phức tạp hơn nhưng được đảm bảo là có thể giải được ("Balanced Maze v2") và thực hiện một loạt phân tích sâu để hiểu rõ hành vi của các agent.
+
+### 5.2. Quá trình Thử nghiệm và Gỡ lỗi
+1.  **Thiết kế "Balanced Maze v2":** Một mê cung 25x25 mới được tạo ra bằng script `generate_config.py` với các hành lang được xác định rõ ràng, các cổng động được đặt một cách chiến lược và các công tắc có thể truy cập. Thiết kế này đã được xác minh trực quan bằng script `verify_environment.py` để đảm bảo không có khu vực nào bị cô lập hoàn toàn.
+2.  **Xác minh khả năng học cốt lõi:** Một thử nghiệm trên mê cung 5x5 tĩnh đơn giản đã được thực hiện, cho thấy agent có thể học với tỷ lệ thành công 78%, khẳng định thuật toán Q-learning cốt lõi không bị lỗi.
+3.  **Thử nghiệm ngắn (100 episode):**
+    *   **Mục tiêu:** Xác minh nhanh rằng "Balanced Maze v2" có thể giải được.
+    *   **Kết quả:** Lần đầu tiên, các agent đã đạt được tỷ lệ thành công khác 0 trong một mê cung phức tạp. `LowCuriosity` đạt 41%, `MediumCuriosity` đạt 38%, và `NoCuriosity` đạt 32%.
+    *   **Phân tích bất ngờ:** Agent `NoCuriosity` là agent duy nhất tìm thấy đường đi tối ưu (354 bước) tại episode 48, trong khi các agent tò mò hơn thì không. Điều này cho thấy `NoCuriosity` có thể "ăn may" nhưng các agent tò mò lại học một cách ổn định hơn (số bước trung bình có xu hướng giảm).
+
+### 5.3. Chạy thử lần 9: Thử nghiệm Dài hạn (1000 episode)
+*   **Mục tiêu:** Quan sát các xu hướng dài hạn và xác định xem sự học hỏi bền vững của các agent tò mò có vượt qua sự "ăn may" của agent không tò mò hay không.
+*   **Thiết lập:** "Balanced Maze v2", 1 lần chạy cho mỗi agent, 1000 episode/lần, `visual_mode` được tắt để tăng tốc độ.
+*   **Kết quả:**
+
+| Thử nghiệm | Tỷ lệ Thành công | Số bước Trung bình (khi thành công) | Tìm thấy đường đi tối ưu (99 bước)? |
+| :--- | :--- | :--- | :--- |
+| **NoCuriosity** | 2.40% | 326.46 | **Có (tại episode 833)** |
+| **LowCuriosity** | 2.90% | 353.79 | Không |
+| **MediumCuriosity** | **3.70%** | **299.03** | Không |
+
+*   **Phân tích:**
+    1.  **Phát hiện đường đi tối ưu mới:** Một đường đi ngắn hơn nhiều (99 bước) đã được phát hiện trong lần chạy dài này (được xác định bằng `analyze_complexity_results.py`), cho thấy tầm quan trọng của việc cho agent đủ thời gian để khám phá.
+    2.  **Sự đánh đổi giữa Tò mò và Hiệu quả:**
+        *   **Agent `MediumCuriosity`** nổi lên là agent hiệu quả nhất về tổng thể: tỷ lệ thành công cao nhất và số bước trung bình để thành công là thấp nhất. Nó học được cách giải quyết vấn đề một cách ổn định và hiệu quả, mặc dù không tìm ra con đường ngắn nhất tuyệt đối.
+        *   **Agent `NoCuriosity`** một lần nữa tìm thấy đường đi tối ưu, nhưng rất muộn (episode 833) và có tỷ lệ thành công chung rất thấp. Điều này củng cố giả thuyết rằng nó phụ thuộc vào may mắn và không có chiến lược học tập ổn định.
+    3.  **Kết luận cuối cùng (tạm thời):** Sự tò mò (đặc biệt ở mức độ vừa phải) giúp agent học một cách bền vững và đạt được hiệu suất trung bình tốt hơn trong các môi trường phức tạp. Việc không có tò mò khiến agent dễ bị mắc kẹt và chỉ có thể thành công một cách ngẫu nhiên.
+
+### 5.4. Hướng đi tiếp theo
+Các kết quả từ một lần chạy duy nhất rất hứa hẹn nhưng có thể bị nhiễu. Để có kết luận khoa học cuối cùng, bước tiếp theo là thực hiện một thử nghiệm đầy đủ với nhiều lần chạy (ví dụ: 5 lần) để lấy kết quả trung bình và đảm bảo tính nhất quán của các xu hướng đã quan sát.

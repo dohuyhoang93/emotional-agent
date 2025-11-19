@@ -6,7 +6,7 @@ def analyze_results(base_dir, optimal_steps):
     """
     Analyzes all run files to find the average episode number where the optimal path was first found.
     """
-    experiment_types = ["Complex_NoCuriosity", "Complex_LowCuriosity", "Complex_MediumCuriosity"]
+    experiment_types = ["BalancedMaze_NoCuriosity", "BalancedMaze_LowCuriosity", "BalancedMaze_MediumCuriosity"]
     results = {}
 
     for exp_type in experiment_types:
@@ -16,7 +16,8 @@ def analyze_results(base_dir, optimal_steps):
             continue
         
         convergence_episodes = []
-        for i in range(1, 11):
+        # We only ran 1 run for this verification, so we only check run_1.csv
+        for i in range(1, 2): # Changed from 11 to 2 to check run_1.csv only
             file_path = os.path.join(exp_dir, f"run_{i}.csv")
             if not os.path.exists(file_path):
                 print(f"File not found: {file_path}")
@@ -51,7 +52,7 @@ def analyze_results(base_dir, optimal_steps):
     return results
 
 if __name__ == "__main__":
-    base_results_dir = "results/complex_curiosity_comparison"
-    # The optimal path length is 8, as determined previously.
-    optimal_path_length = 8
+    base_results_dir = "results/balanced_maze_test"
+    # The optimal path length is 354, as determined by p_analyze_data.
+    optimal_path_length = 354
     analyze_results(base_results_dir, optimal_path_length)
