@@ -443,3 +443,47 @@ Sau khi khắc phục các lỗi logic cơ bản, các thử nghiệm trước �
 
 ### 5.4. Hướng đi tiếp theo
 Các kết quả từ một lần chạy duy nhất rất hứa hẹn nhưng có thể bị nhiễu. Để có kết luận khoa học cuối cùng, bước tiếp theo là thực hiện một thử nghiệm đầy đủ với nhiều lần chạy (ví dụ: 5 lần) để lấy kết quả trung bình và đảm bảo tính nhất quán của các xu hướng đã quan sát.
+
+---
+
+## Giai đoạn 6: Phân tích Hạn chế và Lộ trình Tương lai (Ngày 19/11/2025)
+
+### 6.1. Bối cảnh
+Sau khi các thử nghiệm đã cho thấy những kết quả đột phá, đây là thời điểm để tự phê bình một cách thẳng thắn, xác định các hạn chế cố hữu trong kiến trúc hiện tại và vạch ra một lộ trình phát triển chiến lược cho tương lai.
+
+### 6.2. Phân tích các "Lối mòn" Tiềm tàng
+
+Dù đã tránh được "lối mòn hộp đen" của các mô hình ML truyền thống, dự án vẫn có nguy cơ rơi vào các lối mòn khác:
+
+*   **Lối mòn 1: Vấn đề về Khả năng Mở rộng (Scalability)**
+    *   **Vấn đề:** Hướng tiếp cận Q-table hiện tại, nơi mỗi trạng thái khả dĩ của môi trường là một mục trong bộ nhớ, sẽ gặp phải "lời nguyền của không gian nhiều chiều". Số lượng trạng thái bùng nổ theo cấp số nhân với kích thước mê cung và số lượng công tắc, khiến cho việc lưu trữ và học hỏi trở nên bất khả thi trong các môi trường thực sự phức tạp.
+    *   **Hạn chế:** Đây là sự đánh đổi có ý thức để đạt được khả năng diễn giải, nhưng nó là một rào cản kỹ thuật lớn để mở rộng quy mô.
+
+*   **Lối mòn 2: Sự Phụ thuộc vào "Thiết kế Thủ công" (Hand-Crafted Design)**
+    *   **Vấn đề:** Dự án đang phụ thuộc nhiều vào các giả định của con người. Chúng ta đã "chỉ" cho agent biết rằng trạng thái công tắc là quan trọng, và mô hình cảm xúc cũng được xây dựng dựa trên một lý thuyết tâm lý cụ thể.
+    *   **Hạn chế:** Nếu các giả định này sai hoặc không đầy đủ, khả năng học của agent sẽ bị giới hạn. Đây là một đặc điểm của AI biểu tượng (Symbolic AI), trái ngược với các mô hình end-to-end có thể tự học các đặc trưng quan trọng.
+
+*   **Lối mòn 3: "Mô hình Đồ chơi trong Thế giới Đồ chơi"**
+    *   **Vấn đề:** Môi trường hiện tại, dù phức tạp, vẫn là một môi trường được kiểm soát với các quy tắc cố định. Các mô hình nội tại (MLP cảm xúc, Q-table) đủ đơn giản để hoạt động tốt ở đây, nhưng có thể không đủ mạnh để đối phó với một thế giới thực sự hỗn loạn và không ổn định.
+    *   **Hạn chế:** Có một khoảng cách rất lớn giữa việc thành công trong môi trường mô phỏng và hoạt động hiệu quả trong thực tế.
+
+### 6.3. Lộ trình Đối phó và Phát triển
+
+Để vượt qua những hạn chế này, một lộ trình phát triển theo từng giai đoạn được đề xuất:
+
+*   **Bước 1 (Ngắn hạn): Triển khai Môi trường "Không ổn định" (Non-Stationary)**
+    *   **Mục tiêu:** Trực tiếp kiểm chứng giá trị của kiến trúc cảm xúc-tò mò hiện tại.
+    *   **Hành động:** Sửa đổi `environment.py` để thêm vào các yếu tố bất định: (1) 10-20% xác suất hành động bị "trượt" (stochasticity), và (2) logic để các quy tắc của công tắc tự động thay đổi sau một số lượng lớn episode.
+    *   **Kỳ vọng:** Trong môi trường này, agent chỉ biết khai thác sẽ thất bại, trong khi agent có khả năng thích ứng nhờ tò mò sẽ thể hiện ưu thế rõ rệt.
+
+*   **Bước 2 (Trung hạn): Nâng cấp lên Deep Q-Network (DQN) lai**
+    *   **Mục tiêu:** Giải quyết vấn đề về khả năng mở rộng.
+    *   **Hành động:** Thay thế Q-table bằng một mạng nơ-ron (Q-Network) trong `src/models.py`. Mạng này sẽ học cách xấp xỉ giá trị Q từ `composite_state`. Quy trình `p8_consequence.py` sẽ được sửa đổi để thực hiện một bước huấn luyện (backpropagation) cho mạng này thay vì cập nhật bảng.
+    *   **Kỳ vọng:** Agent có thể hoạt động trong các môi trường lớn hơn nhiều mà không bị giới hạn bởi bộ nhớ.
+
+*   **Bước 3 (Dài hạn): Nghiên cứu Tự học Biểu diễn Trạng thái (Representation Learning)**
+    *   **Mục tiêu:** Giảm sự phụ thuộc vào "thiết kế thủ công".
+    *   **Hành động:** Sử dụng các kỹ thuật như Autoencoder để agent có thể tự động nén một "cái nhìn" cục bộ về môi trường thành một vector trạng thái có ý nghĩa, thay vì chúng ta phải định nghĩa trạng thái cho nó.
+    *   **Kỳ vọng:** Agent trở nên tổng quát và tự chủ hơn, có khả năng tự mình xác định các đặc trưng quan trọng trong các môi trường hoàn toàn mới.
+
+Bằng cách đi theo lộ trình này, dự án sẽ phát triển một cách có hệ thống từ một prototype có thể diễn giải nhưng giới hạn, trở thành một tác nhân mạnh mẽ, có khả năng mở rộng và tổng quát hơn.
