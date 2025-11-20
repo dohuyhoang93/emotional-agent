@@ -1,0 +1,13 @@
+--- BÁO CÁO TỔNG KẾT THỬ NGHIỆM ---
+Thời gian chạy: 2025-11-20 13:33:44
+Thư mục kết quả: results/multi_agent_test
+
+=== Thử nghiệm: MultiAgent_SocialLearning ===
+  Số lần chạy: 1
+  Số episode mỗi lần chạy: 10
+  Tham số: {'use_dynamic_curiosity': True, 'intrinsic_reward_weight': 0.05, 'visual_mode': True, 'environment_config': {'grid_size': 10, 'num_agents': 2, 'start_positions': [[0, 0], [0, 1]], 'goal_pos': [9, 9], 'max_steps_per_episode': 100, 'walls': [], 'logical_switches': [], 'dynamic_walls': [], 'dynamic_wall_rules': []}}
+  Tỷ lệ thành công trung bình (tất cả episode): 60.00%
+  Số bước trung bình cho episode thành công: 218.83
+  Tỷ lệ khám phá cuối cùng trung bình: 0.5361
+  Episode trung bình tìm ra đường tối ưu (94 bước): 3.00
+

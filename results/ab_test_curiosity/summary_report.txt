@@ -1,0 +1,23 @@
+--- BÁO CÁO TỔNG KẾT THỬ NGHIỆM ---
+Thời gian chạy: 2025-11-20 13:16:27
+Thư mục kết quả: results/ab_test_curiosity
+
+=== Thử nghiệm: StaticCuriosity ===
+  Số lần chạy: 3
+  Số episode mỗi lần chạy: 100
+  Tham số: {'use_dynamic_curiosity': False, 'intrinsic_reward_weight': 0.05, 'environment_config': {'grid_size': 25, 'start_pos': [0, 0], 'goal_pos': [24, 24], 'max_steps_per_episode': 1000, 'walls': [], 'logical_switches': [], 'dynamic_walls': [], 'dynamic_wall_rules': []}}
+  Tỷ lệ thành công trung bình (tất cả episode): 16.00%
+  Số bước trung bình cho episode thành công: 377.98
+  Tỷ lệ khám phá cuối cùng trung bình: 0.5000
+  Episode trung bình tìm ra đường tối ưu (150 bước): nan
+
+
+=== Thử nghiệm: AdaptiveCuriosity ===
+  Số lần chạy: 3
+  Số episode mỗi lần chạy: 100
+  Tham số: {'use_dynamic_curiosity': True, 'intrinsic_reward_weight': 0.05, 'environment_config': {'grid_size': 25, 'start_pos': [0, 0], 'goal_pos': [24, 24], 'max_steps_per_episode': 1000, 'walls': [], 'logical_switches': [], 'dynamic_walls': [], 'dynamic_wall_rules': []}}
+  Tỷ lệ thành công trung bình (tất cả episode): 16.00%
+  Số bước trung bình cho episode thành công: 370.65
+  Tỷ lệ khám phá cuối cùng trung bình: 0.5000
+  Episode trung bình tìm ra đường tối ưu (150 bước): 86.00
+

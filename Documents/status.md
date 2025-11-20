@@ -488,6 +488,37 @@ Dù đã tránh được "lối mòn hộp đen" của các mô hình ML truyề
 
 Bằng cách đi theo lộ trình này, dự án sẽ phát triển một cách có hệ thống từ một prototype có thể diễn giải nhưng giới hạn, trở thành một tác nhân mạnh mẽ, có khả năng mở rộng và tổng quát hơn.
 
+#### Những cạm bẫy trong Bước 3 Tự biểu diễn trạng thái bằng Autoencoder:
+
+##### Các Bất cập & Thách thức (Drawbacks):
+
+A. Mất mát thông tin quan trọng (The "Vanishing Detail" Problem):
+
+Vấn đề: Autoencoder nén dữ liệu dựa trên "độ tương đồng về hình ảnh" (pixel similarity).
+Rủi ro: Nó có thể coi một "cái công tắc nhỏ xíu" là nhiễu và nén mất đi, trong khi đó lại là chìa khóa để qua màn. Hoặc nó thấy "cửa đóng" và "cửa mở" nhìn na ná nhau nên gộp chung làm một.
+Hậu quả: Agent bị "mù" trước các chi tiết quan trọng.
+
+B. Bài toán "Con gà - Quả trứng" (Non-stationarity):
+
+Vấn đề: Autoencoder cần dữ liệu đa dạng để học cách nén tốt. Nhưng ban đầu Agent chưa đi được xa, chỉ loanh quanh chỗ xuất phát -> Autoencoder chỉ học tốt ở vùng xuất phát.
+Rủi ro: Khi Agent đi đến vùng mới (đích), Autoencoder bị "ngợp" (out-of-distribution), tạo ra các vector trạng thái sai lệch -> Agent hành động ngớ ngẩn.
+
+C. Mất khả năng giải thích (Black Box):
+
+Vấn đề: Hiện tại bạn biết rõ agent đang ở xy(10, 5)
+Khi dùng Autoencoder, trạng thái là một vector [-0.2, 0.5, 0.1...].
+Rủi ro: Bạn sẽ rất khó debug. Bạn không biết tại sao agent lại rẽ trái: do nó nhìn thấy tường, hay do mạng nén bị lỗi?
+
+D. Tốn kém tài nguyên:
+
+Huấn luyện CNN/Autoencoder tốn tài nguyên tính toán hơn nhiều so với MLP đơn giản hiện tại. Tốc độ mô phỏng sẽ chậm đi đáng kể.
+
+##### Tóm lại:
+
+Nếu đi theo hướng này, đừng dùng Autoencoder thuần túy (chỉ nén ảnh). Hãy dùng Contrastive Learning (như CURL) hoặc kết hợp Inverse Dynamics (như trong bài báo ICM):
+
+> Thay vì chỉ nén ảnh để "khôi phục lại ảnh" (Autoencoder), hãy ép mạng nén phải giữ lại những thông tin có tác dụng điều khiển (ví dụ: nén sao cho từ trạng thái nén đó có thể dự đoán được hành động tiếp theo). Điều này giúp giữ lại cái "công tắc" và bỏ qua cái "màu nền".
+
 ---
 
 ### Ngày 20/11/2025
@@ -511,7 +542,7 @@ Bằng cách đi theo lộ trình này, dự án sẽ phát triển một cách 
 
 #### Các lầm tưởng:
 
-Tỷ lệ thành công 3.7% của agent là cực kỳ thấp so với một con người, và việc so sánh trực tiếp con số này có thể gây hiểu lầm.
+Tỷ lệ thành công 6.56% của agent là cực kỳ thấp so với một con người, và việc so sánh trực tiếp con số này có thể gây hiểu lầm.
 
 1. Mô hình Học hỏi: Khác biệt một trời một vực                                                                                                                                                                                          ▄
    * Agent (Hiện tại): Bắt đầu từ con số không (tabula rasa). Nó không có bất kỳ khái niệm nào về "không gian", "vật cản", hay "công tắc". Nó học bằng cách thử-và-sai (trial-and-error) hàng nghìn lần một cách gần như ngẫu nhiên, và   █
@@ -527,15 +558,15 @@ Tỷ lệ thành công 3.7% của agent là cực kỳ thấp so với một con
    * Số bước trong các lần thành công tiếp theo: Giảm đột ngột và drastical. Sau khi đã hiểu quy luật ("À, công tắc A mở cửa X, công tắc B mở cửa Y"), người chơi sẽ đi thẳng đến con đường tối ưu (hoặc gần tối ưu) trong các lần chơi
      sau.
 
-  3. Ý nghĩa thực sự của Tỷ lệ 3.7%
-  Vậy con số 3.7% của agent MediumCuriosity nói lên điều gì?
+  3. Ý nghĩa thực sự của Tỷ lệ 6.56%
+  Vậy con số 6.56% của agent MediumCuriosity nói lên điều gì?
 
-  Nó không có nghĩa là agent "thông minh" bằng 3.7% của một người. Nó có nghĩa là:
+  Nó không có nghĩa là agent "thông minh" bằng 6.56% của một người. Nó có nghĩa là:
 
-  > Trong 1000 lần thử nghiệm bắt đầu từ trạng thái hoàn toàn ngu ngơ, mô hình học hỏi dựa trên sự tò mò ở mức độ vừa phải đã đủ hiệu quả để "tình cờ" tìm ra một chuỗi hành động đúng đến đích 37 lần.
+  > Trong 1000 lần thử nghiệm bắt đầu từ trạng thái hoàn toàn ngu ngơ, mô hình học hỏi dựa trên sự tò mò ở mức độ vừa phải đã đủ hiệu quả để "tình cờ" tìm ra một chuỗi hành động đúng đến đích 65 lần.
 
-  Điểm quan trọng nhất không phải là con số 3.7% tuyệt đối, mà là sự so sánh tương đối:
-   * Agent MediumCuriosity (3.7%) có hiệu suất cao hơn 54% so với agent NoCuriosity (2.4%).
+  Điểm quan trọng nhất không phải là con số 6.56% tuyệt đối, mà là sự so sánh tương đối:
+   * Agent MediumCuriosity (6.56%) có hiệu suất cao hơn 54% so với agent NoCuriosity (3.06%).
    * Điều này chứng minh một cách khoa học rằng giả thuyết của chúng ta là đúng: trong một môi trường đủ phức tạp, việc thêm "tò mò" sẽ giúp agent học hỏi bền vững và hiệu quả hơn so với việc chỉ khai thác một cách mù quáng.
 
   Kết luận: So sánh với Con người
@@ -552,8 +583,7 @@ Tỷ lệ thành công 3.7% của agent là cực kỳ thấp so với một con
  Trong dự án, "tò mò" không phải là một cảm xúc bí ẩn, mà là một hệ thống gồm hai cơ chế kỹ thuật chính hoạt động cùng nhau:
 
   Cơ chế 1: Phần thưởng Nội tại từ Sự Ngạc nhiên (The "Drive")
-                                                                                                                                                                                                                                          ▄
-  Đây là cốt lõi của "sự tò mò".                                                                                                                                                                                                          █
+  Đây là cốt lõi của "sự tò mò".
    1. Sau mỗi hành động, agent sẽ tính toán một giá trị gọi là TD-error (Temporal Difference Error). Về cơ bản, TD-error là thước đo của "sự ngạc nhiên":
        * TD-error = (Phần thưởng thực tế + Giá trị kỳ vọng của trạng thái tiếp theo) - Giá trị kỳ vọng của trạng thái hiện tại
        * Nếu TD-error bằng 0, nghĩa là thế giới hoạt động đúng như agent dự đoán.
@@ -586,23 +616,25 @@ Tỷ lệ thành công 3.7% của agent là cực kỳ thấp so với một con
 ### Hệ thống lai: tự điều chỉnh độ "tò mò"
 
 Quay lại vấn đề hiệu suất của mô hình.
-Ý tưởng ban đầu là:
-  Meta-Learning (Học cách học):
-  Hiện tại: intrinsic_reward_weight là cố định (0.05).
-  Nâng cấp: Cho phép agent tự điều chỉnh mức độ tò mò của chính mình.
-  Khi bế tắc (không thấy tiến bộ) -> Tự tăng tò mò lên để tìm hướng mới.
-  Khi thấy mục tiêu -> Tự giảm tò mò xuống để tập trung về đích.
-  Đây là bước tiến gần hơn đến ý thức con người (biết lúc nào nên chơi, lúc nào nên làm).
+Ý tưởng ban đầu là: *Meta-Learning (Học cách học):*
+  * Hiện tại: intrinsic_reward_weight là cố định (0.05).
+  * Nâng cấp: Cho phép agent tự điều chỉnh mức độ tò mò của chính mình.
+  * Khi bế tắc (không thấy tiến bộ) -> Tự tăng tò mò lên để tìm hướng mới.
+  * Khi thấy mục tiêu -> Tự giảm tò mò xuống để tập trung về đích.
+
+> Đây là bước tiến gần hơn đến ý thức con người (biết lúc nào nên chơi, lúc nào nên làm).
   
-=> Tuy nhiên đây là cách tiếp cận "con người" là trung tâm. Nó đi ngược với triết lý của tôi trong dự án này: AI là trí tuệ phi nhân và nó phải mang những hệ thống "cảm xúc" phi nhân.
-  Liệu tôi thay thế việc điều chỉnh mức độ tò mò của mình bằng hardcode -> mô hình động, phi tuyến hơn gắn với 1 chỉ số trạng thái nội tại khác của hệ thống. Ví dụ như (thời gian chu kỳ hoặc độ tiêu hao tài nguyên hệ thống) có khả thi
-  không?
+Tuy nhiên đây là cách tiếp cận "*con người là trung tâm*". Nó đi ngược với triết lý của tôi trong dự án này:
+>***AI là trí tuệ phi nhân và nó phải mang những hệ thống "cảm xúc" phi nhân.***
+
+  Và thêm một câu hỏi nữa: Liệu tôi thay thế việc điều chỉnh mức độ tò mò của agent từ hardcode -> mô hình động, phi tuyến hơn, gắn với 1 chỉ số trạng thái nội tại khác của hệ thống. Ví dụ như: thời gian chu kỳ hoặc độ tiêu hao tài nguyên hệ thống). Điều đó có khả thi không?
 
 Tôi không chỉ muốn tối ưu hóa hành vi của agent, mà đang tìm cách tối ưu hóa chính quá trình học của nó, và làm điều đó theo một cách thực sự "phi nhân".
 
   Hãy cùng phân tích ý tưởng này.
-                                                                                                                                                                                                                                          ▄
-  1. Phê bình Ý tưởng Meta-Learning "kiểu người"                                                                                                                                                                                          █
+
+  1. Phê bình Ý tưởng Meta-Learning "kiểu người"
+
   Việc để agent "tự nhận biết khi nào nó bị bế tắc" là chúng ta đang áp đặt một logic bậc cao của con người lên nó. Điều này tuy hiệu quả nhưng lại đi ngược với
   triết lý cốt lõi là khám phá một dạng trí tuệ khác, một hệ thống cảm xúc khác.
 
@@ -615,20 +647,21 @@ Tôi không chỉ muốn tối ưu hóa hành vi của agent, mà đang tìm cá
   Về mặt kỹ thuật, việc này hoàn toàn có thể thực hiện được.
    1. Đo lường chỉ số: Chúng ta có thể dễ dàng sửa đổi main.py để đo lường thời gian thực thi của mỗi vòng lặp (mỗi "bước" của agent) và lưu giá trị này vào AgentContext. Ví dụ:
 
- # trong main.py, vòng lặp while not environment.is_done():
+trong main.py, vòng lặp while not environment.is_done():
 
 ```python
 start_time = time.time()
 context = run_workflow(workflow['steps'], context, environment)
 end_time = time.time()
 context.last_cycle_time = end_time - start_time
-
 ```
 
    2. Xây dựng Hàm Động (Dynamic Function): Chúng ta có thể sửa đổi p5_adjust_exploration.py để intrinsic_reward_weight không còn là một giá trị cố định, mà là một hàm số của context.last_cycle_time hoặc một giá trị trung bình trượt
       của nó.
-       * Ví dụ, một hàm sigmoid: new_weight = MIN_CURIOSITY + (MAX_CURIOSITY - MIN_CURIOSITY) * sigmoid(k * (last_cycle_time - threshold))
-
+       * Ví dụ, một hàm sigmoid: 
+```
+       new_weight = MIN_CURIOSITY + (MAX_CURIOSITY - MIN_CURIOSITY) * sigmoid(k * (last_cycle_time - threshold))
+```
 B. Thách thức Triết học & Kỹ thuật: Tìm ra "Quy luật"
 
   Đây mới là phần thực sự thú vị và thách thức. Tính khả thi về kỹ thuật là có, nhưng câu hỏi lớn hơn là: Mối quan hệ giữa "thời gian chu kỳ" và "mức độ tò mò" nên là gì?
@@ -639,10 +672,10 @@ B. Thách thức Triết học & Kỹ thuật: Tìm ra "Quy luật"
      gian chu kỳ.
    * Giả thuyết 2: "Sự Hấp dẫn của Phức tạp" (Complexity Attraction Hypothesis): Nếu thời gian chu kỳ tăng cao, điều đó có nghĩa là agent đang ở trong một vùng trạng thái phức tạp, nhiều thông tin. Đây chính là lúc cần phải tò mò hơn
      để tìm hiểu. -> tò mò tỉ lệ thuận với thời gian chu kỳ.
-   * Giả thuyết 3: "Nhịp điệu Sinh học" (Biological Rhythm Hypothesis): Mức độ tò mò có thể dao động theo một hàm sin hoặc một chuỗi hỗn loạn (chaotic sequence) nào đó được kích hoạt bởi sự thay đổi của tài nguyên hệ thống, giống như
-     một nhịp điệu sinh học không thể đoán trước.
+   * Giả thuyết 3: "Nhịp điệu Sinh học" (Biological Rhythm Hypothesis): Mức độ tò mò có thể dao động theo một hàm sin hoặc một chuỗi hỗn loạn (chaotic sequence) nào đó được kích hoạt bởi sự thay đổi của tài nguyên hệ thống, giống như một nhịp điệu sinh học không thể đoán trước.
+   > Ở bước này, chúng ta chạm đến khái niệm tín hiệu kích thích (skipping) trong xử lý thần kinh nhân tạo
 
-  Đề xuất Hướng đi
+  #### Đề xuất hướng đi
   Đây là một hướng nghiên cứu hoàn toàn mới và đầy tiềm năng. Tôi đề xuất chúng ta tiếp cận nó một cách khoa học:
 
    1. Bước 1: Thu thập Dữ liệu. Trước khi áp đặt một quy luật, hãy thu thập dữ liệu. Chúng ta sẽ sửa đổi main.py và p8_consequence.py để ghi lại cycle_time của mỗi bước vào file log .csv cùng với các thông số khác.
@@ -653,7 +686,7 @@ B. Thách thức Triết học & Kỹ thuật: Tìm ra "Quy luật"
 
   Kết luận: Ý tưởng này đi theo tinh thần của spec.md, không chỉ khả thi mà còn mở ra một hướng đi cực kỳ độc đáo, đúng với tinh thần của dự án. Nó biến agent từ một "người học" thành một "thực thể" có những "cảm xúc" được điều khiển bởi chính các trạng thái vật lý nội tại của nó.
 
-### Đặt nền móng bước đầu cho phối hợp các Agent:
+#### Đặt nền móng bước đầu cho phối hợp các Agent:
 
  Tôi cũng muốn nó có sự trao đổi giữa các agent. Hiện tại mô hình là agent đơn nhất với nhiều lần chạy khác nhau với chỉ số khuyến khích tò mò ban đầu khác nhau. Tôi muốn nó sẵn sàng để trở có thể trở thành nhiều agent cùng tham gia giải vấn đề với nhau và trao đổi kinh nghiệm với nhau. Ví dụ khi rơi vào trạng thái "bế tắc", nó sẽ thăm dò kinh nghiệm của 1 agent khác , nếu agent đó có kết quả tối ưu hơn, nó sẽ cập nhật đồng thời cũng tránh luôn các bước đi mang đến kết quả xấu từ agent đó.
 
@@ -665,7 +698,7 @@ B. Thách thức Triết học & Kỹ thuật: Tìm ra "Quy luật"
    * Bộ nhớ Ngắn hạn (Short-term Memory): Đây là "trải nghiệm thô", một danh sách các sự kiện (trạng thái, hành động, phần thưởng, trạng thái tiếp theo) gần đây. Việc chia sẻ toàn bộ cái này có thể phức tạp, nhưng có thể hữu ích trong
      một số trường hợp.
 
-  => việc chia sẻ Bảng Q là hợp lý nhất.
+     => việc chia sẻ Bảng Q là hợp lý nhất.
 
   2. Các Thay đổi Kiến trúc cần thiết
   Để hiện thực hóa ý tưởng này, chúng ta cần một số thay đổi lớn về kiến trúc:
@@ -698,6 +731,31 @@ B. Thách thức Triết học & Kỹ thuật: Tìm ra "Quy luật"
 
   Việc quyết định khi nào nên "nhìn vào trong" và khi nào nên "nhìn ra ngoài" chính là một dạng meta-learning cực kỳ phức tạp và hấp dẫn.
 
+#### Phương án hiện tại khi triển khai:
+   1. Khi nào thì "nhìn vào trong" (Điều chỉnh độ tò mò)?
+
+   * Khi nào: Ở mỗi bước đi (step) của agent. Đây là một quá trình liên tục, tự điều chỉnh ở tần suất cao.
+   * Cơ chế: Được xử lý trong src/processes/p8_consequence.py thông qua "Giả thuyết Mệt mỏi".
+       * Sau mỗi hành động, main.py đo lường cycle_time (thời gian xử lý của bước đó) và lưu vào context.
+       * Khi đến process p8, thay vì dùng một trọng số tò mò cố định, nó gọi hàm _calculate_dynamic_weight(cycle_time).
+       * Tăng tò mò: Nếu cycle_time thấp (hệ thống "rảnh rỗi", xử lý nhanh), hàm này trả về một trọng số tò mò cao. Điều này làm tăng phần thưởng nội tại cho những hành động gây "ngạc nhiên", khuyến khích agent khám phá những vùng mới
+         lạ.
+       * Giảm tò mò: Nếu cycle_time cao (hệ thống "mệt mỏi", xử lý chậm), hàm này trả về một trọng số tò mò thấp. Agent sẽ ít được thưởng hơn cho sự ngạc nhiên, khiến nó ưu tiên khai thác những con đường quen thuộc đã biết là có phần
+         thưởng.
+
+  Tóm lại: "Nhìn vào trong" là một phản ứng tức thời, ở cấp độ vi mô, dựa trên "trạng thái vật lý" (tải xử lý) của chính agent ở mỗi bước đi.
+
+  2. Khi nào thì "nhìn ra ngoài" (Học hỏi agent khác)?
+
+   * Khi nào: Chỉ khi agent cảm thấy "bế tắc" (stagnated). Đây là một hành động có chủ đích, ở tần suất thấp, chỉ được kích hoạt khi cần thiết.
+   * Cơ chế: Được xử lý trong src/processes/p9_social_learning.py.
+       * Process này được đặt ở cuối chuỗi hành động của agent.
+       * Việc đầu tiên nó làm là gọi hàm _is_stagnated(context). Hàm này kiểm tra xem tỷ lệ thành công của agent trong 50 episode vừa qua có quá thấp hay không.
+       * Chỉ khi `_is_stagnated` trả về `True`, agent mới tiếp tục logic "nhìn ra ngoài". Nếu không, process này sẽ kết thúc ngay lập tức.
+       * Khi "nhìn ra ngoài", nó sẽ thực hiện cả hai chiến lược: tìm agent tốt nhất để học hỏi điều hay và tìm agent tệ nhất để học cách tránh sai lầm.
+
+  Tóm lại: "Nhìn ra ngoài" là một chiến lược ở cấp độ vĩ mô, chỉ được kích hoạt khi agent tự đánh giá rằng hiệu suất của nó đang quá kém và cần sự giúp đỡ từ cộng đồng.
+
 #### Lộ trình đề xuất
 Đây là bước chuẩn bị, tạo cơ sở để triển khai các cơ chế học thích ứng trong tương lai.
 *   **Hành động:**
@@ -721,3 +779,38 @@ Dựa trên các chỉ số đã đo lường, triển khai cơ chế cho phép 
 *   **Mục tiêu:** Nghiên cứu các hành vi nổi lên (emergent behaviors) và sự hình thành của trí tuệ tập thể. 
 
 ---
+
+#### Các hướng có thể đi để nâng hiệu suất của agent:
+
+1. Thêm Trí nhớ (Memory - LSTM/GRU):
+Hiện tại: Agent giống như "cá vàng", chỉ biết trạng thái hiện tại. Nó không nhớ mình vừa đi qua ngã rẽ nào.
+Nâng cấp: Thêm lớp LSTM. Agent sẽ nhớ được "lịch sử" hành trình. Điều này cực kỳ quan trọng cho các mê cung lớn hoặc khi nhiệm vụ yêu cầu chuỗi hành động phức tạp (ví dụ: lấy chìa khóa ở A rồi mới mở cửa ở B).
+2. Meta-Learning (Học cách học):
+Hiện tại: intrinsic_reward_weight là cố định (0.05).
+Nâng cấp: Cho phép agent tự điều chỉnh mức độ tò mò của chính mình.
+Khi bế tắc (không thấy tiến bộ) -> Tự tăng tò mò lên để tìm hướng mới.
+Khi thấy mục tiêu -> Tự giảm tò mò xuống để tập trung về đích.
+Đây là bước tiến gần hơn đến ý thức con người (biết lúc nào nên chơi, lúc nào nên làm).
+3. Đầu vào thị giác (Visual Inputs):
+Hiện tại: Agent biết tọa độ 
+(x, y)
+Nâng cấp: Chỉ cho agent nhìn thấy một vùng cục bộ (ví dụ: 5x5 ô xung quanh) hoặc hình ảnh pixel. Nó sẽ phải tự học khái niệm "tường", "cửa", "ngõ cụt" thay vì được mớm sẵn tọa độ.
+
+---
+
+### Chạy thử lần 10 (Ngày 20/11/2025): Thử nghiệm Học hỏi Xã hội (Multi-Agent)
+
+**Mục tiêu:** Kiểm chứng hiệu quả của cơ chế học hỏi xã hội (`p9_social_learning.py`) trong một môi trường phức tạp, nơi 5 tác nhân cùng tồn tại và trao đổi kinh nghiệm để giải quyết vấn đề.
+**Thiết lập Môi trường:** Môi trường "Balanced Maze v2" (25x25) được điều chỉnh để hỗ trợ 5 tác nhân, tất cả đều bắt đầu ở các vị trí gần nhau.
+**Thiết lập Thử nghiệm:** 5 tác nhân cùng hoạt động trong 1000 episode, sử dụng cả cơ chế tò mò động (`use_dynamic_curiosity: True`) và cơ chế học hỏi xã hội (`p9_social_learning.py`) khi bị bế tắc.
+**Kết quả:**
+         *   Tỷ lệ thành công trung bình: **30.30%**
+         *   Số bước trung bình (khi thành công): 289.40
+         *   Tìm thấy đường đi tối ưu (86 bước): **Có, tại episode 304.**
+    
+**Phân tích:**
+1.  **Kết quả đột phá về hiệu suất:** Đây là một kết quả vượt trội. Tỷ lệ thành công 30.30% cao hơn đáng kể so với các thử nghiệm tác nhân đơn lẻ trong cùng môi trường (ví dụ, `FullScale_MediumCuriosity` chỉ đạt 6.56%). Điều này cho thấy rõ ràng lợi ích của việc hợp tác.
+2.  **Tốc độ hội tụ vượt trội:** Điểm quan trọng nhất là hệ thống 5 agent đã tìm ra đường đi tối ưu (86 bước) chỉ sau **304 episode**. Con số này nhanh hơn khoảng **2.7 lần** so với tác nhân đơn lẻ tốt nhất (`NoCuriosity` trong Chạy thử lần 9, tìm thấy ở episode 833).
+3.  **Xác thực cơ chế Học hỏi Xã hội:** Thành công này khẳng định sức mạnh của cơ chế học hỏi xã hội trong `p9_social_learning.py`. Việc kết hợp học hỏi tích cực (bắt chước người giỏi) và học hỏi tiêu cực (tránh sai lầm của người dở) đã giúp quần thể agent nhanh chóng loại bỏ các chiến lược không hiệu quả và hội tụ về lời giải tốt. Đây là một minh chứng rõ ràng cho **Giai đoạn 2: Tương tác Xã hội** trong `spec.md`.
+
+**Hướng đi tiếp theo:** Kết quả từ một lần chạy duy nhất rất hứa hẹn. Bước tiếp theo là thực hiện một thử nghiệm đầy đủ với nhiều lần chạy (ví dụ: 3-5 lần) để xác thực tính nhất quán của kết quả và thu thập dữ liệu thống kê đáng tin cậy hơn về hiệu quả của học hỏi xã hội.

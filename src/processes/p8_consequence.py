@@ -2,6 +2,30 @@ from src.context import AgentContext
 import torch
 import torch.nn.functional as F
 
+def _calculate_dynamic_weight(cycle_time: float) -> float:
+    """
+    Tính toán trọng số tò mò (intrinsic_reward_weight) một cách linh động
+    dựa trên "Giả thuyết Mệt mỏi" (System Fatigue Hypothesis).
+    """
+    # Các ngưỡng này có thể được chuyển ra file settings.json trong tương lai
+    MIN_CYCLE_TIME = 0.001  # Thời gian xử lý tối thiểu, agent "rảnh rỗi"
+    MAX_CYCLE_TIME = 0.01   # Thời gian xử lý tối đa, agent "mệt mỏi"
+    MIN_CURIOSITY_WEIGHT = 0.01 # Mức tò mò tối thiểu khi "mệt"
+    MAX_CURIOSITY_WEIGHT = 0.1  # Mức tò mò tối đa khi "rảnh"
+
+    if cycle_time <= MIN_CYCLE_TIME:
+        return MAX_CURIOSITY_WEIGHT
+    if cycle_time >= MAX_CYCLE_TIME:
+        return MIN_CURIOSITY_WEIGHT
+    
+    # Nội suy tuyến tính ngược: cycle_time càng cao, weight càng thấp
+    weight = MAX_CURIOSITY_WEIGHT - (
+        (cycle_time - MIN_CYCLE_TIME) *
+        (MAX_CURIOSITY_WEIGHT - MIN_CURIOSITY_WEIGHT) /
+        (MAX_CYCLE_TIME - MIN_CYCLE_TIME)
+    )
+    return weight
+
 def record_consequences(context: AgentContext) -> AgentContext:
     """
     Process ghi nhận hậu quả, thực hiện cập nhật Q-learning và huấn luyện MLP cảm xúc.
@@ -31,7 +55,13 @@ def record_consequences(context: AgentContext) -> AgentContext:
     extrinsic_td_error = reward_extrinsic + context.discount_factor * next_max_q - old_q_value
     
     # 2. Tính phần thưởng nội tại dựa trên sự ngạc nhiên đó
-    reward_intrinsic = context.intrinsic_reward_weight * abs(extrinsic_td_error)
+    if context.use_dynamic_curiosity:
+        dynamic_intrinsic_weight = _calculate_dynamic_weight(context.last_cycle_time)
+        print(f"    > Dynamic Weight: {dynamic_intrinsic_weight:.4f}")
+    else:
+        dynamic_intrinsic_weight = context.intrinsic_reward_weight
+    
+    reward_intrinsic = dynamic_intrinsic_weight * abs(extrinsic_td_error)
     context.last_reward['intrinsic'] = reward_intrinsic # Lưu lại để log
 
     # 3. Tính tổng phần thưởng

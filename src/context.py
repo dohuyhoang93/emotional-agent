@@ -42,6 +42,11 @@ class AgentContext:
         self.emotion_model = None
         self.emotion_optimizer = None
         self.intrinsic_reward_weight: float = settings.get('intrinsic_reward_weight', 0.1)
+        self.use_dynamic_curiosity: bool = settings.get('use_dynamic_curiosity', False)
+
+        # --- Chỉ số hệ thống ---
+        self.last_cycle_time: float = 0.0
+        self.max_steps: int = settings.get('max_steps', 0)
 
         # --- Trạng thái niềm tin về thế giới ---
         # Vị trí các công tắc, ví dụ: {'A': (1, 8), ...}
