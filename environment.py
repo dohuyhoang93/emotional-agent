@@ -25,7 +25,7 @@ class GridWorld:
         self.dynamic_walls = {w['id']: [tuple(pos) for pos in w['pos']] for w in env_config.get("dynamic_walls", [])}
         self.dynamic_wall_rules = {rule['id']: rule for rule in env_config.get("dynamic_wall_rules", [])}
         
-        self.max_steps = settings.get("max_steps_per_episode", 500)
+        self.max_steps = env_config.get("max_steps_per_episode", 500)
         
         self.base_grid = self._create_base_grid()
         self.reset()

@@ -763,3 +763,43 @@ Nâng cấp: Chỉ cho agent nhìn thấy một vùng cục bộ (ví dụ: 5x5 
 3.  **Xác thực cơ chế Học hỏi Xã hội:** Thành công này khẳng định sức mạnh của cơ chế học hỏi xã hội trong `p9_social_learning.py`. Việc kết hợp học hỏi tích cực (bắt chước người giỏi) và học hỏi tiêu cực (tránh sai lầm của người dở) đã giúp quần thể agent nhanh chóng loại bỏ các chiến lược không hiệu quả và hội tụ về lời giải tốt. Đây là một minh chứng rõ ràng cho **Giai đoạn 2: Tương tác Xã hội** trong `spec.md`.
 
 **Hướng đi tiếp theo:** Kết quả từ một lần chạy duy nhất rất hứa hẹn. Bước tiếp theo là thực hiện một thử nghiệm đầy đủ với nhiều lần chạy (ví dụ: 3-5 lần) để xác thực tính nhất quán của kết quả và thu thập dữ liệu thống kê đáng tin cậy hơn về hiệu quả của học hỏi xã hội.
+
+### Chạy thử lần 11 Ngày 20/11/2025:
+Chưa đánh giá kết quả
+
+### Ngày 21/11/2025
+
+#### Sửa lỗi:
+
+##### Lỗi log bùng nổ khi quá nhiều episode trong 1 run
+
+Thêm logging.py để quản lý log
+
+##### Lỗi logic
+
+1. Lỗi confidence không được cập nhật
+    - Quan sát: Trong AgentContext, self.confidence được chú thích là E_vector[0]. Quy trình p3_emotion_calc.py tính toán và gán new_e_vector vào context.E_vector.
+    - Vấn đề: Tuy nhiên, sau khi cập nhật context.E_vector, quy trình này không hề cập nhật context.confidence từ context.E_vector[0].
+    - Tác động: Quy trình tiếp theo, p5_adjust_exploration.py, sử dụng context.confidence để điều chỉnh tỷ lệ khám phá. Điều này có nghĩa là p5_adjust_exploration.py có thể đang sử dụng một giá trị confidence cũ hoặc không chính xác (trừ khi nó được cập nhật ngầm ở một nơi nào đó mà tôi chưa thấy). Điều này vi phạm nguyên tắc nhất quán giữa E_vector[0] và confidence đã được nêu trong chú thích.
+    Quy trình p3_emotion_calc.py không cập nhật thuộc tính context.confidence sau khi tính toán context.E_vector mới, dẫn đến việc các quy trình tiếp theo có thể sử dụng một giá trị confidence lỗi thời.
+
+    Tôi sửa lỗi này bằng cách thêm một dòng cập nhật context.confidence = context.E_vector[0].item() vào cuối hàm calculate_emotions trong p3_emotion_calc.py. Điều này sẽ đảm bảo tính nhất quán giữa E_vector[0] và confidence.
+
+2. Lỗi max_steps_env đang đọc sai từ setting.json mà không phải từ env_config -> giá trị thiết lập trong json không được sử dụng và luôn là 500
+    Sửa lại để đọc giá trị từ json env_config
+
+3. Lỗi m_vector đang bị mã hóa cứng
+    `m_vector` cố định là `torch.zeros(1)`:
+       * m_vector (vector bộ nhớ) hiện đang được mã hóa cứng là một tensor 0. Điều này có nghĩa là thông tin từ bộ nhớ của tác nhân hiện không ảnh hưởng đến việc tính toán cảm xúc.
+       * Quan sát: Đây không phải là một lỗi logic mà là một lựa chọn thiết kế tạm thời, chưa được triển khai hoàn chỉnh.
+       * Hành động: thêm cơ chế động hơn cho `m_vector`
+
+4.  Vấn đề: Vòng lặp Phản hồi Tự khuếch đại (Self-Amplifying Feedback Loop)
+       1. reward_intrinsic (phần thưởng nội sinh) được tính từ extrinsic_td_error (sự ngạc nhiên ngoại lai).
+       2. final_td_error (tổng hợp sự ngạc nhiên) được tính từ total_reward (vốn đã bao gồm reward_intrinsic).
+       3. Mục tiêu để huấn luyện "sự tò mò" lại được tính từ chính final_td_error này.
+
+   * Giải thích: Điều này tạo ra một vòng lặp phản hồi trực tiếp: sự ngạc nhiên -> phần thưởng nội sinh -> tăng tổng sự ngạc nhiên -> dạy cho agent phải tò mò hơn nữa về sự ngạc nhiên. Vòng lặp này có thể tự khuếch đại, dẫn đến việc
+     phần thưởng nội sinh tăng vọt ngoài tầm kiểm soát, khiến cho việc học trở nên mất ổn định.
+
+   * Đề xuất thiết kế thay thế (để tham khảo): Một thiết kế ổn định hơn có thể là huấn luyện sự tò mò để chỉ dự đoán extrinsic_td_error thôi, thay vì final_td_error.
