@@ -47,6 +47,7 @@ class AgentContext:
         # --- Chỉ số hệ thống ---
         self.last_cycle_time: float = 0.0
         self.max_steps: int = settings.get('max_steps', 0)
+        self.log_level: str = "info" # Added log_level to AgentContext
 
         # --- Trạng thái niềm tin về thế giới ---
         # Vị trí các công tắc, ví dụ: {'A': (1, 8), ...}

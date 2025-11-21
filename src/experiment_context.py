@@ -21,6 +21,7 @@ class ExperimentDefinition:
     parameters: Dict[str, Any]
     list_of_runs: List[ExperimentRun] = field(default_factory=list)
     aggregated_data: pd.DataFrame = field(default_factory=pd.DataFrame) # Để lưu dữ liệu tổng hợp của tất cả các lần chạy
+    log_level: str = "info" # Cấp độ ghi log cho thử nghiệm này
 
 @dataclass
 class OrchestrationContext:
@@ -32,6 +33,7 @@ class OrchestrationContext:
     config_path: str = "experiments.json"
     raw_config: Dict[str, Any] = field(default_factory=dict)
     global_output_dir: str = "results"
+    log_level: str = "info" # Cấp độ ghi log mặc định cho toàn bộ quá trình điều phối
     
     # --- Dữ liệu xử lý ---
     experiments: List[ExperimentDefinition] = field(default_factory=list)

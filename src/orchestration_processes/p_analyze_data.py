@@ -2,13 +2,14 @@ import pandas as pd
 import os
 import numpy as np
 from src.experiment_context import OrchestrationContext
+from src.logger import log, log_error # Import the new logger
 
 def p_analyze_data(context: OrchestrationContext) -> OrchestrationContext:
     """
     Process để phân tích dữ liệu tổng hợp và tạo báo cáo tóm tắt.
     Tự động xác định đường đi tối ưu và tính toán thời điểm hội tụ.
     """
-    print("  [Orchestration] Analyzing aggregated data...")
+    log(context, "info", "  [Orchestration] Analyzing aggregated data...")
 
     summary_report_lines = ["--- BÁO CÁO TỔNG KẾT THỬ NGHIỆM ---"]
     summary_report_lines.append(f"Thời gian chạy: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -26,9 +27,9 @@ def p_analyze_data(context: OrchestrationContext) -> OrchestrationContext:
             optimal_path_length = successful_runs['steps'].min()
 
     if optimal_path_length == float('inf'):
-        print("CẢNH BÁO: Không tìm thấy bất kỳ episode thành công nào trong tất cả các thử nghiệm. Không thể xác định đường đi tối ưu.")
+        log(context, "info", "CẢNH BÁO: Không tìm thấy bất kỳ episode thành công nào trong tất cả các thử nghiệm. Không thể xác định đường đi tối ưu.")
     else:
-        print(f"  [Analysis] Đường đi tối ưu được xác định động là: {optimal_path_length} bước.")
+        log(context, "info", f"  [Analysis] Đường đi tối ưu được xác định động là: {optimal_path_length} bước.")
 
 
     # --- Bước 2: Phân tích từng thử nghiệm và tạo báo cáo ---
@@ -80,5 +81,5 @@ def p_analyze_data(context: OrchestrationContext) -> OrchestrationContext:
         summary_report_lines.append("\n")
 
     context.final_report = "\n".join(summary_report_lines)
-    print("  [Orchestration] Analysis complete.")
+    log(context, "info", "  [Orchestration] Analysis complete.")
     return context

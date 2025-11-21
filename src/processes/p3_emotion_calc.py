@@ -1,12 +1,13 @@
 from src.context import AgentContext
 import torch
 from src.models import EmotionCalculatorMLP
+from src.logger import log, log_error # Import the new logger
 
 def calculate_emotions(context: AgentContext) -> AgentContext:
     """
     Process tính toán E_vector mới bằng MLP.
     """
-    print("  [P] 3. Calculating machine emotions...")
+    log(context, "info", "  [P] 3. Calculating machine emotions...")
     
     # Chuẩn bị các vector đầu vào cho MLP
     n_vector = context.N_vector
@@ -32,6 +33,6 @@ def calculate_emotions(context: AgentContext) -> AgentContext:
     
     context.E_vector = new_e_vector
     # In ra giá trị đã được detach khỏi đồ thị tính toán
-    print(f"    > E_vector mới: {context.E_vector.detach().numpy()}")
+    log(context, "verbose", f"    > E_vector mới: {context.E_vector.detach().numpy()}")
     
     return context

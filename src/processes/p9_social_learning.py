@@ -1,6 +1,7 @@
 from typing import List
 from src.context import AgentContext
 import numpy as np
+from src.logger import log, log_error # Import the new logger
 
 def _is_stagnated(context: AgentContext, stagnation_threshold: int = 50) -> bool:
     """
@@ -30,7 +31,7 @@ def social_learning(context: AgentContext, all_contexts: List[AgentContext], age
     if not _is_stagnated(context):
         return context
 
-    print(f"  [P] 9. Agent {agent_id} is stagnated, attempting social learning...")
+    log(context, "info", f"  [P] 9. Agent {agent_id} is stagnated, attempting social learning...")
 
     # 1. Tìm agent thành công nhất (không phải chính mình)
     best_agent_context = None
@@ -52,7 +53,7 @@ def social_learning(context: AgentContext, all_contexts: List[AgentContext], age
 
     # 2. Nếu tìm thấy agent tốt hơn, đồng hóa một phần kiến thức (Học hỏi Tích cực)
     if best_agent_context and max_success_rate > np.mean([r['success'] for r in context.long_term_memory.get('episode_results', [])]):
-        print(f"    > Found better agent {all_contexts.index(best_agent_context)} with success rate {max_success_rate:.2f}. Assimilating Q-table...")
+        log(context, "verbose", f"    > Found better agent {all_contexts.index(best_agent_context)} with success rate {max_success_rate:.2f}. Assimilating Q-table...")
         
         assimilation_rate = 0.1 # Tỷ lệ đồng hóa kiến thức
 
@@ -64,7 +65,7 @@ def social_learning(context: AgentContext, all_contexts: List[AgentContext], age
                     current_q = context.q_table[state].get(action, 0.0)
                     context.q_table[state][action] = (1 - assimilation_rate) * current_q + assimilation_rate * q_value
     else:
-        print("    > No better agent found to learn from.")
+        log(context, "verbose", "    > No better agent found to learn from.")
 
     # --- Logic Mới: Học hỏi Tiêu cực từ agent tệ nhất ---
     # 3. Tìm agent tệ nhất
@@ -86,7 +87,7 @@ def social_learning(context: AgentContext, all_contexts: List[AgentContext], age
 
     # 4. Nếu tìm thấy agent tệ hơn, học cách tránh sai lầm của nó
     if worst_agent_context and min_success_rate < np.mean([r['success'] for r in context.long_term_memory.get('episode_results', [])]):
-        print(f"    > [Aversive Learning] Found worse agent {all_contexts.index(worst_agent_context)} with success rate {min_success_rate:.2f}. Avoiding mistakes...")
+        log(context, "verbose", f"    > [Aversive Learning] Found worse agent {all_contexts.index(worst_agent_context)} with success rate {min_success_rate:.2f}. Avoiding mistakes...")
         
         MISTAKE_THRESHOLD = -1.0 # Ngưỡng Q-value được coi là một sai lầm
         PUNISHMENT_VALUE = -10.0 # Giá trị trừng phạt để ghi đè

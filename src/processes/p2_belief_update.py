@@ -1,11 +1,12 @@
 from src.context import AgentContext
+from src.logger import log, log_error # Import the new logger
 
 def update_belief(context: AgentContext) -> AgentContext:
     """
     Process cập nhật "niềm tin" dựa trên kinh nghiệm gần nhất.
     Bao gồm suy luận trạng thái công tắc và hình phạt va chạm.
     """
-    print("  [P] 2. Updating beliefs...")
+    log(context, "info", "  [P] 2. Updating beliefs...")
     
     if not context.short_term_memory:
         return context
@@ -19,7 +20,7 @@ def update_belief(context: AgentContext) -> AgentContext:
         if next_state_pos == switch_pos:
             # Nếu agent vừa bước vào vị trí công tắc, hãy chuyển đổi niềm tin về trạng thái của công tắc đó
             context.believed_switch_states[switch_id] = not context.believed_switch_states[switch_id]
-            print(f"    > Niềm tin mới: Công tắc '{switch_id}' đã chuyển sang {'BẬT' if context.believed_switch_states[switch_id] else 'TẮT'}.")
+            log(context, "verbose", f"    > Niềm tin mới: Công tắc '{switch_id}' đã chuyển sang {'BẬT' if context.believed_switch_states[switch_id] else 'TẮT'}.")
             # NOTE: Không cần break vì agent có thể đi qua nhiều công tắc trong một bước (nếu có)
             # Tuy nhiên, trong GridWorld hiện tại, mỗi bước chỉ đến 1 ô.
 
@@ -37,6 +38,6 @@ def update_belief(context: AgentContext) -> AgentContext:
         if composite_state not in context.q_table:
             context.q_table[composite_state] = {a: 0.0 for a in ['up', 'down', 'left', 'right']}
         context.q_table[composite_state][action] += context.learning_rate * penalty
-        print(f"    > Niềm tin mới: Hành động '{action}' tại {composite_state} là xấu (phạt {penalty}).")
+        log(context, "verbose", f"    > Niềm tin mới: Hành động '{action}' tại {composite_state} là xấu (phạt {penalty}).")
 
     return context

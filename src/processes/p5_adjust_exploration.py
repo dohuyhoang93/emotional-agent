@@ -1,11 +1,12 @@
 from src.context import AgentContext
+from src.logger import log, log_error # Import the new logger
 
 def adjust_exploration(context: AgentContext) -> AgentContext:
     """
     Process điều chỉnh chính sách hành vi dựa trên Cảm xúc Máy (E_vector).
     Sử dụng logic mới: exploration_rate = base_rate + emotional_boost.
     """
-    print("  [P] 5. Adjusting policy...")
+    log(context, "info", "  [P] 5. Adjusting policy...")
     
     # NOTE: confidence được tính và cập nhật vào context trong process p3
     confidence = context.confidence
@@ -30,9 +31,9 @@ def adjust_exploration(context: AgentContext) -> AgentContext:
     # 6. Cập nhật chính sách trong context
     context.policy['exploration_rate'] = final_exploration_rate
     
-    print(f"    > Confidence: {confidence:.3f} -> Uncertainty: {uncertainty:.3f}")
-    print(f"    > Emotional Boost: {emotional_boost:.3f}")
-    print(f"    > Base Rate: {context.base_exploration_rate:.3f}")
-    print(f"    > New Exploration Rate: {final_exploration_rate:.3f}")
+    log(context, "verbose", f"    > Confidence: {confidence:.3f} -> Uncertainty: {uncertainty:.3f}")
+    log(context, "verbose", f"    > Emotional Boost: {emotional_boost:.3f}")
+    log(context, "verbose", f"    > Base Rate: {context.base_exploration_rate:.3f}")
+    log(context, "verbose", f"    > New Exploration Rate: {final_exploration_rate:.3f}")
 
     return context

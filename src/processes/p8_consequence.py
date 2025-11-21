@@ -1,6 +1,7 @@
 from src.context import AgentContext
 import torch
 import torch.nn.functional as F
+from src.logger import log, log_error # Import the new logger
 
 def _calculate_dynamic_weight(cycle_time: float) -> float:
     """
@@ -30,7 +31,7 @@ def record_consequences(context: AgentContext) -> AgentContext:
     """
     Process ghi nhận hậu quả, thực hiện cập nhật Q-learning và huấn luyện MLP cảm xúc.
     """
-    print("  [P] 8. Recording consequences & Learning...")
+    log(context, "info", "  [P] 8. Recording consequences & Learning...")
 
     # --- 1. Cập nhật Q-Learning ---
     # Sử dụng trạng thái phức hợp (vị trí + niềm tin về công tắc)
@@ -57,7 +58,7 @@ def record_consequences(context: AgentContext) -> AgentContext:
     # 2. Tính phần thưởng nội tại dựa trên sự ngạc nhiên đó
     if context.use_dynamic_curiosity:
         dynamic_intrinsic_weight = _calculate_dynamic_weight(context.last_cycle_time)
-        print(f"    > Dynamic Weight: {dynamic_intrinsic_weight:.4f}")
+        log(context, "verbose", f"    > Dynamic Weight: {dynamic_intrinsic_weight:.4f}")
     else:
         dynamic_intrinsic_weight = context.intrinsic_reward_weight
     
@@ -74,8 +75,8 @@ def record_consequences(context: AgentContext) -> AgentContext:
     context.q_table[state][action] = new_q_value
     context.td_error = final_td_error # Cập nhật td_error chính của context
     
-    print(f"    > R_ngoại: {reward_extrinsic:.2f}, R_nội: {reward_intrinsic:.3f} -> Total: {total_reward:.3f}")
-    print(f"    > Cập nhật Q-value cho (state={state}, action='{action}') thành {new_q_value:.3f}")
+    log(context, "verbose", f"    > R_ngoại: {reward_extrinsic:.2f}, R_nội: {reward_intrinsic:.3f} -> Total: {total_reward:.3f}")
+    log(context, "verbose", f"    > Cập nhật Q-value cho (state={state}, action='{action}') thành {new_q_value:.3f}")
 
     # --- 2. Huấn luyện MLP Cảm xúc (Mục tiêu kép) ---
     # Mục tiêu 1: Huấn luyện E_vector[0] (tự tin) để dự đoán giá trị của trạng thái (next_max_q)
@@ -97,7 +98,7 @@ def record_consequences(context: AgentContext) -> AgentContext:
     total_loss.backward()
     optimizer.step()
     
-    print(f"    > Huấn luyện MLP: Total Loss={total_loss.item():.4f} (Value Loss: {loss_value.item():.4f}, Curiosity Loss: {loss_curiosity.item():.4f})")
+    log(context, "verbose", f"    > Huấn luyện MLP: Total Loss={total_loss.item():.4f} (Value Loss: {loss_value.item():.4f}, Curiosity Loss: {loss_curiosity.item():.4f})")
 
     # --- 3. Ghi log vào bộ nhớ ngắn hạn ---
     log_entry = {
