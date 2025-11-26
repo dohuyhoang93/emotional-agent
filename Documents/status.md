@@ -765,7 +765,11 @@ Nâng cấp: Chỉ cho agent nhìn thấy một vùng cục bộ (ví dụ: 5x5 
 **Hướng đi tiếp theo:** Kết quả từ một lần chạy duy nhất rất hứa hẹn. Bước tiếp theo là thực hiện một thử nghiệm đầy đủ với nhiều lần chạy (ví dụ: 3-5 lần) để xác thực tính nhất quán của kết quả và thu thập dữ liệu thống kê đáng tin cậy hơn về hiệu quả của học hỏi xã hội.
 
 ### Chạy thử lần 11 Ngày 20/11/2025:
-Chưa đánh giá kết quả
+Thử nghiệm full_scale cho 3 lần, mỗi lần với mức độ intrinsic_reward_weight khác nhau. Mỗi mức độ chạy 3 run, mỗi run 3000 episode, số step tối đa của 1 episode : 1000 (sau này phát hiện lỗi khiến nó luôn nhận là 500 step)
+Kết quả:
+- tác nhân FullScale_MediumCuriosity có tỷ lệ thành công cao nhất: 6.56%
+- Số bước trung bình thành công: 303.29
+- Không tìm ra đường đi tối ưu nhất. Đường đi tối ưu tìm được là 78 bước do tác nhân FullScale_NoCuriosity tìm ra ở episode thứ 704.
 
 ### Ngày 21/11/2025
 
@@ -785,8 +789,8 @@ Thêm logging.py để quản lý log
 
     Tôi sửa lỗi này bằng cách thêm một dòng cập nhật context.confidence = context.E_vector[0].item() vào cuối hàm calculate_emotions trong p3_emotion_calc.py. Điều này sẽ đảm bảo tính nhất quán giữa E_vector[0] và confidence.
 
-2. Lỗi max_steps_env đang đọc sai từ setting.json mà không phải từ env_config -> giá trị thiết lập trong json không được sử dụng và luôn là 500
-    Sửa lại để đọc giá trị từ json env_config
+2. Lỗi max_steps_env đang đọc sai từ setting.json mà không phải từ env_config -> giá trị thiết lập trong json không được sử dụng và luôn là 500.
+Sửa lại để đọc giá trị từ json env_config
 
 3. Lỗi m_vector đang bị mã hóa cứng
     `m_vector` cố định là `torch.zeros(1)`:
@@ -803,3 +807,15 @@ Thêm logging.py để quản lý log
      phần thưởng nội sinh tăng vọt ngoài tầm kiểm soát, khiến cho việc học trở nên mất ổn định.
 
    * Đề xuất thiết kế thay thế (để tham khảo): Một thiết kế ổn định hơn có thể là huấn luyện sự tò mò để chỉ dự đoán extrinsic_td_error thôi, thay vì final_td_error.
+
+### Ngày 23/11/2025
+Thử nghiệm ComplexMaze_5_Agents_Run03 sau một loạt cải tiến thêm vào và sửa lỗi trong ngày 21/11/2025
+Nội dung: vẫn dữ cấu trúc mê cung 25x25 cũ
+1 run, 15000 episode, max_step: 500
+Kết quả:
+- Tỷ lệ thành công: 68.67%
+- Số bước trung bình cho episode thành công: 194.86
+- Khám phá ra đường đi tôi ưu với 53 step tại episode 3359
+
+Đánh giá: Hiệu suất tăng vọt. Thể hiện các gỡ lỗi và cơ chế tự điều chỉnh chỉ số tò mò theo cycle_time và cơ chế học hỏi xã hội đã phát huy tác dụng.
+Tuy nhiên nhìn vào biểu đồ có thể thấy, về cuối thử nghiệm, tỷ lệ thành công duy trì quanh 80% và không duy trì đường đi tối ưu. Điều này cần phân tích thêm và có cơ chế để đường đi tối ưu được phản ánh sâu sắc hơn vào toàn bộ các episode sau này.

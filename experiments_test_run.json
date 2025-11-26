@@ -1,12 +1,12 @@
 {
-  "output_dir": "results/test_run",
-  "log_level": "info",
+  "output_dir": "results/5_agent_run03",
+  "log_level": "silent",
   "experiments": [
     {
-      "name": "ComplexMaze_5_Agents_TestRun",
-      "runs": 10,
-      "episodes_per_run": 100,
-      "log_level": "info",
+      "name": "ComplexMaze_5_Agents_Run03",
+      "runs": 1,
+      "episodes_per_run": 15000,
+      "log_level": "silent",
       "parameters": {
         "use_dynamic_curiosity": true,
         "visual_mode": false,
@@ -21,7 +21,7 @@
             [0, 2]
           ],
           "goal_pos": [24, 24],
-          "max_steps_per_episode": 1000,
+          "max_steps_per_episode": 500,
           "walls": [
             [0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [8, 5],
             [8, 6], [8, 7], [8, 8], [8, 9], [8, 10],
