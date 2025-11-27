@@ -73,8 +73,10 @@ class GridWorld:
 
     def get_observation(self, agent_id: int):
         # --- Thay đổi cho Đa tác nhân ---
-        return {'agent_pos': tuple(self.agent_positions[agent_id])}
-
+        return {
+            'agent_pos': tuple(self.agent_positions[agent_id]),
+            'step_count': self.current_step
+        }
     def get_all_observations(self):
         # --- Hàm mới cho Đa tác nhân ---
         return {i: self.get_observation(i) for i in range(self.num_agents)}

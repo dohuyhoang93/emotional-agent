@@ -115,6 +115,7 @@ def run_simulation(num_episodes: int, output_path: str, settings_override: Dict[
             context.previous_observation = None
             context.td_error = 0.0
             context.last_reward = {'extrinsic': 0.0, 'intrinsic': 0.0}
+            context.current_episode = episode + 1
 
         # Các biến theo dõi cho episode
         episode_total_rewards = {i: 0 for i in range(num_agents)}

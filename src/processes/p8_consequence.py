@@ -3,29 +3,62 @@ import torch
 import torch.nn.functional as F
 from src.logger import log, log_error # Import the new logger
 
-def _calculate_dynamic_weight(cycle_time: float) -> float:
+def _calculate_dynamic_weight(cycle_time: float, current_step: int, current_episode: int, use_adaptive: bool = False, growth_rate: float = 0.001, max_steps: int = 500) -> float:
     """
-    Tính toán trọng số tò mò (intrinsic_reward_weight) một cách linh động
-    dựa trên "Giả thuyết Mệt mỏi" (System Fatigue Hypothesis).
+    Tính toán trọng số tò mò (intrinsic_reward_weight) một cách linh động.
+    Hỗ trợ cả logic cũ (chỉ cycle_time) và logic mới (Adaptive Fatigue).
     """
-    # Các ngưỡng này có thể được chuyển ra file settings.json trong tương lai
-    MIN_CYCLE_TIME = 0.001  # Thời gian xử lý tối thiểu, agent "rảnh rỗi"
-    MAX_CYCLE_TIME = 0.01   # Thời gian xử lý tối đa, agent "mệt mỏi"
-    MIN_CURIOSITY_WEIGHT = 0.01 # Mức tò mò tối thiểu khi "mệt"
-    MAX_CURIOSITY_WEIGHT = 0.1  # Mức tò mò tối đa khi "rảnh"
+    MIN_CURIOSITY_WEIGHT = 0.01
+    MAX_CURIOSITY_WEIGHT = 0.1
 
-    if cycle_time <= MIN_CYCLE_TIME:
-        return MAX_CURIOSITY_WEIGHT
-    if cycle_time >= MAX_CYCLE_TIME:
-        return MIN_CURIOSITY_WEIGHT
-    
-    # Nội suy tuyến tính ngược: cycle_time càng cao, weight càng thấp
-    weight = MAX_CURIOSITY_WEIGHT - (
-        (cycle_time - MIN_CYCLE_TIME) *
-        (MAX_CURIOSITY_WEIGHT - MIN_CURIOSITY_WEIGHT) /
-        (MAX_CYCLE_TIME - MIN_CYCLE_TIME)
-    )
-    return weight
+    if use_adaptive:
+        # --- Logic Mới: Adaptive Fatigue ---
+        # fatigue_index = (cycle_time * current_step) / (1 + growth_rate * current_episode)
+        
+        # Chuẩn hóa cycle_time về khoảng [1, ~10] để dễ tính toán
+        # Giả sử cycle_time trung bình là 0.0013 -> nhân 1000 -> 1.3
+        normalized_cycle_time = cycle_time * 1000 
+        
+        # Tính chỉ số mệt mỏi
+        fatigue_index = (normalized_cycle_time * current_step) / (1 + growth_rate * current_episode)
+        
+        # Ngưỡng mệt mỏi (được hiệu chỉnh theo max_steps)
+        # Ví dụ: max_steps=500 -> fatigue_index max ~ 1.3 * 500 = 650
+        # Chúng ta muốn weight giảm dần từ MAX xuống MIN khi fatigue tăng
+        
+        # Sử dụng hàm sigmoid ngược hoặc nội suy tuyến tính
+        # Ở đây dùng nội suy tuyến tính đơn giản với ngưỡng mềm
+        FATIGUE_THRESHOLD_START = 0.0 # Bắt đầu giảm ngay
+        FATIGUE_THRESHOLD_END = max_steps * 1.5 # Điểm mà tò mò giảm về MIN (khá rộng lượng)
+
+        if fatigue_index <= FATIGUE_THRESHOLD_START:
+            return MAX_CURIOSITY_WEIGHT
+        if fatigue_index >= FATIGUE_THRESHOLD_END:
+            return MIN_CURIOSITY_WEIGHT
+            
+        weight = MAX_CURIOSITY_WEIGHT - (
+            (fatigue_index - FATIGUE_THRESHOLD_START) *
+            (MAX_CURIOSITY_WEIGHT - MIN_CURIOSITY_WEIGHT) /
+            (FATIGUE_THRESHOLD_END - FATIGUE_THRESHOLD_START)
+        )
+        return weight
+
+    else:
+        # --- Logic Cũ: Chỉ dựa trên Cycle Time ---
+        MIN_CYCLE_TIME = 0.001
+        MAX_CYCLE_TIME = 0.01
+
+        if cycle_time <= MIN_CYCLE_TIME:
+            return MAX_CURIOSITY_WEIGHT
+        if cycle_time >= MAX_CYCLE_TIME:
+            return MIN_CURIOSITY_WEIGHT
+        
+        weight = MAX_CURIOSITY_WEIGHT - (
+            (cycle_time - MIN_CYCLE_TIME) *
+            (MAX_CURIOSITY_WEIGHT - MIN_CURIOSITY_WEIGHT) /
+            (MAX_CYCLE_TIME - MIN_CYCLE_TIME)
+        )
+        return weight
 
 def record_consequences(context: AgentContext) -> AgentContext:
     """
@@ -57,7 +90,15 @@ def record_consequences(context: AgentContext) -> AgentContext:
     
     # 2. Tính phần thưởng nội tại dựa trên sự ngạc nhiên đó
     if context.use_dynamic_curiosity:
-        dynamic_intrinsic_weight = _calculate_dynamic_weight(context.last_cycle_time)
+        current_step = context.current_observation.get('step_count', 1)
+        dynamic_intrinsic_weight = _calculate_dynamic_weight(
+            context.last_cycle_time, 
+            current_step, 
+            context.current_episode,
+            context.use_adaptive_fatigue,
+            context.fatigue_growth_rate,
+            context.max_steps
+        )
         log(context, "verbose", f"    > Dynamic Weight: {dynamic_intrinsic_weight:.4f}")
     else:
         dynamic_intrinsic_weight = context.intrinsic_reward_weight

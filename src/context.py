@@ -43,6 +43,9 @@ class AgentContext:
         self.emotion_optimizer = None
         self.intrinsic_reward_weight: float = settings.get('intrinsic_reward_weight', 0.1)
         self.use_dynamic_curiosity: bool = settings.get('use_dynamic_curiosity', False)
+        self.use_adaptive_fatigue: bool = settings.get('use_adaptive_fatigue', False)
+        self.fatigue_growth_rate: float = settings.get('fatigue_growth_rate', 0.001)
+        self.current_episode: int = 0
 
         # --- Chỉ số hệ thống ---
         self.last_cycle_time: float = 0.0
