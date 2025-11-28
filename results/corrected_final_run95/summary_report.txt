@@ -1,0 +1,12 @@
+--- BÁO CÁO TỔNG KẾT THỬ NGHIỆM ---
+Thời gian chạy: 2025-11-28 17:51:51
+Thư mục kết quả: results/corrected_final_run95
+
+=== Thử nghiệm: ComplexMaze_CorrectedFinal_Run95 ===
+  Số lần chạy: 1
+  Số episode mỗi lần chạy: 50
+  Tham số: {'use_dynamic_curiosity': True, 'use_adaptive_fatigue': True, 'fatigue_growth_rate': 5.0, 'emotional_boost_factor': 0.3, 'visual_mode': False, 'environment_config': {'grid_size': 25, 'num_agents': 5, 'start_positions': [[0, 0], [0, 1], [1, 0], [2, 0], [0, 2]], 'goal_pos': [24, 24], 'max_steps_per_episode': 200, 'walls': [[0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [8, 5], [8, 6], [8, 7], [8, 8], [8, 9], [8, 10], [12, 0], [12, 1], [12, 2], [12, 3], [12, 4], [12, 5], [12, 6], [12, 7], [12, 8], [13, 8], [14, 8], [15, 8], [16, 8], [17, 8], [18, 8], [19, 8], [20, 8], [20, 0], [20, 1], [20, 2], [20, 3], [20, 4], [20, 5], [20, 6], [20, 7], [5, 15], [6, 15], [7, 15], [8, 15], [9, 15], [10, 15], [11, 15], [12, 15], [13, 15], [14, 15], [15, 15], [22, 18], [23, 18], [24, 18], [18, 22], [18, 23], [18, 24]], 'logical_switches': [{'pos': [1, 1], 'id': 'A'}, {'pos': [10, 2], 'id': 'B'}, {'pos': [15, 12], 'id': 'C'}, {'pos': [16, 20], 'id': 'D'}, {'pos': [22, 22], 'id': 'E'}], 'dynamic_walls': [{'id': 'gate_A', 'pos': [[9, 0], [9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9], [9, 10]]}, {'id': 'gate_B', 'pos': [[0, 13], [1, 13], [2, 13], [3, 13], [4, 13], [5, 13], [6, 13], [7, 13], [8, 13], [9, 13], [10, 13]]}, {'id': 'gate_C', 'pos': [[21, 16], [21, 17], [21, 18], [21, 19], [21, 20], [21, 21], [21, 22], [21, 23], [21, 24]]}, {'id': 'gate_D', 'pos': [[18, 18], [18, 19], [18, 20], [18, 21]]}], 'dynamic_wall_rules': [{'id': 'gate_A', 'type': 'toggle', 'inputs': ['A']}, {'id': 'gate_B', 'type': 'toggle', 'inputs': ['B']}, {'id': 'gate_C', 'type': 'toggle', 'inputs': ['C']}, {'id': 'gate_D', 'type': 'toggle', 'inputs': ['D']}]}}
+  Tỷ lệ thành công trung bình (tất cả episode): 0.00%
+  Không có episode thành công nào để tính số bước trung bình.
+  Tỷ lệ khám phá cuối cùng trung bình: 0.0000
+

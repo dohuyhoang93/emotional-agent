@@ -15,6 +15,16 @@ def update_belief(context: AgentContext) -> AgentContext:
     # next_state_pos là vị trí (y, x) của agent sau hành động
     next_state_pos = last_experience["next_state"] 
 
+    # --- STRATEGY 3: SHARED BELIEFS (Thần giao cách cảm) ---
+    # Cập nhật niềm tin dựa trên sự kiện toàn cục (do bất kỳ agent nào kích hoạt)
+    if context.current_observation and 'global_events' in context.current_observation:
+        for event in context.current_observation['global_events']:
+            if event['type'] == 'switch_toggle':
+                switch_id = event['switch_id']
+                new_state = event['new_state']
+                context.believed_switch_states[switch_id] = new_state
+                log(context, "verbose", f"    > [TELEPATHY] Received signal: Switch '{switch_id}' is now {'ON' if new_state else 'OFF'}.") 
+
     # --- 1. Cập nhật niềm tin về trạng thái công tắc ---
     for switch_id, switch_pos in context.switch_locations.items():
         if next_state_pos == switch_pos:

@@ -28,6 +28,7 @@ class GridWorld:
         self.max_steps = env_config.get("max_steps_per_episode", 500)
         
         self.base_grid = self._create_base_grid()
+        self.broadcast_events = [] # Danh sách sự kiện để "thần giao cách cảm"
         self.reset()
 
     def _create_base_grid(self):
@@ -38,8 +39,12 @@ class GridWorld:
             if 0 <= r < self.size and 0 <= c < self.size:
                 grid[r][c] = '#'
         for r, c in self.switches.keys():
-            if 0 <= r < self.size and 0 <= c < self.size and grid[r][c] == '.':
-                grid[r][c] = 'S'
+            print(f"DEBUG: Placing switch at ({r}, {c})")
+            if 0 <= r < self.size and 0 <= c < self.size:
+                if grid[r][c] == '.':
+                    grid[r][c] = 'S'
+                else:
+                    print(f"DEBUG: Cannot place switch at ({r}, {c}), occupied by '{grid[r][c]}'")
         return grid
 
     def _update_dynamic_walls(self):
@@ -66,6 +71,7 @@ class GridWorld:
         self.agent_positions = {i: list(pos) for i, pos in enumerate(self.start_positions)}
         # --------------------------------
         self.current_step = 0
+        self.broadcast_events = []
         self.switch_states = {switch_id: False for switch_id in self.switches.values()}
         self.dynamic_wall_states = {wall_id: True for wall_id in self.dynamic_walls.keys()}
         self._update_dynamic_walls()
@@ -75,7 +81,8 @@ class GridWorld:
         # --- Thay đổi cho Đa tác nhân ---
         return {
             'agent_pos': tuple(self.agent_positions[agent_id]),
-            'step_count': self.current_step
+            'step_count': self.current_step,
+            'global_events': self.broadcast_events # Gửi sự kiện cho agent
         }
     def get_all_observations(self):
         # --- Hàm mới cho Đa tác nhân ---
@@ -110,6 +117,13 @@ class GridWorld:
                 if switch_id in self.switch_states:
                     self.switch_states[switch_id] = not self.switch_states[switch_id]
                     self._update_dynamic_walls()
+                    # --- STRATEGY 3: SHARED BELIEFS ---
+                    # Ghi nhận sự kiện để broadcast cho tất cả agent
+                    self.broadcast_events.append({
+                        'type': 'switch_toggle',
+                        'switch_id': switch_id,
+                        'new_state': self.switch_states[switch_id]
+                    })
         else:
             return -0.5
 
@@ -126,6 +140,10 @@ class GridWorld:
         any_agent_at_goal = any(tuple(pos) == self.goal_pos for pos in self.agent_positions.values())
         return any_agent_at_goal or self.current_step >= self.max_steps
         # --------------------------------
+
+    def new_step(self):
+        """Hàm được gọi đầu mỗi bước mô phỏng để reset các sự kiện tạm thời."""
+        self.broadcast_events = []
 
     def render(self):
         os.system('cls' if os.name == 'nt' else 'clear')

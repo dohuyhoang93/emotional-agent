@@ -1,0 +1,13 @@
+--- BÁO CÁO TỔNG KẾT THỬ NGHIỆM ---
+Thời gian chạy: 2025-11-28 08:57:49
+Thư mục kết quả: results/debug_belief
+
+=== Thử nghiệm: Debug_Belief ===
+  Số lần chạy: 1
+  Số episode mỗi lần chạy: 10
+  Tham số: {'use_dynamic_curiosity': True, 'use_adaptive_fatigue': True, 'fatigue_growth_rate': 5.0, 'emotional_boost_factor': 0.3, 'visual_mode': False, 'environment_config': {'grid_size': 10, 'num_agents': 2, 'start_positions': [[0, 0], [5, 5]], 'goal_pos': [9, 9], 'max_steps_per_episode': 50, 'walls': [], 'logical_switches': [{'pos': [0, 1], 'id': 'A'}], 'dynamic_walls': [], 'dynamic_wall_rules': []}}
+  Tỷ lệ thành công trung bình (tất cả episode): 10.00%
+  Số bước trung bình cho episode thành công: 18.00
+  Tỷ lệ khám phá cuối cùng trung bình: 0.6902
+  Episode trung bình tìm ra đường tối ưu (18 bước): 3.00
+

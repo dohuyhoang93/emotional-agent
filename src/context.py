@@ -57,7 +57,8 @@ class AgentContext:
         # Vị trí các công tắc, ví dụ: {'A': (1, 8), ...}
         self.switch_locations: dict = settings.get('switch_locations', {}) 
         # Niềm tin về trạng thái các công tắc, ví dụ: {'A': False, 'B': True, ...}
-        self.believed_switch_states: dict = {switch_id: False for switch_id in "ABCD"}
+        # Niềm tin về trạng thái các công tắc, ví dụ: {'A': False, 'B': True, ...}
+        self.believed_switch_states: dict = {switch_id: False for switch_id in self.switch_locations.keys()}
 
 
     def get_composite_state(self, agent_pos: tuple) -> tuple:
@@ -72,8 +73,9 @@ class AgentContext:
 
     def __str__(self):
         # Giả sử E_vector[0] là 'tin cậy' (confidence)
+        switch_str = ", ".join([f"'{k}': {v}" for k, v in self.believed_switch_states.items()])
         return (
-            f"  Believed Switches: {{'A': {self.believed_switch_states['A']}, 'B': {self.believed_switch_states['B']}, 'C': {self.believed_switch_states['C']}, 'D': {self.believed_switch_states['D']}}}\n"
+            f"  Believed Switches: {{{switch_str}}}\n"
             f"  Confidence: {self.confidence:.3f}\n"
             f"  Policy: exploration_rate={self.policy['exploration_rate']:.3f} (base={self.base_exploration_rate:.3f})\n"
             f"  Last TD Error: {self.td_error:.3f}"

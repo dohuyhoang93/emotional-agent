@@ -19,9 +19,15 @@ def _is_stagnated(context: AgentContext, stagnation_threshold: int = 50) -> bool
     # Để đơn giản, chúng ta so sánh với một ngưỡng cứng. Nếu tỷ lệ thành công gần đây
     # quá thấp, coi như là bế tắc.
     # Một logic phức tạp hơn có thể so sánh với các giai đoạn trước đó.
-    if recent_success_rate < 0.05: # Ví dụ: nếu tỷ lệ thành công dưới 5% trong 50 episode
+    # --- STRATEGY 2: AGGRESSIVE SOCIAL LEARNING ---
+    # 1. Tăng ngưỡng bế tắc lên 20% (thay vì 5%)
+    if recent_success_rate < 0.20: 
         return True
-        
+    
+    # 2. Kích hoạt định kỳ mỗi 50 episode để đảm bảo không bỏ lỡ cơ hội học hỏi
+    if context.current_episode % 50 == 0:
+        return True
+
     return False
 
 def social_learning(context: AgentContext, all_contexts: List[AgentContext], agent_id: int) -> AgentContext:
@@ -55,7 +61,7 @@ def social_learning(context: AgentContext, all_contexts: List[AgentContext], age
     if best_agent_context and max_success_rate > np.mean([r['success'] for r in context.long_term_memory.get('episode_results', [])]):
         log(context, "verbose", f"    > Found better agent {all_contexts.index(best_agent_context)} with success rate {max_success_rate:.2f}. Assimilating Q-table...")
         
-        assimilation_rate = 0.1 # Tỷ lệ đồng hóa kiến thức
+        assimilation_rate = 0.3 # Tăng tốc độ học hỏi từ 0.1 lên 0.3
 
         for state, actions in best_agent_context.q_table.items():
             if state not in context.q_table:

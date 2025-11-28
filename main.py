@@ -69,6 +69,9 @@ def run_simulation(num_episodes: int, output_path: str, settings_override: Dict[
     if settings_override:
         settings = recursive_update(settings, settings_override)
     
+    # Update num_episodes in settings to match the actual run argument
+    settings['num_episodes'] = num_episodes
+    
     if seed is not None:
         random.seed(seed)
         np.random.seed(seed)
@@ -96,7 +99,9 @@ def run_simulation(num_episodes: int, output_path: str, settings_override: Dict[
     for i, context in enumerate(contexts):
         context.max_steps = environment.max_steps
         n_dim = len(settings['initial_needs'])
-        b_dim = 6
+        # b_dim = 2 (vị trí x,y) + số lượng công tắc
+        num_switches = len(settings.get('switch_locations', {}))
+        b_dim = 2 + num_switches
         m_dim = 1
         e_dim = len(settings['initial_emotions'])
         context.emotion_model = EmotionCalculatorMLP(n_dim, b_dim, m_dim, e_dim)
@@ -122,6 +127,7 @@ def run_simulation(num_episodes: int, output_path: str, settings_override: Dict[
         cycle_times = []
 
         while not environment.is_done():
+            environment.new_step() # Reset các sự kiện broadcast đầu mỗi bước
             if settings['visual_mode']:
                 environment.render()
                 log(dummy_context_for_initial_log, "info", f"Episode {episode + 1} | Step {environment.current_step}") # Using logger

@@ -1,0 +1,42 @@
+{
+    "output_dir": "results/debug_finisher",
+    "log_level": "verbose",
+    "experiments": [
+        {
+            "name": "Debug_Finisher",
+            "runs": 1,
+            "episodes_per_run": 100,
+            "log_level": "verbose",
+            "parameters": {
+                "use_dynamic_curiosity": true,
+                "use_adaptive_fatigue": true,
+                "fatigue_growth_rate": 5.0,
+                "emotional_boost_factor": 0.3,
+                "visual_mode": false,
+                "environment_config": {
+                    "grid_size": 10,
+                    "num_agents": 2,
+                    "start_positions": [
+                        [
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            1
+                        ]
+                    ],
+                    "goal_pos": [
+                        9,
+                        9
+                    ],
+                    "max_steps_per_episode": 100,
+                    "walls": [],
+                    "logical_switches": [],
+                    "dynamic_walls": [],
+                    "dynamic_wall_rules": []
+                }
+            }
+        }
+    ]
+}
