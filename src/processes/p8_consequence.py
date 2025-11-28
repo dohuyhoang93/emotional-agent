@@ -3,7 +3,7 @@ import torch
 import torch.nn.functional as F
 from src.logger import log, log_error # Import the new logger
 
-def _calculate_dynamic_weight(cycle_time: float, current_step: int, current_episode: int, use_adaptive: bool = False, growth_rate: float = 0.001, max_steps: int = 500) -> float:
+def _calculate_dynamic_weight(cycle_time: float, current_step: int, current_episode: int, total_episodes: int, use_adaptive: bool = False, max_fatigue_growth: float = 5.0, max_steps: int = 500) -> float:
     """
     Tính toán trọng số tò mò (intrinsic_reward_weight) một cách linh động.
     Hỗ trợ cả logic cũ (chỉ cycle_time) và logic mới (Adaptive Fatigue).
@@ -20,7 +20,10 @@ def _calculate_dynamic_weight(cycle_time: float, current_step: int, current_epis
         normalized_cycle_time = cycle_time * 1000 
         
         # Tính chỉ số mệt mỏi
-        fatigue_index = (normalized_cycle_time * current_step) / (1 + growth_rate * current_episode)
+        # Tính chỉ số mệt mỏi dựa trên TIẾN ĐỘ (Progress) thay vì số episode tuyệt đối
+        # fatigue_index = (normalized_cycle_time * current_step) * (1 + max_fatigue_growth * progress)
+        progress = current_episode / max(1, total_episodes)
+        fatigue_index = (normalized_cycle_time * current_step) * (1 + max_fatigue_growth * progress)
         
         # Ngưỡng mệt mỏi (được hiệu chỉnh theo max_steps)
         # Ví dụ: max_steps=500 -> fatigue_index max ~ 1.3 * 500 = 650
@@ -95,8 +98,9 @@ def record_consequences(context: AgentContext) -> AgentContext:
             context.last_cycle_time, 
             current_step, 
             context.current_episode,
+            context.total_episodes,
             context.use_adaptive_fatigue,
-            context.fatigue_growth_rate,
+            context.fatigue_growth_rate, # Trong config vẫn dùng key này nhưng ý nghĩa là max_fatigue_growth
             context.max_steps
         )
         log(context, "verbose", f"    > Dynamic Weight: {dynamic_intrinsic_weight:.4f}")

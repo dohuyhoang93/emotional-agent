@@ -46,6 +46,7 @@ class AgentContext:
         self.use_adaptive_fatigue: bool = settings.get('use_adaptive_fatigue', False)
         self.fatigue_growth_rate: float = settings.get('fatigue_growth_rate', 0.001)
         self.current_episode: int = 0
+        self.total_episodes: int = settings.get('num_episodes', 1000)
 
         # --- Chỉ số hệ thống ---
         self.last_cycle_time: float = 0.0

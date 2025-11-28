@@ -1,0 +1,33 @@
+--- ANALYSIS REPORT ---
+Total Episodes: 5000
+Overall Success Rate: 61.10%
+Avg Steps (Success): 207.83
+Avg Total Reward: -35.73
+Avg Exploration Rate: 0.3000
+
+--- TREND ANALYSIS (Per 1000 Episodes) ---
+Episodes 0-1000:
+  Success Rate: 35.30%
+  Avg Steps: 284.25
+  Avg Reward: -46.82
+  Avg Exploration: 0.3005
+Episodes 1000-2000:
+  Success Rate: 45.40%
+  Avg Steps: 244.78
+  Avg Reward: -42.46
+  Avg Exploration: 0.2999
+Episodes 2000-3000:
+  Success Rate: 61.60%
+  Avg Steps: 216.65
+  Avg Reward: -36.57
+  Avg Exploration: 0.2998
+Episodes 3000-4000:
+  Success Rate: 77.30%
+  Avg Steps: 178.81
+  Avg Reward: -28.16
+  Avg Exploration: 0.3000
+Episodes 4000-5000:
+  Success Rate: 85.90%
+  Avg Steps: 176.68
+  Avg Reward: -24.65
+  Avg Exploration: 0.3000
