@@ -37,11 +37,12 @@ def adjust_exploration(context: AgentContext) -> AgentContext:
     log(context, "verbose", f"    > New Exploration Rate: {final_exploration_rate:.3f}")
 
     # --- STRATEGY 1: THE FINISHER ---
-    # Nếu đã đi được 90% chặng đường, ép buộc khai thác (exploration = 0)
-    # để tối ưu hóa điểm số và tránh sai lầm ngẫu nhiên.
-    if context.total_episodes > 0 and context.current_episode > 0.9 * context.total_episodes:
-        final_exploration_rate = 0.0
-        context.policy['exploration_rate'] = final_exploration_rate
-        log(context, "verbose", f"    > [THE FINISHER] Activated! Force exploration to 0.0")
+    # [DISABLED] Tạm thời vô hiệu hóa để kiểm tra hiệu suất khi để exploration tự nhiên
+    # Nếu đã đi được 90% chặng đường, ép buộc khai thác mạnh nhưng KHÔNG tuyệt đối (0.05)
+    # để tránh bị kẹt trong các vòng lặp vô tận (infinite loops).
+    # if context.total_episodes > 0 and context.current_episode > 0.9 * context.total_episodes:
+    #     final_exploration_rate = 0.05
+    #     context.policy['exploration_rate'] = final_exploration_rate
+    #     log(context, "verbose", f"    > [THE FINISHER] Activated! Force exploration to 0.05")
 
     return context

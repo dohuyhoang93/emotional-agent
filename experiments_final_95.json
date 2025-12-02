@@ -11,7 +11,9 @@
                 "use_dynamic_curiosity": true,
                 "use_adaptive_fatigue": true,
                 "fatigue_growth_rate": 5.0,
-                "emotional_boost_factor": 0.3,
+                "emotional_boost_factor": 0.4,
+                "short_term_memory_limit": 100,
+                "assimilation_rate": 0.3,
                 "visual_mode": false,
                 "environment_config": {
                     "grid_size": 25,

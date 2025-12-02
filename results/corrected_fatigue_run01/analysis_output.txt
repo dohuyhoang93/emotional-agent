@@ -31,3 +31,8 @@ Episodes 4000-5000:
   Avg Steps: 176.68
   Avg Reward: -24.65
   Avg Exploration: 0.3000
+
+--- THE FINISHER PHASE (Episodes 4500-5000) ---
+  Success Rate: 84.80%
+  Avg Steps: 165.99
+  Avg Exploration: 0.3000

@@ -44,7 +44,10 @@ class AgentContext:
         self.intrinsic_reward_weight: float = settings.get('intrinsic_reward_weight', 0.1)
         self.use_dynamic_curiosity: bool = settings.get('use_dynamic_curiosity', False)
         self.use_adaptive_fatigue: bool = settings.get('use_adaptive_fatigue', False)
+        self.use_adaptive_fatigue: bool = settings.get('use_adaptive_fatigue', False)
         self.fatigue_growth_rate: float = settings.get('fatigue_growth_rate', 0.001)
+        self.assimilation_rate: float = settings.get('assimilation_rate', 0.1) # Tỷ lệ đồng hóa kiến thức xã hội
+        self.short_term_memory_limit: int = settings.get('short_term_memory_limit', 100) # Giới hạn bộ nhớ ngắn hạn
         self.current_episode: int = 0
         self.total_episodes: int = settings.get('num_episodes', 1000)
 

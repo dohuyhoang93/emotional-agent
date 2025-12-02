@@ -2,8 +2,8 @@ import pandas as pd
 import os
 
 # Define path to CSV
-csv_path = 'results/corrected_final_run95/ComplexMaze_CorrectedFinal_Run95/run_1.csv'
-output_file = 'results/corrected_final_run95/analysis_output.txt'
+csv_path = 'results/corrected_fatigue_run01/ComplexMaze_CorrectedFatigue_Run01/run_1.csv'
+output_file = 'results/corrected_fatigue_run01/analysis_output.txt'
 
 def analyze_run(file_path):
     if not os.path.exists(file_path):

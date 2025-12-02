@@ -154,7 +154,7 @@ def record_consequences(context: AgentContext) -> AgentContext:
     }
     context.short_term_memory.append(log_entry)
     # Giới hạn bộ nhớ để tránh quá tải
-    if len(context.short_term_memory) > 100:
+    if len(context.short_term_memory) > context.short_term_memory_limit:
         context.short_term_memory.pop(0)
 
     return context
