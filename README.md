@@ -1,6 +1,6 @@
 # EmotionAgent: Prototype Tác nhân AI Nhận thức-Cảm xúc với Hệ thống Thử nghiệm Tự động
 
-Dự án này là một prototype hoạt động, hiện thực hóa các ý tưởng trong tài liệu `spec.md`. Nó mô phỏng một tác nhân AI học cách hoạt động trong môi trường "Thế giới Lưới" (Grid World) bằng kiến trúc nhận thức-cảm xúc tùy chỉnh.
+Dự án này là một prototype hoạt động, hiện thực hóa các ý tưởng trong tài liệu **[spec.md](Documents/spec.md)**. Nó mô phỏng một tác nhân AI học cách hoạt động trong môi trường "Thế giới Lưới" (Grid World) bằng kiến trúc nhận thức-cảm xúc tùy chỉnh.
 
 Điểm nổi bật của dự án không chỉ nằm ở mô hình agent, mà còn ở **hệ thống dàn dựng thử nghiệm tự động**, cho phép cấu hình, thực thi và phân tích các kịch bản thử nghiệm phức tạp một cách khoa học và có hệ thống.
 
@@ -121,4 +121,4 @@ Dự án đang chuyển hướng sang nghiên cứu và áp dụng **Spiking Neu
 
 *   **Mục tiêu:** Tạo ra cơ chế học tập "phi nhân" (non-multiplication), tiết kiệm tính toán và mô phỏng sinh học tốt hơn.
 *   **Đặc điểm:** Sử dụng xung tín hiệu thưa thớt, cơ chế ức chế/hưng phấn, và quên/nhớ linh hoạt theo thời gian thực.
-*   **Tài liệu:** Xem chi tiết tại `docs/spiking_neural_net.md`.
+*   **Tài liệu:** Xem chi tiết tại **[spiking_neural_net.md](Documents/spiking_neural_net.md)**.
