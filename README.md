@@ -62,8 +62,9 @@ EmotionAgent/
     ├── plotting.py             # Module vẽ biểu đồ
     ├── process_registry.py     # Đăng ký các process của Agent
     │
-    ├── processes/              # Các process của Agent (p1 -> p8)
-    │   └── ...
+    ├── processes/              # Các process của Agent (p1 -> p9)
+    │   ├── ...
+    │   └── p9_social_learning.py # Process Học hỏi Xã hội
     └── orchestration_processes/  # Các process của Orchestrator
         └── ...
 ```
@@ -107,7 +108,17 @@ Ngoài các script cốt lõi của agent và hệ thống dàn dựng, dự án
 
 ## 5. Trạng thái Hiện tại và Hiểu biết Mới nhất
 
-*   **Hoàn thành:** Đã hoàn thành **Bước 1 (Prototype Agent)** và **Bước 2 (Hệ thống Dàn dựng Thử nghiệm)**.
-*   **Phát hiện chính:** Các thử nghiệm trên môi trường đơn giản (5x5) và phức tạp hơn (15x15) đều cho thấy một kết quả nhất quán và có phần phản trực giác: **agent có tính tò mò thấp (`Low_Curiosity`) cho hiệu suất tốt hơn agent có tính tò mò cao (`High_Curiosity`)**.
-*   **Lý giải (Giả thuyết về sự "Xao lãng"):** Trong các môi trường có thể đoán trước được (deterministic), phần thưởng nội sinh dựa trên "sự ngạc nhiên" dường như hoạt động như một yếu tố gây xao lãng, khuyến khích agent khám phá những hành vi mới lạ nhưng không hiệu quả (như đâm vào tường) thay vì tập trung vào mục tiêu chính.
-*   **Hướng đi tiếp theo:** Để thực sự kiểm chứng giá trị của sự tò mò, bước tiếp theo là đưa agent vào một môi trường **không thể đoán trước (stochastic)**, nơi hành động của agent có thể thất bại hoặc cho ra kết quả ngẫu nhiên. Trong một thế giới như vậy, khả năng mô hình hóa và hiểu được "sự bất ngờ" được kỳ vọng sẽ trở nên có giá trị hơn.
+*   **Hoàn thành:** Đã hoàn thành **Bước 1 (Prototype Agent)**, **Bước 2 (Hệ thống Dàn dựng Thử nghiệm)**, và đạt bước tiến lớn trong **Bước 3 (Tối ưu hóa trong Môi trường Động)**.
+*   **Phát hiện chính (Mới nhất - 12/2025):** Các thử nghiệm trên Môi trường Động Phức tạp (Dynamic Maze with Switches) cho thấy:
+    *   **Sức mạnh của Social Learning:** Chiến lược "Học hỏi xã hội" (Assimilation Rate = 0.3) giúp agent đạt tỷ lệ thắng **81%** và giảm số bước trung bình xuống **164 bước** (tốt nhất từ trước đến nay).
+    *   **Thích nghi nhanh (Plasticity):** Việc giới hạn bộ nhớ ngắn hạn (Short-term memory = 100) hiệu quả hơn là nhớ quá lâu (300), giúp agent không bị ám ảnh bởi các thông tin lỗi thời trong môi trường biến động.
+    *   **Cảm xúc dẫn lối:** Sự kết hợp giữa Tò mò cao và Học hỏi xã hội giúp agent thoát khỏi bế tắc tốt hơn là chỉ tối ưu hóa phần thưởng thuần túy.
+*   **Kết luận:** Một hệ thống phi tập trung, phản ứng nhanh và biết học hỏi lẫn nhau sẽ chiến thắng một hệ thống tính toán tối ưu nhưng cứng nhắc.
+
+## 6. Hướng nghiên cứu: Spiking Neural Network (SNN)
+
+Dự án đang chuyển hướng sang nghiên cứu và áp dụng **Spiking Neural Network (SNN)** để thay thế cho MLP hiện tại trong việc tính toán cảm xúc và điều khiển hành vi.
+
+*   **Mục tiêu:** Tạo ra cơ chế học tập "phi nhân" (non-multiplication), tiết kiệm tính toán và mô phỏng sinh học tốt hơn.
+*   **Đặc điểm:** Sử dụng xung tín hiệu thưa thớt, cơ chế ức chế/hưng phấn, và quên/nhớ linh hoạt theo thời gian thực.
+*   **Tài liệu:** Xem chi tiết tại `docs/spiking_neural_net.md`.
