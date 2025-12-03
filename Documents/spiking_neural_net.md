@@ -76,3 +76,8 @@ Khi tín hiệu kích thích vào, neuron sẽ kích hoạt và tạo ra tín hi
 environment --> Giao cảm -> Trí nhớ -> [Trạng thái <-> Logic] -> Vận động --> tương tác với environment -->  Giao cảm
 
 tín hiệu cuối cùng đạt đủ cường độ đi đến neuron vận động sẽ điều khiển hành vi của mô hình.
+
+### 2.3 Các vấn đề phức hợp:
+1. Kiểm soát ức chế (Inhibition Control): Một hệ thống thông minh không chỉ cần biết hưng phấn (kích hoạt neuron) mà còn cần biết ức chế. SNN cần có cơ chế để "làm nguội" các xung thần kinh nếu chúng quá hỗn loạn (tương tự việc giữ exploration rate ở 0.3).
+
+2. Cân bằng: Cần tìm điểm cân bằng giữa việc "học nhanh" (Social Learning) và "thận trọng" (Baseline). Có thể trong SNN, các tín hiệu từ đồng đội chỉ nên đóng vai trò "gợi ý" (kích thích nhẹ điện thế màng) chứ không nên "chi phối" (gây phóng điện ngay lập tức).

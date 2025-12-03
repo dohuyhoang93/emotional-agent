@@ -819,3 +819,43 @@ Kết quả:
 
 Đánh giá: Hiệu suất tăng vọt. Thể hiện các gỡ lỗi và cơ chế tự điều chỉnh chỉ số tò mò theo cycle_time và cơ chế học hỏi xã hội đã phát huy tác dụng.
 Tuy nhiên nhìn vào biểu đồ có thể thấy, về cuối thử nghiệm, tỷ lệ thành công duy trì quanh 80% và không duy trì đường đi tối ưu. Điều này cần phân tích thêm và có cơ chế để đường đi tối ưu được phản ánh sâu sắc hơn vào toàn bộ các episode sau này.
+
+### Ngày 27/11/2025
+Cycle time của 1 step là tương đương nhau và rất nhỏ khi kiểm tra trong csv file. Điều này cần được cải thiện. Đề xuất và thực hiện thay đổi logic tính toán độ mỏi fatigue động hơn thay vì chỉ phụ thuộc vào trung bình cycle_time của episode.
+
+p8_consequence.py:
+
+```python
+# Tính chỉ số mệt mỏi dựa trên TIẾN ĐỘ (Progress) thay vì số episode tuyệt đối
+# fatigue_index = (normalized_cycle_time * current_step) * (1 + max_fatigue_growth * progress)
+```
+
+Chạy thử nghiệm `corrected_fatigue_run01.json`.
+Kết quả:
+- Tỷ lệ thành công trung bình (tất cả episode): 61.10%
+- Số bước trung bình cho episode thành công: 207.83
+- Tỷ lệ khám phá cuối cùng trung bình: 0.3000
+- Episode trung bình tìm ra đường tối ưu (47 bước): 4707.00
+- Trung bình 1000 episode cuối 4000 - 5000 Success Rate: 85.90%
+
+***Sau này với các sửa đổi khác đều không đạt được thành tích này. Đây là kết quả tốt nhất.***
+
+### Các ngày 28/11 -> 2/12/2025
+Thử nghiệm các sửa đổi nhằm tăng tỷ lệ thành công lên 90%:
+Với 3 chiến lược tiếp cận mới:
+1. Ép buộc khai thác khi quá trình đi đến 90% episode. Drop down exploration rate về 0.0.
+2. Thêm cơ chế học social_learing bắt buộc, chủ động kích hoạt khi đạt mỗi 50 episode.
+3. Lan truyền trạng thái switch của lưới môi trường maze. Trong 1 episode, khi một agent gạt 1 công tắc, trạng thái của công tắc sẽ được lan truyền đến các agent khác trong mê cung.
+
+Chạy thử nghiệm: `corrented_final_run95.json`.
+
+Kết quả:
+Tất cả chỉ số đều giảm mạnh so với trước đó.
+
+-> Tiến hành cô lập, disable từng chiến lược để tìm ra nguyên nhân gây ra giảm mạnh.
+
+Disable cơ chế lan truyền trạng thái switch của lưới môi trường maze. Kết quả: Có cải thiện, nhưng không đáng kể. Điều này cho thấy: trạng thái phức tạp của môi trường tăng lên do switch thay đổi làm các dự đoán của MLP kém chính xác.
+
+Tăng số episode kích hoạt cơ chế học social_learing bắt buộc từ 50 -> 500. Kết quả: Có cải thiện nhưng không đáng kể. Điều này cho thấy: Kinh nghiệm của agent khác không phát huy được hiệu quả, thậm chí khiến agent rơi vào vòng lặp bế tắc khi tỷ lệ chép bài - đồng hóa: `assimilation = 0.3` cao (ban đầu là 0.1).
+
+Disable cơ chế ép buộc khai thác khi quá trình đi đến 90% episode. Kết quả: Hiệu suất tăng trở lại, mức Success Rate: 80% . Điều này cho thấy: khi trạng thái môi trường thay đổi liên tục do các switch bị agent trước thay đổi. Việc chỉ khai thác sẽ khiến agent rơi vào vòng lặp bế tắc do dự doán dựa trên đầu vào cũ không còn đúng. Một tỷ lệ exploration rate cân bằng giúp agent tìm ra đường thoát khỏi bế tắc. đồng thời cũng có thể khai thác hợp lý để về đích với tỷ lệ thành công cao hơn.

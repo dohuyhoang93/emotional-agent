@@ -1,38 +1,38 @@
 --- ANALYSIS REPORT ---
 Total Episodes: 5000
-Overall Success Rate: 60.30%
-Avg Steps (Success): 210.63
-Avg Total Reward: -37.34
-Avg Exploration Rate: 0.3780
+Overall Success Rate: 61.46%
+Avg Steps (Success): 199.86
+Avg Total Reward: -36.57
+Avg Exploration Rate: 0.3750
 
 --- TREND ANALYSIS (Per 1000 Episodes) ---
 Episodes 0-1000:
-  Success Rate: 33.60%
-  Avg Steps: 282.28
-  Avg Reward: -48.51
-  Avg Exploration: 0.3958
+  Success Rate: 32.40%
+  Avg Steps: 278.15
+  Avg Reward: -49.16
+  Avg Exploration: 0.3956
 Episodes 1000-2000:
-  Success Rate: 52.20%
-  Avg Steps: 240.17
-  Avg Reward: -42.00
-  Avg Exploration: 0.3749
+  Success Rate: 52.30%
+  Avg Steps: 219.35
+  Avg Reward: -41.07
+  Avg Exploration: 0.3809
 Episodes 2000-3000:
-  Success Rate: 67.90%
-  Avg Steps: 203.74
-  Avg Reward: -34.25
-  Avg Exploration: 0.3575
+  Success Rate: 72.40%
+  Avg Steps: 196.39
+  Avg Reward: -32.88
+  Avg Exploration: 0.3630
 Episodes 3000-4000:
-  Success Rate: 76.30%
-  Avg Steps: 183.84
-  Avg Reward: -30.21
-  Avg Exploration: 0.3888
+  Success Rate: 70.00%
+  Avg Steps: 188.31
+  Avg Reward: -32.80
+  Avg Exploration: 0.3730
 Episodes 4000-5000:
-  Success Rate: 71.50%
-  Avg Steps: 190.52
-  Avg Reward: -31.72
-  Avg Exploration: 0.3729
+  Success Rate: 80.20%
+  Avg Steps: 168.74
+  Avg Reward: -26.93
+  Avg Exploration: 0.3626
 
 --- THE FINISHER PHASE (Episodes 4500-5000) ---
-  Success Rate: 66.20%
-  Avg Steps: 201.48
-  Avg Exploration: 0.3813
+  Success Rate: 81.00%
+  Avg Steps: 164.55
+  Avg Exploration: 0.3778
