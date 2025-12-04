@@ -59,11 +59,13 @@ class GridWorld:
             elif rule_type == "and":
                 all_inputs_on = all(s.get(switch_id, False) for switch_id in inputs)
                 is_closed = not all_inputs_on
+            elif rule_type == "or":
+                any_input_on = any(s.get(switch_id, False) for switch_id in inputs)
+                is_closed = not any_input_on
             elif rule_type == "xor":
-                if len(inputs) == 2:
-                    input1_on = s.get(inputs[0], False)
-                    input2_on = s.get(inputs[1], False)
-                    is_closed = not (input1_on ^ input2_on)
+                # Generalized XOR (Odd Parity): True if odd number of inputs are ON
+                active_inputs = sum(1 for switch_id in inputs if s.get(switch_id, False))
+                is_closed = not (active_inputs % 2 == 1)
             self.dynamic_wall_states[wall_id] = is_closed
 
     def reset(self):

@@ -75,6 +75,47 @@ def p_analyze_data(context: OrchestrationContext) -> OrchestrationContext:
                     summary_report_lines.append(f"  Episode trung bình tìm ra đường tối ưu ({int(optimal_path_length)} bước): {average_convergence_episode:.2f}")
                 else:
                     summary_report_lines.append(f"  Đường tối ưu ({int(optimal_path_length)} bước) không được tìm thấy.")
+
+            # --- Phân tích Xu hướng (Trend Analysis) ---
+            summary_report_lines.append("\n  --- Phân tích Xu hướng (Mỗi 1000 Episodes) ---")
+            chunk_size = 1000
+            max_episode = df_agg['episode'].max()
+            
+            # Đảm bảo max_episode là bội số của chunk_size hoặc xử lý phần dư nếu cần
+            # Ở đây giả sử chúng ta loop đến max_episode
+            for start_ep in range(0, int(max_episode), chunk_size):
+                end_ep = min(start_ep + chunk_size, int(max_episode) + 1)
+                # Lọc dữ liệu trong khoảng episode này
+                chunk = df_agg[(df_agg['episode'] >= start_ep) & (df_agg['episode'] < end_ep)]
+                
+                if not chunk.empty:
+                    chunk_success = chunk['success'].mean() * 100
+                    chunk_steps = chunk[chunk['success'] == True]['steps'].mean()
+                    chunk_reward = chunk['total_reward'].mean()
+                    # Lấy exploration rate trung bình của các episode trong chunk
+                    # Lưu ý: final_exploration_rate là giá trị cuối cùng của mỗi episode
+                    chunk_exploration = chunk['final_exploration_rate'].mean()
+
+                    summary_report_lines.append(f"  Episodes {start_ep}-{end_ep}:")
+                    summary_report_lines.append(f"    Success Rate: {chunk_success:.2f}%")
+                    summary_report_lines.append(f"    Avg Steps: {chunk_steps:.2f}")
+                    summary_report_lines.append(f"    Avg Reward: {chunk_reward:.2f}")
+                    summary_report_lines.append(f"    Avg Exploration: {chunk_exploration:.4f}")
+
+            # --- Phân tích Giai đoạn Về đích (The Finisher Phase) ---
+            # 10% cuối cùng của quá trình huấn luyện
+            finisher_start = int(max_episode * 0.9)
+            finisher_chunk = df_agg[df_agg['episode'] >= finisher_start]
+            
+            if not finisher_chunk.empty:
+                finisher_success = finisher_chunk['success'].mean() * 100
+                finisher_steps = finisher_chunk[finisher_chunk['success'] == True]['steps'].mean()
+                finisher_exploration = finisher_chunk['final_exploration_rate'].mean()
+
+                summary_report_lines.append(f"\n  --- Giai đoạn Về đích (Episodes {finisher_start}-{int(max_episode)}) ---")
+                summary_report_lines.append(f"    Success Rate: {finisher_success:.2f}%")
+                summary_report_lines.append(f"    Avg Steps: {finisher_steps:.2f}")
+                summary_report_lines.append(f"    Avg Exploration: {finisher_exploration:.4f}")
             
         else:
             summary_report_lines.append("  Không có dữ liệu tổng hợp cho thử nghiệm này.")

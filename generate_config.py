@@ -1,119 +1,225 @@
 import json
+import os
 
-def expand_line(line_def):
-    coords = []
-    start = line_def['start']
-    end = line_def['end']
-    y1, x1 = start
-    y2, x2 = end
+class MazeConfigBuilder:
+    def __init__(self, grid_size=25, max_steps=500):
+        self.config = {
+            "grid_size": grid_size,
+            "num_agents": 1,
+            "start_positions": [[0, 0]],
+            "goal_pos": [grid_size-1, grid_size-1],
+            "max_steps_per_episode": max_steps,
+            "walls": [],
+            "logical_switches": [],
+            "dynamic_walls": [],
+            "dynamic_wall_rules": []
+        }
+        self.next_switch_id = 0
 
-    if y1 == y2: # Horizontal
-        for x in range(min(x1, x2), max(x1, x2) + 1):
-            coords.append([y1, x])
-    elif x1 == x2: # Vertical
-        for y in range(min(y1, y2), max(y1, y2) + 1):
-            coords.append([y, x1])
-    return coords
+    def set_agents(self, num_agents, start_positions=None):
+        self.config["num_agents"] = num_agents
+        if start_positions:
+            if len(start_positions) != num_agents:
+                raise ValueError("Number of start positions must match num_agents")
+            self.config["start_positions"] = start_positions
+        else:
+            # Default: all start at [0,0]
+            self.config["start_positions"] = [[0, 0] for _ in range(num_agents)]
+        return self
 
-def generate_config():
-    base_parameters = {
+    def set_goal(self, pos):
+        self.config["goal_pos"] = pos
+        return self
+
+    def add_wall_line(self, start, end):
+        """Adds a line of walls from start to end (inclusive)."""
+        coords = self._expand_line(start, end)
+        self.config["walls"].extend(coords)
+        return self
+
+    def add_switch(self, pos, switch_id=None):
+        if switch_id is None:
+            switch_id = chr(ord('A') + self.next_switch_id)
+            self.next_switch_id += 1
+        
+        self.config["logical_switches"].append({
+            "pos": pos,
+            "id": switch_id
+        })
+        return switch_id
+
+    def add_dynamic_wall(self, wall_id, start, end, rule_type="toggle", inputs=None):
+        """
+        Adds a dynamic wall (gate) with a logic rule.
+        rule_type: 'toggle', 'and', 'xor'
+        inputs: list of switch_ids
+        """
+        coords = self._expand_line(start, end)
+        
+        # Add definition
+        self.config["dynamic_walls"].append({
+            "id": wall_id,
+            "pos": coords
+        })
+        
+        # Add rule
+        if inputs is None:
+            raise ValueError("Inputs (switch IDs) must be provided for dynamic walls")
+            
+        self.config["dynamic_wall_rules"].append({
+            "id": wall_id,
+            "type": rule_type,
+            "inputs": inputs
+        })
+        return self
+
+    def _expand_line(self, start, end):
+        coords = []
+        y1, x1 = start
+        y2, x2 = end
+
+        if y1 == y2: # Horizontal
+            for x in range(min(x1, x2), max(x1, x2) + 1):
+                coords.append([y1, x])
+        elif x1 == x2: # Vertical
+            for y in range(min(y1, y2), max(y1, y2) + 1):
+                coords.append([y, x1])
+        else:
+            # Simple diagonal or arbitrary line (Bresenham's could be used here, but keeping it simple)
+            # For now, just support orthogonal lines or single points
+            coords.append(start)
+            if start != end:
+                coords.append(end)
+        return coords
+
+    def build(self):
+        # Remove duplicates in walls
+        self.config["walls"] = [list(x) for x in set(tuple(x) for x in self.config["walls"])]
+        return self.config
+
+def generate_complex_maze_config():
+    """Recreates the 'Complex Maze' used in Run 95 but using the Builder."""
+    builder = MazeConfigBuilder(grid_size=25, max_steps=500)
+    
+    # 1. Agents
+    builder.set_agents(num_agents=5, start_positions=[
+        [0, 0], [0, 1], [1, 0], [2, 0], [0, 2]
+    ])
+    
+    # 2. Static Walls (The 'Cages')
+    # Cage 1 (Top Left)
+    builder.add_wall_line([0, 5], [8, 5])
+    builder.add_wall_line([8, 5], [8, 10])
+    
+    # Cage 2 (Middle)
+    builder.add_wall_line([12, 0], [12, 8])
+    builder.add_wall_line([12, 8], [20, 8])
+    builder.add_wall_line([20, 0], [20, 8]) # Encloses the bottom left area
+    
+    # Cage 3 (Right Barrier)
+    builder.add_wall_line([5, 15], [15, 15])
+    
+    # Cage 4 (Goal Area Protection)
+    builder.add_wall_line([22, 18], [24, 18])
+    builder.add_wall_line([18, 22], [18, 24])
+    
+    # 3. Switches
+    sw_A = builder.add_switch([1, 1], "A")
+    sw_B = builder.add_switch([10, 2], "B")
+    sw_C = builder.add_switch([15, 12], "C")
+    sw_D = builder.add_switch([16, 20], "D")
+    sw_E = builder.add_switch([22, 22], "E")
+    
+    # 4. Dynamic Walls (Gates)
+    # Gate A: Blocks exit from start
+    builder.add_dynamic_wall("gate_A", [9, 0], [9, 10], rule_type="toggle", inputs=[sw_A])
+    
+    # Gate B: Blocks middle passage
+    builder.add_dynamic_wall("gate_B", [0, 13], [10, 13], rule_type="toggle", inputs=[sw_B])
+    
+    # Gate C: Blocks path to goal area
+    builder.add_dynamic_wall("gate_C", [21, 16], [21, 24], rule_type="toggle", inputs=[sw_C])
+    
+    # Gate D: The final hurdle
+    builder.add_dynamic_wall("gate_D", [18, 18], [18, 21], rule_type="toggle", inputs=[sw_D])
+    
+    # Example of AND gate (not in original run, but showing capability)
+    # builder.add_dynamic_wall("gate_Special", [5, 5], [5, 6], rule_type="and", inputs=[sw_A, sw_B])
+    
+    return builder.build()
+
+def generate_logic_test_config():
+    """Creates a 25x25 maze specifically to test AND and XOR gates."""
+    builder = MazeConfigBuilder(grid_size=25, max_steps=500)
+    
+    # 1. Agents (Same as Complex Maze)
+    builder.set_agents(num_agents=5, start_positions=[
+        [0, 0], [0, 1], [1, 0], [2, 0], [0, 2]
+    ])
+    
+    # 2. Switches
+    sw_A = builder.add_switch([2, 2], "A")
+    sw_B = builder.add_switch([2, 4], "B")
+    sw_C = builder.add_switch([10, 10], "C")
+    sw_D = builder.add_switch([10, 12], "D")
+    
+    # 3. Logic Gates
+    
+    # AND Gate: Requires BOTH A and B to be ON to open
+    # Blocks the path out of the starting zone
+    builder.add_wall_line([5, 0], [5, 5]) # Static wall part
+    builder.add_dynamic_wall("gate_AND", [5, 2], [5, 3], rule_type="and", inputs=[sw_A, sw_B])
+    
+    # XOR Gate: Requires EITHER C or D (but not both) to be ON to open
+    # Blocks the path to the goal
+    builder.add_wall_line([15, 0], [15, 24]) # Long static wall
+    builder.add_dynamic_wall("gate_XOR", [15, 11], [15, 13], rule_type="xor", inputs=[sw_C, sw_D])
+    
+    return builder.build()
+
+def main():
+    # 1. Generate Environment Config
+    # env_config = generate_complex_maze_config()
+    env_config = generate_logic_test_config() # Switch to Logic Test Config
+    
+    # 2. Define Experiment Parameters
+    experiment_params = {
+        "use_dynamic_curiosity": True,
+        "use_adaptive_fatigue": True,
+        "fatigue_growth_rate": 5.0,
+        "emotional_boost_factor": 0.4,
+        "short_term_memory_limit": 100,
+        "assimilation_rate": 0.3,
+        "intrinsic_reward_weight": 0.05,
         "initial_exploration": 1.0,
         "min_exploration": 0.05,
         "exploration_decay": 0.9995,
-        "visual_mode": False
+        "visual_mode": False,
+        "environment_config": env_config
     }
     
-    # "Balanced Maze" v2 design
-    base_env_config = {
-        "grid_size": 25,
-        "start_pos": [0, 0],
-        "goal_pos": [24, 24],
-        "max_steps_per_episode": 3000,
-        "walls": [
-            # --- Static Wall Segments (broken to avoid cages) ---
-            # C-shape near start
-            {"type": "line", "start": [0, 5], "end": [8, 5]},
-            {"type": "line", "start": [8, 5], "end": [8, 10]},
-            # U-shape in middle-left
-            {"type": "line", "start": [12, 0], "end": [12, 8]},
-            {"type": "line", "start": [12, 8], "end": [20, 8]},
-            {"type": "line", "start": [20, 0], "end": [20, 8]},
-            # Barrier in middle-right
-            {"type": "line", "start": [5, 15], "end": [15, 15]},
-            # L-shape near goal (BROKEN UP)
-            {"type": "line", "start": [22, 18], "end": [24, 18]}, # Short horizontal segment
-            {"type": "line", "start": [18, 22], "end": [18, 24]}, # Short vertical segment
-        ],
-        "logical_switches": [
-            { "pos": [1, 1], "id": "A" },      # Inside starting area
-            { "pos": [10, 2], "id": "B" },     # Requires navigating out of start
-            { "pos": [15, 12], "id": "C" },    # Mid-maze
-            { "pos": [16, 20], "id": "D" },    # Near the new dynamic gate
-            { "pos": [22, 22], "id": "E" }     # Near goal
-        ],
-        "dynamic_walls": [
-            # Gate 1: Blocks exit from starting area
-            {"id": "gate_A", "pos": [{"type": "line", "start": [9, 0], "end": [9, 10]}]},
-            # Gate 2: Blocks path mid-way
-            {"id": "gate_B", "pos": [{"type": "line", "start": [0, 13], "end": [10, 13]}]},
-            # Gate 3: Blocks final approach to goal (was CDE)
-            {"id": "gate_C", "pos": [{"type": "line", "start": [21, 16], "end": [21, 24]}]},
-            # Gate 4: New gate replacing part of the static L-shape
-            {"id": "gate_D", "pos": [{"type": "line", "start": [18, 18], "end": [18, 21]}]}
-        ],
-        "dynamic_wall_rules": [
-            { "id": "gate_A", "type": "toggle", "inputs": ["A"] },
-            { "id": "gate_B", "type": "toggle", "inputs": ["B"] },
-            { "id": "gate_C", "type": "toggle", "inputs": ["C"] },
-            { "id": "gate_D", "type": "toggle", "inputs": ["D"] } # E is now the red herring
+    # 3. Create Full Config Structure
+    full_config = {
+        "output_dir": "results/logic_test_run",
+        "log_level": "silent",
+        "experiments": [
+            {
+                "name": "LogicGate_Test_Run",
+                "runs": 1,
+                "episodes_per_run": 1000, # Short run for testing
+                "log_level": "silent",
+                "parameters": experiment_params
+            }
         ]
     }
-
-    # Expand walls
-    expanded_walls = []
-    for wall_def in base_env_config["walls"]:
-        expanded_walls.extend(expand_line(wall_def))
-    base_env_config["walls"] = expanded_walls
-
-    # Expand dynamic walls
-    expanded_dynamic_walls = []
-    for wall_def in base_env_config["dynamic_walls"]:
-        expanded_pos = []
-        for pos_def in wall_def["pos"]:
-            expanded_pos.extend(expand_line(pos_def))
-        expanded_dynamic_walls.append({"id": wall_def["id"], "pos": expanded_pos})
-    base_env_config["dynamic_walls"] = expanded_dynamic_walls
-
-    # Define experiments
-    experiments = []
-    curiosity_levels = {
-        "NoCuriosity": {"intrinsic_reward_weight": 0.0, "emotional_boost_factor": 0.0},
-        "LowCuriosity": {"intrinsic_reward_weight": 0.02, "emotional_boost_factor": 0.2},
-        "MediumCuriosity": {"intrinsic_reward_weight": 0.05, "emotional_boost_factor": 0.5}
-    }
-
-    for name, curiosity_params in curiosity_levels.items():
-        params = base_parameters.copy()
-        params.update(curiosity_params)
-        params["environment_config"] = base_env_config
-        
-        experiments.append({
-            "name": f"BalancedMaze_{name}",
-            "runs": 1,
-            "episodes_per_run": 1000,
-            "parameters": params
-        })
-
-    final_config = {
-        "output_dir": "results/balanced_maze_test",
-        "experiments": experiments
-    }
-
-    # Use a new filename to avoid confusion
-    with open("experiments_balanced_maze_v2.json", 'w') as f:
-        json.dump(final_config, f, indent=2)
     
-    print("Successfully generated 'experiments_balanced_maze_v2.json'")
+    # 4. Save to JSON
+    output_file = "experiments_logic_test.json"
+    with open(output_file, 'w') as f:
+        json.dump(full_config, f, indent=4)
+    
+    print(f"Successfully generated '{output_file}' with AND/XOR logic gates.")
+
 
 if __name__ == "__main__":
-    generate_config()
+    main()

@@ -22,7 +22,7 @@
   "use_dynamic_curiosity": true,
   "use_adaptive_fatigue": true,
   "fatigue_growth_rate": 0.001,
-  "visual_mode": false,
+  "visual_mode": true,
   "environment_config": {
     "grid_size": 25,
     "start_pos": [
@@ -33,7 +33,6 @@
       24,
       24
     ],
-    "max_steps_per_episode": 3000,
     "walls": [
       [
         0,

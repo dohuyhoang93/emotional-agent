@@ -53,14 +53,26 @@ def p_run_simulations(context: OrchestrationContext) -> OrchestrationContext:
 
             try:
                 # Chạy main.py và chuyển hướng output vào file log
-                with open(stdout_log_path, 'w') as stdout_log, open(stderr_log_path, 'w') as stderr_log:
+                # Check if visual_mode is enabled
+                is_visual_mode = exp_def.parameters.get("visual_mode", False)
+
+                if is_visual_mode:
+                    # If visual mode, let stdout/stderr go to console so user can see it
                     result = subprocess.run(
                         command, 
-                        stdout=stdout_log, 
-                        stderr=stderr_log, 
                         text=True, 
                         check=True
                     )
+                else:
+                    # Otherwise, capture output to log files
+                    with open(stdout_log_path, 'w') as stdout_log, open(stderr_log_path, 'w') as stderr_log:
+                        result = subprocess.run(
+                            command, 
+                            stdout=stdout_log, 
+                            stderr=stderr_log, 
+                            text=True, 
+                            check=True
+                        )
                 exp_run.status = "COMPLETED"
             except subprocess.CalledProcessError:
                 exp_run.status = "FAILED"

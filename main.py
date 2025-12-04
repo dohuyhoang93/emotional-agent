@@ -139,7 +139,12 @@ def run_simulation(num_episodes: int, output_path: str, settings_override: Dict[
                     continue
 
                 if settings['visual_mode']:
-                    log(context, "info", f"  Agent {agent_id} turn...") # Using logger
+                    # In visual mode, we want to see the grid, not the logs.
+                    # Only show agent turn if verbose logging is explicitly requested.
+                    if log_level == 'verbose':
+                         log(context, "info", f"  Agent {agent_id} turn...") 
+                else:
+                     log(context, "info", f"  Agent {agent_id} turn...")
                 
                 start_time = time.time()
                 # "Blackboard" (tấm bảng đen) chính là toàn bộ danh sách `contexts`

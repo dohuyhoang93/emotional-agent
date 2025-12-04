@@ -96,7 +96,29 @@ Nếu bạn chỉ muốn chạy nhanh một lần mô phỏng để kiểm tra h
     ```shell
     python main.py
     ```
+    ```
     Lưu ý: Chế độ này sẽ không lưu kết quả ra tệp CSV hoặc vẽ biểu đồ.
+
+### d. Tham số Dòng lệnh (CLI Arguments) cho `main.py`
+
+`main.py` hỗ trợ các tham số mạnh mẽ để ghi đè cấu hình ngay lập tức mà không cần sửa file:
+
+| Tham số | Mô tả | Ví dụ |
+| :--- | :--- | :--- |
+| `--num-episodes` | Số lượng màn chơi muốn chạy. | `python main.py --num-episodes 50` |
+| `--output-path` | Đường dẫn lưu file CSV kết quả. | `python main.py --output-path results/test.csv` |
+| `--seed` | Cố định hạt giống ngẫu nhiên (reproducibility). | `python main.py --seed 12345` |
+| `--log-level` | Chỉnh độ chi tiết log (`silent`, `info`, `verbose`). | `python main.py --log-level verbose` |
+| `--settings-override` | **Mạnh nhất**: Ghi đè bất kỳ cấu hình nào bằng chuỗi JSON. | `python main.py --settings-override '{"visual_mode": true}'` |
+
+**Ví dụ nâng cao với `--settings-override`:**
+```bash
+# Bật visual mode và tăng tốc độ học
+python main.py --settings-override '{"visual_mode": true, "learning_rate": 0.2}'
+
+# Thay đổi kích thước map
+python main.py --settings-override '{"environment_config": {"grid_size": 10}}'
+```
 
 ## 4. Utility Scripts
 
@@ -119,6 +141,6 @@ Ngoài các script cốt lõi của agent và hệ thống dàn dựng, dự án
 
 Dự án đang chuyển hướng sang nghiên cứu và áp dụng **Spiking Neural Network (SNN)** để thay thế cho MLP hiện tại trong việc tính toán cảm xúc và điều khiển hành vi.
 
-*   **Mục tiêu:** Tạo ra cơ chế học tập "phi nhân" (non-multiplication), tiết kiệm tính toán và mô phỏng sinh học tốt hơn.
+*   **Mục tiêu:** Tạo ra cơ chế học tập "không mang tính con người" (non-human), tiết kiệm tính toán và mô phỏng sinh học tốt hơn.
 *   **Đặc điểm:** Sử dụng xung tín hiệu thưa thớt, cơ chế ức chế/hưng phấn, và quên/nhớ linh hoạt theo thời gian thực.
 *   **Tài liệu:** Xem chi tiết tại **[spiking_neural_net.md](Documents/spiking_neural_net.md)**.
