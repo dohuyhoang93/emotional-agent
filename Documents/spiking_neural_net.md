@@ -306,3 +306,56 @@ Thay vì cố gắng sao chép bộ não con người (một nỗ lực quá s�
 *   Lấy **Cảm xúc** làm chất bôi trơn (Modulator).
 
 Đây là một hướng đi **Thực dụng (Pragmatic)** và **Độc đáo (Unique)** trong việc giải quyết bài toán AGI (Artificial General Intelligence) từ góc độ kỹ thuật phần mềm.
+
+## 11. Bài học từ Thất bại: Tại sao Học tập Xã hội kiểu cũ không hiệu quả?
+
+Dữ liệu thực nghiệm từ các lần chạy trước (Control Group vs Experimental Group) và quan sát của người dùng đã chỉ ra một nghịch lý: **Ép buộc các Agent học nhau (Copy Q-table) không làm tăng hiệu suất, thậm chí làm giảm hiệu suất nếu tần suất quá cao.**
+
+Tại sao?
+
+### 11.1. Hiện tượng "Nhiễu Xạ Phá Hủy" (Destructive Interference)
+Trong Q-Learning truyền thống, kiến thức được lưu dưới dạng bảng số (Q-Table).
+*   **Agent A:** Đang học cách đi qua Cổng A (bên trái). Q-Table của nó tối ưu cho khu vực trái.
+*   **Agent B:** Đang học cách đi qua Cổng B (bên phải).
+*   **Hành động "Học tập":** Chúng ta lấy `(Q_A + Q_B) / 2`.
+*   **Kết quả:** Ra một Q-Table "trung bình cộng" dở dở ương ương. Nó không biết đi trái, cũng chẳng biết đi phải. Nó bị "mờ" (blurred).
+
+=> Việc ép buộc đồng hóa kiến thức (Assimilation) khi các Agent đang có chiến lược khác nhau sẽ **phá hủy** cấu trúc tri thức tinh vi mà mỗi cá nhân vừa xây dựng được.
+
+### 11.2. SNN giải quyết vấn đề này như thế nào?
+Kiến trúc SNN đề xuất thay đổi hoàn toàn cơ chế tương tác: **Chuyển từ "Copy Kiến thức" sang "Truyền Tín hiệu" (Signaling over Copying).**
+
+*   **Cơ chế cũ (Copying):** "Đưa não của cậu cho tớ xem." -> Gây xung đột cấu trúc.
+*   **Cơ chế mới (Neuromodulation):**
+    *   Agent A tìm thấy đường hay. Nó không gửi bản đồ. Nó bắn một **Spike Tín hiệu** (ví dụ: `EUREKA_SIGNAL`).
+    *   Agent B nhận Spike này. Spike này kích hoạt neuron "Tò mò" hoặc "Hưng phấn" trong SNN của B.
+    *   **Hệ quả:** B tự tăng `exploration_rate` hoặc tự chuyển hướng chú ý sang khu vực của A, nhưng **B vẫn giữ nguyên Q-Table (kỹ năng) của riêng mình**.
+
+=> **Kết luận:** SNN cho phép các Agent **truyền cảm hứng** cho nhau thay vì **tẩy não** nhau. Đây là chìa khóa để giữ được sự đa dạng (Diversity) trong quần thể mà vẫn tận dụng được trí tuệ tập thể.
+
+## 12. Vấn đề Môi trường Không dừng (Non-Stationarity) & Bùng nổ Trạng thái
+
+Người dùng đã chỉ ra một tử huyệt nữa của phương pháp hiện tại: **"Kinh nghiệm nhanh chóng bị lỗi thời."**
+
+### 12.1. Tại sao Q-Learning thất bại khi có nhiều Agent?
+Trong môi trường tĩnh (Single Agent), nếu tôi gạt cần A, cửa A mở. Trạng thái này giữ nguyên cho đến khi tôi quay lại.
+Nhưng với 5 Agent cùng hoạt động:
+1.  Agent 1 gạt cần A -> Cửa A mở. Nó học được: `State(SwitchA=ON) -> Reward`.
+2.  Ngay sau đó, Agent 2 đi qua và gạt cần A lại -> Cửa A đóng.
+3.  Agent 1 quay lại. Kiến thức cũ `SwitchA=ON` không còn đúng nữa (hoặc không còn tồn tại).
+
+Đây gọi là vấn đề **Môi trường Không dừng (Non-Stationary Environment)**. Đối với Agent 1, môi trường thay đổi ngẫu nhiên không theo quy luật vật lý mà nó biết.
+Hơn nữa, với 5 công tắc ($2^5 = 32$ trạng thái), kết hợp với vị trí của 5 agent, không gian trạng thái thực tế là khổng lồ. Bảng Q-Table không thể bao phủ hết, và các giá trị trong bảng liên tục bị "ghi đè" bởi các hành động mâu thuẫn nhau của các agent khác.
+
+### 12.2. Giải pháp SNN: Học Quy luật (Rules) thay vì Học Trạng thái (States)
+Để giải quyết vấn đề này, Agent không nên học giá trị của từng trạng thái cụ thể (vốn luôn thay đổi). Nó cần học **Quy luật Bất biến (Invariant Rules)**.
+
+*   **Q-Learning (Cũ):** "Tại tọa độ (5,5) với Switch A=ON, giá trị là 10." -> *Sai ngay khi Switch A tắt.*
+*   **SNN / Causal Learning (Mới):** "Hành động gạt Switch A **LUÔN LUÔN** làm thay đổi trạng thái Cửa A."
+
+Đây là **Trừu tượng hóa Nhân quả (Causal Abstraction)**.
+*   Dù ai gạt cần, quy luật vật lý "Switch A nối với Cửa A" không thay đổi.
+*   SNN sẽ học mối liên kết bền vững này (thông qua STDP giữa Neuron "Switch A" và Neuron "Cửa A").
+*   Khi cần ra quyết định, Agent không tra bảng (Lookup). Nó **suy diễn (Inference)** dựa trên các quy luật đã học và trạng thái hiện tại mà nó quan sát được.
+
+=> **Kết luận:** Chuyển từ "Ghi nhớ vẹt" (Memorization) sang "Hiểu quy luật" (Understanding) là cách duy nhất để tồn tại trong môi trường hỗn loạn nhiều tác nhân.

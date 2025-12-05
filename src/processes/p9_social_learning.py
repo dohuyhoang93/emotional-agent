@@ -36,6 +36,12 @@ def social_learning(context: AgentContext, all_contexts: List[AgentContext], age
     """
     if not _is_stagnated(context):
         return context
+    
+    # [CONTROL GROUP CHECK]
+    # Nếu assimilation_rate <= 0, tắt hoàn toàn tính năng học xã hội.
+    # Điều này giúp ta chạy các thử nghiệm đối chứng (Control Group) để đo lường hiệu quả thực sự.
+    if context.assimilation_rate <= 0:
+        return context
 
     log(context, "info", f"  [P] 9. Agent {agent_id} is stagnated, attempting social learning...")
 

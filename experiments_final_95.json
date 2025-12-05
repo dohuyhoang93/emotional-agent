@@ -14,7 +14,7 @@
                 "emotional_boost_factor": 0.4,
                 "short_term_memory_limit": 100,
                 "assimilation_rate": 0.3,
-                "visual_mode": true,
+                "visual_mode": false,
                 "environment_config": {
                     "grid_size": 25,
                     "num_agents": 5,
