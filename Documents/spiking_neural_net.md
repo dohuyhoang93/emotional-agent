@@ -132,8 +132,6 @@ Các đề xuất trên được xây dựng dựa trên các nghiên cứu tiê
     *   *Nội dung:* Bài báo kinh điển định nghĩa quy tắc STDP sinh học: "Cells that fire together, wire together" (nhưng phụ thuộc chặt chẽ vào thời gian).
 *   **Diehl, P. U., & Cook, M. (2015). "Unsupervised learning of digit recognition using spike-timing-dependent plasticity." Frontiers in Computational Neuroscience.**
     *   *Nội dung:* Chứng minh rằng chỉ cần quy tắc STDP đơn giản (không cần Backpropagation), mạng SNN có thể tự học nhận dạng chữ số viết tay (MNIST) với độ chính xác cao.
-
-### 4.3. Về Lý thuyết "Un-human" AI (Machine Intelligence)
 *   **LeCun, Y. (2022). "A Path Towards Autonomous Machine Intelligence." OpenReview.**
     *   *Nội dung:* Đề xuất kiến trúc JEPA (Joint Embedding Predictive Architecture), nhấn mạnh việc máy móc cần học mô hình thế giới (World Model) và dự đoán trạng thái tương lai thay vì chỉ bắt chước con người.
 
@@ -358,4 +356,65 @@ Hơn nữa, với 5 công tắc ($2^5 = 32$ trạng thái), kết hợp với v�
 *   SNN sẽ học mối liên kết bền vững này (thông qua STDP giữa Neuron "Switch A" và Neuron "Cửa A").
 *   Khi cần ra quyết định, Agent không tra bảng (Lookup). Nó **suy diễn (Inference)** dựa trên các quy luật đã học và trạng thái hiện tại mà nó quan sát được.
 
-=> **Kết luận:** Chuyển từ "Ghi nhớ vẹt" (Memorization) sang "Hiểu quy luật" (Understanding) là cách duy nhất để tồn tại trong môi trường hỗn loạn nhiều tác nhân.
+
+### 12.3. Cái chết của Cứng nhắc (The Death of Rigidity)
+Một bằng chứng thép khác được người dùng chỉ ra: **"Khi ép Exploration Rate = 0.0 ở giai đoạn cuối, Success Rate tụt về 0%."**
+
+Điều này khẳng định môi trường này **tuyệt đối không tĩnh**.
+*   Trong môi trường tĩnh, Epsilon=0 là tối ưu (Exploitation tuyệt đối).
+*   Trong môi trường này, Epsilon=0 đồng nghĩa với tự sát. Agent sẽ lặp lại mãi một hành động "đã từng đúng" trong quá khứ bất chấp thực tế đã thay đổi (ví dụ: đâm đầu vào cánh cửa đã bị đứa khác đóng).
+*   => **Kết luận:** Agent bắt buộc phải duy trì một mức độ "Nghi ngờ" (Curiosity/Plasticity) nhất định **mãi mãi**. SNN hỗ trợ điều này tự nhiên thông qua việc rò rỉ điện thế (Leak) và quy luật STDP luôn hoạt động (Continuous Learning), không bao giờ "đóng băng" trọng số.
+
+## 13. Nghịch lý Ổn định (The Stability Paradox)
+
+Một quan sát thú vị khác từ thực nghiệm:
+*   Mặc dù cơ chế "Copy Q-Table" gây ra "Nhiễu xạ phá hủy" (làm mờ chiến lược), nhưng...
+*   Trong giai đoạn cuối (Late Stage), nhóm có học xã hội (Rate > 0) lại đạt hiệu suất cao hơn nhóm cô lập (Rate = 0) (85% so với 75%).
+
+### 13.1. Tại sao?
+Nguyên nhân nằm ở chính sự hỗn loạn của môi trường.
+*   Khi Agent A bị "lạc lối" do môi trường thay đổi đột ngột (do Agent B gạt cần), kiến thức cá nhân của nó trở nên vô dụng (thậm chí có hại). Nếu nó cô độc (Rate=0), nó phải học lại từ đầu (Catastrophic Forgetting cục bộ).
+*   Nếu nó có kết nối xã hội (Rate > 0), nó sẽ copy kiến thức của đám đông. Dù kiến thức đám đông này là "trung bình cộng" (không tối ưu), nhưng nó **ỔN ĐỊNH** hơn kiến thức cá nhân đang bị sai lệch.
+
+### 13.2. Vai trò "Mỏ neo" (Anchor)
+Trong trường hợp này, Social Learning đóng vai trò là một **Bộ giảm chấn (Damper)** hoặc **Mỏ neo (Anchor)**.
+*   Nó ngăn không cho hiệu suất của cá nhân rơi xuống vực thẳm khi gặp biến cố.
+*   Nó hy sinh "Đỉnh cao cá nhân" (của những thiên tài đơn lẻ) để đổi lấy "Sự bền bỉ của quần thể".
+
+=> **Bài học cho SNN:** Hệ thống mới không chỉ cần khuyến khích sự đa dạng (như mục 11), mà còn cần duy trì một cơ chế **Ổn định hóa (Stabilization)**. Có thể thông qua một lớp neuron "Văn hóa chung" (Common Culture Layer) hoạt động chậm hơn, lưu giữ các quy luật bất biến của cộng đồng.
+
+## 14. Liên hệ với ML Hiện đại (SOTA Context) & Kết luận
+
+**"Các vấn đề này (Non-stationarity, Forgetting) có phổ biến không và thế giới giải quyết thế nào?"**
+
+Câu trả lời là: **CÓ. Đây là những bài toán cốt lõi và khó nhất của AI hiện đại.**
+
+### 14.1. Bài toán: Multi-Agent Non-Stationarity
+*   **Hiện trạng:** Khi nhiều agent cùng học, "đối thủ" không còn là môi trường tĩnh nữa mà là các agent khác luôn thay đổi chiến thuật. Điều này phá vỡ giả định cơ bản của Q-Learning (Markov Property).
+*   **Giải pháp SOTA (State-of-the-Art):**
+    *   **CTDE (Centralized Training, Decentralized Execution):** Các mô hình như **QMIX, MAPPO** (dùng trong StarCraft II).
+    *   *Cách làm:* Khi huấn luyện, máy chủ trung tâm "nhìn thấy hết" (Cheat) để tính toán hướng đi đúng cho cả nhóm, nhưng khi chạy thật (Execution), mỗi agent chỉ được dùng mắt của mình.
+    *   *So sánh với chúng ta:* Chúng ta đang làm **Fully Decentralized** (khó hơn nhiều). Chúng ta không có "Máy chủ thần thánh". Agent của ta phải tự sinh tồn, giống sinh vật thật hơn.
+
+### 14.2. Bài toán: Catastrophic Forgetting (Quên thảm khốc)
+*   **Hiện trạng:** Neural Network truyền thống học bài mới (Task B) sẽ ghi đè và quên sạch bài cũ (Task A).
+*   **Giải pháp SOTA:**
+    *   **EWC (Elastic Weight Consolidation):** "Đóng băng" các nơ-ron quan trọng của bài cũ, chỉ cho phép thay đổi các nơ-ron ít quan trọng.
+    *   **Experience Replay:** Lưu lại ký ức cũ và "học lại" xen kẽ với bài mới (chính là cơ chế Dreaming của chúng ta).
+    *   *So sánh:* SNN giải quyết việc này bằng **Local Plasticity**. Việc học ở nhánh dây thần kinh này không nhất thiết ảnh hưởng đến nhánh khác. Cộng với cơ chế **Stability Paradox** (học từ văn hóa chung) mà ta vừa phát hiện, đây là một lời giải tự nhiên và ít tốn kém hơn EWC.
+
+### 14.3. Bài toán: Exploration vs. Exploitation
+*   **Hiện trạng:** Làm sao để Agent dám thử cái mới mà không chết?
+*   **Giải pháp SOTA:**
+    *   **Entropy Regularization (PPO/SAC):** Cộng thêm một điểm thưởng cho sự "ngẫu nhiên" vào hàm Loss để ép Agent không được quá tự tin.
+    *   *So sánh:* Chúng ta dùng **Cảm xúc (Tò mò/Chán nản)** để điều khiển việc này động (Dynamic), thay vì một tham số toán học cố định.
+
+### 14.4. Tổng kết: Tại sao chọn SNN?
+
+Thế giới ML hiện đại giải quyết các vấn đề trên bằng **Toán học Phức tạp** (Loss Functions, Gradient Manipulation).
+Dự án EmotionAgent giải quyết chúng bằng **Cơ chế Sinh học** (Spikes, Neurotransmitters, Plasticity).
+
+*   Cách Toán học: Chính xác, nhưng tốn kém tính toán (GPU), khó mở rộng (O(N^2)).
+*   Cách Sinh học: Ồn ào, nhưng tiết kiệm năng lượng, cực kỳ bền bỉ (Robust) và thích nghi nhanh.
+
+=> **Hướng đi của chúng ta là đúng đắn và độc đáo.** Chúng ta không đua về điểm số (Benchmark) với DeepMind. Chúng ta đua về **Khả năng Thích nghi (Adaptability) và Hiệu suất Năng lượng (Efficiency).**
