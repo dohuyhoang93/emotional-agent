@@ -1,4 +1,4 @@
-Dưới đây là **POP Manifesto – phiên bản hoàn chỉnh**
+Dưới đây là **POP Manifesto – Process Oriented Programming Manifesto**
 
 Tuyên ngôn này thể hiện đầy đủ:
 
@@ -27,9 +27,9 @@ POP nói rằng:
 
 ---
 
-# 🟦 **1. Triết lý cốt lõi**
+## 🟦 **1. Triết lý cốt lõi**
 
-## **1.1. Lập trình là mô hình hóa dòng chảy**
+### **1.1. Lập trình là mô hình hóa dòng chảy**
 
 Mọi phần mềm – từ robot, PLC, AI, backend – đều là **chuỗi hành động có chủ đích**.
 
@@ -45,7 +45,7 @@ Tất cả đều được mô hình hóa thành **các bước rõ ràng có t�
 
 ---
 
-## **1.2. Sự tường minh là giá trị tối thượng**
+### **1.2. Sự tường minh là giá trị tối thượng**
 
 > “Nếu không thể giải thích, thì không được phép triển khai.”
 
@@ -67,7 +67,7 @@ Minh bạch là tính người trong phần mềm.
 
 ---
 
-## **1.3. Tránh nhị nguyên cực đoan – embrace phi-nhị-nguyên**
+### **1.3. Tránh nhị nguyên cực đoan – embrace phi-nhị-nguyên**
 
 POP không theo đuổi:
 
@@ -93,7 +93,7 @@ Quan trọng là **ngữ nghĩa chuẩn xác và khả năng kiểm chứng**.
 
 ---
 
-## **1.4. Dữ liệu không mang hành vi – Context không được “biết làm gì”**
+### **1.4. Dữ liệu không mang hành vi – Context không được “biết làm gì”**
 
 Context là:
 
@@ -108,9 +108,9 @@ Nó là **hiện trạng hệ thống**, không phải nơi giấu hành động
 
 ---
 
-# 🟦 **2. Triết lý thiết kế**
+## 🟦 **2. Triết lý thiết kế**
 
-## **2.1. Process là đơn vị thiết kế nhỏ nhất**
+### **2.1. Process là đơn vị thiết kế nhỏ nhất**
 
 Không class, không object, không method ẩn logic.
 POP dùng **process** làm đơn vị cơ bản:
@@ -129,7 +129,7 @@ Process phải:
 
 ---
 
-## **2.2. Workflow là nơi kiến trúc được nhìn thấy**
+### **2.2. Workflow là nơi kiến trúc được nhìn thấy**
 
 Workflow thể hiện:
 
@@ -145,7 +145,7 @@ Ai cũng đọc được, không cần biết lập trình.
 
 ---
 
-## **2.3. Phân rã process theo ngữ nghĩa, không theo số dòng**
+### **2.3. Phân rã process theo ngữ nghĩa, không theo số dòng**
 
 Quy tắc:
 
@@ -155,7 +155,7 @@ Quy tắc:
 
 ---
 
-## **2.4. Tái sử dụng là phụ, tường minh là chính**
+### **2.4. Tái sử dụng là phụ, tường minh là chính**
 
 POP chấp nhận code lặp nếu:
 
@@ -167,9 +167,9 @@ POP phản đối “generic hóa quá đà”, vì generic thường che giấu
 
 ---
 
-# 🟦 **3. Triết lý kiến trúc**
+## 🟦 **3. Triết lý kiến trúc**
 
-## **3.1. Ba lớp Context**
+### **3.1. Ba lớp Context**
 
 * **Global**: cấu hình, thông tin bất biến
 * **Domain**: trạng thái vận hành, logic nghiệp vụ
@@ -183,7 +183,7 @@ POP phản đối “generic hóa quá đà”, vì generic thường che giấu
 
 ---
 
-## **3.2. Process-safe Context Evolution**
+### **3.2. Process-safe Context Evolution**
 
 Context phải tiến hóa có kiểm soát:
 
@@ -194,7 +194,7 @@ Context phải tiến hóa có kiểm soát:
 
 ---
 
-## **3.3. Sơ đồ điều khiển có thể là Line, Nhánh, DAG hoặc Động**
+### **3.3. Sơ đồ điều khiển có thể là Line, Nhánh, DAG hoặc Động**
 
 POP chấp nhận nhiều dạng:
 
@@ -211,7 +211,7 @@ Nhưng luôn phải:
 
 ---
 
-## **3.4. POP không chống OOP hay FP – nó chọn thực dụng**
+### **3.4. POP không chống OOP hay FP – nó chọn thực dụng**
 
 POP học từ FP:
 
@@ -234,9 +234,9 @@ POP đặt process làm trung tâm thay vì class hoặc function thuần.
 
 ---
 
-# 🟦 **4. Triết lý vận hành**
+## 🟦 **4. Triết lý vận hành**
 
-## **4.1. Phần mềm là một công việc – hãy mô tả bằng công việc**
+### **4.1. Phần mềm là một công việc – hãy mô tả bằng công việc**
 
 Workflow POP được viết bằng ngôn ngữ tự nhiên:
 
@@ -254,7 +254,7 @@ Không syntax khó nhớ.
 
 ---
 
-## **4.2. Mọi bước đều có thể kiểm toán (audit)**
+### **4.2. Mọi bước đều có thể kiểm toán (audit)**
 
 POP đảm bảo rằng:
 
@@ -266,7 +266,7 @@ Giúp kiểm soát lỗi, kiểm soát hành vi, và phục vụ an toàn công 
 
 ---
 
-## **4.3. Process dễ test – workflow dễ kiểm tra**
+### **4.3. Process dễ test – workflow dễ kiểm tra**
 
 * process có input → output rõ ràng
 * workflow có thể chạy giả lập (simulation)
@@ -274,7 +274,7 @@ Giúp kiểm soát lỗi, kiểm soát hành vi, và phục vụ an toàn công 
 
 ---
 
-# 🟦 **5. Cam kết của người theo POP**
+## 🟦 **5. Cam kết của người theo POP**
 
 Tôi cam kết:
 
@@ -291,7 +291,7 @@ Tôi cam kết:
 
 ---
 
-# 🟦 **6. Tuyên bố cuối cùng**
+## 🟦 **6. Tuyên bố cuối cùng**
 
 **POP là phương pháp đặt con người vào trung tâm của tư duy lập trình.**
 
@@ -308,7 +308,7 @@ POP là một **quan điểm về sự rõ ràng và trung thực trong phần m
 
 ---
 
-# 1. Mục đích của Luồng Tư Duy Chính Thức
+## 1. Mục đích của Luồng Tư Duy Chính Thức
 
 Luồng Tư Duy Chính Thức (Formal Reasoning Model – FRM) mô tả **cách POP tư duy**, không chỉ cách POP lập trình.
 
@@ -332,9 +332,9 @@ FRM định nghĩa **logic nền tảng** chi phối mọi quyết định thi�
 
 ---
 
-# 2. Bản chất của Luồng Tư Duy POP
+## 2. Bản chất của Luồng Tư Duy POP
 
-## **2.1. Hệ thống là chuỗi biến đổi, không phải cấu trúc tĩnh**
+### **2.1. Hệ thống là chuỗi biến đổi, không phải cấu trúc tĩnh**
 
 POP xem mọi hệ thống, bất kể dạng nào, đều có thể mô tả bằng:
 
@@ -347,7 +347,7 @@ POP xem mọi hệ thống, bất kể dạng nào, đều có thể mô tả b�
 
 ---
 
-## **2.2. Process là đối tượng tư duy đầu tiên**
+### **2.2. Process là đối tượng tư duy đầu tiên**
 
 POP bắt đầu bằng câu hỏi:
 
@@ -368,7 +368,7 @@ Process = một biến đổi rõ ràng, mô tả được bằng một câu đ�
 
 ---
 
-## **2.3. Context là môi trường, không phải đối tượng**
+### **2.3. Context là môi trường, không phải đối tượng**
 
 Context trong POP không phải object/struct chứa behavior.
 
@@ -391,7 +391,7 @@ f: C → C'
 
 ---
 
-## **2.4. Workflow là “lược đồ tư duy” của hệ thống**
+### **2.4. Workflow là “lược đồ tư duy” của hệ thống**
 
 Workflow POP không chỉ là control flow.
 
@@ -407,7 +407,7 @@ Workflow trong POP là “sơ đồ tư duy chính thức”.
 
 ---
 
-## **2.5. POP tránh mọi logic ẩn**
+### **2.5. POP tránh mọi logic ẩn**
 
 POP formalism yêu cầu:
 
@@ -421,7 +421,7 @@ Tất cả đều phải **hiển lộ**.
 
 ---
 
-# 3. Tính Phi-Nhị-Nguyên (Non-Binary Thinking)
+## 3. Tính Phi-Nhị-Nguyên (Non-Binary Thinking)
 
 POP chống lại tư duy nhị nguyên như:
 
@@ -449,7 +449,7 @@ Quyết định nằm trong miền, không nằm ở cực
 
 ---
 
-# 4. Nguyên lý “Biến đổi + Bối cảnh” (Transform + Context Principle)
+## 4. Nguyên lý “Biến đổi + Bối cảnh” (Transform + Context Principle)
 
 Tư duy chính thức của POP xoay quanh phương trình trí tuệ sau:
 
@@ -482,7 +482,7 @@ Không hề xung đột.
 
 ---
 
-# 5. Nguyên lý “Ý nghĩa hơn Hình dạng” (Semantic > Structural Principle)
+## 5. Nguyên lý “Ý nghĩa hơn Hình dạng” (Semantic > Structural Principle)
 
 Trong tư duy nhị nguyên, người ta coi:
 
@@ -508,7 +508,7 @@ Structure(C) = evolvable
 
 ---
 
-# 6. Nguyên lý “Minh bạch nhận thức” (Cognitive Transparency Principle)
+## 6. Nguyên lý “Minh bạch nhận thức” (Cognitive Transparency Principle)
 
 Một hệ thống chỉ được coi là POP-compliant khi:
 
@@ -526,7 +526,7 @@ Minh bạch = Khả năng mô tả hệ thống bằng ngôn ngữ tự nhiên
 
 ---
 
-# 7. Nguyên lý “Trạng thái mở” (Open State Principle)
+## 7. Nguyên lý “Trạng thái mở” (Open State Principle)
 
 Trong POP:
 
@@ -557,7 +557,7 @@ Formal:
 
 ---
 
-# 8. Nguyên lý “Linh hoạt có kiểm soát” (Controlled Flexibility Principle)
+## 8. Nguyên lý “Linh hoạt có kiểm soát” (Controlled Flexibility Principle)
 
 POP cho phép:
 
@@ -581,7 +581,7 @@ POP không quy định shape — POP quy định **giới hạn an toàn**.
 
 ---
 
-# 9. Mô hình lựa chọn trong POP (POP Decision Model)
+## 9. Mô hình lựa chọn trong POP (POP Decision Model)
 
 Khi thiết kế hệ thống POP, việc ra quyết định diễn ra theo thứ tự:
 
@@ -609,7 +609,7 @@ Không bao giờ ngược lại.
 
 ---
 
-# 10. Mục tiêu của FRM (Formal Reasoning Model)
+## 10. Mục tiêu của FRM (Formal Reasoning Model)
 
 1. Bảo vệ POP khỏi cực đoan.
 2. Định nghĩa tư duy phi nhị nguyên.
@@ -620,7 +620,7 @@ Không bao giờ ngược lại.
 
 ---
 
-# 11. Kết luận
+## 11. Kết luận
 
 FRM đưa POP lên tầm:
 
@@ -647,7 +647,7 @@ Triết lý POP sẽ không bao giờ bị “bóng ma cực đoan” ám ảnh 
 
 ---
 
-# 2.1. Mục tiêu của mô hình Context Layer
+## 2.1. Mục tiêu của mô hình Context Layer
 
 Mô hình Context Layer nhằm giải quyết hai vấn đề cốt lõi:
 
@@ -658,7 +658,7 @@ POP không xem context là một cấu trúc thống nhất bất biến, mà l�
 
 ---
 
-# 2.2. Ba lớp context trong POP
+## 2.2. Ba lớp context trong POP
 
 POP định nghĩa context gồm **ba lớp chính**:
 
@@ -672,7 +672,7 @@ Mỗi lớp có vai trò, vòng đời, và phạm vi ảnh hưởng khác nhau.
 
 ---
 
-# 2.3. Global Context (GC)
+## 2.3. Global Context (GC)
 
 ### **Định nghĩa:**
 
@@ -707,7 +707,7 @@ Tạo **tính ổn định** và **tính nhận diện** cho toàn pipeline.
 
 ---
 
-# 2.4. Domain Context (DC)
+## 2.4. Domain Context (DC)
 
 ### **Định nghĩa:**
 
@@ -754,7 +754,7 @@ DC là **trái tim** của workflow — nơi lưu dấu sự tiến hóa của l
 
 ---
 
-# 2.5. Local Context (LC)
+## 2.5. Local Context (LC)
 
 ### **Định nghĩa:**
 
@@ -788,7 +788,7 @@ LC **ngăn domain context phình to**, đồng thời cho phép POP linh hoạt 
 
 ---
 
-# 2.6. Lợi ích của mô hình 3-layer context
+## 2.6. Lợi ích của mô hình 3-layer context
 
 ### ✔ Tránh God Context
 
@@ -812,7 +812,7 @@ Không cần cực đoan “một context cho tất cả”.
 
 ---
 
-# 2.7. Sơ đồ chính thức
+## 2.7. Sơ đồ chính thức
 
 ```
 ┌───────────────────────────────────┐
@@ -843,7 +843,7 @@ Local sinh ra và biến mất theo từng process.
 
 ---
 
-# 3.1. Tại sao cần quy tắc tiến hóa context?
+## 3.1. Tại sao cần quy tắc tiến hóa context?
 
 Vấn đề phổ biến:
 
@@ -857,7 +857,7 @@ Vấn đề phổ biến:
 
 ---
 
-# 3.2. Nguyên lý cốt lõi: “Tiến hóa có kiểm soát” (Controlled Evolution)
+## 3.2. Nguyên lý cốt lõi: “Tiến hóa có kiểm soát” (Controlled Evolution)
 
 Context được phép tiến hóa, nhưng phải:
 
@@ -870,14 +870,14 @@ Context được phép tiến hóa, nhưng phải:
 
 ---
 
-# 3.3. Sáu Quy Tắc Tiến Hóa An Toàn (The Six Context Safety Rules)
+## 3.3. Sáu Quy Tắc Tiến Hóa An Toàn (The Six Context Safety Rules)
 
-## **Rule 1 — Every context mutation must be explicit**
+### **Rule 1 — Every context mutation must be explicit**
 
 Không có mutation ngầm.
 Không có “magic field”.
 
-### Yêu cầu:
+#### Yêu cầu:
 
 * phải ghi log
 * phải được test
@@ -885,20 +885,20 @@ Không có “magic field”.
 
 ---
 
-## **Rule 2 — Domain Context chỉ được thêm field khi field đó có nghĩa trong domain**
+### **Rule 2 — Domain Context chỉ được thêm field khi field đó có nghĩa trong domain**
 
 Không được thêm field “tiện tay”.
 
 Nếu field không phục vụ domain logic → Local Context.
 
-### Ví dụ sai:
+#### Ví dụ sai:
 
 ```
 domain.temp_value
 domain.raw_image_buffer
 ```
 
-### Ví dụ đúng:
+#### Ví dụ đúng:
 
 ```
 domain.target_pose
@@ -907,7 +907,7 @@ domain.pressure_drop
 
 ---
 
-## **Rule 3 — Không process nào được xóa/override field mà không lý do domain rõ ràng**
+### **Rule 3 — Không process nào được xóa/override field mà không lý do domain rõ ràng**
 
 Operation “ghi đè một phần domain” phải được mô tả bằng câu:
 
@@ -917,7 +917,7 @@ Nếu không giải thích được → vi phạm POP.
 
 ---
 
-## **Rule 4 — Schema của Domain Context phải tiến hóa theo version**
+### **Rule 4 — Schema của Domain Context phải tiến hóa theo version**
 
 Mỗi thay đổi về:
 
@@ -935,7 +935,7 @@ Không có version → không POP-compliant.
 
 ---
 
-## **Rule 5 — Local Context không được lan ra ngoài phạm vi process**
+### **Rule 5 — Local Context không được lan ra ngoài phạm vi process**
 
 Nếu Local Context lan ra:
 
@@ -952,7 +952,7 @@ LocalContext MUST NOT be inserted into DomainContext or GlobalContext.
 
 ---
 
-## **Rule 6 — Các thay đổi context phải giữ tính nhất quán ngữ nghĩa (semantic consistency)**
+### **Rule 6 — Các thay đổi context phải giữ tính nhất quán ngữ nghĩa (semantic consistency)**
 
 Field có thể:
 
@@ -974,7 +974,7 @@ Không được dùng lại field cũ cho nghĩa mới.
 
 ---
 
-# 3.4. Bộ Kiểm Tra Tiến Hóa (Evolution Safety Checklist)
+## 3.4. Bộ Kiểm Tra Tiến Hóa (Evolution Safety Checklist)
 
 Mọi thay đổi của context phải trả lời **5 câu hỏi**:
 
@@ -1000,7 +1000,7 @@ Nếu có → sai POP.
 
 ---
 
-# 3.5. Bộ Quy Tắc Đồng Đẳng (Context Parity Rules)
+## 3.5. Bộ Quy Tắc Đồng Đẳng (Context Parity Rules)
 
 Để workflow không bị méo thông tin, POP đưa ra nguyên tắc:
 
@@ -1014,7 +1014,7 @@ Không cần giống hệt shape, nhưng:
 
 ---
 
-# 3.6. Tiến hóa Domain Context theo chu kỳ
+## 3.6. Tiến hóa Domain Context theo chu kỳ
 
 Domain Context nên có chu kỳ:
 
@@ -1031,7 +1031,7 @@ Không được:
 
 ---
 
-# 3.7. Sơ đồ chính thức cho tiến hóa context
+## 3.7. Sơ đồ chính thức cho tiến hóa context
 
 ```
 Context(C0)
@@ -1056,7 +1056,7 @@ Trong đó:
 
 ---
 
-# 3.8. Tương thích với lối tư duy phi-nhị-nguyên
+## 3.8. Tương thích với lối tư duy phi-nhị-nguyên
 
 Quy tắc tiến hóa đảm bảo:
 
@@ -1070,7 +1070,7 @@ Một dạng **trung đạo có kiểm soát**.
 
 ---
 
-# 3.9. Tổng kết
+## 3.9. Tổng kết
 
 Hai chương này đặt nền tảng cho:
 
@@ -1083,17 +1083,11 @@ Context Evolution Rules = “luật vật lý của thế giới đó”.
 
 ---
 
-Dưới đây là **hai chương quan trọng tiếp theo** trong POP Specification — viết theo phong cách chính tắc, giàu tính hình thức, nhưng vẫn thực tiễn và đi theo đúng tinh thần **phi nhị nguyên** bạn đã định hướng.
-
----
-
 # 📘 **Chương 4 — Quy tắc Phân Rã Process Phi-Nhị-Nguyên (Non-Binary Process Decomposition Rules)**
 
-*POP Specification — Draft 1.0*
-
 ---
 
-# 4.1. Mục tiêu
+## 4.1. Mục tiêu
 
 Nguyên tắc phân rã process phi-nhị-nguyên (NB-PDR) nhằm tránh hai cực đoan:
 
@@ -1110,7 +1104,7 @@ NB-PDR cung cấp một **không gian lựa chọn hợp lý** cho kích thướ
 
 ---
 
-# 4.2. Định nghĩa Process trong POP
+## 4.2. Định nghĩa Process trong POP
 
 Trong POP:
 
@@ -1129,7 +1123,7 @@ Nó chỉ cần **minh bạch** và **giải thích được**.
 
 ---
 
-# 4.3. Phi-Nhị-Nguyên trong phân rã
+## 4.3. Phi-Nhị-Nguyên trong phân rã
 
 NB-PDR nhấn mạnh:
 
@@ -1140,7 +1134,7 @@ Tức là process được phân rã theo **ngữ nghĩa**, không phải theo *
 
 ---
 
-# 4.4. Quy tắc 1 — Phân rã theo “khối ý nghĩa” (Semantic Cluster Rule)
+## 4.4. Quy tắc 1 — Phân rã theo “khối ý nghĩa” (Semantic Cluster Rule)
 
 ### Định nghĩa:
 
@@ -1170,7 +1164,7 @@ Process “detect_pose_and_save_to_db” chứa 2 ý nghĩa khác nhau:
 
 ---
 
-# 4.5. Quy tắc 2 — Phân rã theo khả năng giải thích (Explainability Rule)
+## 4.5. Quy tắc 2 — Phân rã theo khả năng giải thích (Explainability Rule)
 
 > **Nếu một process không thể được mô tả bằng *một câu đơn, có chủ ngữ – vị ngữ rõ ràng*, thì phải phân rã.**
 
@@ -1186,7 +1180,7 @@ Ví dụ đúng:
 
 ---
 
-# 4.6. Quy tắc 3 — Phân rã theo độ biến động (Volatility Rule)
+## 4.6. Quy tắc 3 — Phân rã theo độ biến động (Volatility Rule)
 
 Process có độ biến động khác nhau phải được tách riêng.
 
@@ -1204,7 +1198,7 @@ NB-PDR yêu cầu:
 
 ---
 
-# 4.7. Quy tắc 4 — Phân rã theo mức rủi ro (Risk Segregation Rule)
+## 4.7. Quy tắc 4 — Phân rã theo mức rủi ro (Risk Segregation Rule)
 
 Những hành động có rủi ro khác nhau (I/O, safety-critical, pure logic) phải được chia tách.
 
@@ -1218,7 +1212,7 @@ Những hành động có rủi ro khác nhau (I/O, safety-critical, pure logic)
 
 ---
 
-# 4.8. Quy tắc 5 — Process có thể chứa logic rẽ nhánh *nhưng phải minh bạch* (Transparent Branching Rule)
+## 4.8. Quy tắc 5 — Process có thể chứa logic rẽ nhánh *nhưng phải minh bạch* (Transparent Branching Rule)
 
 POP **không cấm branching trong process**.
 POP chỉ cấm **branching không thể giải thích hoặc branch ẩn ngữ nghĩa**.
@@ -1243,7 +1237,7 @@ if type(x) != expected_type:
 
 ---
 
-# 4.9. Quy tắc 6 — Process cho phép sử dụng Local Context thoải mái
+## 4.9. Quy tắc 6 — Process cho phép sử dụng Local Context thoải mái
 
 (miễn không làm bẩn domain)
 
@@ -1264,7 +1258,7 @@ Miễn mọi thứ:
 
 ---
 
-# 4.10. Quy tắc 7 — Kích thước process được quyết định bởi “độ phức hợp nhận thức” (Cognitive Load Rule)
+## 4.10. Quy tắc 7 — Kích thước process được quyết định bởi “độ phức hợp nhận thức” (Cognitive Load Rule)
 
 Nếu process:
 
@@ -1284,7 +1278,7 @@ Nếu process:
 
 ---
 
-# 4.11. Kết luận phân rã phi nhị nguyên
+## 4.11. Kết luận phân rã phi nhị nguyên
 
 Phân rã process trong POP không chạy theo:
 
@@ -1302,17 +1296,13 @@ Phân rã dựa trên:
 * **khả năng giải thích**
 * **tính minh bạch**
 
-(*tâm pháp hơn là kỹ thuật*)
-
 ---
 
 # 📘 **Chương 5 — Quy tắc An Toàn Khi Process Tương Tác Với Context**
 
-*POP Specification — Draft 1.0*
-
 ---
 
-# 5.1. Mục tiêu
+## 5.1. Mục tiêu
 
 Hệ thống POP yêu cầu:
 
@@ -1330,7 +1320,7 @@ Chương này xác định các **safety rules** đảm bảo:
 
 ---
 
-# 5.2. Quy tắc 1 — Process phải khai báo rõ phần của context mà nó dùng
+## 5.2. Quy tắc 1 — Process phải khai báo rõ phần của context mà nó dùng
 
 (Explicit Context Access Rule)
 
@@ -1351,7 +1341,7 @@ Nếu process đọc hoặc ghi field không khai báo → lỗi POP.
 
 ---
 
-# 5.3. Quy tắc 2 — Process chỉ được phép thay đổi Domain Context vì lý do domain
+## 5.3. Quy tắc 2 — Process chỉ được phép thay đổi Domain Context vì lý do domain
 
 (Domain Justification Rule)
 
@@ -1367,7 +1357,7 @@ Domain context chỉ tồn tại để phục vụ domain logic.
 
 ---
 
-# 5.4. Quy tắc 3 — Không process nào được thay đổi Global Context
+## 5.4. Quy tắc 3 — Không process nào được thay đổi Global Context
 
 (Global Invariance Rule)
 
@@ -1384,7 +1374,7 @@ Không được mutate trực tiếp.
 
 ---
 
-# 5.5. Quy tắc 4 — Mọi thay đổi Domain Context phải có thể quan sát
+## 5.5. Quy tắc 4 — Mọi thay đổi Domain Context phải có thể quan sát
 
 (Observable Mutation Rule)
 
@@ -1402,7 +1392,7 @@ Không được:
 
 ---
 
-# 5.6. Quy tắc 5 — Không được tạo field mới tùy tiện
+## 5.6. Quy tắc 5 — Không được tạo field mới tùy tiện
 
 (Controlled Field Introduction Rule)
 
@@ -1417,7 +1407,7 @@ Tránh “field rác”.
 
 ---
 
-# 5.7. Quy tắc 6 — Không được reuse field cho nghĩa mới
+## 5.7. Quy tắc 6 — Không được reuse field cho nghĩa mới
 
 (Semantic Integrity Rule)
 
@@ -1432,7 +1422,7 @@ Nếu muốn nghĩa mới → tạo field mới.
 
 ---
 
-# 5.8. Quy tắc 7 — Process không được phá vỡ cấu trúc domain
+## 5.8. Quy tắc 7 — Process không được phá vỡ cấu trúc domain
 
 (Structural Preservation Rule)
 
@@ -1451,7 +1441,7 @@ Nhưng không được:
 
 ---
 
-# 5.9. Quy tắc 8 — Process không được gây side-effect ẩn vào context
+## 5.9. Quy tắc 8 — Process không được gây side-effect ẩn vào context
 
 (No Hidden Side-Effect Rule)
 
@@ -1465,7 +1455,7 @@ Cấm:
 
 ---
 
-# 5.10. Quy tắc 9 — Process phải bảo toàn “dòng ngữ nghĩa”
+## 5.10. Quy tắc 9 — Process phải bảo toàn “dòng ngữ nghĩa”
 
 (Semantic Flow Conservation Rule)
 
@@ -1483,7 +1473,7 @@ Nếu cần chuyển domain → dùng process chuyển domain theo nghĩa tườ
 
 ---
 
-# 5.11. Quy tắc 10 — Process chỉ được truy cập dữ liệu cần thiết
+## 5.11. Quy tắc 10 — Process chỉ được truy cập dữ liệu cần thiết
 
 (Access Minimization Rule)
 
@@ -1500,7 +1490,7 @@ Tránh coupling không cần thiết.
 
 ---
 
-# 5.12. Kết luận
+## 5.12. Kết luận
 
 POP không chống lại:
 
@@ -2090,7 +2080,7 @@ Engine responsibilities:
 
 ---
 
-# ✅ Kết luận ngắn gọn (hành động)
+## ✅ Kết luận ngắn gọn (hành động)
 
 * Tổ chức code: **module-based**, `registry`, `engine`, `adapters`, `workflows` (YAML).
 * Workflow types: Linear / Branch / DAG / Dynamic — engine phải hỗ trợ cả 4; dùng merge strategies, transactions, compensation.
@@ -2226,7 +2216,7 @@ Process phải thể hiện hết luồng:
 
 ## 🟦 **5. Adapter trong POP không bao giờ dùng interface OOP**
 
-POP là anti-OOP, vì vậy:
+POP không khuyến khích OOP trong những tác vụ phức tạp, vì vậy:
 
 * Không dùng interface class
 * Không dùng abstract base class
@@ -2599,3 +2589,338 @@ Vẫn tường minh tuyệt đối.
 Contract là "xương sống" giúp POP trở thành kiến trúc hoàn chỉnh và mạnh mẽ.
 
 ---
+
+# **Chương 11 – Mô hình Đồng thời và Hiệu năng trong POP**
+
+---
+
+## 🟥 **1. Mục tiêu và vấn đề POP phải giải quyết**
+
+Mô hình Concurrency & Performance của POP nhắm giải quyết **hai tử huyệt** của bất kỳ kiến trúc quy trình (process-oriented architecture):
+
+1. **An toàn đồng thời (Concurrency Safety)**
+   – tránh tình trạng đọc/ghi hỗn loạn (race condition), tránh ghi chồng, mất dữ liệu.
+
+2. **Hiệu năng (Performance)**
+   – cho phép xử lý song song, giảm chi phí copy, tận dụng đa lõi, không đánh đổi tính minh bạch.
+
+Ba yêu cầu bất biến:
+
+* **Safety > Clarity > Performance**
+* Process phải tường minh, không che giấu logic đồng thời.
+* Engine phải chịu trách nhiệm bảo vệ Context, không đẩy gánh nặng lên dev.
+
+---
+
+## 🟥 **2. Triết lý Phi-Nhị-Nguyên về Concurrency**
+
+POP không áp đặt “một mô hình tối ưu cho mọi thứ”.
+Mỗi nền tảng, mỗi domain có đặc thù khác nhau:
+
+* Python bị giới hạn bởi GIL.
+* Rust/C++ hỗ trợ ownership.
+* Hệ phân tán cần Actor.
+
+Do đó POP xây dựng **Phổ Concurrency 3 Cấp (Three-Level Concurrency Spectrum)**, cho phép hệ thống tiến hóa theo nhu cầu:
+
+**Cấp 1 — Mượn tài nguyên (Borrowing)**
+**Cấp 2 — Gộp Sai biệt (Delta Aggregation)**
+**Cấp 3 — Sharding/Actor Phân tán**
+
+Không phải “chọn một trong ba”, mà là ba lớp có thể phối hợp linh hoạt.
+
+---
+
+## 🟥 **3. Nguyên tắc Cốt lõi: Bất biến Cục bộ (Local Immutability)**
+
+Tất cả Process trong POP hoạt động trên **Snapshot cục bộ**, không bao giờ ghi trực tiếp vào Context gốc.
+
+Điều này bảo đảm:
+
+* Tránh race condition ngay từ triết lý thiết kế.
+* Giữ quá trình xử lý tường minh.
+* Cho phép kiểm tra và audit.
+
+Mọi thay đổi phải trả về **Delta** hoặc **Context mới**.
+
+---
+
+## 🟥 **4. Cấp 1 — Mượn Tài nguyên theo Contract (Borrowing Model)**
+
+**Phù hợp:** Rust, C++, hệ thống cần realtime và hiệu năng cao.
+
+### **Cơ chế**
+
+1. Process khai báo **Read Set / Write Set**.
+2. Engine kiểm tra:
+
+   * Nhiều process có thể **đọc chung** một Shard.
+   * Chỉ 1 process được **ghi độc quyền** vào Shard đó tại thời điểm bất kỳ.
+3. Nếu Write conflict → process sau phải chờ hoặc bị từ chối.
+
+### **Ưu điểm**
+
+* Tránh race ở mức tuyệt đối.
+* Hiệu năng cao (nếu ngôn ngữ hỗ trợ).
+* Luồng logic dễ dự đoán.
+
+### **Hạn chế / Câu hỏi buộc phải trả lời**
+
+* **Lifetime** của borrow kéo dài bao lâu?
+* **Deadlock** xử lý thế nào?
+* Có **quy tắc thứ tự mượn shard** để tránh nghẽn không?
+* Nếu contract sai → hệ thống phát hiện thế nào?
+
+### **Giả định nền tảng**
+
+* Process phải khai báo chính xác read/write.
+* Shard phải được phân tách hợp lý.
+* Team có công cụ kiểm chứng (linter/validator).
+
+---
+
+## 🟥 **5. Cấp 2 — Gộp Sai biệt (Delta Aggregation Model)**
+
+**Phù hợp:** Python, JavaScript, JVM, môi trường scripting.
+
+### **Cơ chế**
+
+1. Process chạy song song chỉ sinh ra **Delta** (bản ghi thay đổi).
+2. Engine thu thập tất cả Delta.
+3. Engine thực hiện **Merge** vào Context một lần duy nhất.
+
+### **Ưu điểm**
+
+* Không dùng lock.
+* Dễ đọc, dễ debug.
+* Phù hợp môi trường linh hoạt.
+
+### **Hạn chế / Câu hỏi quan trọng**
+
+* **Merge Policy** cho từng loại field là gì?
+* Nếu xung đột → retry hay reject?
+* Delta có thể quá lớn → memory bloat?
+* Nếu merge thất bại → rollback hay dùng phiên bản bị lỗi?
+
+### **Giả định nền tảng**
+
+* Domain có semantics rõ ràng cho merge.
+* Conflict rate thấp hoặc merge logic đơn giản.
+* Delta nhỏ (nếu GUI hoặc sensor stream → Delta có thể rất lớn).
+
+---
+
+## 🟥 **6. Cấp 3 — Phân mảnh theo Actor (Sharded Actor Model)**
+
+**Phù hợp:** Microservice, Robotics phức hợp, Distributed Systems.
+
+### **Cơ chế**
+
+1. Context chia thành các **Shard độc lập**.
+2. Mỗi Shard thuộc về một Actor.
+3. Process gửi message thay vì ghi chung bộ nhớ.
+
+### **Ưu điểm**
+
+* Không có shared memory → không có race.
+* Scale tốt theo chiều ngang.
+
+### **Hạn chế / Câu hỏi bắt buộc**
+
+* **Độ trễ** truyền message chấp nhận được không?
+* **Consistency model** gì? (eventual / strong?)
+* **Retry** có tạo ra duplicate-effect?
+* Shard key có hợp lý không? (nếu shard quá lớn → Actor bị nghẽn)
+
+### **Giả định**
+
+* Hệ thống có kiến thức distributed system.
+* Network ổn định.
+* Shard boundaries tự nhiên trong domain.
+
+---
+
+## 🟥 **7. Chiến lược Tối ưu Hiệu năng**
+
+POP hỗ trợ 2 chiến lược giảm chi phí tạo Context phiên bản mới.
+
+---
+
+### **7.1 Copy-on-Write (Sao chép khi ghi)**
+
+* Khi đọc → không copy.
+* Khi ghi → chỉ copy phần cần thay đổi.
+
+**Câu hỏi/phản biện quan trọng:**
+
+* Chi phí shallow copy của ngôn ngữ hiện tại có rẻ không?
+* Có leak reference không?
+* Nếu context lồng nhau nhiều cấp → độ sâu copy thế nào?
+
+---
+
+### **7.2 Persistent Data Structures (Cấu trúc dữ liệu bền vững)**
+
+* Dùng structural sharing để giảm copy.
+* Tạo context mới gần như O(1).
+
+**Phản biện:**
+
+* GC của ngôn ngữ có hỗ trợ tốt không?
+* Có gây cache-miss nhiều hơn không?
+* Trên Python: đây không phải giải pháp tự nhiên.
+
+---
+
+## 🟥 **8. Yêu cầu Thu thập Dữ liệu (Data Required for Decision)**
+
+Để chọn chiến lược phù hợp, cần có dữ liệu thực:
+
+* Tần suất đọc/ghi của từng shard.
+* Kích thước trung bình của Delta.
+* Tỉ lệ conflict thực tế.
+* Độ trễ I/O.
+* Số lượng Process chạy song song.
+* CPU core count, cache behavior.
+* Ngôn ngữ và GC profile.
+
+**Nếu không có dữ liệu:**
+→ lựa chọn concurrency sẽ mang tính may rủi.
+
+---
+
+## 🟥 **9. Giả định cốt lõi của POP Concurrency Model**
+
+1. Process luôn khai báo đúng contract (cần tooling hỗ trợ).
+2. Context được chia thành Shard hợp lý.
+3. Merge policies có thể định nghĩa rõ.
+4. Domain cho phép retry hoặc reject.
+5. Team có năng lực thực thi Engine.
+6. Delta không quá lớn và không phát nổ về memory.
+7. Shard không trở thành “điểm nghẽn độc quyền”.
+
+**Nếu bất kỳ giả định nào sai:**
+→ concurrency model có thể thất bại.
+
+---
+
+## 🟥 **10. Suy luận tổng thể và Tác động**
+
+**Suy luận logic của mô hình:**
+
+* Tách context → giảm tranh chấp.
+* Bất biến cục bộ → tránh race.
+* Delta & Merge → chia tách trách nhiệm.
+* Persistent structure → giảm chi phí copy.
+* Actor → scale theo chiều ngang.
+
+**Tác động nếu áp dụng:**
+
+* Hệ thống POP có thể mở rộng và chạy song song an toàn.
+* Engine trở nên phức tạp hơn.
+* Yêu cầu người thiết kế phải cẩn trọng với Shard, Contract và Merge.
+
+**Nếu không áp dụng:**
+
+* POP đơn giản hơn nhưng chỉ chạy tốt ở mô hình tuần tự, không scale.
+
+---
+
+## 🟥 **11. Kết luận của Chương 11**
+
+Mô hình đồng thời & hiệu năng của POP không đi theo một mô hình duy nhất mà dựa trên **phổ linh hoạt 3 cấp**, mỗi cấp phù hợp với môi trường và quy mô khác nhau.
+
+Mô hình này vừa giữ được:
+
+* **sự tường minh** của POP,
+* **tính an toàn** trong xử lý dữ liệu,
+* **khả năng mở rộng** khi hệ thống lớn dần.
+
+Đồng thời, Chương 11 cũng nêu rõ:
+
+* giới hạn,
+* rủi ro,
+* các giả định nền tảng,
+* các câu hỏi phải được trả lời,
+* và dữ liệu cần thu thập trước khi triển khai thực tế.
+
+**POP không tránh né phức tạp — POP định vị lại phức tạp cho đúng chỗ: đưa vào Engine, tránh đưa vào đầu lập trình viên.**
+
+---
+
+
+# **Chương 12 – Cộng sinh Đa mô hình: POP, OOP và Clean Architecture**
+
+---
+
+## 🟥 **1. Định vị POP trong bối cảnh Đa mô hình**
+
+POP không sinh ra để tiêu diệt OOP hay thay thế Clean Architecture.
+POP sinh ra để giải quyết bài toán mà hai mô hình kia gặp khó khăn: **Quản lý sự phức tạp của Dòng chảy (Flow Complexity).**
+
+Để xây dựng một hệ thống hoàn chỉnh, chúng ta cần cái nhìn đa chiều:
+
+1.  **OOP** cực mạnh trong việc đóng gói trạng thái vật lý (UI, Device Driver).
+2.  **Clean Architecture** cực mạnh trong việc thiết lập ranh giới bảo vệ (Enterprise Boundaries).
+3.  **POP** cực mạnh trong việc điều phối logic nghiệp vụ (Orchestration).
+
+Một kiến trúc sư giỏi là người biết dùng đúng công cụ cho đúng tầng của hệ thống.
+
+---
+
+## 🟦 **2. Quy tắc Phối hợp 1: Dòng chảy & Cấu phần (POP + OOP)**
+
+Quy tắc phân định ranh giới giữa POP và OOP dựa trên tính chất của đối tượng xử lý:
+
+### **Lãnh địa của OOP (Component & State)**
+Dùng OOP khi bạn cần mô hình hóa một thực thể có **trạng thái nội tại bất biến** hoặc **gắn liền với phần cứng/giao diện**.
+*   **UI Widget:** `Button`, `Window` (gắn liền input chuột/phím với trạng thái hiển thị).
+*   **Device Driver:** `CameraDevice`, `SerialPort` (quản lý buffer, lock, connection handle).
+
+### **Lãnh địa của POP (Flow & Transformation)**
+Dùng POP khi bạn cần mô tả **logic nghiệp vụ** hoặc **sự biến đổi dữ liệu**.
+*   **Logic:** "Nếu thấy vật cản thì dừng lại" → Đây là Process.
+*   **Data:** Ảnh từ Camera, Tọa độ Robot → Đây là Context.
+
+> **Mô hình Cộng sinh:**
+> **Process (POP)** đóng vai trò "Nhạc trưởng", điều phối các **Object (OOP)** thực thi nhiệm vụ cụ thể thông qua Adapter.
+>
+> *Ví dụ:* Process `scan_environment` (POP) gọi phương thức `robot_driver.move_to()` (OOP).
+
+---
+
+## 🟩 **3. Quy tắc Phối hợp 2: Thang đo Trừu tượng (POP + Clean Architecture)**
+
+Clean Architecture (CA) bảo vệ hệ thống bằng các lớp Interface dày đặc (Dependency Inversion). POP tôn trọng điều này nhưng đề xuất một **Thang đo linh hoạt (Abstraction Scale)** tùy theo quy mô dự án.
+
+### **Level 1: Duck Typing (Dynamic Link)**
+*   **Phù hợp:** Startups, Prototype, Script xử lý dữ liệu, Game Logic.
+*   **Cấu trúc:** `env` là object tự do. Process gọi `env.camera.read()` mà không cần interface định trước.
+*   **Ưu điểm:** Tốc độ phát triển cực nhanh, code gọn nhẹ.
+
+### **Level 2: Strict Typing (Static Contract)**
+*   **Phù hợp:** Sản phẩm thương mại, Hệ thống nhúng an toàn (Safety-critical).
+*   **Cấu trúc:** Sử dụng Python `Protocol` hoặc Rust `Trait` để định nghĩa `EnvContract`. Process chỉ nhìn thấy Contract.
+*   **Ưu điểm:** IDE hỗ trợ tốt, đảm bảo thay thế Adapter an toàn.
+
+### **Level 3: Enterprise Injection (Hard Boundaries)**
+*   **Phù hợp:** Hệ thống Core Banking, Super-App hàng trăm module.
+*   **Cấu trúc:** Áp dụng Clean Architecture triệt để. `Env` được inject qua DI Container. Mọi I/O đều qua Interface nghiêm ngặt.
+*   **Ưu điểm:** Module hóa tuyệt đối, team 100 người không dẫm chân nhau.
+
+---
+
+## 🟥 **4. Tuyên ngôn Kiến trúc Hợp nhất (Unified Architecture)**
+
+Thay vì tư duy nhị nguyên "POP hay là chết", Manifesto khẳng định:
+
+**POP là Kiến trúc Vĩ mô (Macro-Architecture)**
+Nó định hình xương sống của ứng dụng là các dòng chảy dữ liệu minh bạch.
+
+**OOP & Functional là Kiến trúc Vi mô (Micro-Architecture)**
+Chúng là công cụ để chế tạo nên các "viên gạch" (Adapter, Util) chất lượng cao nhất.
+
+**Clean Architecture là Hệ thống Phòng thủ**
+Nó được kích hoạt khi độ phức tạp của dự án chạm ngưỡng cần kiểm soát rủi ro con người.
+
+Sự kết hợp này tạo ra một hệ thống: **Minh bạch ở tổng thể, Mạnh mẽ ở chi tiết, và Bền vững theo thời gian.**
