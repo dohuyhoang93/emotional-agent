@@ -1,0 +1,11 @@
+name: Experiment Orchestration
+version: 1.0.0
+description: "Workflow to manage experiment execution, data aggregation, and reporting."
+
+steps:
+  - load_config
+  - run_simulations
+  - aggregate_results
+  - plot_results
+  - analyze_data
+  - save_summary

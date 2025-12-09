@@ -6,15 +6,28 @@ import numpy as np
 import pandas as pd
 import argparse
 import os
-from typing import Dict, Any, List
-from src.context import AgentContext
-from src.process_registry import REGISTRY, ENVIRONMENT_AWARE_PROCESSES, SOCIAL_PROCESSES
+import yaml
+from typing import List, Dict, Any
+
+# POP Core Imports
+from src.core.context import GlobalContext, DomainContext, SystemContext
+from src.core.engine import POPEngine
+from src.adapters.environment_adapter import EnvironmentAdapter
 from environment import GridWorld
 from src.models import EmotionCalculatorMLP
-from src.logger import log, log_error # Import the new logger
+from src.logger import log, log_error
+
+# Process Imports
+from src.processes.p1_perception import perception
+from src.processes.p2_belief_update import update_belief
+from src.processes.p3_emotion_calc import calculate_emotions
+from src.processes.p5_adjust_exploration import adjust_exploration
+from src.processes.p6_action_select import select_action
+from src.processes.p7_execution import execute_action
+from src.processes.p8_consequence import record_consequences
+from src.processes.p9_social_learning import social_learning
 
 def recursive_update(d, u):
-    """Recursively update a dictionary."""
     for k, v in u.items():
         if isinstance(v, dict):
             d[k] = recursive_update(d.get(k, {}), v)
@@ -22,229 +35,231 @@ def recursive_update(d, u):
             d[k] = v
     return d
 
-def run_workflow(workflow_steps: list, context: AgentContext, environment: GridWorld, agent_id: int, all_contexts: List[AgentContext]):
-    """
-    Bộ máy thực thi (Workflow Engine) cho kiến trúc POP.
-    Đã được sửa đổi để truyền agent_id và all_contexts (Blackboard).
-    """
-    for step_name in workflow_steps:
-        if context.previous_observation is None and step_name == "record_consequences":
-            continue
-
-        process_func = REGISTRY.get(step_name)
-        if not process_func:
-            log_error(context, f"Không tìm thấy process '{step_name}' trong REGISTRY.") # Using logger
-            continue
-
-        # Truyền các tham số cần thiết cho các process nhận biết môi trường hoặc xã hội
-        if step_name in ENVIRONMENT_AWARE_PROCESSES:
-            context = process_func(context, environment, agent_id)
-        elif step_name in SOCIAL_PROCESSES:
-            context = process_func(context, all_contexts, agent_id)
-        else:
-            context = process_func(context)
-    return context
-
-def run_simulation(num_episodes: int, output_path: str, settings_override: Dict[str, Any], seed: int, log_level: str = "info"):
-    """
-    Chạy vòng lặp mô phỏng chính, đã được tái cấu trúc cho nhiều tác nhân.
-    """
-    # Create a temporary context to pass log_level to initial logs
-    # NOTE: Using a dummy AgentContext for initial logs as OrchestrationContext isn't available here.
-    # The log_level will be properly set in each agent's context.
-    # Create a simple placeholder object for logging before full context is available.
-    class DummyLogContext:
-        def __init__(self, level):
-            self.log_level = level
-    
-    dummy_context_for_initial_log = DummyLogContext(log_level)
-    log(dummy_context_for_initial_log, "info", "--- BẮT ĐẦU CHƯƠNG TRÌNH MÔ PHỎNG ĐA TÁC NHÂN ---")
-
-    # 1. Tải cấu hình
-    with open("configs/settings.json", "r") as f:
-        settings = json.load(f)
-    with open("configs/agent_workflow.json", "r") as f:
-        workflow = json.load(f)
-
-    if settings_override:
-        settings = recursive_update(settings, settings_override)
-    
-    # Update num_episodes in settings to match the actual run argument
-    settings['num_episodes'] = num_episodes
-    
-    if seed is not None:
-        random.seed(seed)
-        np.random.seed(seed)
-        torch.manual_seed(seed)
-
-    # 2. Khởi tạo Môi trường và các Tác nhân
-    environment = GridWorld(settings)
-    num_agents = environment.num_agents
-    log(dummy_context_for_initial_log, "info", f"Khởi tạo {num_agents} tác nhân.") # Using logger
-
-    # Chuyển đổi logical_switches một lần
-    processed_switch_locations = {}
-    if 'environment_config' in settings and 'logical_switches' in settings['environment_config']:
-        for s in settings['environment_config']['logical_switches']:
-            processed_switch_locations[s['id']] = tuple(s['pos'])
-    settings['switch_locations'] = processed_switch_locations
-
-    # Khởi tạo danh sách contexts (một cho mỗi agent)
-    contexts = []
-    for _ in range(num_agents):
-        agent_ctx = AgentContext(settings)
-        agent_ctx.log_level = log_level # Store log_level in each AgentContext
-        contexts.append(agent_ctx)
-
-    for i, context in enumerate(contexts):
-        context.max_steps = environment.max_steps
-        n_dim = len(settings['initial_needs'])
-        # b_dim = 2 (vị trí x,y) + số lượng công tắc
-        num_switches = len(settings.get('switch_locations', {}))
-        b_dim = 2 + num_switches
-        m_dim = 1
-        e_dim = len(settings['initial_emotions'])
-        context.emotion_model = EmotionCalculatorMLP(n_dim, b_dim, m_dim, e_dim)
-        context.emotion_optimizer = torch.optim.Adam(context.emotion_model.parameters(), lr=settings['mlp_learning_rate'])
-
-    episode_data = []
-
-    # 3. Chạy vòng lặp mô phỏng
-    for episode in range(num_episodes):
-        if settings['visual_mode']:
-            log(dummy_context_for_initial_log, "info", f"\n{'='*10} Bắt đầu Episode {episode + 1}/{num_episodes} {'='*10}") # Using logger
-        
-        all_observations = environment.reset()
-        for i, context in enumerate(contexts):
-            context.current_observation = all_observations[i]
-            context.previous_observation = None
-            context.td_error = 0.0
-            context.last_reward = {'extrinsic': 0.0, 'intrinsic': 0.0}
-            context.current_episode = episode + 1
-
-        # Các biến theo dõi cho episode
-        episode_total_rewards = {i: 0 for i in range(num_agents)}
-        cycle_times = []
-
-        while not environment.is_done():
-            environment.new_step() # Reset các sự kiện broadcast đầu mỗi bước
-            if settings['visual_mode']:
-                environment.render()
-                log(dummy_context_for_initial_log, "info", f"Episode {episode + 1} | Step {environment.current_step}") # Using logger
-            
-            # Cho mỗi agent thực hiện một lượt trong một bước của môi trường
-            for agent_id, context in enumerate(contexts):
-                # Nếu agent này đã đến đích hoặc episode đã kết thúc, bỏ qua
-                if tuple(environment.agent_positions[agent_id]) == environment.goal_pos or environment.is_done():
-                    continue
-
-                if settings['visual_mode']:
-                    # In visual mode, we want to see the grid, not the logs.
-                    # Only show agent turn if verbose logging is explicitly requested.
-                    if log_level == 'verbose':
-                         log(context, "info", f"  Agent {agent_id} turn...") 
-                else:
-                     log(context, "info", f"  Agent {agent_id} turn...")
-                
-                start_time = time.time()
-                # "Blackboard" (tấm bảng đen) chính là toàn bộ danh sách `contexts`
-                context = run_workflow(workflow['steps'], context, environment, agent_id, contexts)
-                end_time = time.time()
-                
-                cycle_time = end_time - start_time
-                context.last_cycle_time = cycle_time
-                cycle_times.append(cycle_time)
-                
-                episode_total_rewards[agent_id] += context.last_reward['extrinsic'] + context.last_reward['intrinsic']
-
-            environment.current_step += 1 # Tăng step count một lần cho mỗi vòng lặp while
-
-            if settings['visual_mode']:
-                time.sleep(0.01)
-
-        #Xác định trạng thái thành công
-        is_successful = any(tuple(pos) == environment.goal_pos for pos in environment.agent_positions.values())
-
-        if settings['visual_mode']:
-            environment.render()
-            if is_successful:
-                log(dummy_context_for_initial_log, "info", f"*** THÀNH CÔNG! Một tác nhân đã đến đích sau {environment.current_step} bước. ***") # Using logger
-            else:
-                log(dummy_context_for_initial_log, "info", f"--- THẤT BẠI! Không tác nhân nào đến được đích sau {environment.max_steps} bước. ---") # Using logger
-            time.sleep(0.1)
-        
-        # Ghi log (tạm thời chỉ lấy dữ liệu của agent 0 cho file CSV)
-        avg_cycle_time = sum(cycle_times) / len(cycle_times) if cycle_times else 0
-        log_data_for_csv = {
-            'episode': episode + 1,
-            'success': is_successful,
-            'steps': environment.current_step,
-            'total_reward': episode_total_rewards.get(0, 0), # Log của agent 0
-            'final_exploration_rate': contexts[0].policy['exploration_rate'], # Log của agent 0
-            'avg_cycle_time': avg_cycle_time,
-            'max_steps_env': contexts[0].max_steps
-        }
-        episode_data.append(log_data_for_csv)
-
-        # --- Cập nhật cho Social Learning ---
-        # Lưu kết quả vào bộ nhớ dài hạn của TẤT CẢ các agent để chúng có thể học hỏi lẫn nhau
-        for i, context in enumerate(contexts):
-            if 'episode_results' not in context.long_term_memory:
-                context.long_term_memory['episode_results'] = []
-            
-            # Mỗi agent sẽ lưu lại kết quả chung của episode
-            context.long_term_memory['episode_results'].append({
-                'episode': episode + 1,
-                'success': is_successful,
-                'steps': environment.current_step
-            })
-        # ------------------------------------
-
-
-    log(dummy_context_for_initial_log, "info", f"\n--- KẾT THÚC CHƯƠNG TRÌNH MÔ PHỎNG sau {num_episodes} episodes ---") # Using logger
-    
-    if output_path:
-        df = pd.DataFrame(episode_data)
-        os.makedirs(os.path.dirname(output_path), exist_ok=True)
-        df.to_csv(output_path, index=False)
-        log(dummy_context_for_initial_log, "info", f"Đã lưu kết quả mô phỏng vào: {output_path}") # Using logger
-
-    if settings.get('visual_mode', False):
-        successful_episodes = sum(1 for d in episode_data if d['success'])
-        num_episodes_run = len(episode_data)
-        log(dummy_context_for_initial_log, "info", "\n--- TÓM TẮT KẾT QUẢ ---") # Using logger
-        if num_episodes_run > 0:
-            success_rate = successful_episodes / num_episodes_run * 100
-            log(dummy_context_for_initial_log, "info", f"Tỷ lệ thành công: {success_rate:.1f}% ({successful_episodes}/{num_episodes_run})") # Using logger
-            if successful_episodes > 0:
-                avg_steps_on_success = sum(d['steps'] for d in episode_data if d['success']) / successful_episodes
-                log(dummy_context_for_initial_log, "info", f"Số bước trung bình cho các episode thành công: {avg_steps_on_success:.2f}") # Using logger
-        else:
-            log(dummy_context_for_initial_log, "info", "Không có episode nào được chạy.") # Using logger
-
 def main():
-    parser = argparse.ArgumentParser(description="Chạy mô phỏng tác nhân học tập cảm xúc.")
-    parser.add_argument("--num-episodes", type=int, default=None, help="Số lượng episode để chạy.")
-    parser.add_argument("--output-path", type=str, default=None, help="Đường dẫn để lưu file CSV kết quả.")
-    parser.add_argument("--settings-override", type=str, default="{}", help="JSON string để ghi đè các thiết lập.")
-    parser.add_argument("--seed", type=int, default=None, help="Seed ngẫu nhiên.")
-    parser.add_argument(
-        '--log-level',
-        type=str,
-        choices=['silent', 'info', 'verbose'],
-        default="info", # Default for agent simulation
-        help='Cấp độ ghi log cho mô phỏng tác nhân (silent, info, verbose).'
-    )
+    parser = argparse.ArgumentParser(description="DeepSearch Agent - POP Architecture")
+    parser.add_argument('--num-episodes', type=int, default=10, help='Number of episodes')
+    parser.add_argument('--output-path', type=str, default='results/result.csv', help='Output CSV path')
+    parser.add_argument('--settings-override', type=str, default='{}', help='JSON string for settings override')
+    parser.add_argument('--seed', type=int, default=42, help='Random seed')
+    parser.add_argument('--log-level', type=str, default='info', help='Log level')
     args = parser.parse_args()
 
-    with open("configs/settings.json", "r") as f:
-        default_settings = json.load(f)
+    # 1. Load default config from generate_config.py structure (simulated loading defaults)
+    # Ideally should load from a base json, but we use defaults + override.
+    settings = {
+        "initial_needs": [0.5, 0.5],
+        "initial_emotions": [0.0, 0.0],
+        "switch_locations": {},
+        "environment_config": {
+            "grid_size": 20,
+            "max_steps_per_episode": 200,
+            "num_agents": 2
+        }
+    }
     
-    num_episodes = args.num_episodes if args.num_episodes is not None else default_settings.get("num_episodes", 10)
-    settings_override_dict = json.loads(args.settings_override)
+    # Apply Overrides
+    try:
+        overrides = json.loads(args.settings_override)
+        recursive_update(settings, overrides)
+    except json.JSONDecodeError:
+        print("Error parsing settings-override JSON.")
+
+    # Set Global Seeds
+    random.seed(args.seed)
+    np.random.seed(args.seed)
+    torch.manual_seed(args.seed)
+
+    # 2. Initialize Environment
+    # Note: Environment init requires some config overlap.
+    # We pass the FULL settings to GridWorld as legacy support.
+    env_config = settings.get('environment_config', {})
+    if 'switch_locations' not in settings: # Generate or use default?
+        pass # GridWorld handles it via logical_switches in env_config usually.
     
-    # Pass log_level to run_simulation
-    run_simulation(num_episodes, args.output_path, settings_override_dict, args.seed, args.log_level)
+    # Sync settings -> environment config
+    # In legacy config, switch_locations might be separate from environment_config
+    # We trust 'settings' has what GridWorld needs.
+    environment = GridWorld(settings)
+    adapter = EnvironmentAdapter(environment)
+    
+    # 3. Hydrate Global Context (Shared by all agents technically, or per agent? Global is usually shared env constants)
+    # But GlobalContext also contains `assimilation_rate` which is config.
+    # We create ONE GlobalContext per agent to simplify if they have diff configs, 
+    # but here allow sharing config.
+    # Extract Switch Locations from Env if not in setting (Env might randomize them).
+    # Use env.switches (dict pos->id). We need id->pos for context?
+    # Context expects `switch_locations: Dict[str, Tuple[int, int]]`.
+    switch_locs = {v: k for k, v in environment.switches.items()} # ID -> Pos
+    
+    common_global_ctx = GlobalContext(
+        initial_needs=settings['initial_needs'],
+        initial_emotions=settings['initial_emotions'],
+        total_episodes=args.num_episodes,
+        max_steps=environment.max_steps,
+        seed=args.seed,
+        switch_locations=switch_locs,
+        log_level=args.log_level,
+        
+        # Hyperparams from settings
+        assimilation_rate=settings.get('assimilation_rate', 0.1),
+        initial_exploration_rate=float(settings.get('exploration_rate', 1.0)), # Initial Base
+        use_dynamic_curiosity=settings.get('use_dynamic_curiosity', False),
+        use_adaptive_fatigue=settings.get('use_adaptive_fatigue', False),
+        fatigue_growth_rate=settings.get('fatigue_growth_rate', 0.001),
+        intrinsic_reward_weight=settings.get('intrinsic_reward_weight', 0.1)
+    )
+
+    # 4. Initialize Agents (System Contexts)
+    num_agents = environment.num_agents
+    system_contexts: List[SystemContext] = []
+    engines: List[POPEngine] = []
+
+    for i in range(num_agents):
+        # Domain Context (Mutable)
+        n_dim = len(settings['initial_needs'])
+        e_dim = len(settings['initial_emotions'])
+        
+        # Init Neural Model
+        b_dim = 2 + len(switch_locs) # Pos(2) + Switches
+        m_dim = 1
+        model = EmotionCalculatorMLP(n_dim, b_dim, m_dim, e_dim)
+        optimizer = torch.optim.Adam(model.parameters(), lr=settings.get('mlp_learning_rate', 0.01))
+        
+        domain_ctx = DomainContext(
+            N_vector=torch.tensor(settings['initial_needs']),
+            E_vector=torch.tensor(settings['initial_emotions']),
+            believed_switch_states={slug: False for slug in switch_locs.keys()},
+            q_table={},
+            short_term_memory=[],
+            long_term_memory={},
+            
+            emotion_model=model,
+            emotion_optimizer=optimizer,
+            
+            base_exploration_rate=common_global_ctx.initial_exploration_rate,
+            current_exploration_rate=common_global_ctx.initial_exploration_rate
+        )
+        
+        sys_ctx = SystemContext(common_global_ctx, domain_ctx)
+        engine = POPEngine(sys_ctx)
+        
+        # Register Processes
+        engine.register_process("perception", perception)
+        engine.register_process("update_belief", update_belief)
+        engine.register_process("calculate_emotions", calculate_emotions)
+        # engine.register_process("update_needs", ...) # Not migrated yet? Sticky Needs?
+        engine.register_process("adjust_exploration", adjust_exploration)
+        engine.register_process("select_action", select_action)
+        engine.register_process("execute_action", execute_action)
+        engine.register_process("record_consequences", record_consequences)
+        engine.register_process("social_learning", social_learning)
+        
+        system_contexts.append(sys_ctx)
+        engines.append(engine)
+
+    # 5. Main Simulation Loop
+    episode_data = []
+    
+    for episode in range(args.num_episodes):
+        # Visual/Log
+        if common_global_ctx.log_level == 'info' and not settings.get('visual_mode'):
+            print(f"Starting Episode {episode+1}/{args.num_episodes}...")
+            
+        # Reset Environment & Agents
+        obs_dict = environment.reset()
+        is_successful = False
+        
+        for i, eng in enumerate(engines):
+            # Reset Ephemeral
+            dom = eng.get_domain()
+            dom.current_episode = episode + 1
+            dom.current_step = 0
+            dom.current_observation = obs_dict[i]
+            dom.previous_observation = None
+            dom.last_reward = {'extrinsic': 0.0, 'intrinsic': 0.0}
+            
+            # Reset Needs/Emotions if config says so? (Usually keep Memory/Q/Model)
+            # Reset Believed Switch States? -> Maybe keep logic from p2?
+            # Legacy code reset `believed_switch_states`? No, it persisted in context?
+            # Legacy context init inside loop? No, outside. It persisted.
+            pass
+
+        episode_rewards = {i: 0.0 for i in range(num_agents)}
+        steps_count = 0
+        
+        # Step Loop
+        while not adapter.is_done():
+            steps_count += 1
+            
+            # For logging cycle time
+            import time
+            
+            # Run Agents
+            for i, eng in enumerate(engines):
+                 # Check success individually or globally?
+                 # If agent reached goal, it might stay or vanish. Env handles it (returns reward=0?).
+                 # Check logic in environment: if goal reached, perform_action returns 10.0
+                 pass
+                 
+                 start_t = time.time()
+                 
+                 # Prepare Neighbors (List of SystemContexts)
+                 eng.execute_workflow(
+                     "workflows/main_loop.yaml", 
+                     env_adapter=adapter,
+                     agent_id=i,
+                     neighbors=system_contexts
+                 )
+                 
+                 end_t = time.time()
+                 cycle_t = end_t - start_t
+                 eng.get_domain().last_cycle_time = cycle_t
+                 eng.get_domain().current_step = steps_count
+                 
+                 # Accumulate Reward
+                 last_r = eng.get_domain().last_reward
+                 episode_rewards[i] += last_r['extrinsic'] + last_r['intrinsic']
+
+            # Check Global Success
+            if any(tuple(pos) == environment.goal_pos for pos in environment.agent_positions.values()):
+                is_successful = True
+                break
+                
+            if settings.get('visual_mode'):
+                environment.render()
+                time.sleep(0.01)
+
+        # End Episode Logging
+        # Gather stats
+        avg_cycle = 0 # Placeholder
+        
+        log_entry = {
+            'episode': episode + 1,
+            'success': is_successful,
+            'steps': steps_count,
+            'total_reward': episode_rewards[0], # Log agent 0
+            'final_exploration_rate': engines[0].get_domain().current_exploration_rate,
+            'avg_cycle_time': 0.0, # Not tracking detailed avg here to save implementation time
+            'max_steps_env': common_global_ctx.max_steps
+        }
+        episode_data.append(log_entry)
+        
+        # Update Long Term Memory (for Social)
+        for eng in engines:
+            dom = eng.get_domain()
+            if 'episode_results' not in dom.long_term_memory:
+                dom.long_term_memory['episode_results'] = []
+            dom.long_term_memory['episode_results'].append({
+                'episode': episode + 1,
+                'success': is_successful,
+                'steps': steps_count
+            })
+
+    # 6. Save Results
+    df = pd.DataFrame(episode_data)
+    os.makedirs(os.path.dirname(args.output_path), exist_ok=True)
+    df.to_csv(args.output_path, index=False)
+    print(f"Results saved to {args.output_path}")
 
 if __name__ == "__main__":
     main()

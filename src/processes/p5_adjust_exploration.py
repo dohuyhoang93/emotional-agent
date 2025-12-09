@@ -1,48 +1,44 @@
-from src.context import AgentContext
-from src.logger import log, log_error # Import the new logger
+from src.core.engine import process
+from src.core.context import SystemContext
 
-def adjust_exploration(context: AgentContext) -> AgentContext:
+@process(
+    inputs=[
+        'global.exploration_decay',
+        'global.emotional_boost_factor',
+        'global.min_exploration',
+        'domain.E_vector',
+        'domain.base_exploration_rate'
+    ],
+    outputs=[
+        'domain.current_exploration_rate',
+        'domain.base_exploration_rate'
+    ],
+    side_effects=[],
+    errors=[]
+)
+def adjust_exploration(ctx: SystemContext):
     """
-    Process điều chỉnh chính sách hành vi dựa trên Cảm xúc Máy (E_vector).
-    Sử dụng logic mới: exploration_rate = base_rate + emotional_boost.
+    Process: Điều chỉnh độ khám phá (Exploration Rate)
+    Logic: rate = base_decay * (1 + uncertainty * boost)
     """
-    log(context, "info", "  [P] 5. Adjusting policy...")
+    global_cfg = ctx.global_ctx
+    domain = ctx.domain_ctx
     
-    # NOTE: confidence được tính và cập nhật vào context trong process p3
-    confidence = context.confidence
-    
-    # 1. Tính toán "Sự không chắc chắn" (Uncertainty)
+    # 1. Tính toán Uncertainty (1 - Confidence)
+    # E_vector[0] assumed to be Confidence
+    confidence = domain.E_vector[0].item()
     uncertainty = 1.0 - confidence
     
-    # 2. Tính toán "Sự bùng nổ Cảm xúc" (Emotional Boost)
-    # Đây là thành phần phản ứng, tăng vọt khi agent mất tự tin
-    emotional_boost = uncertainty * context.emotional_boost_factor
+    # 2. Emotional Boost
+    boost = uncertainty * global_cfg.emotional_boost_factor
     
-    # 3. Cập nhật "Tỷ lệ Khám phá Nền" (Base Rate)
-    # Đây là thành phần suy giảm chậm theo thời gian, đại diện cho sự "trưởng thành"
-    context.base_exploration_rate *= context.base_exploration_decay
+    # 3. Decay Base Rate
+    domain.base_exploration_rate *= global_cfg.exploration_decay
     
-    # 4. Tính toán exploration_rate mới
-    new_exploration_rate = context.base_exploration_rate + emotional_boost
+    # 4. Tính toán Rate mới
+    new_rate = domain.base_exploration_rate + boost
     
-    # 5. Đảm bảo exploration_rate không thấp hơn mức tối thiểu
-    final_exploration_rate = max(context.policy['min_exploration'], new_exploration_rate)
+    # 5. Clamp min
+    final_rate = max(global_cfg.min_exploration, new_rate)
     
-    # 6. Cập nhật chính sách trong context
-    context.policy['exploration_rate'] = final_exploration_rate
-    
-    log(context, "verbose", f"    > Confidence: {confidence:.3f} -> Uncertainty: {uncertainty:.3f}")
-    log(context, "verbose", f"    > Emotional Boost: {emotional_boost:.3f}")
-    log(context, "verbose", f"    > Base Rate: {context.base_exploration_rate:.3f}")
-    log(context, "verbose", f"    > New Exploration Rate: {final_exploration_rate:.3f}")
-
-    # --- STRATEGY 1: THE FINISHER ---
-    # [DISABLED] Tạm thời vô hiệu hóa để kiểm tra hiệu suất khi để exploration tự nhiên
-    # Nếu đã đi được 90% chặng đường, ép buộc khai thác mạnh nhưng KHÔNG tuyệt đối (0.05)
-    # để tránh bị kẹt trong các vòng lặp vô tận (infinite loops).
-    # if context.total_episodes > 0 and context.current_episode > 0.9 * context.total_episodes:
-    #     final_exploration_rate = 0.05
-    #     context.policy['exploration_rate'] = final_exploration_rate
-    #     log(context, "verbose", f"    > [THE FINISHER] Activated! Force exploration to 0.05")
-
-    return context
+    domain.current_exploration_rate = final_rate

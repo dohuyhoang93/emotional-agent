@@ -68,6 +68,6 @@ def verify_maze_initialization(config_path: str, experiment_name: str):
 if __name__ == "__main__":
     # Point to the new balanced maze v2 config
     verify_maze_initialization(
-        config_path="experiments_logic_test.json",
+        config_path="multi_agent_complex_maze.json",
         experiment_name="LogicGate_Test_Run"
     )

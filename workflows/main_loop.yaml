@@ -1,0 +1,31 @@
+name: "Standard EmotionAgent Cycle"
+description: "Vòng lặp chuẩn cho tác nhân Emotion Agent, bao gồm nhận thức, cảm xúc, hành động và học tập."
+
+steps:
+  # 1. Perception Layer
+  - process: "perception"
+    description: "Quan sát môi trường"
+    
+  - process: "update_belief"
+    description: "Cập nhật niềm tin về công tắc"
+
+  # 2. Emotion Layer
+  - process: "calculate_emotions"
+    description: "Tính toán vector cảm xúc từ Deep Learning"
+    
+  - process: "adjust_exploration"
+    description: "Điều chỉnh chiến lược dựa trên cảm xúc"
+
+  # 3. Decision Layer
+  - process: "select_action"
+    description: "Chọn hành động (Epsilon-Greedy)"
+    
+  - process: "execute_action"
+    description: "Thực thi hành động và nhận Reward"
+
+  # 4. Learning Layer
+  - process: "record_consequences"
+    description: "Cập nhật Q-Table và Memory"
+    
+  - process: "social_learning"
+    description: "Học hỏi từ đồng đội nếu bế tắc"

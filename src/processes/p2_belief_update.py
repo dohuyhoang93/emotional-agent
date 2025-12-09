@@ -1,54 +1,67 @@
-from src.context import AgentContext
-from src.logger import log, log_error # Import the new logger
+from src.core.engine import process
+from src.core.context import SystemContext
 
-def update_belief(context: AgentContext) -> AgentContext:
+@process(
+    inputs=[
+        'domain.short_term_memory', 
+        'global.switch_locations', 
+        'domain.believed_switch_states', 
+        'domain.q_table',
+        'domain.last_reward'
+    ], 
+    outputs=[
+        'domain.believed_switch_states', 
+        'domain.q_table'
+    ],
+    side_effects=[],
+    errors=[]
+)
+def update_belief(ctx: SystemContext):
     """
-    Process cập nhật "niềm tin" dựa trên kinh nghiệm gần nhất.
-    Bao gồm suy luận trạng thái công tắc và hình phạt va chạm.
+    Process: Cập nhật niềm tin (Belief Update)
+    Logic: Dựa vào ký ức hành động trước đó để suy luận trạng thái công tắc và tránh tường.
     """
-    log(context, "info", "  [P] 2. Updating beliefs...")
+    domain = ctx.domain_ctx
+    global_cfg = ctx.global_ctx
     
-    if not context.short_term_memory:
-        return context
+    if not domain.short_term_memory:
+        return
 
-    last_experience = context.short_term_memory[-1]
-    # next_state_pos là vị trí (y, x) của agent sau hành động
-    next_state_pos = last_experience["next_state"] 
-
-    # --- STRATEGY 3: SHARED BELIEFS (Thần giao cách cảm) ---
-    # Cập nhật niềm tin dựa trên sự kiện toàn cục (do bất kỳ agent nào kích hoạt)
-    # [DISABLED] Tắt tính năng này để kiểm tra hiệu suất
-    # if context.current_observation and 'global_events' in context.current_observation:
-    #     for event in context.current_observation['global_events']:
-    #         if event['type'] == 'switch_toggle':
-    #             switch_id = event['switch_id']
-    #             new_state = event['new_state']
-    #             context.believed_switch_states[switch_id] = new_state
-    #             log(context, "verbose", f"    > [TELEPATHY] Received signal: Switch '{switch_id}' is now {'ON' if new_state else 'OFF'}.") 
-
-    # --- 1. Cập nhật niềm tin về trạng thái công tắc ---
-    for switch_id, switch_pos in context.switch_locations.items():
+    last_experience = domain.short_term_memory[-1]
+    # last_experience structure assumed: {'state':..., 'action':..., 'reward':..., 'next_state':..., 'done':...}
+    
+    next_state_pos = last_experience["next_state"] # Tuple (y, x)
+    
+    # 1. Cập nhật niềm tin về công tắc
+    # Nếu agent đi vào ô công tắc, ta tin rằng công tắc đó đã đảo trạng thái (Toggle)
+    for switch_id, switch_pos in global_cfg.switch_locations.items():
         if next_state_pos == switch_pos:
-            # Nếu agent vừa bước vào vị trí công tắc, hãy chuyển đổi niềm tin về trạng thái của công tắc đó
-            context.believed_switch_states[switch_id] = not context.believed_switch_states[switch_id]
-            log(context, "verbose", f"    > Niềm tin mới: Công tắc '{switch_id}' đã chuyển sang {'BẬT' if context.believed_switch_states[switch_id] else 'TẮT'}.")
-            # NOTE: Không cần break vì agent có thể đi qua nhiều công tắc trong một bước (nếu có)
-            # Tuy nhiên, trong GridWorld hiện tại, mỗi bước chỉ đến 1 ô.
-
-    # --- 2. Cập nhật Q-value cho hình phạt va chạm (sử dụng trạng thái phức hợp) ---
-    # Chuyển đổi vị trí thành trạng thái phức hợp để truy cập Q-table
-    composite_state = context.get_composite_state(last_experience["state"])
-    composite_next_state = context.get_composite_state(last_experience["next_state"])
+            domain.believed_switch_states[switch_id] = not domain.believed_switch_states[switch_id]
+            # Log could go here
+            
+    # 2. Heuristic: Phạt va chạm
+    # Nếu agent đứng yên sau hành động (composite state không đổi) và reward thấp -> đâm vào tường?
+    # Cần logic tính composite state. Trong legacy code, hàm này nằm trong AgentContext.
+    # Trong POP mới, nó nên là một Utility Helper hoặc method của DomainContext? 
+    # Tạm thời tái hiện logic tính toán trạng thái phức hợp ở đây (Helper function).
+    
+    state_pos = last_experience["state"]
     action = last_experience["action"]
+    
+    # Helper lấy trạng thái (Pos + Switches)
+    def get_composite_key(pos, switches):
+        # Sort keys for deterministic order
+        switch_vals = tuple(switches[k] for k in sorted(switches.keys()))
+        return pos + switch_vals
 
-    # Nếu hành động không dẫn đến thay đổi trạng thái -> có thể đã đâm vào tường
-    if composite_state == composite_next_state and context.last_reward['extrinsic'] < -0.4:
-        # Giảm nhẹ Q-value để "tin" rằng hành động này tại trạng thái này là xấu
+    current_composite = get_composite_key(state_pos, domain.believed_switch_states)
+    next_composite = get_composite_key(next_state_pos, domain.believed_switch_states)
+    
+    # Nếu trạng thái không đổi và bị phạt nặng -> Đâm tường
+    # Note: Using last_reward['extrinsic'] instead of memory for raw penalty check
+    if current_composite == next_composite and domain.last_reward['extrinsic'] < -0.4:
         penalty = -0.1
-        # Đảm bảo composite_state có trong q_table trước khi truy cập
-        if composite_state not in context.q_table:
-            context.q_table[composite_state] = {a: 0.0 for a in ['up', 'down', 'left', 'right']}
-        context.q_table[composite_state][action] += context.learning_rate * penalty
-        log(context, "verbose", f"    > Niềm tin mới: Hành động '{action}' tại {composite_state} là xấu (phạt {penalty}).")
-
-    return context
+        if current_composite not in domain.q_table:
+            domain.q_table[current_composite] = {a: 0.0 for a in ['up', 'down', 'left', 'right']}
+        
+        domain.q_table[current_composite][action] += global_cfg.learning_rate * penalty

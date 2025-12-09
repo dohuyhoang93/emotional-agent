@@ -5,7 +5,7 @@
         {
             "name": "LogicGate_Test_Run",
             "runs": 1,
-            "episodes_per_run": 1000,
+            "episodes_per_run": 10,
             "log_level": "silent",
             "parameters": {
                 "use_dynamic_curiosity": true,

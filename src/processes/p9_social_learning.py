@@ -1,116 +1,113 @@
 from typing import List
-from src.context import AgentContext
 import numpy as np
-from src.logger import log, log_error # Import the new logger
+from src.core.engine import process
+from src.core.context import SystemContext, DomainContext
 
-def _is_stagnated(context: AgentContext, stagnation_threshold: int = 50) -> bool:
-    """
-    Kiểm tra xem agent có đang ở trong trạng thái "bế tắc" hay không.
-    Định nghĩa "bế tắc": Tỷ lệ thành công không cải thiện trong N episode gần nhất.
-    """
-    # Cần có đủ dữ liệu trong bộ nhớ dài hạn (nơi lưu kết quả các episode)
-    if len(context.long_term_memory.get('episode_results', [])) < stagnation_threshold:
+def _is_stagnated(domain: DomainContext, stagnation_threshold: int = 50) -> bool:
+    """Helper: Kiểm tra trạng thái bế tắc."""
+    results = domain.long_term_memory.get('episode_results', [])
+    if len(results) < stagnation_threshold:
         return False
     
-    recent_results = context.long_term_memory['episode_results'][-stagnation_threshold:]
+    recent_results = results[-stagnation_threshold:]
     recent_success_rate = np.mean([r['success'] for r in recent_results])
     
-    # Giả sử chúng ta có một cách để lấy tỷ lệ thành công "lịch sử"
-    # Để đơn giản, chúng ta so sánh với một ngưỡng cứng. Nếu tỷ lệ thành công gần đây
-    # quá thấp, coi như là bế tắc.
-    # Một logic phức tạp hơn có thể so sánh với các giai đoạn trước đó.
-    # --- STRATEGY 2: AGGRESSIVE SOCIAL LEARNING ---
-    # 1. Tăng ngưỡng bế tắc lên 10% (thay vì 5%)
-    if recent_success_rate < 0.05: 
+    if recent_success_rate < 0.05:
         return True
     
-    # 2. Kích hoạt định kỳ mỗi 500 episode (thay vì 50) để giảm nhiễu
-    if context.current_episode % 500 == 0:
+    if domain.current_episode % 500 == 0:
         return True
-
+        
     return False
 
-def social_learning(context: AgentContext, all_contexts: List[AgentContext], agent_id: int) -> AgentContext:
+@process(
+    inputs=[
+        'domain.q_table', 'domain.long_term_memory', 'domain.current_episode',
+        'global.assimilation_rate', 'neighbors', 'agent_id'
+        # 'neighbors' is expected to be passed as kwarg: List[SystemContext] or List[DomainContext]
+    ],
+    outputs=[
+        'domain.q_table'
+    ],
+    side_effects=[],
+    errors=[]
+)
+def social_learning(ctx: SystemContext, neighbors: List[SystemContext], agent_id: int):
     """
-    Process cho phép agent học hỏi từ các agent khác khi bị bế tắc.
+    Process: Học hỏi Xã hội (Social Learning).
+    Nếu agent bế tắc, học từ agent giỏi nhất (Assimilate) và tránh sai lầm của agent tệ nhất (Aversive).
     """
-    if not _is_stagnated(context):
-        return context
+    domain = ctx.domain_ctx
+    global_cfg = ctx.global_ctx
     
-    # [CONTROL GROUP CHECK]
-    # Nếu assimilation_rate <= 0, tắt hoàn toàn tính năng học xã hội.
-    # Điều này giúp ta chạy các thử nghiệm đối chứng (Control Group) để đo lường hiệu quả thực sự.
-    if context.assimilation_rate <= 0:
-        return context
+    # 0. Check Stagnation
+    if not _is_stagnated(domain):
+        return
 
-    log(context, "info", f"  [P] 9. Agent {agent_id} is stagnated, attempting social learning...")
+    # Check Control Group
+    if global_cfg.assimilation_rate <= 0:
+        return
 
-    # 1. Tìm agent thành công nhất (không phải chính mình)
-    best_agent_context = None
+    # 1. Find Best Agent
+    best_agent_ctx = None
     max_success_rate = -1.0
+    
+    # Pre-calculate own success rate
+    own_results = domain.long_term_memory.get('episode_results', [])
+    own_success_rate = np.mean([r['success'] for r in own_results]) if own_results else 0.0
 
-    for i, other_context in enumerate(all_contexts):
+    for i, other_sys_ctx in enumerate(neighbors):
         if i == agent_id:
             continue
         
-        # Lấy tỷ lệ thành công của agent khác từ bộ nhớ của nó
-        other_results = other_context.long_term_memory.get('episode_results', [])
+        other_domain = other_sys_ctx.domain_ctx
+        other_results = other_domain.long_term_memory.get('episode_results', [])
         if not other_results:
             continue
             
-        other_success_rate = np.mean([r['success'] for r in other_results])
-        if other_success_rate > max_success_rate:
-            max_success_rate = other_success_rate
-            best_agent_context = other_context
+        other_rate = np.mean([r['success'] for r in other_results])
+        if other_rate > max_success_rate:
+            max_success_rate = other_rate
+            best_agent_ctx = other_domain
 
-    # 2. Nếu tìm thấy agent tốt hơn, đồng hóa một phần kiến thức (Học hỏi Tích cực)
-    if best_agent_context and max_success_rate > np.mean([r['success'] for r in context.long_term_memory.get('episode_results', [])]):
-        log(context, "verbose", f"    > Found better agent {all_contexts.index(best_agent_context)} with success rate {max_success_rate:.2f}. Assimilating Q-table...")
-        
-        assimilation_rate = context.assimilation_rate # Sử dụng giá trị từ cấu hình (mặc định 0.1)
-
-        for state, actions in best_agent_context.q_table.items():
-            if state not in context.q_table:
-                context.q_table[state] = actions.copy()
+    # 2. Assimilate (Positive)
+    if best_agent_ctx and max_success_rate > own_success_rate:
+        assimilATE = global_cfg.assimilation_rate
+        for state, actions in best_agent_ctx.q_table.items():
+            if state not in domain.q_table:
+                domain.q_table[state] = actions.copy()
             else:
-                for action, q_value in actions.items():
-                    current_q = context.q_table[state].get(action, 0.0)
-                    context.q_table[state][action] = (1 - assimilation_rate) * current_q + assimilation_rate * q_value
-    else:
-        log(context, "verbose", "    > No better agent found to learn from.")
+                for act, q_val in actions.items():
+                    curr_q = domain.q_table[state].get(act, 0.0)
+                    domain.q_table[state][act] = (1 - assimilATE) * curr_q + assimilATE * q_val
 
-    # --- Logic Mới: Học hỏi Tiêu cực từ agent tệ nhất ---
-    # 3. Tìm agent tệ nhất
-    worst_agent_context = None
-    min_success_rate = 1.1 # Bắt đầu với giá trị lớn hơn 1.0
-
-    for i, other_context in enumerate(all_contexts):
+    # 3. Find Worst Agent
+    worst_agent_ctx = None
+    min_success_rate = 1.1
+    
+    for i, other_sys_ctx in enumerate(neighbors):
         if i == agent_id:
             continue
-        
-        other_results = other_context.long_term_memory.get('episode_results', [])
+        other_domain = other_sys_ctx.domain_ctx
+        other_results = other_domain.long_term_memory.get('episode_results', [])
         if not other_results:
             continue
+        other_rate = np.mean([r['success'] for r in other_results])
+        if other_rate < min_success_rate:
+            min_success_rate = other_rate
+            worst_agent_ctx = other_domain
             
-        other_success_rate = np.mean([r['success'] for r in other_results])
-        if other_success_rate < min_success_rate:
-            min_success_rate = other_success_rate
-            worst_agent_context = other_context
-
-    # 4. Nếu tìm thấy agent tệ hơn, học cách tránh sai lầm của nó
-    if worst_agent_context and min_success_rate < np.mean([r['success'] for r in context.long_term_memory.get('episode_results', [])]):
-        log(context, "verbose", f"    > [Aversive Learning] Found worse agent {all_contexts.index(worst_agent_context)} with success rate {min_success_rate:.2f}. Avoiding mistakes...")
+    # 4. Aversive Learning (Negative)
+    if worst_agent_ctx and min_success_rate < own_success_rate:
+        MISTAKE_THRESHOLD = -1.0
+        PUNISHMENT = -10.0
         
-        MISTAKE_THRESHOLD = -1.0 # Ngưỡng Q-value được coi là một sai lầm
-        PUNISHMENT_VALUE = -10.0 # Giá trị trừng phạt để ghi đè
-
-        for state, actions in worst_agent_context.q_table.items():
-            for action, q_value in actions.items():
-                if q_value < MISTAKE_THRESHOLD:
-                    if state not in context.q_table or context.q_table[state].get(action, 0.0) > MISTAKE_THRESHOLD:
-                        if state not in context.q_table:
-                            context.q_table[state] = {}
-                        context.q_table[state][action] = PUNISHMENT_VALUE
-    # ----------------------------------------------------
-
-    return context
+        for state, actions in worst_agent_ctx.q_table.items():
+            for act, q_val in actions.items():
+                if q_val < MISTAKE_THRESHOLD:
+                    # If I don't know this state, or I think it's okay -> PUNISH IT
+                    if state not in domain.q_table:
+                        domain.q_table[state] = {a:0.0 for a in ['up','down','left','right']}
+                    
+                    if domain.q_table[state].get(act, 0.0) > MISTAKE_THRESHOLD:
+                        domain.q_table[state][act] = PUNISHMENT

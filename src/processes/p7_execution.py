@@ -1,20 +1,44 @@
-from src.context import AgentContext
-from environment import GridWorld # Thêm import để type hinting
+from src.core.engine import process
+from src.core.context import SystemContext
+from src.adapters.environment_adapter import EnvironmentAdapter
 
-def execute_action(context: AgentContext, environment: GridWorld, agent_id: int) -> AgentContext:
+@process(
+    inputs=[
+        'env_adapter', 
+        'agent_id', 
+        'domain.selected_action'
+    ], 
+    outputs=[
+        'domain.current_observation',
+        'domain.previous_observation',
+        'domain.last_reward'
+    ],
+    side_effects=[
+        'env_adapter.perform_action',
+        'env_adapter.get_observation'
+    ]
+)
+def execute_action(ctx: SystemContext, env_adapter: EnvironmentAdapter, agent_id: int):
     """
-    Process thực thi hành động, nhận phần thưởng, và quan sát trạng thái mới.
-    Đã được cập nhật cho môi trường đa tác nhân.
+    Process: Thực thi hành động (Execution)
+    Tác động vật lý lên môi trường và nhận lại Reward + Quan sát mới.
     """
-    # 1. Lưu lại quan sát hiện tại (S_t) trước khi hành động
-    context.previous_observation = context.current_observation
+    domain = ctx.domain_ctx
     
-    # 2. Thực hiện hành động đã chọn (a_t) cho agent cụ thể
-    extrinsic_reward = environment.perform_action(agent_id, context.selected_action)
-    context.last_reward['extrinsic'] = extrinsic_reward
+    # 1. Archive current State to Previous
+    # (Để phục vụ cho P8 tính toán TD-Error: S, A, R, S')
+    domain.previous_observation = domain.current_observation
     
-    # 3. Quan sát trạng thái mới (S_t+1) của agent cụ thể
-    context.current_observation = environment.get_observation(agent_id)
+    # 2. Execute Action
+    action = domain.selected_action
+    if action is None:
+        # Fallback if no action selected (should not happen if P6 runs)
+        action = 'up' # Dummy or skip?
     
-    return context
-
+    reward = env_adapter.perform_action(agent_id, action)
+    domain.last_reward['extrinsic'] = reward
+    
+    # 3. Perceive Result (Strictly speaking, this should be a separate P1 call)
+    # But for compatibility with legacy workflow list, we do it here.
+    new_obs = env_adapter.get_observation(agent_id)
+    domain.current_observation = new_obs

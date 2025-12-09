@@ -2,24 +2,33 @@ import subprocess
 import os
 import json
 import random
-from src.experiment_context import OrchestrationContext, ExperimentRun
-from src.logger import log, log_error # Import the new logger
+from src.core.engine import process
+from src.orchestrator.context import OrchestratorSystemContext, ExperimentRun
+from src.logger import log, log_error
 
-def p_run_simulations(context: OrchestrationContext) -> OrchestrationContext:
+@process(
+    inputs=['domain.experiments', 'domain.output_dir'],
+    outputs=['domain.experiments'], # Technically inputs are mutable so we list them in outputs too if we mutate? Or just assume mutable reference. POP strictness suggests explicit output.
+    side_effects=['subprocess.run', 'filesystem.write', 'filesystem.mkdir'],
+    errors=['subprocess.CalledProcessError']
+)
+def run_simulations(ctx: OrchestratorSystemContext):
     """
-    Process để chạy tất cả các mô phỏng cho các thử nghiệm đã định nghĩa.
+    Process: Chạy tất cả các mô phỏng (Experiment Runs) thông qua subprocess.
     """
-    log(context, "info", "  [Orchestration] Running simulations...")
-
-    for exp_def in context.experiments:
-        log(context, "info", f"    [Experiment: {exp_def.name}] Starting {exp_def.runs} runs (Log Level: {exp_def.log_level})...")
+    log(ctx, "info", "  [Orchestration] Running simulations...")
+    domain = ctx.domain_ctx
+    
+    # Iterate through experiments loaded in Domain
+    for exp_def in domain.experiments:
+        log(ctx, "info", f"    [Experiment: {exp_def.name}] Starting {exp_def.runs} runs (Log Level: {exp_def.log_level})...")
         
-        experiment_output_dir = os.path.join(context.global_output_dir, exp_def.name)
+        experiment_output_dir = os.path.join(domain.output_dir, exp_def.name)
         os.makedirs(experiment_output_dir, exist_ok=True)
 
         for i in range(exp_def.runs):
             run_id = i + 1
-            seed = random.randint(0, 1000000) # Generate a random seed for each run
+            seed = random.randint(0, 1000000) 
             
             output_csv_path = os.path.join(experiment_output_dir, f"run_{run_id}.csv")
             
@@ -33,12 +42,12 @@ def p_run_simulations(context: OrchestrationContext) -> OrchestrationContext:
                 "--output-path", output_csv_path,
                 "--settings-override", settings_override_json,
                 "--seed", str(seed),
-                "--log-level", exp_def.log_level # Pass the log_level to main.py
+                "--log-level", exp_def.log_level 
             ]
 
-            log(context, "info", f"      [Run {run_id}/{exp_def.runs}] Executing: {' '.join(command)}")
+            log(ctx, "info", f"      [Run {run_id}/{exp_def.runs}] Executing: {' '.join(command)}")
             
-            # Create ExperimentRun object and add to definition
+            # Create ExperimentRun object (Mutable update of Domain)
             exp_run = ExperimentRun(
                 run_id=run_id,
                 seed=seed,
@@ -52,19 +61,11 @@ def p_run_simulations(context: OrchestrationContext) -> OrchestrationContext:
             stderr_log_path = os.path.join(experiment_output_dir, f"run_{run_id}_stderr.log")
 
             try:
-                # Chạy main.py và chuyển hướng output vào file log
-                # Check if visual_mode is enabled
                 is_visual_mode = exp_def.parameters.get("visual_mode", False)
 
                 if is_visual_mode:
-                    # If visual mode, let stdout/stderr go to console so user can see it
-                    result = subprocess.run(
-                        command, 
-                        text=True, 
-                        check=True
-                    )
+                    result = subprocess.run(command, text=True, check=True)
                 else:
-                    # Otherwise, capture output to log files
                     with open(stdout_log_path, 'w') as stdout_log, open(stderr_log_path, 'w') as stderr_log:
                         result = subprocess.run(
                             command, 
@@ -76,11 +77,10 @@ def p_run_simulations(context: OrchestrationContext) -> OrchestrationContext:
                 exp_run.status = "COMPLETED"
             except subprocess.CalledProcessError:
                 exp_run.status = "FAILED"
-                log_error(context, f"Run {run_id} của thử nghiệm '{exp_def.name}' thất bại.")
-                log_error(context, f"Kiểm tra file log lỗi để biết chi tiết: {stderr_log_path}")
+                log_error(ctx, f"Run {run_id} của thử nghiệm '{exp_def.name}' thất bại.")
+                log_error(context=ctx, message=f"Kiểm tra file log lỗi để biết chi tiết: {stderr_log_path}")
             except Exception as e:
                 exp_run.status = "FAILED"
-                log_error(context, f"LỖI không xác định khi chạy Run {run_id} của thử nghiệm '{exp_def.name}': {e}")
+                log_error(ctx, f"LỖI không xác định khi chạy Run {run_id} của thử nghiệm '{exp_def.name}': {e}")
 
-    log(context, "info", "  [Orchestration] All simulations finished.")
-    return context
+    log(ctx, "info", "  [Orchestration] All simulations finished.")
