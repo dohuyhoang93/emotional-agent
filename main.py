@@ -162,8 +162,9 @@ def main():
     
     for episode in range(args.num_episodes):
         # Visual/Log
-        if common_global_ctx.log_level == 'info' and not settings.get('visual_mode'):
-            print(f"Starting Episode {episode+1}/{args.num_episodes}...")
+        # Visual/Log
+        if not settings.get('visual_mode'):
+            log(common_global_ctx, 'info', f"Starting Episode {episode+1}/{args.num_episodes}...")
             
         # Reset Environment & Agents
         obs_dict = environment.reset()
@@ -188,8 +189,9 @@ def main():
         steps_count = 0
         
         # Step Loop
-        while not adapter.is_done():
+        while not adapter.is_done() and steps_count < common_global_ctx.max_steps:
             steps_count += 1
+            environment.current_step = steps_count # Sync for rendering
             
             # For logging cycle time
             import time

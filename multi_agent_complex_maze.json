@@ -48,7 +48,7 @@
             24,
             24
           ],
-          "max_steps_per_episode": 200,
+          "max_steps_per_episode": 500,
           "walls": [
             [
               0,
