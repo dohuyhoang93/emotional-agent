@@ -19,7 +19,7 @@ from src.orchestrator.processes.p_save_summary import save_summary
 
 from src.logger import log, log_error
 
-def main():
+def main(argv=None):
     parser = argparse.ArgumentParser(description="DeepSearch Agent - Orchestration Layer (POP)")
     parser.add_argument(
         '--config',
@@ -34,7 +34,7 @@ def main():
         default=None,
         help='Override log level.'
     )
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
 
     # 1. Initialize Contexts (3-Layer)
     global_ctx = OrchestratorGlobalContext(
@@ -67,11 +67,12 @@ def main():
         final_ctx = engine.execute_workflow("workflows/orchestration_workflow.yaml")
         
         # Check Final Report for errors (Primitive error handling logic via report string)
-        if "LỖI" in final_ctx.domain_ctx.final_report:
+        if hasattr(final_ctx, 'domain_ctx') and hasattr(final_ctx.domain_ctx, 'final_report') and "LỖI" in final_ctx.domain_ctx.final_report:
              log_error(final_ctx, "Workflow finished with errors reported.")
              # We might exit code 1 here if strict
              
         log(final_ctx, "info", "--- ORCHESTRATION FINISHED ---")
+        return final_ctx
         
     except Exception as e:
         log_error(system_ctx, f"CRITICAL FAILURE: {e}")

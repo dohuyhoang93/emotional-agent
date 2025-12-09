@@ -1,0 +1,2 @@
+episode,success,steps,total_reward,final_exploration_rate,avg_cycle_time,max_steps_env
+1,False,15,-3.541964549999999,1.3501638588167637,0.0,15
