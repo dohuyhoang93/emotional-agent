@@ -3,7 +3,7 @@ from src.core.context import SystemContext
 from src.adapters.environment_adapter import EnvironmentAdapter
 
 @process(
-    inputs=['env_adapter', 'agent_id'], 
+    inputs=['env_adapter', 'agent_id', 'domain.current_observation'], 
     outputs=['domain.current_observation', 'domain.previous_observation'],
     side_effects=['env_adapter.get_observation']
 )

@@ -5,7 +5,7 @@ from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log, log_error
 
 @process(
-    inputs=['domain.experiments'],
+    inputs=['domain.experiments', 'log_level'],
     outputs=['domain.experiments'],
     side_effects=['filesystem.read'],
     errors=['pandas.read_error']

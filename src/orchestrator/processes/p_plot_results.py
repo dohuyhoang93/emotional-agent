@@ -4,7 +4,7 @@ from src.plotting import plot_all_experiment_results
 from src.logger import log
 
 @process(
-    inputs=['domain.experiments', 'domain.output_dir'],
+    inputs=['domain.experiments', 'domain.output_dir', 'log_level'],
     outputs=[],
     side_effects=['plotting.plot_all', 'filesystem.write'],
     errors=['plotting_error']

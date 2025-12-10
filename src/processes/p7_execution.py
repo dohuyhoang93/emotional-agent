@@ -6,7 +6,9 @@ from src.adapters.environment_adapter import EnvironmentAdapter
     inputs=[
         'env_adapter', 
         'agent_id', 
-        'domain.selected_action'
+        'domain.selected_action',
+        'domain.current_observation',
+        'domain.last_reward'
     ], 
     outputs=[
         'domain.current_observation',

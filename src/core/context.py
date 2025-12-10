@@ -1,9 +1,19 @@
 import torch
 from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Any, Optional
+import sys
+import os
+
+# Import from Independent SDK
+# Add SDK path to sys.path to ensure it can be imported
+sdk_path = os.path.join(os.getcwd(), 'python_pop_sdk')
+if sdk_path not in sys.path:
+    sys.path.append(sdk_path)
+
+from pop import BaseGlobalContext, BaseDomainContext, BaseSystemContext
 
 @dataclass(frozen=True)
-class GlobalContext:
+class GlobalContext(BaseGlobalContext):
     """
     Global Context: Chứa cấu hình tĩnh, hằng số, và tham số môi trường bất biến.
     Đây là dữ liệu READ-ONLY trong suốt vòng đời của Workflow.
@@ -39,7 +49,7 @@ class GlobalContext:
     output_path: str = "results"
 
 @dataclass
-class DomainContext:
+class DomainContext(BaseDomainContext):
     """
     Domain Context: Chứa trạng thái nghiệp vụ của hệ thống (Agent State).
     Đây là dữ liệu MUTABLE, nhưng chỉ được thay đổi bởi Process thông qua Contract.
@@ -79,7 +89,7 @@ class DomainContext:
     total_steps_in_episode: int = 0
 
 @dataclass
-class SystemContext:
+class SystemContext(BaseSystemContext):
     """
     System Context: Wrapper quản lý toàn bộ hệ thống.
     """

@@ -5,7 +5,7 @@ from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log
 
 @process(
-    inputs=['domain.experiments', 'domain.output_dir'],
+    inputs=['domain.experiments', 'domain.output_dir', 'log_level'],
     outputs=['domain.final_report'],
     side_effects=[],
     errors=[]

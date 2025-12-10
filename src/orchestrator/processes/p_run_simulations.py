@@ -7,7 +7,7 @@ from src.orchestrator.context import OrchestratorSystemContext, ExperimentRun
 from src.logger import log, log_error
 
 @process(
-    inputs=['domain.experiments', 'domain.output_dir'],
+    inputs=['domain.experiments', 'domain.output_dir', 'log_level'],
     outputs=['domain.experiments'], # Technically inputs are mutable so we list them in outputs too if we mutate? Or just assume mutable reference. POP strictness suggests explicit output.
     side_effects=['subprocess.run', 'filesystem.write', 'filesystem.mkdir'],
     errors=['subprocess.CalledProcessError']

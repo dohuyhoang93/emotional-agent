@@ -47,7 +47,7 @@ def _calculate_dynamic_weight(cycle_time, current_step, current_episode, total_e
     inputs=[
         'domain.previous_observation', 'domain.current_observation', 'domain.selected_action', 'domain.last_reward',
         'domain.q_table', 'domain.believed_switch_states', 'domain.short_term_memory',
-        'domain.E_vector', 'domain.emotion_optimizer', 'domain.td_error',
+        'domain.E_vector', 'domain.emotion_optimizer', 'domain.emotion_model', 'domain.td_error',
         'global.learning_rate', 'global.discount_factor', 'global.use_dynamic_curiosity',
         'domain.last_cycle_time', 'domain.current_episode', 'domain.current_step',
         'global.total_episodes', 'global.use_adaptive_fatigue', 'global.fatigue_growth_rate', 'global.max_steps',

@@ -7,7 +7,8 @@ from src.core.context import SystemContext
         'global.switch_locations', 
         'domain.believed_switch_states', 
         'domain.q_table',
-        'domain.last_reward'
+        'domain.last_reward',
+        'global.learning_rate'
     ], 
     outputs=[
         'domain.believed_switch_states', 

@@ -7,7 +7,7 @@ from src.orchestrator.context import OrchestratorSystemContext, ExperimentDefini
 from src.logger import log, log_error
 
 @process(
-    inputs=['global.config_path'],
+    inputs=['global.config_path', 'log_level', 'global.cli_log_level', 'domain.output_dir', 'domain.experiments', 'domain.effective_log_level'],
     outputs=[
         'domain.raw_config',
         'domain.output_dir',

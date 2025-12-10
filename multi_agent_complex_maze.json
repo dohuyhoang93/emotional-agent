@@ -1,12 +1,12 @@
 {
   "output_dir": "results/logic_test_run",
-  "log_level": "verbose",
+  "log_level": "silent",
   "experiments": [
     {
       "name": "LogicGate_Test_Run",
       "runs": 1,
-      "episodes_per_run": 10,
-      "log_level": "verbose",
+      "episodes_per_run": 10000,
+      "log_level": "silent",
       "parameters": {
         "use_dynamic_curiosity": true,
         "use_adaptive_fatigue": true,
@@ -18,7 +18,7 @@
         "initial_exploration": 1.0,
         "min_exploration": 0.05,
         "exploration_decay": 0.9995,
-        "visual_mode": true,
+        "visual_mode": false,
         "environment_config": {
           "grid_size": 25,
           "num_agents": 5,
