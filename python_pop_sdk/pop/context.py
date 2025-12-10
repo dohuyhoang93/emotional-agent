@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-@dataclass(frozen=True)
+@dataclass
 class BaseGlobalContext:
     """
     Base Class cho Global Context (Immutable).

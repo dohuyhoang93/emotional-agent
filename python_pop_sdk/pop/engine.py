@@ -4,6 +4,7 @@ import yaml
 from .context import BaseSystemContext
 from .contracts import ProcessContract, ContractViolationError
 from .guards import ContextGuard
+from .delta import Transaction
 
 logger = logging.getLogger("POPEngine")
 
@@ -33,19 +34,28 @@ class POPEngine:
             allowed_inputs = set(contract.inputs)
             allowed_outputs = set(contract.outputs)
             
-            # Create Guard
-            # Note: ContextGuard currently assumes 'domain_ctx'/'global_ctx' navigation
-            guarded_ctx = ContextGuard(self.ctx, allowed_inputs, allowed_outputs)
+            # Create Transaction
+            tx = Transaction(self.ctx)
+            
+            # Create Guard with Transaction
+            guarded_ctx = ContextGuard(self.ctx, allowed_inputs, allowed_outputs, transaction=tx)
             
             try:
                 result = func(guarded_ctx, **kwargs)
+                
+                # Commit Changes if successful
+                tx.commit()
                 return result
                 
-            except ContractViolationError as cve:
-                raise ContractViolationError(f"[Process: {name}] {str(cve)}") from cve
-                
             except Exception as e:
-                # Error Trap
+                # Rollback Changes if error
+                tx.rollback()
+                
+                # Wrap error if it's strictly contract related, otherwise re-raise
+                if isinstance(e, ContractViolationError):
+                     raise ContractViolationError(f"[Process: {name}] {str(e)}") from e
+                
+                # Error Trap for undeclared errors
                 error_name = type(e).__name__
                 if error_name not in contract.errors:
                     raise ContractViolationError(

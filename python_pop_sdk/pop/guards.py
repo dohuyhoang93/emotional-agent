@@ -1,18 +1,20 @@
-from typing import Any, Set
+from typing import Any, Set, Optional
 from .contracts import ContractViolationError
+from .delta import Transaction, DeltaEntry
+from .structures import TrackedList, TrackedDict
 
 class ContextGuard:
     """
-    Proxy bảo vệ Context tại Runtime.
-    1. Chặn Ghi (setattr) vào biến không có trong outputs.
-    2. Chặn Đọc (getattr) biến không có trong inputs.
+    A runtime proxy that enforces POP Contracts (Read/Write permissions)
+    AND facilitates Transactional Mutation (Delta Logging).
     """
-    def __init__(self, target_obj: Any, allowed_inputs: Set[str], allowed_outputs: Set[str], path_prefix: str = ""):
+    def __init__(self, target_obj: Any, allowed_inputs: Set[str], allowed_outputs: Set[str], path_prefix: str = "", transaction: Optional[Transaction] = None):
         # Use object.__setattr__ to avoid recursion during init
         object.__setattr__(self, "_target_obj", target_obj)
         object.__setattr__(self, "_allowed_inputs", allowed_inputs)
         object.__setattr__(self, "_allowed_outputs", allowed_outputs)
         object.__setattr__(self, "_path_prefix", path_prefix)
+        object.__setattr__(self, "_transaction", transaction)
 
     def __getattr__(self, name: str):
         # 1. System/Magic Attribute Bypass
@@ -28,7 +30,8 @@ class ContextGuard:
              # Logic: layer name inference. 
              # domain_ctx -> "domain"
              next_prefix = name.replace("_ctx", "")
-             return ContextGuard(val, self._allowed_inputs, self._allowed_outputs, next_prefix)
+             # Pass transaction down
+             return ContextGuard(val, self._allowed_inputs, self._allowed_outputs, next_prefix, self._transaction)
 
         # 3. Leaf / Primitive Attribute Logic
         full_path = f"{self._path_prefix}.{name}" if self._path_prefix else name
@@ -40,7 +43,9 @@ class ContextGuard:
         
         is_allowed = (
             full_path in self._allowed_inputs or 
-            any(p in self._allowed_inputs for p in parent_paths)
+            any(p in self._allowed_inputs for p in parent_paths) or
+            # Traversal Fix: Allow if this path leads to an allowed leaf (Prefix)
+            any(inp.startswith(full_path + ".") for inp in self._allowed_inputs)
         )
         
         if not is_allowed:
@@ -50,7 +55,23 @@ class ContextGuard:
             )
         
         # Safe to read now
-        return getattr(self._target_obj, name)
+        # TRANSACTION INTEGRATION:
+        # If we have a transaction, we should return a Shadow object or Tracked Wrapper
+        val = getattr(self._target_obj, name)
+        
+        if self._transaction:
+            # Get or Create Shadow
+            shadow = self._transaction.get_shadow(val)
+            
+            # Wrap Mutables
+            if isinstance(shadow, list):
+                return TrackedList(shadow, self._transaction, full_path)
+            elif isinstance(shadow, dict):
+                return TrackedDict(shadow, self._transaction, full_path)
+            else:
+                return shadow
+        
+        return val
 
     def __setattr__(self, name: str, value: Any):
         full_path = f"{self._path_prefix}.{name}" if self._path_prefix else name
@@ -62,4 +83,42 @@ class ContextGuard:
                 f"but it was not declared in outputs=[...]."
             )
             
-        setattr(self._target_obj, name, value)
+        # TRANSACTION INTEGRATION
+        if self._transaction:
+             old_val = getattr(self._target_obj, name, None)
+             # Log the SET operation (The commit phase will apply it)
+             # Note: For primitives, we must assume that 'commit' will set it on the target object.
+             # Wait, if we log it, we must ALSO update the Shadow so the process sees it?
+             # Yes. But since we don't have a "Shadow Target Object" (we only shadow lists/dicts),
+             # we are in a tricky spot for scalar updates like `ctx.domain.x = 5`.
+             
+             # Problem: `ctx.domain` IS `_target_obj`. It is usually a Dataclass instance.
+             # If we don't update `_target_obj` now, `getattr` later will return old value.
+             # Solution: `Transaction` must cache/shadow the PARENT object too?
+             # OR: strict "Last Write Wins": We update `_target_obj` IN-PLACE regarding the Shadow?
+             # But `_target_obj` IS the Real Context Layer (e.g. DomainContext).
+             
+             # Re-read Design: "Proxy writes to _delta_log... If Process success, Apply."
+             # This implies `getattr` must look at `_delta_log`? Expensive.
+             # Better: We create a Shadow Context Layer at valid checkpoints?
+             
+             # SIMPLIFICATION for Phase 2:
+             # We allow modifying the REAL object for scalars (since we can't easily shadow a dataclass without cloning it).
+             # BUT we log the OLD value for Rollback.
+             # This is "Optimistic Concurrency" or "In-place + Undo Log".
+             # For List/Dict, we use Shadow Copy + TrackedWrapper.
+             
+             # So:
+             # 2. Perform setattr on REAL object.
+             
+             self._transaction.log(DeltaEntry(full_path, "SET", value, old_val, target=self._target_obj, key=name))
+             
+             # AUTO-UNWRAP PROXY (Zombie Proxy Fix)
+             # If we are assigning a TrackedList/Dict, we must store the Shadow Data, not the Wrapper.
+             if isinstance(value, (TrackedList, TrackedDict)):
+                 # Assign the _data (Shadow Object)
+                 setattr(self._target_obj, name, value._data)
+             else:
+                 setattr(self._target_obj, name, value)
+        else:
+             setattr(self._target_obj, name, value)
