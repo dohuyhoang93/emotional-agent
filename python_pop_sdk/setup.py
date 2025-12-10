@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="pop-sdk",
-    version="0.1.0",
+    version="0.1.1",
     description="Process-Oriented Programming (POP) SDK for Python",
     long_description=open("README.md", encoding="utf-8").read() if open("README.md", encoding="utf-8") else "",
     long_description_content_type="text/markdown",

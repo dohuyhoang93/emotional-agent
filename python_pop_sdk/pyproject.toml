@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pop-sdk"
-version = "0.1.0"
+version = "0.1.1"
 description = "Process-Oriented Programming (POP) SDK for Python"
 readme = "README.md"
 authors = [

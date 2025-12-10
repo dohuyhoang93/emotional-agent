@@ -1,70 +1,24 @@
 --- BÁO CÁO TỔNG KẾT THỬ NGHIỆM ---
-Thời gian chạy: 2025-12-10 08:50:08
+Thời gian chạy: 2025-12-10 17:24:48
 Thư mục kết quả: results/logic_test_run
 
 === Thử nghiệm: LogicGate_Test_Run ===
   Số lần chạy: 1
-  Số episode mỗi lần chạy: 10000
+  Số episode mỗi lần chạy: 10
   Tham số: {'use_dynamic_curiosity': True, 'use_adaptive_fatigue': True, 'fatigue_growth_rate': 5.0, 'emotional_boost_factor': 0.4, 'short_term_memory_limit': 100, 'assimilation_rate': 0.3, 'intrinsic_reward_weight': 0.05, 'initial_exploration': 1.0, 'min_exploration': 0.05, 'exploration_decay': 0.9995, 'visual_mode': False, 'environment_config': {'grid_size': 25, 'num_agents': 5, 'start_positions': [[0, 0], [0, 1], [1, 0], [1, 1], [0, 2]], 'goal_pos': [24, 24], 'max_steps_per_episode': 500, 'walls': [[0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [8, 5], [8, 6], [8, 7], [8, 8], [8, 9], [8, 10], [12, 0], [12, 1], [12, 2], [12, 3], [12, 4], [12, 5], [12, 6], [12, 7], [12, 8], [13, 8], [14, 8], [15, 8], [16, 8], [17, 8], [18, 8], [19, 8], [20, 8], [20, 0], [20, 1], [20, 2], [20, 3], [20, 4], [20, 5], [20, 6], [20, 7], [5, 15], [6, 15], [7, 15], [8, 15], [9, 15], [10, 15], [11, 15], [12, 15], [13, 15], [14, 15], [15, 15], [22, 18], [23, 18], [24, 18], [18, 22], [18, 23], [18, 24]], 'logical_switches': [{'pos': [1, 1], 'id': 'A'}, {'pos': [10, 2], 'id': 'B'}, {'pos': [15, 12], 'id': 'C'}, {'pos': [16, 20], 'id': 'D'}, {'pos': [22, 22], 'id': 'E'}], 'dynamic_walls': [{'id': 'gate_A', 'pos': [[9, 0], [9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9], [9, 10]]}, {'id': 'gate_B', 'pos': [[0, 13], [1, 13], [2, 13], [3, 13], [4, 13], [5, 13], [6, 13], [7, 13], [8, 13], [9, 13], [10, 13]]}, {'id': 'gate_C', 'pos': [[21, 16], [21, 17], [21, 18], [21, 19], [21, 20], [21, 21], [21, 22], [21, 23], [21, 24]]}, {'id': 'gate_D', 'pos': [[18, 18], [18, 19], [18, 20], [18, 21]]}], 'dynamic_wall_rules': [{'id': 'gate_A', 'type': 'toggle', 'inputs': ['A']}, {'id': 'gate_B', 'type': 'toggle', 'inputs': ['B']}, {'id': 'gate_C', 'type': 'toggle', 'inputs': ['C']}, {'id': 'gate_D', 'type': 'toggle', 'inputs': ['D']}]}}
-  Tỷ lệ thành công trung bình (tất cả episode): 69.34%
-  Số bước trung bình cho episode thành công: 207.55
-  Tỷ lệ khám phá cuối cùng trung bình: 0.5000
-  Episode trung bình tìm ra đường tối ưu (61 bước): 3749.00
+  Tỷ lệ thành công trung bình (tất cả episode): 0.00%
+  Không có episode thành công nào để tính số bước trung bình.
+  Tỷ lệ khám phá cuối cùng trung bình: 0.2169
 
   --- Phân tích Xu hướng (Mỗi 1000 Episodes) ---
-  Episodes 0-1000:
-    Success Rate: 33.53%
-    Avg Steps: 294.50
-    Avg Reward: -53.18
-    Avg Exploration: 0.5001
-  Episodes 1000-2000:
-    Success Rate: 52.50%
-    Avg Steps: 250.86
-    Avg Reward: -45.43
-    Avg Exploration: 0.5000
-  Episodes 2000-3000:
-    Success Rate: 70.40%
-    Avg Steps: 212.95
-    Avg Reward: -36.58
-    Avg Exploration: 0.5000
-  Episodes 3000-4000:
-    Success Rate: 76.00%
-    Avg Steps: 189.14
-    Avg Reward: -32.06
-    Avg Exploration: 0.5000
-  Episodes 4000-5000:
-    Success Rate: 77.80%
-    Avg Steps: 203.92
-    Avg Reward: -33.50
-    Avg Exploration: 0.5000
-  Episodes 5000-6000:
-    Success Rate: 81.50%
-    Avg Steps: 191.28
-    Avg Reward: -31.20
-    Avg Exploration: 0.5000
-  Episodes 6000-7000:
-    Success Rate: 75.20%
-    Avg Steps: 197.01
-    Avg Reward: -33.85
-    Avg Exploration: 0.5000
-  Episodes 7000-8000:
-    Success Rate: 72.90%
-    Avg Steps: 199.63
-    Avg Reward: -35.08
-    Avg Exploration: 0.5000
-  Episodes 8000-9000:
-    Success Rate: 78.10%
-    Avg Steps: 200.61
-    Avg Reward: -33.12
-    Avg Exploration: 0.5000
-  Episodes 9000-10000:
-    Success Rate: 75.40%
-    Avg Steps: 198.63
-    Avg Reward: -33.87
-    Avg Exploration: 0.5000
+  Episodes 0-11:
+    Success Rate: 0.00%
+    Avg Steps: nan
+    Avg Reward: -61.61
+    Avg Exploration: 0.2349
 
-  --- Giai đoạn Về đích (Episodes 9000-10000) ---
-    Success Rate: 75.42%
-    Avg Steps: 198.97
-    Avg Exploration: 0.5000
+  --- Giai đoạn Về đích (Episodes 9-10) ---
+    Success Rate: 0.00%
+    Avg Steps: nan
+    Avg Exploration: 0.2161
 

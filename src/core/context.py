@@ -12,7 +12,7 @@ if sdk_path not in sys.path:
 
 from pop import BaseGlobalContext, BaseDomainContext, BaseSystemContext
 
-@dataclass(frozen=True)
+@dataclass
 class GlobalContext(BaseGlobalContext):
     """
     Global Context: Chứa cấu hình tĩnh, hằng số, và tham số môi trường bất biến.
