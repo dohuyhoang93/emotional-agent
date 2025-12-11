@@ -1,13 +1,45 @@
 --- BÁO CÁO TỔNG KẾT THỬ NGHIỆM ---
-Thời gian chạy: 2025-12-02 19:58:01
+Thời gian chạy: 2025-12-11 04:58:35
 Thư mục kết quả: results/corrected_final_run95
 
 === Thử nghiệm: ComplexMaze_CorrectedFinal_Run95 ===
   Số lần chạy: 1
   Số episode mỗi lần chạy: 5000
   Tham số: {'use_dynamic_curiosity': True, 'use_adaptive_fatigue': True, 'fatigue_growth_rate': 5.0, 'emotional_boost_factor': 0.4, 'short_term_memory_limit': 100, 'assimilation_rate': 0.3, 'visual_mode': False, 'environment_config': {'grid_size': 25, 'num_agents': 5, 'start_positions': [[0, 0], [0, 1], [1, 0], [2, 0], [0, 2]], 'goal_pos': [24, 24], 'max_steps_per_episode': 500, 'walls': [[0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [8, 5], [8, 6], [8, 7], [8, 8], [8, 9], [8, 10], [12, 0], [12, 1], [12, 2], [12, 3], [12, 4], [12, 5], [12, 6], [12, 7], [12, 8], [13, 8], [14, 8], [15, 8], [16, 8], [17, 8], [18, 8], [19, 8], [20, 8], [20, 0], [20, 1], [20, 2], [20, 3], [20, 4], [20, 5], [20, 6], [20, 7], [5, 15], [6, 15], [7, 15], [8, 15], [9, 15], [10, 15], [11, 15], [12, 15], [13, 15], [14, 15], [15, 15], [22, 18], [23, 18], [24, 18], [18, 22], [18, 23], [18, 24]], 'logical_switches': [{'pos': [1, 1], 'id': 'A'}, {'pos': [10, 2], 'id': 'B'}, {'pos': [15, 12], 'id': 'C'}, {'pos': [16, 20], 'id': 'D'}, {'pos': [22, 22], 'id': 'E'}], 'dynamic_walls': [{'id': 'gate_A', 'pos': [[9, 0], [9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9], [9, 10]]}, {'id': 'gate_B', 'pos': [[0, 13], [1, 13], [2, 13], [3, 13], [4, 13], [5, 13], [6, 13], [7, 13], [8, 13], [9, 13], [10, 13]]}, {'id': 'gate_C', 'pos': [[21, 16], [21, 17], [21, 18], [21, 19], [21, 20], [21, 21], [21, 22], [21, 23], [21, 24]]}, {'id': 'gate_D', 'pos': [[18, 18], [18, 19], [18, 20], [18, 21]]}], 'dynamic_wall_rules': [{'id': 'gate_A', 'type': 'toggle', 'inputs': ['A']}, {'id': 'gate_B', 'type': 'toggle', 'inputs': ['B']}, {'id': 'gate_C', 'type': 'toggle', 'inputs': ['C']}, {'id': 'gate_D', 'type': 'toggle', 'inputs': ['D']}]}}
-  Tỷ lệ thành công trung bình (tất cả episode): 61.46%
-  Số bước trung bình cho episode thành công: 199.86
-  Tỷ lệ khám phá cuối cùng trung bình: 0.4000
-  Episode trung bình tìm ra đường tối ưu (57 bước): 4930.00
+  Tỷ lệ thành công trung bình (tất cả episode): 50.66%
+  Số bước trung bình cho episode thành công: 244.99
+  Tỷ lệ khám phá cuối cùng trung bình: 0.1831
+  Episode trung bình tìm ra đường tối ưu (57 bước): 4474.00
+
+  --- Phân tích Xu hướng (Mỗi 1000 Episodes) ---
+  Episodes 0-1000:
+    Success Rate: 33.03%
+    Avg Steps: 295.97
+    Avg Reward: -47.12
+    Avg Exploration: 0.1529
+  Episodes 1000-2000:
+    Success Rate: 40.20%
+    Avg Steps: 270.28
+    Avg Reward: -44.44
+    Avg Exploration: 0.1591
+  Episodes 2000-3000:
+    Success Rate: 50.90%
+    Avg Steps: 247.35
+    Avg Reward: -40.85
+    Avg Exploration: 0.1653
+  Episodes 3000-4000:
+    Success Rate: 58.10%
+    Avg Steps: 242.16
+    Avg Reward: -39.41
+    Avg Exploration: 0.2186
+  Episodes 4000-5000:
+    Success Rate: 71.10%
+    Avg Steps: 207.64
+    Avg Reward: -32.66
+    Avg Exploration: 0.2104
+
+  --- Giai đoạn Về đích (Episodes 4500-5000) ---
+    Success Rate: 71.86%
+    Avg Steps: 195.18
+    Avg Exploration: 0.1971
 

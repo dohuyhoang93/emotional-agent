@@ -1,22 +1,67 @@
 # POP SDK (Process-Oriented Programming)
 
-**A Transactional, Context-Driven Framework for AI Agents & Complex Systems.**
+**The "Operating System" for AI Agents and Complex Systems.**
 
-POP (Process-Oriented Programming) is a paradigm shift from OOP. Instead of encapsulating state and behavior together, POP **decouples** them completely:
-- **Context**: Dumb Data structures (State).
-- **Process**: Pure Functions (Behavior) that transform Context.
-- **Guard**: Strict Permissions & Transactional Integrity.
+[![PyPI version](https://badge.fury.io/py/pop-sdk.svg)](https://badge.fury.io/py/pop-sdk)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+**POP (Process-Oriented Programming)** is a paradigm shift designed for building robust, stateful AI agents. Unlike OOP which encapsulates state and behavior, POP **decouples** them completely to ensure:
+1.  **Transactional Integrity**: Every action is atomic.
+2.  **Safety by Default**: Inputs are immutable; outputs are strictly contracted.
+3.  **Observability**: Every state change is logged and reversible.
+
+---
 
 ## 🌟 Key Features
 
-- **Transactional State**: ACID-like memory transactions. Changes are isolated until commit. Rollbacks on error.
-- **Deep Isolation**: Nested lists/dictionaries are automatically shadowed. Modification of deep state never leaks to the main context until approved.
-- **Strict Contracts**: Define `inputs` and `outputs` for every process. Runtime enforcement prevents "State Spaghetti".
-- **Zero-Dependency Core**: Pure Python. Compatible with PyTorch/TensorFlow/NumPy environments.
+### 🛡️ Safety & Security
+- **Context Locking ("The Vault")**: Prevents accidental state mutation from external code (`main.py`). Warning mode by default, Strict mode (crash) for CI.
+- **Frozen Inputs**: Process inputs are wrapped in `FrozenList`/`FrozenDict`. Side-effects are blocked at runtime.
+- **Strict Contracts**: Explicit `@process(inputs=[...], outputs=[...])` decorators prevent "State Spaghetti".
 
-## 🚀 Quick Start
+### ⚡ Developer Experience
+- **POP CLI**: Bootstrap new projects instantly with `pop init`.
+- **Hybrid Guard**: Friendly warnings for rapid dev, Strict enforcement for interaction.
+- **Zero-Dependency Core**: Pure Python. Compatible with PyTorch, TensorFlow, or any other library.
 
-### 1. Define Context
+---
+
+## 📦 Installation
+
+```bash
+pip install pop-sdk
+```
+
+---
+
+## 🚀 Quick Start (CLI)
+
+The fastest way to start is using the CLI tool.
+
+> **Note**: We recommend using `python -m pop` to ensure compatibility across all operating systems (Windows/Linux/Mac) without worrying about PATH configuration.
+
+```bash
+# 1. Initialize a new project
+python -m pop init my_agent
+
+# 2. Enter directory
+cd my_agent
+
+# 3. Run the skeleton agent
+python main.py
+```
+
+Arguments:
+- `python -m pop init <name>`: Create a new project folder.
+- `python -m pop init .`: Initialize in current directory.
+
+(You can also use the short command `pop init` if your Python Scripts directory is in your system PATH).
+
+---
+
+## 📚 Manual Usage
+
+### 1. Define Context (Data)
 ```python
 from dataclasses import dataclass
 from pop import BaseGlobalContext, BaseDomainContext, BaseSystemContext
@@ -26,16 +71,12 @@ class MyGlobal(BaseGlobalContext):
     counter: int = 0
 
 @dataclass
-class MyDomain(BaseDomainContext):
-    data: list = None
-
-@dataclass
 class MySystem(BaseSystemContext):
     global_ctx: MyGlobal
-    domain_ctx: MyDomain
+    # ... domain_ctx ...
 ```
 
-### 2. Define Processes
+### 2. Define Process (Logic)
 ```python
 from pop import process
 
@@ -44,43 +85,48 @@ from pop import process
     outputs=['global.counter']
 )
 def increment(ctx):
+    # Valid: Declared in outputs
     ctx.global_ctx.counter += 1
     return "Incremented"
+
+@process(inputs=['global.counter'], outputs=[])
+def illegal_write(ctx):
+    # INVALID: Read-Only Input
+    # Raises ContractViolationError
+    ctx.global_ctx.counter += 1 
 ```
 
 ### 3. Run Engine
 ```python
 from pop import POPEngine
 
-# Init System
-system = MySystem(MyGlobal(), MyDomain(data=[]))
-engine = POPEngine(system)
+system = MySystem(MyGlobal(), ...)
+engine = POPEngine(system) # Default: Warning Mode
 
-# Register & Run
-engine.register_process("p_inc", increment)
-result = engine.run_process("p_inc")
-
-print(f"Counter: {system.global_ctx.counter}")  # Output: 1
+engine.register_process("inc", increment)
+engine.run_process("inc")
 ```
 
-## 🛡️ Architecture
+---
 
-### The Context Guard
-Every process runs inside a `ContextGuard`. This guard:
-1.  **Whitelists Access**: Can only read what is in `inputs` and write to `outputs`.
-2.  **Proxies Writes**: All writes go to a generic `Transaction` layer.
-3.  **Prevent Leaks**: Proxies are "Auto-Unwrapped" to preventing Zombie references.
+## ⚙️ Configuration
 
-### Delta Engine
-State changes are stored as a list of `DeltaEntry` operations.
-- **Commit**: Applies entries to the real object.
-- **Rollback**: Helper function reverses changes (Time Travel).
+You can control strictness via Environment Variables (supported in `.env` files):
 
-## 📦 Installation
+| Variable | Values | Description |
+|----------|--------|-------------|
+| `POP_STRICT_MODE` | `1`, `true` | **Enabled**: Raises `LockViolationError` on unsafe external mutation. <br> **Disabled (Default)**: Logs `WARNING` but allows mutation. |
 
-```bash
-pip install pop-sdk
+### Safe External Mutation
+To modify context from `main.py` without triggering warnings/errors, use the explicit API:
+
+```python
+with engine.edit() as ctx:
+    ctx.domain.my_var = 100
 ```
+
+---
 
 ## 📄 License
-MIT
+
+MIT License. See [LICENSE](LICENSE) for details.

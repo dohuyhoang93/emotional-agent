@@ -1,7 +1,7 @@
 from typing import Any, Set, Optional
 from .contracts import ContractViolationError
 from .delta import Transaction, DeltaEntry
-from .structures import TrackedList, TrackedDict
+from .structures import TrackedList, TrackedDict, FrozenList, FrozenDict
 
 class ContextGuard:
     """
@@ -60,14 +60,33 @@ class ContextGuard:
         val = getattr(self._target_obj, name)
         
         if self._transaction:
+            # Check if this specific leaf path is declared as Output (Writeable)
+            # Logic: If it's in Outputs, it's Mutable. If it's only in Inputs, it's Immutable.
+            # CAUTION: 'full_path' might be a parent of the output. 
+            # e.g. full_path="domain.list", output="domain.list" -> Mutable.
+            # e.g. full_path="domain.list", output="domain.list[0]" -> Mutable (Partial).
+            
+            is_writeable = (
+                full_path in self._allowed_outputs or
+                # Parent of an allowed output? (e.g. accessing list to write into it)
+                any(out.startswith(full_path + ".") or out.startswith(full_path + "[") for out in self._allowed_outputs)
+            )
+
             # Get or Create Shadow
             shadow = self._transaction.get_shadow(val)
             
-            # Wrap Mutables
+            # Wrap based on permissions
             if isinstance(shadow, list):
-                return TrackedList(shadow, self._transaction, full_path)
+                if is_writeable:
+                    return TrackedList(shadow, self._transaction, full_path)
+                else:
+                    return FrozenList(shadow, self._transaction, full_path)
+
             elif isinstance(shadow, dict):
-                return TrackedDict(shadow, self._transaction, full_path)
+                if is_writeable:
+                    return TrackedDict(shadow, self._transaction, full_path)
+                else:
+                    return FrozenDict(shadow, self._transaction, full_path)
             else:
                 return shadow
         
