@@ -1,6 +1,14 @@
-# 📘 **POP Technical Specification**
+# 📘 **POP Technical Specification: Process-Oriented Programming for Robust Systems**
 
 > *Tập 2 của bộ tài liệu POP.*
+
+---
+
+## **Abstract (Tóm tắt)**
+
+Tài liệu này trình bày đặc tả kỹ thuật cho **Lập trình Hướng Quy trình (Process-Oriented Programming - POP)**, một mô hình thiết kế phần mềm hướng tới việc xây dựng các hệ thống mạnh mẽ (robust), minh bạch (transparent) và có khả năng tiến hóa (evolvable). Khác với Lập trình Hướng Đối tượng (OOP) hay Lập trình Hàm (FP), POP coi **Quy trình (Process)** là đơn vị tư duy cốt lõi và **Ngữ cảnh (Context)** là dòng chảy dữ liệu minh bạch. Đặc tả này chi tiết hóa các nguyên lý nền tảng, kiến trúc **"Cổng Hải quan" (Customs Gate)** để đảm bảo an toàn tại runtime, và các cơ chế quản trị đa tầng (Layered Governance) tương đương chuẩn công nghiệp, nhằm phục vụ các ứng dụng đòi hỏi độ tin cậy cao.
+
+---
 
 ---
 
@@ -2410,14 +2418,16 @@ Mọi thay đổi phải trả về **Delta** hoặc **Context mới**.
 
 ---
 
-## 🟥 **6. Cấp 3 — Phân mảnh theo Actor (Sharded Actor Model)**
+## 🟥 **6. Cấp 3 — Phân mảnh theo Actor (Future Extension: Sharded Actor Model)**
 
-**Phù hợp:** Microservice, Robotics phức hợp, Distributed Systems.
+*Ghi chú: Đây là tính năng mở rộng cho tương lai, không bắt buộc cho POP Monolith chuẩn.*
+
+**Phù hợp:** Hệ thống phân tán quy mô lớn (Large Scale Distributed Systems).
 
 ### **Cơ chế**
 
 1. Context chia thành các **Shard độc lập**.
-2. Mỗi Shard thuộc về một Actor.
+2. Mỗi Shard thuộc về một Actor/Node riêng biệt.
 3. Process gửi message thay vì ghi chung bộ nhớ.
 
 ### **Ưu điểm**
@@ -2425,18 +2435,8 @@ Mọi thay đổi phải trả về **Delta** hoặc **Context mới**.
 * Không có shared memory → không có race.
 * Scale tốt theo chiều ngang.
 
-### **Hạn chế / Câu hỏi bắt buộc**
-
-* **Độ trễ** truyền message chấp nhận được không?
-* **Consistency model** gì? (eventual / strong?)
-* **Retry** có tạo ra duplicate-effect?
-* Shard key có hợp lý không? (nếu shard quá lớn → Actor bị nghẽn)
-
-### **Giả định**
-
-* Hệ thống có kiến thức distributed system.
-* Network ổn định.
-* Shard boundaries tự nhiên trong domain.
+### **Thận trọng**
+Với chiến lược "Robust Monolith First", POP khuyến nghị tối ưu hóa Cấp 1 & 2 trước khi nhảy sang Cấp 3. Đừng vội chia nhỏ hệ thống khi một máy đơn vẫn chưa được tận dụng hết sức mạnh.
 
 ---
 
@@ -2646,26 +2646,27 @@ Kiến trúc Runtime bao gồm 3 lớp chính:
 
 ## 🟦 **2. Cơ chế Quản trị Dữ liệu (Data Governance)**
 
-### **2.1. Shadowing & Isolation Strategy**
-Một trong những thách thức lớn nhất của lập trình luồng dữ liệu là "Side-effect ngầm" khi tham chiếu đến các biến Mutable (List, Dict). POP Engine giải quyết bằng chiến lược **Implicit Shadowing**.
+### **2.1. Mechanism 1: The Airlock (Shadowing & Isolation)**
+Để hiện thực hóa chiến lược "Customs Gate", bước đầu tiên là tạo ra một khu vực cách ly an toàn. POP Engine sử dụng chiến lược **Implicit Shadowing** để giả lập "Khoang đệm Airlock".
 
-*   **Nguyên lý:** Process không bao giờ tương tác trực tiếp với dữ liệu gốc (Master Context).
+*   **Nguyên lý:** Process không bao giờ tương tác trực tiếp với dữ liệu gốc (Master Context). Dữ liệu gốc được coi là tài sản quốc gia, cần bảo vệ tuyệt mật.
 *   **Cơ chế:**
     *   Trước khi process chạy, Engine tạo ra một bản **Shadow Copy** nông (shallow copy) của Context.
     *   Đối với các cấu trúc dữ liệu lồng nhau (Nested List/Dict), cơ chế `DeepIsolation` được kích hoạt lazy-loading.
+    *   Đây là vùng đệm mà Process được phép "quậy phá".
 *   **Commit/Rollback:**
-    *   Nếu Process thành công: Các thay đổi trên Shadow Copy được merge ngược lại Master Context (Commit).
+    *   Nếu Process thành công: Các thay đổi trên Shadow Copy được merge ngược lại Master Context (Commit - Thông quan).
     *   Nếu Process lỗi: Shadow Copy bị hủy bỏ. Master Context giữ nguyên trạng thái cũ. -> **Đảm bảo tính Nguyên tử (Atomicity).**
 
-### **2.2. The Context Guard (Cơ chế Bảo vệ)**
-Layer trung gian quan trọng nhất là `ContextGuard`. Nó hoạt động như một Proxy bọc quanh Context thật.
+### **2.2. Mechanism 2: The Customs Officer (Context Guard)**
+Layer trung gian quan trọng nhất là `ContextGuard`. Nó hoạt động như một Cán bộ Hải quan (Customs Officer) đứng chắn giữa Process và Airlock.
 
-*   **Read Access Control:**
+*   **Read Access Control (Kiểm tra Giấy tờ):**
     Giả sử Process khai báo `@process(inputs=['a'], outputs=[])`.
     *   Khi Process gọi `ctx.b`, Guard chặn lại ngay lập tức -> `IllegalReadError`.
-    *   Đảm bảo Process chỉ "nhìn thấy" những gì nó đã khai báo (Contract Enforcement).
+    *   Đảm bảo Process chỉ "nhìn thấy" những gì nó đã khai báo trong Contract.
 
-*   **Immutability Enforcement (Frozen Wrappers):**
+*   **Immutability Enforcement (Tịch thu Tang vật):**
     *   Các biến nằm trong `inputs` nhưng KHÔNG nằm trong `outputs` được bọc bởi `FrozenList` hoặc `FrozenDict`.
     *   Mọi nỗ lực gọi `append()`, `pop()`, hay gán chỉ mục `[i]=x` đều bị chặn ở cấp độ Runtime -> `ContractViolationError`.
 
@@ -2818,59 +2819,181 @@ Tuyên ngôn POP không trói buộc vào Python. Thực tế, Python chỉ là 
         *   **Hiệu năng:** Tăng gấp 10-100 lần.
         *   **An toàn:** 100% (Compiler từ chối code sai ngay từ khi gõ).
 
-### **2.2. Kiến trúc "Universal POP Kernel"**
-Câu hỏi: *"Có thể làm 1 SDK chạy cho mọi ngôn ngữ không?"*
-Trả lời: **CÓ**, bằng cách sử dụng kiến trúc **Foreign Function Interface (FFI)**.
+### **2.2. Kiến trúc Hợp nhất: Universal Customs Gate**
 
-**Chiến lược v2.0:**
-1.  Viết lại **Core Engine** bằng **Rust** (thư viện `.so`/`.dll`).
-    *   Quản lý Memory, Transaction, Delta Log ở tầng thấp nhất.
-2.  Tạo **Language Bindings (Wrappers)**:
-    *   `pop-python`: Wrapper Python gọi xuống Rust Core.
-    *   `pop-node`: Wrapper NodeJS gọi xuống Rust Core.
-    *   `pop-unity`: Wrapper C# gọi xuống Rust Core.
-3.  **Lợi ích:**
-    *   Logic thống nhất trên mọi nền tảng.
-    *   Hiệu năng Native của Rust (High Performance).
-    *   Tính linh hoạt của Python/JS ở tầng người dùng (High Productivity).
+Dù viết bằng Python hay Rust, POP SDK đều tuân thủ một kiến trúc bảo vệ duy nhất: **"Customs Gate Architecture" (Kiến trúc Cổng Hải quan)**. Đây là bản sắc kỹ thuật không thể tách rời của POP.
 
-=> Đây chính là lộ trình để đưa POP ra khỏi phòng thí nghiệm và đi vào sản xuất quy mô lớn (Mass Production).
+#### **a. Nguyên lý Cốt lõi**
+Thay vì cố gắng kiểm soát nội bộ từng dòng code của lập trình viên (Safety by Monitoring), POP chọn cách cô lập và kiểm soát đầu ra (Safety by Isolation).
+*   Process là "Khách du lịch" (Untrusted Guest).
+*   Context là "Lãnh thổ Quốc gia" (Trusted Territory).
+*   Engine là "Cổng Hải quan" (Border Control).
 
-### **2.3. Kiến trúc "Hải quan Biên giới" (The Customs Gate Architecture)**
+#### **b. Hai cấp độ Thực thi (Implementation Levels)**
+Tùy thuộc vào ngôn ngữ nền tảng, kiến trúc này được hiện thực hóa ở hai cấp độ:
 
-Một câu hỏi cốt tử được đặt ra: *"Nếu Rust quản lý các ngôn ngữ động (Python/JS) thì làm sao Rust bảo đảm an toàn khi code Python có thể sửa mọi thứ?"*
+**Level 1: Soft Customs Gate (Python MVP - Hiện tại)**
+*   **Cơ chế:** Dùng `ContextGuard` (Proxy) và `Shadow Copy`.
+*   **Bảo vệ:** Chặn các truy cập sai Contract ở mức Runtime Object.
+*   **Hạn chế:** Vẫn chung một không gian bộ nhớ (Memory Space). Nếu Process dùng C-Extension đục lỗ bộ nhớ, Guard có thể bị bypass.
 
-Câu trả lời nằm ở sự thay đổi mô hình bảo vệ: Từ **Safety by Monitoring** (Giám sát bên trong) sang **Safety by Isolation** (Cô lập bên ngoài).
+**Level 2: Hard Customs Gate (Rust Core - Tương lai)**
+*   **Cơ chế:** Dùng `FFI Isolation` và `Serialized Airlock`.
+*   **Bảo vệ:**
+    1.  Rust giữ Context trong "Két sắt".
+    2.  Khi chạy Python Process, Rust *serialize* dữ liệu ra một vùng đệm riêng.
+    3.  Khi Process trả về, Rust dùng **Schema Validator** để soi chiếu dữ liệu trước khi merge.
+*   **Kết quả:** Dù Process Python có crash hay leak memory, Core Engine Rust vẫn sống khỏe. POP trở thành một **Micro-Kernel** an toàn tuyệt đối.
 
-#### **a. Vấn đề: Vùng "Vô pháp luật" (Unmanaged Memory)**
-Khi Rust gọi Python, vùng nhớ của Python là "hộp đen". Rust Compiler không thể trèo vào đó để check borrow checker.
+=> **Kết luận:** Customs Gate không phải là ý tưởng xa vời, nó là **thực tại đang vận hành** ở Python và là **đích đến hoàn hảo** ở Rust.
 
-#### **b. Giải pháp: Cơ chế "Khoang đệm Airlock"**
-Thay vì cố gắng kiểm soát Python, POP Kernel sẽ cô lập nó:
 
-1.  **Bước 1: The Airlock (Khoang đệm)** 
-    *   Rust giữ Context gốc trong "két sắt".
-    *   Khi cần chạy Process Python, Rust **clone/serialize** dữ liệu ra một vùng đệm (Airlock).
-    *   Python chỉ được làm việc trong vùng đệm này.
 
-2.  **Bước 2: The Customs Gate (Cổng hải quan)**
-    *   Khi Python trả kết quả về, Rust đứng ở cửa và chặn lại.
-    *   Rust dùng bộ **Schema Validator** (được compile cứng) để soi chiếu dữ liệu đầu ra.
-    *   *Ví dụ:* "Field `pose` phải là Struct {x,y,z}. Mày trả về String -> **Bác bỏ!** Rollback!"
+# **Chương 15 - Khả năng Tương thích Mở rộng (Scalable Composition)**
+*(Thay thế hoàn toàn chương "Hệ thống Phân tán" cũ)*
 
-#### **c. Kết quả: An toàn tuyệt đối cho Hệ thống**
-*   Dù code Python có lỗi, có memory leak, hay cố tình phá hoại -> Nó chỉ phá hỏng cái "Khoang đệm". Context gốc của Rust vẫn nguyên vẹn.
-*   Logic này biến Rust thành một **Hệ điều hành thu nhỏ (Micro-Kernel)**, còn Python là các **Plugin** không tin cậy.
+## 🟥 **1. Định vị lại: POP là Kernel, không phải Cloud Framework**
 
-Đây là mô hình giúp POP phục hưng được sức mạnh của **Low-level Safety** rên nền tảng **High-level Flexibility**.
+POP SDK xác định rõ ranh giới của mình: Nó là một **Process Virtual Machine** tối ưu cho việc vận hành logic nghiệp vụ phức tạp trên một Node duy nhất (Single Node).
+
+Chúng ta không cố gắng tái tạo lại K8s hay Dapr. Thay vào đó, POP tập trung làm cho mỗi Node trở nên **Stateless** và **Idempotent** (Thực thi ngẫu nhiên) để "thân thiện" với các hệ thống phân tán bên ngoài.
+
+### **1.1. Triết lý "Pháo đài Đơn lẻ" (The Robust Fortress)**
+Trước khi nghĩ đến việc nhân bản ra 1000 máy, một máy phải chạy **tuyệt đối ổn định**.
+*   Nếu Monolith của bạn rò rỉ bộ nhớ, Distributed System của bạn sẽ là thảm họa.
+*   Nếu Monolith của bạn không minh bạch, Distributed System của bạn sẽ là hộp đen hỗn loạn.
+
+### **1.2. Khả năng Mở rộng tự nhiên (Nature of Composition)**
+POP hỗ trợ mở rộng thông qua tính chất **Hợp nhất (Composability)** của Workflow:
+*   Một Workflow lớn có thể được ghép từ nhiều Workflow nhỏ.
+*   Một Process có thể gọi một Sub-Workflow.
+*   **Chiến lược:** Khi cần mở rộng, ta tách một Sub-Workflow ra khỏi Monolith, đóng gói nó thành một Service riêng, và thay thế lời gọi hàm bằng một Adapter gọi RPC. Code logic nghiệp vụ không thay đổi.
 
 ---
 
-## 🟩 **3. Lời kết cho Bộ Đặc tả (Epilogue)**
+# **Chương 16 - An toàn Công nghiệp & Kỷ luật Bất biến (Immutable Governance)**
 
-Chúng ta đã đi qua một hành trình dài từ **Tuyên ngôn POP** (Triết lý) đến **POP SDK** (Công cụ) và cuối cùng là **Tầm nhìn Tương lai**.
+## 🟥 **1. Vấn đề của "Env Config"**
 
-*   POP không hứa hẹn code ngắn hơn. POP hứa hẹn code **minh bạch hơn**.
-*   POP không hứa hẹn làm việc dễ hơn. POP hứa hẹn làm việc **an toàn hơn**.
+Trong các framework thông thường, an toàn hệ thống thường là một tùy chọn (Option) có thể bật tắt bằng biến môi trường (`ENABLE_SAFETY=True`). Điều này tạo ra rủi ro chí tử:
+*   Môi trường Prod bị config sai -> Thảm họa.
+*   Dev tắt check để chạy cho nhanh -> Lỗi lọt xuống Prod.
 
-Hãy coi POP SDK v0.2.x là viên gạch đầu tiên. Những gì chúng ta xây dựng hôm nay (Advanced Matrix Support, Strict Mode) sẽ là nền móng cho thế hệ phần mềm "Resilient & Transparent" của ngày mai.
+## 🟦 **2. Giải pháp: Kỷ luật Bất biến & Quản trị Đa tầng (Immutable Governance)**
+
+Để giải quyết bài toán này, POP áp dụng mô hình quản trị công nghiệp dựa trên phân tầng và chính sách ký duyệt.
+
+### **2.1. Layered Governance Model (Mô hình Quản trị Đa tầng)**
+Không đánh đồng tất cả các lỗi. POP chia an toàn thành 3 lớp phòng thủ (tương tự hệ thống FDC trong nhà máy), với các thuật ngữ tương đương trong phần mềm:
+
+1.  **Level 1: Local Guard (Process Params)**
+    *   *Software Equivalent:* **Runtime Assertions / Pre-conditions.**
+    *   *Phạm vi:* Nội bộ một hàm.
+    *   *Ví dụ:* `threshold > 0`.
+    *   *Xử lý:* Process tự fail, trả về Error. Không ảnh hưởng Domain.
+
+2.  **Level 2: Product Quality Assurance (Domain Context)**
+    *   *Software Equivalent:* **Business Logic Validation / Invariant Checks.**
+    *   *Phạm vi:* Chất lượng sản phẩm đầu ra (Context Data).
+    *   *Cơ chế:* **Range Spec** và **Tolerance** (Dung sai).
+    *   *Ví dụ:* `temperature` phải nằm trong khoảng `[180, 220]`.
+    *   *Xử lý:* Cảnh báo (Warning) hoặc Báo động (Alarm).
+
+3.  **Level 3: Global Interlock (System State)**
+    *   *Software Equivalent:* **Circuit Breaker / Emergency Halt.**
+    *   *Phạm vi:* Sự an toàn sống còn của hệ thống.
+    *   *Cơ chế:* **Zero Tolerance** (Không dung sai).
+    *   *Ví dụ:* `EmergencyStop == False`.
+    *   *Xử lý:* **Interlock Trigger** -> Dừng toàn bộ Workflow ngay lập tức.
+
+### **2.2. Dynamic Recipe Specs (Đặc tả Công thức Động)**
+*Software Equivalent: **Dynamic Configuration Injection / Feature Flags**.*
+
+Logic Code thì Tĩnh, nhưng Quy định Kinh doanh thì Động.
+Thay vì hardcode `if temp > 200`, POP sử dụng khái niệm **Recipe Spec**.
+
+*   Mỗi chế độ hoạt động (Mùa đông/Mùa hè, Chế độ Test/Prod) lá một file YAML riêng (`recipe_A.yaml`).
+*   Khi chạy, Engine load Recipe này vào bộ nhớ (Hot-reload).
+*   **Điểm mấu chốt:** Code Python không thay đổi, chỉ có bộ luật (Spec) thay đổi. Đây là mô hình **Configuration as Code**.
+
+### **2.3. Signed Policy (Chính sách Ký duyệt)**
+*Software Equivalent: **Immutable Infrastructure / Code Signing.**.*
+
+Làm sao để đảm bảo Dev không lén sửa file Recipe YAML để bypass an toàn?
+
+*   Trong môi trường Production, Engine **từ chối khởi động** nếu Recipe không đi kèm một **Chữ ký số (Digital Signature)** hợp lệ.
+*   Quy trình:
+    1.  Dev sửa Spec.
+    2.  CI/CD chạy test mô phỏng.
+    3.  Nếu Pass, CI/CD dùng Key bí mật để ký vào file Spec -> tạo ra `recipe_A.lock`.
+    4.  Engine Prod chỉ đọc file `.lock`.
+
+**Kết quả:** Runtime thực thi sự linh hoạt của Business (Recipe), nhưng vẫn đảm bảo kỷ luật thép của Engineering (Signed Policy).
+
+---
+
+# **Chương 17 - Runtime Minh bạch (The Transparent Engine)**
+
+## 🟥 **1. Phá bỏ "Hộp đen" (Glass-box Philosophy)**
+
+Một trong những nỗi sợ lớn nhất khi dùng Framework là Engine trở thành "Hộp đen" (Blackbox). Khi có lỗi, Dev không biết do Code mình sai hay do Engine xử lý sai (Scheduling, Locking, Shadowing).
+
+POP cam kết triết lý **"Glass-box" (Hộp kính)**: Engine phải trong suốt như chính Process mà nó thực thi.
+
+## 🟦 **2. Cơ chế Tự giải trình (Self-Explanation)**
+
+Engine bắt buộc phải cài đặt phương thức `explain_decision(tick_id)`.
+
+### **2.1. Decision Trace (Vết quyết định)**
+Mỗi nhịp (Tick) của Engine sẽ sinh ra một bản ghi chi tiết:
+1.  **Context Snapshot Hash:** Trạng thái đầu vào là gì?
+2.  **Selected Process:** Tại sao chọn Process A? (Do điều kiện gì trong Workflow?).
+3.  **Skipped Processes:** Tại sao không chọn Process B? (Do thiếu Input? Do Policy chặn?).
+4.  **Guard Actions:** Tại sao từ chối ghi vào trường `ctx.x`? (Do vi phạm Contract nào?).
+
+### **2.2. Standard Event Stream**
+Engine phát ra một luồng sự kiện chuẩn (Standard Output / Event Bus) để các tool bên ngoài (Dashboard, Log Viewer) có thể visualize dòng chảy của logic.
+*   `ENG_START_TICK`
+*   `PROC_ACQUIRE_LOCK`
+*   `CTX_COMMIT_DELTA`
+*   `POLICY_INTERLOCK_TRIGGERED`
+
+## 🟩 **3. Lợi ích**
+*   **Auditability:** Khi robot đâm vào tường, ta biết chính xác tại mili-giây đó Engine đang nghĩ gì, tại sao nó không dừng lại.
+*   **Trust:** Dev tin tưởng hệ thống vì họ nhìn thấy "bánh răng" đang quay bên trong.
+
+---
+
+# **Chương 18 - Chiến lược Kiểm thử (Testing Strategy)**
+
+Kiến trúc POP đòi hỏi một chiến lược kiểm thử đa tầng, vượt ra ngoài Unit Test thông thường để đảm bảo tính toàn vẹn của cả logic (Process) và luồng (Workflow).
+
+### **1. The Testing Pyramid in POP**
+
+*   **Tầng 1: Unit Test (Process Isolation)**
+    *   Test từng Process hàm thuần túy.
+    *   Input: Static Context Data.
+    *   Assert: Output Context Data chính xác.
+    *   Không mock engine, không mock IO phức tạp.
+
+*   **Tầng 2: Integration Test (Workflow & Pipeline)**
+    *   Test việc kết nối các Process trong một Workflow.
+    *   Đảm bảo dữ liệu trôi chảy từ bước A sang bước B.
+    *   Kiểm tra logic rẽ nhánh (Branching).
+
+*   **Tầng 3: Governance Test (Policy & Safety) - ĐẶC THÙ POP**
+    *   Đây là tầng quan trọng nhất cho sự an toàn.
+    *   Test các **Policy**: "Nếu vi phạm giới hạn, hệ thống có dừng không?"
+    *   Test **Customs Gate**: "Nếu dữ liệu bẩn, Gate có chặn lại và báo lỗi Schema không?"
+    *   Test **Circuit Breaker**: "Nếu lỗi liên tiếp, Interlock có kích hoạt không?"
+    *   *Mục tiêu:* Đảm bảo các cơ chế an toàn hoạt động trước khi deploy `Signed Policy`.
+
+
+
+---
+
+## 🏁 **LỜI KẾT**
+
+Với lần tái định vị này, POP SDK quay trở lại với sứ mệnh cốt lõi: Làm chỗ dựa vững chắc cho những hệ thống nghiệp vụ phức tạp nhất. Chúng ta không lan man đi giải quyết bài toán của Cloud, chúng ta giải quyết bài toán của **Sự phức tạp (Complexity)** và **Độ tin cậy (Reliability)**.
+
+**Robust First. Scale Later.**
