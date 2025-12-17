@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="theus",
-    version="0.1.3",
+    version="0.1.4",
     description="Theus Agentic Framework (formerly POP SDK) - Industrial Grade Process-Oriented Programming",
     long_description=open("README.md", encoding="utf-8").read() if open("README.md", encoding="utf-8") else "",
     long_description_content_type="text/markdown",
@@ -26,8 +26,8 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'pop = pop.cli:main', # Keep 'pop' command or rename to 'theus'? Usually keep compatibility. 
-            'theus = pop.cli:main', # Allow both?
+            'pop = theus.cli:main', # Keep 'pop' command or rename to 'theus'? Usually keep compatibility. 
+            'theus = theus.cli:main', # Allow both?
         ],
     },
     python_requires=">=3.8",

@@ -97,7 +97,7 @@ class MySystem(BaseModel):
 
 ### 2. Define Process (Logic)
 ```python
-from pop import process
+from theus import process
 
 @process(
     inputs=['global.counter'], 
@@ -117,7 +117,7 @@ def illegal_write(ctx):
 
 ### 3. Run Engine
 ```python
-from pop import POPEngine
+from theus import POPEngine
 
 system = MySystem(global_ctx=MyGlobal())
 engine = POPEngine(system) # Default: Warning Mode

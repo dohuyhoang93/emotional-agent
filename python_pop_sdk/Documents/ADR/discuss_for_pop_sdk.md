@@ -130,3 +130,51 @@ Dựa trên yêu cầu về kịch bản GUI/Async, đây là bản phân tích 
 
 ### D. Kết luận & Khuyến nghị
 Việc hỗ trợ Workflow điều phối (Orchestration) theo hướng FSM là bước đi **cần thiết** để Theus trở thành "Industrial Grade Framework". Tuy nhiên, nó nên là **Module mở rộng (Add-on)** chứ không phải Core bắt buộc, để giữ Core đơn giản cho các tác vụ CLI/Batch thông thường.
+
+## 8.2. Đánh giá Độ phức tạp Engine & Chiến lược Microkernel
+
+**Vấn đề:** Anh hoàn toàn đúng. Nếu hỗ trợ FSM/Async, Engine sẽ phức tạp hơn rất nhiều (gấp 3-4 lần). Nó phải kiêm thêm vai trò của một OS nhỏ: Lập lịch (Scheduler), Quản lý Sự kiện (Event Manager), và Định tuyến (Dispatcher).
+
+**Chiến lược Giảm thiểu rủi ro (Microkernel Pattern):**
+
+Để không làm hỏng sự ổn định của Theus hiện tại, ta không "đập đi xây lại" (Rewrite) mà dùng chiến lược **Xếp lớp (Layering)**:
+
+1.  **Lớp Nhân (Kernel - POP Core V2):**
+    *   Giữ nguyên `POPEngine` hiện tại.
+    *   Nhiệm vụ duy nhất: Chạy **1 Process** cô lập, Audit Input/Output, Quản lý Lock.
+    *   Không biết gì về Graph, Async hay Event. Nó chỉ biết: "Input này -> Process này -> Output kia".
+
+2.  **Lớp Điều phối (Orchestrator - New):**
+    *   Đây là lớp bọc bên ngoài (`Wrapper`).
+    *   **FSM Parser:** Đọc YAML Graph, quyết định "Process nào chạy tiếp theo?".
+    *   **Scheduler:** Sử dụng `ThreadPoolExecutor` hoặc `asyncio` để gọi vào Lớp Nhân.
+    *   **Event Loop:** Lắng nghe Signal từ Context và kích hoạt chuyển trạng thái.
+
+**Kết luận:**
+*   Độ phức tạp là **không thể tránh khỏi** nếu muốn tính năng cao cấp (Industrial).
+*   Tuy nhiên, bằng cách tách Lớp Điều phối ra khỏi Lớp Nhân, ta đảm bảo rằng nếu Orchestrator bị lỗi logic (ví dụ: Deadlock), thì từng Process lẻ (Kernel) vẫn chạy đúng và an toàn (do Audit bảo vệ).
+
+## 8.3. Ứng dụng Clean Architecture (IoC/Dependency Inversion)
+
+**Câu hỏi xác nhận:** *Có phải Orchestrator và Kernel sẽ giao tiếp qua Interface trừu tượng để đảo ngược phụ thuộc?*
+
+**Trả lời:** Chính xác. Đây là ứng dụng kinh điển của Clean Architecture.
+
+**Mô hình Phụ thuộc (Dependency Graph):**
+
+1.  **Trước đây (Tight Coupling):**
+    `Main Code` --> gọi trực tiếp --> `POPEngine Class`.
+    *(Nếu sửa Engine, Main Code vỡ)*.
+
+2.  **Đề xuất (Loose Coupling):**
+    *   **Lớp Trừu tượng (Abstract Interface):** `IEngine`.
+        *   Method: `execute_process(name, ctx) -> ctx`
+    *   **Lớp Cụ thể (Concrete Kernel):** `POPEngine` (implement `IEngine`).
+    *   **Lớp Điều phối (Orchestrator):** `FSMManager`.
+        *   `FSMManager` phụ thuộc vào `IEngine` (Interface), **KHÔNG** phụ thuộc vào `POPEngine`.
+
+**Lợi ích Chiến lược:**
+Khi Orchestrator chỉ biết đến `IEngine`, ta có thể tráo đổi "Ruột" (Implementation) bất cứ lúc nào mà không cần sửa code điều phối logic:
+*   **Local Execution:** Inject `POPEngine` (Chạy tại chỗ).
+*   **Remote Execution:** Inject `RpcEngine` (Gửi lệnh sang server khác chạy, dành cho Distributed Agent).
+*   **Mock Testing:** Inject `MockEngine` (Giả lập chạy để test luồng FSM mà không cần chạy code Business thật).

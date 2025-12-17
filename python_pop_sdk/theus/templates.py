@@ -13,7 +13,7 @@ from typing import List, Optional, Any
 class GlobalContext(BaseModel):
     \"\"\"Reads-only configuration and constants.\"\"\"
     app_name: str = "My Theus Agent"
-    version: str = "0.1.3"
+    version: str = "0.1.4"
 
 class DomainContext(BaseModel):
     \"\"\"Mutable domain state.\"\"\"
@@ -34,7 +34,7 @@ class SystemContext(BaseModel):
         self._lock_manager = manager
 """
 
-TEMPLATE_Hello_PROCESS = """from pop import process
+TEMPLATE_Hello_PROCESS = """from theus import process
 from src.context import SystemContext
 
 @process(
@@ -72,8 +72,8 @@ from dotenv import load_dotenv
 # Ensure 'src' is in path
 sys.path.append(os.path.join(os.getcwd()))
 
-from pop import POPEngine
-from pop.config import ConfigFactory
+from theus import POPEngine
+from theus.config import ConfigFactory
 from src.context import SystemContext, GlobalContext, DomainContext
 
 # Import Processes (Explicit Registration)
