@@ -241,12 +241,38 @@ Trong môi trường công nghiệp (Robot, Tài chính, Y tế), "chạy đư�
 | **Recipe Spec** | Dynamic Config / Feature Flag | Công thức nấu ăn (Config) nạp động. |
 | **Signed Policy** | Immutable Infrastructure / Code Signing | Cam kết code không bị sửa đổi trái phép. |
 
-### **11.2. Layered Governance (Mô hình Quản trị Đa lớp)**
+### **11.2. The 4 Severity Levels (S/A/B/C)**
+
+POP V2 định nghĩa chuẩn giao tiếp về lỗi dựa trên tiêu chuẩn công nghiệp:
+
+*   **S (Stop/Serious):** Lỗi nghiêm trọng (Safety/Security).
+    *   *Hành động:* **Interlock** (Dừng ngay lập tức). Rollback Transaction.
+    *   *Ví dụ:* Chuyển tiền âm, truy cập trái phép.
+    *   *Cơ chế:* `ContextGuard` chặn cứng.
+
+*   **A (Abort/Warning):** Lỗi ngưỡng (Threshold).
+    *   *Hành động:* Cảnh báo. Dừng nếu vi phạm quá N lần (Batch Reject).
+    *   *Ví dụ:* Timeout API, dữ liệu thiếu trường không quan trọng.
+
+*   **B (Block/Hold):** Lỗi quy trình (Business Logic).
+    *   *Ý nghĩa:* Dữ liệu không sai về mặt kỹ thuật (Safety) nhưng đáng ngờ về mặt nghiệp vụ.
+    *   *Hành động:* Trong Linear Mode, nó chặn quy trình lại (giống S) nhưng báo lỗi là "Block" để Operator biết cần kiểm tra thủ công dữ liệu input thay vì gọi Dev sửa code.
+    *   *Ví dụ:* Nghi ngờ gian lận (Fraud check), Giá trị đơn hàng quá lớn bất thường (Business Anomaly).
+
+*   **C (Continue/Info):** Thông tin.
+    *   *Hành động:* Log lại và chạy tiếp. **Throttling:** Chỉ log lần vi phạm thứ 1, 10, 100... để tránh spam log.
+    *   *Ví dụ:* User agent lạ.
+
+*   **I (Ignore/Bypass):** Bỏ qua.
+    *   *Hành động:* Không kiểm tra, không log. Dùng cho các object phức tạp (Adapter, Tensor) để giữ tính minh bạch trong khai báo mà không gây lỗi Runtime.
+    *   *Ví dụ:* `env.camera_adapter`, `numpy.ndarray`.
+
+### **11.3. Layered Governance (Mô hình Quản trị Đa lớp)**
 
 Đừng chỉ check lỗi ở một chỗ. Hãy thiết lập 3 vòng phòng thủ:
-1.  **Vòng 1 (Guard):** Process tự bảo vệ mình. Input sai -> Từ chối chạy.
-2.  **Vòng 2 (Engine):** Giám sát Process. Process chạy quá lố thời gian -> Kill.
-3.  **Vòng 3 (Interlock):** Giám sát toàn hệ thống. Tỉ lệ lỗi > 5% -> Dừng dây chuyền.
+1.  **Vòng 1 (Recipe Gate):** Input/Output Validation dựa trên luật S/A/B/C.
+2.  **Vòng 2 (Engine Monitor):** Giám sát Process (Timeouts, Resource).
+3.  **Vòng 3 (Global Interlock):** Cầu dao tổng. Tỉ lệ lỗi toàn hệ thống > 5% -> Dừng dây chuyền.
 
 ---
 

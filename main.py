@@ -27,6 +27,8 @@ from src.processes.p7_execution import execute_action
 from src.processes.p8_consequence import record_consequences
 from src.processes.p9_social_learning import social_learning
 
+from pop.config import ConfigFactory
+
 def recursive_update(d, u):
     for k, v in u.items():
         if isinstance(v, dict):
@@ -43,6 +45,15 @@ def main():
     parser.add_argument('--seed', type=int, default=42, help='Random seed')
     parser.add_argument('--log-level', type=str, default='info', help='Log level')
     args = parser.parse_args()
+
+    # Load Audit Recipe (V2)
+    audit_recipe = None
+    if os.path.exists("specs/audit_recipe.yaml"):
+        try:
+            audit_recipe = ConfigFactory.load_recipe("specs/audit_recipe.yaml")
+            print("✅ Loaded Audit Recipe from specs/audit_recipe.yaml")
+        except Exception as e:
+            print(f"⚠️ Failed to load audit recipe: {e}")
 
     # 1. Load default config from generate_config.py structure (simulated loading defaults)
     # Ideally should load from a base json, but we use defaults + override.
@@ -111,8 +122,8 @@ def main():
 
     # 4. Initialize Agents (System Contexts)
     num_agents = environment.num_agents
-    system_contexts: List[SystemContext] = []
-    engines: List[POPEngine] = []
+    system_contexts = []
+    engines = []
 
     for i in range(num_agents):
         # Domain Context (Mutable)
@@ -140,8 +151,11 @@ def main():
             current_exploration_rate=common_global_ctx.initial_exploration_rate
         )
         
-        sys_ctx = SystemContext(common_global_ctx, domain_ctx)
-        engine = POPEngine(sys_ctx)
+        # Pydantic requires kwargs for SystemContext!
+        sys_ctx = SystemContext(global_ctx=common_global_ctx, domain_ctx=domain_ctx)
+        
+        # Init Engine with Audit Recipe (Dogfooding V2)
+        engine = POPEngine(sys_ctx, audit_recipe=audit_recipe)
         
         # Register Processes
         engine.register_process("perception", perception)
@@ -180,9 +194,6 @@ def main():
             dom.last_reward = {'extrinsic': 0.0, 'intrinsic': 0.0}
             
             # Reset Needs/Emotions if config says so? (Usually keep Memory/Q/Model)
-            # Reset Believed Switch States? -> Maybe keep logic from p2?
-            # Legacy code reset `believed_switch_states`? No, it persisted in context?
-            # Legacy context init inside loop? No, outside. It persisted.
             pass
 
         episode_rewards = {i: 0.0 for i in range(num_agents)}
@@ -199,19 +210,23 @@ def main():
             # Run Agents
             for i, eng in enumerate(engines):
                  # Check success individually or globally?
-                 # If agent reached goal, it might stay or vanish. Env handles it (returns reward=0?).
-                 # Check logic in environment: if goal reached, perform_action returns 10.0
                  pass
                  
                  start_t = time.time()
                  
                  # Prepare Neighbors (List of SystemContexts)
-                 eng.execute_workflow(
-                     "workflows/main_loop.yaml", 
-                     env_adapter=adapter,
-                     agent_id=i,
-                     neighbors=system_contexts
-                 )
+                 try:
+                     eng.execute_workflow(
+                         "workflows/main_loop.yaml", 
+                         env_adapter=adapter,
+                         agent_id=i,
+                         neighbors=system_contexts
+                     )
+                 except Exception as e:
+                     log_error(common_global_ctx, f"🔥 Agent {i} CRASHED at step {steps_count}: {e}")
+                     # If Crash, we should break? Or continue other agents?
+                     # For Dogfooding, we want to see the error and STOP.
+                     raise e
                  
                  end_t = time.time()
                  cycle_t = end_t - start_t

@@ -73,6 +73,15 @@ class Transaction:
             elif isinstance(original, dict):
                 original.clear()
                 original.update(shadow) # Replace content
+            else:
+                # Generic Object Sync (e.g. Dataclasses)
+                # Since shadow is a shallow copy, we need to sync attributes back.
+                try:
+                    original.__dict__.update(shadow.__dict__)
+                except AttributeError:
+                    # Object has no __dict__ (e.g. slots, built-ins like sets), can't easily sync via copy.
+                    # For V2 MVP we warn or ignore. 
+                    pass
                 
     def rollback(self):
         """

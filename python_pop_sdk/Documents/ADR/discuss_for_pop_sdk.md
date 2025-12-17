@@ -1,80 +1,132 @@
 
-# 1. Audit context
-## Các câu hỏi gợi mở
-###  1. Hiện tại cơ chế audit context đang kiểm soát những gì của context ngoài context contract và delta?
-## Thảo luận:
-### RANGE SPEC Cho Context
-Lấy cảm hứng từ các nhà máy công nghiệp.
-Một máy công nghiệp được quản lý trạng thái của nó và của sản phẩm của nó trên hệ thống với 3 hệ thống spec con:
-FDC: spec dành riêng cho sản phẩm. Loại range spec. Có thiết lập độ nghiêm trọng cho từng parametter. Vượt n lần của policy -> interlock. Chưa vượt n thì warning.
-RMS: spec cho các parametter trên máy, thường là loại range spec. Tùy biến được cấp độ nghiêm trọng cho từng parametter. Vi phạm vượt quá n lần thì interlock.
-ECM: spec cố định, là một giá trị xác định và cấp cao nhất. Vi phạm 1 lần: interlock
-Riêng alarm chia 2 loại: serious - nghiêm trọng, dừng máy lập tức và light - warning, loại chưa xác định được đối xử như serious.
+# 6. Phân tích Chiến lược Triển khai Context Spec (Recipe)
 
-Đối với POP
-1 process bản thân nó có các đôi tượng context riêng và các context mà nó tương tác (giống như sản phẩm)
+## 6.1. Nguyên tắc "Single Source of Truth" (Duy nhất một nguồn)
+Theo yêu cầu của bạn, chúng ta thống nhất:
+*   **Chỉ cấu hình tại YAML:** Loại bỏ hoàn toàn việc cấu hình inline trong code (Decorator). Code chỉ chứa logic, Spec nằm tạch biệt trong file `.yaml`.
+*   **Lợi ích:** Tách biệt hoàn toàn "Luật lệ" (Spec) và "Thi hành" (Code). Người kiểm toán (Auditor) chỉ cần đọc file YAML là hiểu độ an toàn của hệ thống mà không cần đọc từng dòng code Python.
 
-Global: context toàn hệ thống
-Domain context: context này giống như các "sản phẩm" mà process đang thao tác sản xuất
-Local context: context riêng của nội bộ process, giống như các parameter của máy tự động công nghiệp.
-Error: cũng là context nhưng thuộc loại đặc biệt, thuộc về riêng process, gần như có thể xếp vào local context
-Và thêm 1 cái mà process có mà các máy công nghiệp không có: side effect : các context tương tác với bên ngoài env.adapter
+## 6.2. Cơ chế Kế thừa Rule (Rule Inheritance)
+Để giải quyết vấn đề "File YAML quá dài và lặp lại", chúng ta áp dụng tư duy OOP vào cấu hình Spec.
 
-Hệ thống audit context ngoài việc kiểm soát context contract và delta như hiện tại. Nghĩa là kiểm soát: process có đang truy cập context hợp lệ không - contract? và delta - context có đúng đắn hay không - nhưng chỉ là dạng thành công hay tất bại chung chung của domain context.
-Audit system phải nâng cấp lên nữa thành một hệ thống toàn diện hơn:
+### **Khái niệm:**
+Thay vì viết lại 10 dòng rule giống hệt nhau cho 5 process khác nhau, ta định nghĩa một **"Rule Set Cha"** (Abstract Rule) và cho các Process kế thừa nó.
 
-1. Các loại range spec của context
-GLobal: toàn bộ hệ thống workflow; không có range mà là một giá trị xác định, chỉ có khớp hoặc không khớp
-Domain context: có cả loại giá trị xác định và loại giá trị là một miền range spec
-Local context: tương tự domain nhưng chỉ áp dụng cho nội bộ của 1 process.
-Error: tương tự local, nhưng chia ra là lỗi nghiêm trọng, cảnh báo, và chưa được xác định
-Side effect: chưa cân nhắc kỹ, cần thảo luận thêm từ bạn. Có thể có kiểu spec như local
+### **Ví dụ YAML:**
+```yaml
+# 1. Định nghĩa Rule Gốc (Parent)
+rule_definitions:
+  standard_financial_check:
+    inputs:
+      Context.User.balance: { min: 0, level: "S" }
+    outputs:
+      Context.Transaction.status: { required: true, level: "A", threshold: 3 }
 
-Việc phân kia như thế này sẽ có tác động như thế nào nếu được áp dụng vào audit policy? lợi và hại là gì?
+# 2. Áp dụng (Inheritance)
+recipes:
+  process_withdraw:
+    inherits: "standard_financial_check"  # Kế thừa toàn bộ rule trên
+    overrides:                            # Ghi đè hoặc bổ sung phần riêng
+      inputs:
+        Context.User.balance: { min: 50000 } # Rút tiền cần số dư cao hơn mức 0 cơ bản
 
-2. Type of context spec
-Giống như môi trường sản xuất. Context cũng sẽ thay đổi tùy theo đặc thù nghiệp vụ và tiến hóa theo thời gian.
-Vì vậy spec của nó cũng phải được thay đổi phù hợp và linh hoạt, nhanh chóng.
-Ví dụ: Kịch bản chuyển đổi loại hình nghiệp vụ (bao gồm cả chuyển đổi workflow)
-Case 1 (tương đương quy trình sản xuất model 1): -> Case 2 (tương đương quy trình sản xuất model 2)
-Thì tuy số lượng và chủng loại context trong cả workflow không thay đổi, bản thân process không biết và không quan tâm gì đến điều này.
-Tuy nhiên giá trị khởi tạo đầu vào (giống như nguyên liệu) của context đã thay đổi, kèm theo đó là phải có bộ spec tương ứng kèm theo đi cùng. 
-Audit policy sử dụng bọ spec này để hoạt động và kiểm soát context cho từng process.
-Điều này đòi hỏi pop-sdk phải có cơ chế khai báo - đăng ký - thay đổi - vận hành một loạt các bản spec này. Các spec này cũng gần như cấu hình yaml work flow vậy: minh bạch, dễ hiểu, linh hoạt.
+  process_transfer:
+    inherits: "standard_financial_check"
+```
 
-Điều này sẽ có tác động như thế nào khi đưa vào pop-sdk? đặc biệt là trong tầm nhìn pop-sdk universal Rust safety isolation custom gate architecture?
+### **Hệ quả (Impact Analysis):**
+*   **Tích cực (Lợi):**
+    *   **DRY (Don't Repeat Yourself):** Giảm 70% số dòng YAML.
+    *   **Consistency (Nhất quán):** Sửa rule cha (ví dụ: đổi level từ A sang S) -> Tự động áp dụng cho tất cả 50 process con. Tránh việc sửa sót.
+*   **Tiêu cực (Hại):**
+    *   **Hiệu ứng cánh bướm (Ripple Effect):** Sửa rule cha có thể vô tình làm lỗi một process con nào đó mà ta quên test.
+    *   **Khó Trace:** Khi debug process con, phải "nhảy" lên tìm rule cha mới biết nó đang chịu luật gì (Indirect knowledge).
 
-# 2. Các kịch bản workflow phức tạp
-## Các câu hỏi gợi mở
-### POP SDK engine hiện tại đang hỗ trợ các kịch bản workflow như thế nào?
-Trong thực tế, việc thay đổi workflow ngay trong quá trình vận hành cũng như trong giai đoạn phát triển là rất phổ biến. POP sdk phải sẵn sàng và đặt tầm nhìn vào vấn đề này.
-### Thảo luận:
-1. Các khía cạnh nào cần đánh giá để xây dựng engine hỗ trợ các kịch bản workflow phức tạp?
-2. Đâu là các vấn đề cần đối mặt với từng loại workflow?
-3. Liệu có phải trong tất cả các loại workflow, tại 1 thời điểm, chỉ duy nhất 1 process được phép thay đổi 1 đối tượng trong 1 domain context (concurrency locking) ?
-4. Nếu kịch bản là song song hoàn toàn trên 1 đối tượng domain context (shared memory context), liệu chiến lược tạo bản sao rồi sau đó có cơ chế audit và merge lại có phải là chiến lược hợp lý không ? hay còn cách tiếp cận khác tối ưu ?
+## 6.3. Kết luận về Kế thừa
+Cơ chế Kế thừa là **cần thiết** cho các hệ thống lớn (nhiều Process). Tuy nhiên, cần công cụ CLI (`pop audit inspect <process_name>`) để "Flatten" (làm phẳng) bộ rule ra giúp Dev dễ debug xem cuối cùng thì Process đó đang chịu những luật cụ thể nào.
 
-# 3. Tầm nhìn chiến lược cho hệ thống phân tán.
-## Các câu hỏi gợi mở.
-### POP SDK MVP hiện tại
-1. POP SDK hiện tại là MVP, khả năng triển khai cho 1 hệ phân tán như thế nào?
-2. Context tập trung của nó sẽ là điểm nghẽn và điểm nguy hiểm nhất ra sao?
-3. Nếu đặt nó: pop-sdk engine là 1 node server, và cũng triển khai chính nó với vai trò là 1 master quản lý thì sao? ai sẽ quản lý ai, quản lý ra sao trong môi trường bất ổn của internet?
+# 7. Kết luận Kiến trúc Cấu hình: "Tam trụ" (The Holy Trinity)
 
-### POP SDK và tầm nhìn micro service
-1. Trong các mô hình phân tán như vậy, đâu là cá khía cạnh mà POP cần xem xét?
-2. Đâu là các giải pháp và cách tiếp cận khả thi và tối ưu, giữ vững triết lý phi nhị nguyên?
-3. Các khái niệm VAP , SAGA trong lý thuyết của micro service là gì?
+Chúng ta thống nhất kiến trúc cấu hình của POP SDK sẽ bao gồm 3 file YAML riêng biệt, phục vụ 3 mục đích cốt lõi:
 
-# 4. Side effect và Error
-## Thảo luận:
-### Quản lý side effect
-1. Side effect của context contract đang được quản lý như thế nào?
-2. Các khía cạnh nào cần xem xét để xây dựng cơ chế quản lý side effect cho pop-sdk engine ? Đảm bảo tường minh và thuận tiện?
-3. Đâu là phổ các giải pháp và cách tiếp cận khả thi và tối ưu, giữ vững triết lý phi nhị nguyên? 
+1.  **`context_schema.yaml` (DATA struct):**
+    *   Định nghĩa: Context có những field nào, kiểu dữ liệu gì (int, string...).
+    *   Tính chất: Ít thay đổi (Invariant). Là "xương sống" dữ liệu.
 
-### Quản lý error
-1. Error của context contract đang được quản lý như thế nào? Có phải pop-sdk đang bắt và ném các lỗi chưa khai báo contract không? Nếu có thì lợi và hại là gì?
-2. Các khía cạnh nào cần xem xét để xây dựng cơ chế quản lý error cho pop-sdk engine ? Đảm bảo tường minh và thuận tiện?
-3. Đâu là phổ các giải pháp và cách tiếp cận khả thi và tối ưu, giữ vững triết lý phi nhị nguyên?
+2.  **`audit_recipe.yaml` (AUDIT policy):**
+    *   Định nghĩa: Các luật lệ, giới hạn (Min/Max), và cấp độ kiểm soát (S/A/B/C).
+    *   Tính chất: Thay đổi theo nghiệp vụ và môi trường (Dev/Prod). Hỗ trợ cơ chế Kế thừa rule.
 
+3.  **`workflow.yaml` (FLOW control):**
+    *   Định nghĩa: Trình tự thực thi Process và điều hướng (Signal).
+    *   Tính chất: Thay đổi theo logic vận hành.
+
+Việc tách biệt này đảm bảo nguyên lý **High Cohesion, Low Coupling**:
+*   Sửa Luật (`recipe`) không ảnh hưởng Cấu trúc (`schema`).
+*   Tái sử dụng Cấu trúc (`schema`) cho nhiều Quy trình (`workflow`) khác nhau.
+
+# 8. Thảo luận về khả năng điều phối workflow:
+1. Trong pop-sdk hiện tại chỉ đang điều phối tuyến tính theo linear tuần tự. Kể cả trong kế hoạch chúng ta sẽ triển khai hỗ trợ các graph workflow khác nhau. Điều đó tốt nhưng sẽ chưa đủ nếu dev muốn xử lý các kịch bản yêu cầu linh hoạt và khó đoán trước hơn. Điều đó có thể xử lý bằng các cấu trúc if lồng hoặc rẽ nhánh. Nhưng như thế có thể sẽ rất rườm rà cho file yaml. Một cách tiếp cận khác là hybrid, khi cung cấp 1 khung định sẵn các lựa chọn trong khuôn khổ các process có thể được lựa chọn theo event hoặc điều kiện. Tuy nhiên điều này có thể sẽ biến yaml trở thành 1 ngôn ngữ lập trình thứ 2 hay không? Hoặc phải có 1 bộ điều phối và điều khiển logic phản ứng với event đòi hỏi 1 mô hình formal logic?
+
+Trong dự đoán của tôi, với các workflow dạng graph hiện tại mà pop-sdk (theus) sẽ không xử lý được kịch bản đơn giản: 1 process GUI: gui.py (ttk) liên tục chờ lô batch thông tin kết quả được gửi từ process xử lý find.py (quét và tìm tên file) mà không bị đóng băng giao diện người dùng.
+
+## 8.1. Phân tích Kỹ thuật & Đánh giá Tác động (Critical Analysis)
+
+Dựa trên yêu cầu về kịch bản GUI/Async, đây là bản phân tích chi tiết sử dụng **Tư duy Phản biện 8 Thành tố**:
+
+### A. Giải pháp Kỹ thuật (Technical Implementation)
+
+Để hỗ trợ kịch bản trên mà không phá vỡ kiến trúc, Theus cần triển khai mô hình **"Async State Machine"**:
+
+1.  **Cơ chế Loop Kép (Dual Loop):**
+    *   **Main Thread:** Chạy `Tkinter MainLoop` (hoặc Qt, Web Server). Nó đóng vai trò là "View Layer".
+    *   **Worker Thread (Engine):** Chạy `POPEngine` trong một thread riêng. Engine này không chạy tuần tự một lần rồi thoát, mà chạy **Vòng lặp sự kiện (Event Loop)**, chờ tín hiệu từ Context.
+
+2.  **Giao tiếp qua Signal (Context as Bus):**
+    *   Context không chỉ chứa dữ liệu tĩnh (`counter`, `user_name`) mà chứa **Hàng đợi Sự kiện (Event Queue)**.
+    *   **GUI Process:** Khi bấm nút -> `ctx.signals.put("CMD_SCAN")`.
+    *   **Engine:** Đọc `CMD_SCAN` -> Tra cứu Workflow FSM -> Kích hoạt Process `find.py`.
+
+3.  **Thay đổi Format Workflow (FSM):**
+    Chúng ta cần nâng cấp `workflow.yaml` từ Linear List sang State Map:
+    ```yaml
+    states:
+      IDLE:
+        on:
+          CMD_SCAN: 
+            target: SCANNING
+            action: p_start_scan_thread
+      SCANNING:
+        on:
+          EVT_FOUND_ITEM:
+            action: p_update_ui_buffer
+          EVT_SCAN_COMPLETE:
+            target: IDLE
+            action: p_notify_done
+    ```
+
+### B. Tác động đến Triết lý POP (Philosophical Impact)
+
+**Câu hỏi:** *Việc thêm Async/Events có biến Theus thành "OOP Spaghetti" không?*
+
+*   **Giữ vững (Conserve):**
+    *   **Tách biệt Data-Behavior:** Process vẫn là hàm thuần túy (`def scan(ctx)`). Nó không biết nút bấm nào gọi nó. Nó chỉ chạy khi Engine bảo chạy.
+    *   **Context Driven:** Mọi giao tiếp vẫn qua `Context` (Signal Queue là một phần của Context). Không có gọi hàm trực tiếp giữa UI và Logic.
+*   **Mở rộng (Expand):**
+    *   POP truyền thống là **Batch** (Xử lý lô). POP V2 (Theus) mở rộng sang **Reactive** (Phản ứng). Đây là sự tiến hóa tự nhiên, giống như React.js chuyển từ render tĩnh sang Hooks.
+*   **Rủi ro (Risk):**
+    *   **Race Conditions:** Khi chạy đa luồng, nhiều Process cùng sửa Context.
+    *   **Giải pháp:** Cơ chế `Lock Manager` và `Contract Guard` (đã có trong V2) trở thành **BẮT BUỘC**. Strict Mode sẽ chặn crashes, nhưng logic race vẫn có thể xảy ra nếu Dev thiết kế kém.
+
+### C. Tác động đến Trải nghiệm Lập trình viên (DX Impact)
+
+**Tích cực:**
+*   **Quyền năng (Power):** Dev có thể viết App GUI, Game, Robot Controller bằng Theus thay vì chỉ viết Script chạy ngầm.
+*   **Tư duy rõ ràng:** FSM (Biểu đồ trạng thái) dễ debug hơn hàng tá hàm callback (`onClick`, `onSuccess`, `onError`) lồng nhau lộn xộn.
+
+**Tiêu cực (Rào cản):**
+*   **Learning Curve:** Dev phải học thêm khái niệm "State Machine" và "Event" trong YAML. File YAML sẽ dài hơn và khó đọc hơn List đơn giản.
+*   **Khó Debug:** Lỗi "Deadlock" hoặc "Missed Architecture Event" khó tìm hơn lỗi "Syntax Error".
+
+### D. Kết luận & Khuyến nghị
+Việc hỗ trợ Workflow điều phối (Orchestration) theo hướng FSM là bước đi **cần thiết** để Theus trở thành "Industrial Grade Framework". Tuy nhiên, nó nên là **Module mở rộng (Add-on)** chứ không phải Core bắt buộc, để giữ Core đơn giản cho các tác vụ CLI/Batch thông thường.

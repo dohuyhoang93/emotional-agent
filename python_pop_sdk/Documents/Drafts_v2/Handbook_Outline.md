@@ -14,50 +14,41 @@ Khác với phần "Lý thuyết Cốt lõi" (Core Specification) khô khan và 
 ## 🟦 Lộ trình Tiến hóa (The Evolutionary Arc)
 
 ### **Bước 1: Từ Hỗn loạn đến Ngăn nắp (Taming the Data)**
-*   **Vấn đề:** "Biến toàn cục (Global Variable) ở khắp nơi. Tôi không biết ai đang sửa dữ liệu của tôi."
-*   **Giải pháp Tư duy:** Gom tất cả vào Context. Phân chia rõ System/Domain/Local.
+*   **Vấn đề:** "Tôi không biết ai đang sửa dữ liệu của tôi."
+*   **Giải pháp Tư duy:** Config as Code. Single Source of Truth.
 *   **Thực hành SDK:**
-    *   Tạo `UserContext` với Pydantic.
-    *   Sử dụng `pop-cli init` để tạo cấu trúc thư mục.
+    *   Định nghĩa `context_schema.yaml`.
+    *   Tự động load vào `dataclasses`.
 
 ### **Bước 2: Nghệ thuật của Hành động Thuần khiết (The Art of Pure Action)**
-*   **Vấn đề:** "Hàm này vừa tính toán, vừa ghi log, vừa gọi database. Test rất khó."
-*   **Giải pháp Tư duy:** Tách biệt Side-effect. Process chỉ là hàm thuần túy biến đổi Input -> Output.
+*   **Vấn đề:** "Hàm này vừa tính toán, vừa ghi log, vừa gọi DB."
+*   **Giải pháp Tư duy:** Tách biệt Logic (Process) và An toàn (Audit).
 *   **Thực hành SDK:**
-    *   Viết hàm `@process` đầu tiên.
-    *   Khai báo Contract `inputs/outputs`.
-    *   Chạy thử với `engine.run()`.
+    *   Viết hàm `@process` với Contract.
+    *   Hiểu về "Dual Layer Protection" (Code Logic vs. Audit Rules).
 
-### **Bước 3: Dòng chảy được Điều phối (Orchestrated Flow)**
-*   **Vấn đề:** "Code chính của tôi là một chuỗi if/else lồng nhau 10 cấp. Đọc không hiểu gì cả."
-*   **Giải pháp Tư duy:** Linear Pipeline. Nhìn logic như một dây chuyền sản xuất.
+### **Bước 3: Dòng chảy Tuyến tính (The Linear Flow)**
+*   **Vấn đề:** "Spaghetti Code gọi hàm chằng chịt."
+*   **Giải pháp Tư duy:** Linear Pipeline. Ưu tiên sự ổn định.
 *   **Thực hành SDK:**
-    *   Sử dụng YAML để ghép nối các Process lại với nhau.
-    *   Visualize dòng chảy bằng công cụ (nếu có) hoặc sơ đồ tư duy.
+    *   Định nghĩa `workflow.yaml`.
+    *   Hiểu tại sao V2 lại giới hạn ở Linear (Robustness).
 
 ### **Bước 4: Tương tác với Thực tại (Interacting with Reality)**
-*   **Vấn đề:** "Làm sao tôi mock được cái Camera này để test logic?"
-*   **Giải pháp Tư duy:** Adapter & Environment. Xem IO là các plugin, không phải code cứng.
+*   **Vấn đề:** "Làm sao test logic mà không cần DB thật?"
+*   **Giải pháp Tư duy:** Adapter Pattern.
 *   **Thực hành SDK:**
-    *   Tạo `CameraAdapter` protocol.
-    *   Inject vào `env`.
-    *   Viết Unit Test thay thế adapter thật bằng adapter giả.
+    *   Inject Adapter vào Context.
 
-### **Bước 5: Chinh phục Đại Monolith (The Complex Monolith)**
-*   **Vấn đề:** "Dự án lớn quá, một file YAML dài 1000 dòng."
-*   **Giải pháp Tư duy:** Modularization. Chia nhỏ thành các Sub-flow. Branching và Dynamic Router.
-*   **Thực hành SDK:**
-    *   Tổ chức module theo Feature.
-    *   Sử dụng `use_subflow` trong YAML.
-    *   Xử lý rẽ nhánh thông minh.
+### **Bước 5: [Tạm ẩn trong V2 MVP] Chinh phục Đại Monolith**
+*   *Lưu ý: Các tính năng nâng cao (Branching, Loop) sẽ được giới thiệu trong V2.x.*
 
 ### **Bước 6: Sẵn sàng ra Trận (Production Readiness)**
-*   **Vấn đề:** "Lỗi xảy ra trên Production nhưng tôi không biết tại sao."
-*   **Giải pháp Tư duy:** Observability & Error Handling.
+*   **Vấn đề:** "Làm sao đảm bảo an toàn tuyệt đối cho giao dịch?"
+*   **Giải pháp Tư duy:** Industrial Audit System (RMS/FDC).
 *   **Thực hành SDK:**
-    *   Đọc Audit Log của Engine.
-    *   Xử lý lỗi (Fail-fast strategy).
-    *   Cấu hình Performance Monitor.
+    *   Định nghĩa `audit_recipe.yaml` (S/A/B/C).
+    *   Sử dụng CLI `pop audit` để generate và inspect luật.
 
 ---
 

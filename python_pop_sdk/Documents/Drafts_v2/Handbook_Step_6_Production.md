@@ -1,141 +1,152 @@
-# Bước 6: Sẵn sàng ra Trận (Production Readiness)
+# Bước 6: Sẵn sàng ra Trận (Production Readiness) "Industrial Grade"
 
 ---
 
-## 6.1. Chuyện nhà Dev: "Code chạy trên máy tôi!"
+## 6.1. Từ "Đồ chơi" lên "Công nghiệp"
 
-Bạn code xong, chạy thử thấy ngon. Đẩy lên server -> Crash.
-Sếp hỏi: "Tại sao crash?". Bạn ú ớ: "Em không biết, không có log".
-Tester bảo: "Tính năng này đã test chưa?". Bạn bảo: "Em chạy tay rồi".
+Bạn đã có Code chạy ngon (Step 2), Luồng chạy mượt (Step 3). Nhưng để **Ra Trận (Production)**, hệ thống cần nhiều hơn thế. Nó cần khả năng **"Tự vệ"**.
 
-Ở bước cuối cùng này, chúng ta sẽ biến dự án từ "đồ chơi" thành "vũ khí" thực thụ.
+Trong môi trường Công nghiệp (như Nhà máy, Hàng không, hay Fintech), chúng ta không chỉ quan tâm "Chạy đúng", mà còn phải đảm bảo "Không được chạy sai mức nguy hiểm".
+
+POP V2 giới thiệu **Hệ thống Kiểm toán Công nghiệp (Industrial Audit System)** lấy cảm hứng từ chuẩn FDC (Fault Detection & Classification) và RMS (Recipe Management System).
 
 ---
 
-## 6.2. Kiểm thử (Testing): Dễ như ăn kẹo
+## 6.2. Hai Cổng Kiểm Soát (The Two Gates)
 
-Trong OOP, test rất khổ vì phải Mock đủ thứ object lằng nhằng.
-Trong POP, test cực sướng vì:
-1.  **Data là Dumb (Dataclass):** Chỉ cần `Context(val=1)`.
-2.  **Process là Hàm thuần khiết:** Gọi hàm, check kết quả.
-3.  **IO là Adapter:** Mock cái Adapter là xong.
+Mỗi Process trong POP V2 giờ đây được bảo vệ bởi 2 cánh cổng:
 
-### **Thực hành: Unit Test cho `validate_order`**
-Tạo file `tests/test_validation.py`:
+1.  **Cổng Vào (Input Gate - RMS Check):**
+    *   Trước khi Process chạy, hệ thống kiểm tra nguyên liệu đầu vào (Context).
+    *   Ví dụ: "Tuổi user phải >= 18". Nếu sai -> CHẶN NGAY.
+2.  **Cổng Ra (Output Gate - FDC Check):**
+    *   Sau khi Process chạy xong (nhưng trước khi trả kết quả cho User), hệ thống kiểm tra thành phẩm.
+    *   Ví dụ: "Số tiền chuyển đi không được âm". Nếu sai -> BÁO ĐỘNG hoặc DỪNG.
 
-```python
-import unittest
-from src.context import SystemContext, GlobalContext, DomainContext, EnvContext
-from src.processes.p_validation import validate_order
+Tất cả được cấu hình trong `audit_recipe.yaml`. Code logic của bạn **không cần biết** về việc này (Separation of Concerns).
 
-# 1. Mock Adapter
-class MockWarehouse:
-    stock_map = {"IPHONE": 0} # Tồn kho bằng 0
+---
 
-class TestValidation(unittest.TestCase):
-    def test_out_of_stock(self):
-        # 2. Setup Context Giả
-        domain = DomainContext()
-        domain.user.balance = 1000
-        domain.order.items = [{"sku": "IPHONE", "quantity": 1}]
-        
-        # Inject Mock Adapter
-        env = EnvContext()
-        # Giả sử chúng ta đã sửa process để dùng WarehouseAdapter
-        # env.warehouse = MockWarehouse() 
-        # Hoặc nếu dùng data thuần:
-        domain.warehouse.stock_map = {"IPHONE": 0}
+## 6.3. 4 Cấp độ Nghiêm trọng (S/A/B/C)
 
-        ctx = SystemContext(GlobalContext(), domain, env)
+Khi có lỗi vi phạm, hệ thống sẽ xử lý theo 4 cấp độ chuẩn công nghiệp:
 
-        # 3. Gọi Process trực tiếp (Không cần Engine)
-        result = validate_order(ctx)
+*   **S (Stop/Stick - Nghiêm trọng):**
+    *   **Hành động:** Dừng ngay lập tức (Interlock). Rollback transaction.
+    *   **Dùng cho:** Lỗi an toàn, lỗi dữ liệu không thể phục hồi.
+    *   *Ví dụ: Chuyển tiền tài khoản âm.*
 
-        # 4. Assert
-        self.assertEqual(result, "FAILED")
-        self.assertEqual(ctx.domain.order.status, "REJECTED")
-        self.assertIn("Out of stock", ctx.domain.order.error)
+*   **A (Abort/Warning - Ngưỡng):**
+    *   **Hành động:** Cảnh báo trước. Nếu vi phạm quá N lần liên tiếp -> Dừng (Interlock).
+    *   **Dùng cho:** Lỗi hiệu năng, lỗi tài nguyên (Retries).
+    *   *Ví dụ: Gọi API timeout quá 3 lần.*
 
-if __name__ == '__main__':
-    unittest.main()
+*   **B (Block/Hold - Nghiệp vụ):** 
+    *   **Ý nghĩa:** Lỗi logic kinh doanh (Business Logic) hoặc dữ liệu bất thường. Code không sai, nhưng cần con người kiểm duyệt.
+    *   **Hành động:** Chặn quy trình (giống S/Interlock trong bản Linear) nhưng đánh dấu là "Block" để đội vận hành (Operator) xử lý thủ công.
+    *   *Ví dụ: Nghi ngờ gian lận (Fraud check), Giao dịch quá lớn.*
+
+*   **C (Continue/Log - Thông tin):**
+    *   **Hành động:** Chỉ ghi Log và chạy tiếp. 
+    *   **Cơ chế Throttling:** Để tránh làm ngập log, hệ thống chỉ ghi cảnh báo ở lần thứ 1, 10, 100...
+    *   *Ví dụ: User login giờ lạ.*
+
+*   **I (Ignore/Bypass - Bỏ qua):**
+    *   **Hành động:** Không kiểm tra, không log (No-op).
+    *   **Dùng cho:** Khai báo các object phức tạp (Tensor, Adapter) để giữ tính minh bạch trong file config nhưng tránh lỗi runtime khi so sánh.
+    *   *Ví dụ: `env.camera_adapter`.*
+
+---
+
+## 6.3b. Chiến lược Bypass & Chống Spam (Hardening Guide)
+
+Trong thực tế vận hành (như AI Vision 60fps), bạn sẽ gặp các đối tượng phức tạp (Tensor, Adapter) hoặc nguy cơ ngập tràn log. Đây là giải pháp:
+
+### 1. Xử lý Complex Objects (Tensor, Adapter)
+Nếu `audit_recipe` cố gắng so sánh giá trị (`min`, `max`) của một Tensor lớn, hệ thống sẽ lỗi.
+*   **Giải pháp 1 (An toàn):** Dùng `condition: exists` và `level: S`. Chỉ kiểm tra nó không phải `None`.
+*   **Giải pháp 2 (Bypass Tường minh - Khuyên dùng):** Dùng Level `I`.
+    ```yaml
+    - target: env.camera_adapter
+      level: I # Ignore: Khai báo để biết là có dùng, nhưng Engine sẽ bỏ qua.
+    ```
+
+### 2. Chống Spam Log (Log Throttling)
+Nếu Level `C` (Info) được kích hoạt liên tục trong vòng lặp model AI (60 lần/giây), file log sẽ bị rác.
+*   **Cơ chế:** POP Engine tự động kích hoạt **Throttling**.
+*   **Hoạt động:** Chỉ log cảnh báo ở lần vi phạm thứ **1, 10, 100, 1000...**
+*   Các vi phạm trung gian sẽ được đếm ngầm (Counter) nhưng **không in ra màn hình**.
+
+### 3. Quy tắc "Tường minh" (Transparency Rule)
+Đừng xóa ngầm (Implicit Remove) các field khỏi `audit_recipe.yaml` nếu bạn vẫn dùng nó. Hãy khai báo nó với Level `I`. Điều này giúp người khác đọc file config hiểu được toàn bộ inputs/outputs của hệ thống.
+
+---
+
+## 6.4. Cách dùng: CLI `pop audit`
+
+Bạn không cần viết file YAML bằng tay từ đầu. POP SDK cung cấp công cụ tự động.
+
+### 1. Tạo Spec tự động (`gen-spec`)
+SDK sẽ quét code `@process` của bạn và tạo bộ khung Audit:
+
+```bash
+pop audit gen-spec
 ```
 
-Bạn thấy không? Không cần `MagicMock`, không cần `patch`. Chỉ là gán biến và so sánh.
+Kết quả (`specs/audit_recipe.yaml`):
 
----
-
-## 6.3. Logging: Đèn pha trong đêm
-
-Đừng dùng `print()`. Hãy dùng `logging` chuẩn của Python.
-Và nhớ quy tắc: **Logging là một Side-effect**. Hãy khai báo nó.
-
-```python
-import logging
-
-logger = logging.getLogger("APP")
-
-@process(..., side_effects=['LOGGING'])
-def calculate_discount(ctx):
-    logger.info(f"Computing discount for User {ctx.domain.user.id}")
-    # ...
+```yaml
+process_recipes:
+  validate_order:
+    input_rules:
+      - target: domain_ctx.order.amount
+        condition: min
+        value: 0
+        level: S
+    output_rules:
+      - target: domain_ctx.inventory.stock
+        condition: min
+        value: 0
+        level: A
+        threshold: 3
 ```
 
-Khi chạy Production, bạn chỉ cần config `logging.basicConfig(level=logging.ERROR)` để tắt bớt thông tin rác.
+### 2. Kiểm tra Rules (`inspect`)
+Để xem Process `validate_order` đang chịu những luật nào:
+
+```bash
+pop audit inspect validate_order
+```
 
 ---
 
-## 6.4. CLI: Biến Script thành App
+## 6.5. Unit Test với Audit
 
-Thay vì sửa code `main.py` mỗi lần muốn chạy flow khác nhau, hãy dùng `argparse` để nhận tham số từ bên ngoài.
+Kiểm thử bây giờ không chỉ là logic đúng, mà là **Luật có được thực thi không**.
 
 ```python
-# main.py
-import argparse
-import sys
-# ... imports ...
-
-def main():
-    parser = argparse.ArgumentParser(description="My POP Agent")
-    parser.add_argument("command", choices=["run", "test"], help="Lệnh cần chạy")
-    parser.add_argument("--flow", default="checkout", help="Tên workflow cần chạy")
+def test_audit_violation(self):
+    # Setup Context với dữ liệu sai
+    ctx.domain_ctx.order.amount = -50
     
-    args = parser.parse_args()
+    # Engine tự động kích hoạt Audit Check
+    with self.assertRaises(AuditInterlockError) as cm:
+        engine.run_process("validate_order")
     
-    # Init Engine & Context...
-    ctx = SystemContext(...)
-    engine = POPEngine(ctx)
-    # Register processes...
-
-    if args.command == "run":
-        yaml_file = f"workflows/{args.flow}.yaml"
-        print(f"🚀 Starting Flow: {yaml_file}")
-        engine.execute_workflow(yaml_file)
-        
-        # In kết quả cuối
-        if ctx.domain.system_signal:
-             print(f"🏁 Signal: {ctx.domain.system_signal}")
-
-if __name__ == "__main__":
-    main()
+    print("✅ Hệ thống đã chặn giao dịch âm tiền thành công!")
 ```
-
-Giờ bạn có thể gõ:
-*   `python main.py run --flow=vip_checkout`
-*   `python main.py run --flow=refund`
 
 ---
 
-## 6.5. Lời kết: Bạn đã là một POP Engineer
+## 6.6. Lời kết: Bạn đã là một Kỹ sư POP (POP Engineer)
 
-Chúc mừng! Bạn đã đi hết 6 bước tiến hóa:
-1.  **Data:** Gom về một mối (`Context`).
-2.  **Process:** Viết hàm thuần khiết, khai báo minh bạch (`@process`).
-3.  **Workflow:** Vẽ luồng chạy bằng YAML.
-4.  **Adapters:** Đẩy IO ra rìa, dùng `env_ctx`.
-5.  **Complexity:** Chia nhỏ và trị (Signal Pattern).
-6.  **Production:** Test, Log và đóng gói CLI.
+Chúc mừng! Bạn đã đi hết hành trình để trở thành một Kỹ sư POP thực thụ.
 
-POP không hứa làm bạn code nhanh hơn ngay ngày đầu.
-Nhưng POP hứa rằng **6 tháng sau**, khi bạn nhìn lại code cũ, bạn sẽ mỉm cười vì vẫn hiểu nó làm gì, và dám sửa nó mà không sợ sập hệ thống.
+1.  **Data:** Bạn biết dùng `ContextSchema`.
+2.  **Process:** Bạn viết hàm thuần khiết `Pure Function`.
+3.  **Config:** Bạn quản lý bằng `Recipe` và `Workflow`.
+4.  **Audit:** Bạn bảo vệ hệ thống bằng `S/A/B/C`.
 
-**Hành trình của bạn mới chỉ bắt đầu. Hãy mang tư duy POP vào mọi dòng code bạn viết!**
+Hệ thống của bạn giờ đây không chỉ "Chạy được", mà còn "Kiên cố" (Robust), "Minh bạch" (Transparent) và "Dễ mở rộng" (Scalable).
+
+**Hãy để Code của bạn ngủ ngon, vì POP Audit đang canh gác cho bạn!**

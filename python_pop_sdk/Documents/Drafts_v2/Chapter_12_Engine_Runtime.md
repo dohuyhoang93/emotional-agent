@@ -41,33 +41,39 @@ Bảo vệ dữ liệu khỏi các luồng (thread) bên ngoài.
 
 ---
 
-## 12.3. Pipeline Thực thi Quy trình (Execution Pipeline)
+## 12.3. Pipeline Thực thi Quy trình (Execution Pipeline - The Industrial Flow)
 
-Khi lệnh `engine.run_process(name)` được gọi, một chuỗi 5 bước đồng bộ diễn ra:
+Khi lệnh `engine.run_process(name)` được gọi, một chuỗi 7 bước đồng bộ diễn ra, tích hợp chặt chẽ với hệ thống Audit:
 
 1.  **Preparation (Chuẩn bị):**
     *   Lookup Process từ Registry.
-    *   Phân tích Contract (`@process` decorator) để xác định Read/Write Set.
+    *   Phân tích Contract (`@process` decorator).
     *   Khởi tạo Transaction ID.
 
-2.  **Isolation (Cách ly):**
+2.  **Input Gate (Cổng RMS - Audit Check):**
+    *   **Audit Input:** Hệ thống kiểm tra dữ liệu đầu vào dựa trên `input_rules` trong `audit_recipe.yaml`.
+    *   Nếu vi phạm Level S -> **Interlock** (Dừng ngay).
+    *   Nếu vi phạm Level B/C -> Xử lý theo luật (Block/Log).
+
+3.  **Isolation (Cách ly):**
     *   Tạo `ShadowContext`.
     *   Áp dụng `ContextGuard`.
-    *   Mở khóa (`Unlock`) cục bộ cho Transaction này.
 
-3.  **Execution (Thực thi):**
+4.  **Execution (Thực thi):**
     *   Thực thi hàm Process với inputs là `GuardedContext`.
-    *   Catch mọi Exception. Nếu lỗi -> Trigger Rollback.
+    *   Catch Exception.
 
-4.  **Delta Tracking & Commit:**
+5.  **Output Gate (Cổng FDC - Audit Check):**
+    *   **Audit Output:** Hệ thống kiểm tra thành phẩm đầu ra dựa trên `output_rules`.
+    *   Bảo vệ hệ thống khỏi dữ liệu lỗi (Garbage Out).
+    *   Phát hiện các bất thường (Anomaly) trước khi commit.
+
+6.  **Delta Tracking & Commit:**
     *   So sánh trạng thái trước/sau (Diffing).
-    *   Tính toán **Delta**: Những biến nào đã thay đổi?
-    *   Ghi Log Delta (hỗ trợ Time-travel Debugging).
     *   Merge thay đổi vào Master Context.
 
-5.  **Clean-up (Dọn dẹp):**
+7.  **Clean-up (Dọn dẹp):**
     *   Đóng Transaction.
-    *   Khóa lại Context (`Lock`).
 
 ---
 

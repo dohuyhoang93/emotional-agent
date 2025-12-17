@@ -7,107 +7,65 @@
 Trong POP, Workflow không phải là danh sách việc cần làm (ToDo List), mà là một **Đồ thị Thực thi (Execution Graph)**.
 Mỗi nút (Node) là một Process. Các cạnh (Edge) là dòng chảy dữ liệu.
 
-Chương này đi sâu vào 4 mô hình đồ thị được hỗ trợ bởi POP Engine và cách định nghĩa chúng bằng ngôn ngữ DSL (Domain Specific Language).
+Tuy nhiên, POP V2 (Giai đoạn "The Robust Node") ưu tiên sự **Ổn định** hơn sự Phức tạp.
+Vì vậy, Engine hiện tại hỗ trợ chính thức mô hình **Linear** (Tuyến tính). Các mô hình phức tạp khác được xếp vào lộ trình tương lai (V2.x).
 
 ---
 
-## 7.2. Bốn Mô hình Workflow Tiêu chuẩn
+## 7.2. Các Mô hình Workflow
 
-### A. Linear (Tuyến tính)
+### A. Linear (Tuyến tính) - HỖ TRỢ CHÍNH THỨC
 *   **Mô hình:** `Nodes` được nối tiếp nhau thành chuỗi đơn `P1 → P2 → P3`.
 *   **Chi tiết:** Đây là dạng cơ bản nhất, đảm bảo thứ tự thực thi tuyệt đối.
-*   **Khi nào dùng:** Pipeline nhập liệu (ETL), quy trình tuần tự không rẽ nhánh.
-*   **Rủi ro:** Không xử lý được các logic nghiệp vụ phức tạp đòi hỏi điều kiện.
-*   **DSL Example:**
+*   **DSL Example (`workflows/main_workflow.yaml`):**
     ```yaml
-    # Linear Sequence
+    name: "Standard Checkout Flow"
     steps:
-      - call: vision.load_image
-      - call: vision.enhancement
-      - call: storage.save_raw
+      - validate_order            # String notation (Simple)
+      - process: check_inventory  # Dict notation (Advanced)
+        timeout: 5s               # (Future feature)
+      - payment_processing
+      - shipping_label
     ```
 
-### B. Branching (Rẽ nhánh có điều kiện)
-*   **Mô hình:** Tại Node điều kiện, luồng thực thi tách làm đôi: `P1 → if (Context.State) { P2a } else { P2b }`.
-*   **Chi tiết:** Cho phép "Logic Business" can thiệp vào dòng chảy.
-*   **Pitfall (Cạm bẫy):**
-    *   *Implicit Branching:* Cố nhét logic `if/else` vào bên trong Process thay vì khai báo ra ngoài Workflow => Làm ẩn luồng đi.
-*   **DSL Example:**
+### B. Branching (Rẽ nhánh) - ROADMAP V2.1
+*   **Mô hình:** `P1 → if (State) { P2a } else { P2b }`.
+*   **Hiện tại:** Để rẽ nhánh trong V2 MVP, bạn hãy xử lý logic điều hướng bên trong Process, hoặc dùng Python script điều phối `POPEngine`.
+*   **DSL Dự kiến:**
     ```yaml
     steps:
       - branch:
-          when: "ctx.quality_score > 0.9" # Business Rule Expression
-          then:
-            - call: production.fast_track
-          else:
-            - call: qa.manual_review
+          when: "ctx.quality_score > 0.9"
+          then: [fast_track]
+          else: [manual_review]
     ```
 
-### C. DAG (Directed Acyclic Graph - Song song hóa)
-*   **Mô hình:** Một Node cha tách thành nhiều Node con chạy song song, sau đó hợp nhất (Join) lại. `P1 → {P2, P3} → P4`.
-*   **Chi tiết:** Tối ưu hóa hiệu năng cho các tác vụ IO-bound hoặc CPU-bound độc lập.
-*   **Deep Pitfall: Sự hội tụ trạng thái (State Convergence)**
-    *   Vấn đề: P2 sửa `ctx.A`, P3 sửa `ctx.A`. Khi Join lại vào P4, giá trị nào của `ctx.A` được giữ?
-    *   Giải pháp: Bắt buộc sử dụng **Merge Strategy** (xem mục 7.3).
-*   **DSL Example:**
-    ```yaml
-    steps:
-      - parallel:
-          branches:
-            - [ call: camera.capture_left ]
-            - [ call: camera.capture_right ]
-          merge:
-            strategy: custom
-            function: vision.stereo_merge # Deterministic Merge
-    ```
+### C. DAG (Song song hóa) - ROADMAP V2.2
+*   **Mô hình:** `P1 → {P2, P3} → P4`.
+*   **Challenge:** Xử lý Merge State rất phức tạp nếu không có Lock Manager tốt.
+*   **Hiện tại:** Chưa hỗ trợ. Hãy chạy tuần tự.
 
-### D. Dynamic (Vòng lặp & Phản hồi)
-*   **Mô hình:** Đồ thị có thể chưa xác định lúc khởi chạy, hoặc có chu trình (Cycles) `P1 → P2 → P1`.
-*   **Chi tiết:** Dùng cho các hệ thống Agent, Robot Control Loop, hoặc Retry logic.
-*   **Deep Pitfall: Bùng nổ trạng thái (State Explosion) & Non-termination.**
-    *   Hệ thống có thể chạy mãi mãi nếu không có `Guard Condition` (điều kiện thoát).
-    *   Lịch sử Audit Log có thể phình to vô hạn.
-*   **DSL Example:**
-    ```yaml
-    steps:
-      - loop:
-          until: "ctx.retry_count > 5 OR ctx.status == 'OK'"
-          body:
-            - call: api.request_data
-            - call: logic.validate
-    ```
+### D. Dynamic (Vòng lặp) - ROADMAP V2.3
+*   **Mô hình:** `P1 → P2 → P1`.
+*   **Hiện tại:** Chưa hỗ trợ.
 
 ---
 
-## 7.3. Chiến lược Hợp nhất dữ liệu (Merge Strategies)
+## 7.3. Tại sao chỉ Linear?
 
-Khi sử dụng DAG (Song song), việc gộp Context từ các nhánh con là bài toán khó nhất. POP định nghĩa 4 chiến lược chuẩn:
+Bạn có thể thất vọng: *"Tại sao Engine lại yếu thế?"*
 
-1.  **Chiến lược Overwrite (Last-Writer-Wins):**
-    *   *Cơ chế:* Nhánh nào xong sau cùng sẽ ghi đè Context.
-    *   *Đánh giá:* **Nguy hiểm**. Chỉ dùng khi các nhánh sửa các vùng nhớ hoàn toàn rời rạc (Process Isolation).
+Câu trả lời: **Robustness (Sự bền vững).**
+1.  **Dễ Debug:** Linear flow cực kỳ dễ trace lỗi. Nếu P2 lỗi, chắc chắn P1 đã xong.
+2.  **Dữ liệu an toàn:** Không có Race Condition (điều ám ảnh nhất của Parallel).
+3.  **Thay thế được:** Nếu cần logic quá phức tạp (Nested Loop, State Machine), bạn hoàn toàn có thể viết một Process Python thuần túy để điều phối (Orchestrator Pattern).
 
-2.  **Chiến lược Aggregate (Gom nhóm):**
-    *   *Cơ chế:* Kết quả của mỗi nhánh được append vào một List trong Domain Context.
-    *   *Đánh giá:* **An toàn**. Phù hợp cho việc thu thập dữ liệu (Map-Reduce pattern).
-
-3.  **Chiến lược Reduce (Tính toán):**
-    *   *Cơ chế:* Áp dụng toán tử (Sum, Min, Max) lên các trường dữ liệu số.
-    *   *Đánh giá:* Dùng cho thống kê.
-
-4.  **Chiến lược Custom (Chuyên biệt hóa):**
-    *   *Cơ chế:* Gọi một Process đặc biệt (`MergeProcess`) để xử lý xung đột bằng logic nghiệp vụ.
-    *   *Đánh giá:* **Khuyên dùng** cho các object phức tạp.
+> **Triết lý POP:** Workflow YAML chỉ nên làm xương sống. Đừng cố biến YAML thành ngôn ngữ lập trình Turing-complete.
 
 ---
 
 ## 7.4. Trách nhiệm của Engine (Engine Responsibilities)
 
-Engine không chỉ là "người chạy code". Nó là hệ điều hành của Workflow với các trách nhiệm tối thượng:
-
-1.  **Graph Validation (Kiểm tra đồ thị):** Trước khi chạy, Engine phải duyệt cây để phát hiện vòng lặp chết (Dead Cycles) hoặc các tham chiếu không tồn tại (Dangling References).
-2.  **Scheduling (Điều phối):** Quản lý Thread pool cho các nhánh Parallel, đảm bảo thứ tự thực thi cho Linear.
-3.  **Snapshot & Rollback (Bảo toàn):**
-    *   Trước mỗi Step quan trọng, Engine chụp ảnh (Snapshot) Domain Context.
-    *   Nếu Step lỗi, Engine có thể khôi phục lại trạng thái cũ (nếu cấu hình Transaction).
-4.  **Audit Trace (Truy vết):** Ghi lại *Con đường thực tế* (Actual Path) mà dữ liệu đã đi qua. (Lưu ý: Với Branching, con đường thực tế khác với con đường lý thuyết).
+1.  **Graph Validation:** (Future) Kiểm tra cấu trúc flow.
+2.  **Snapshot & Rollback:** (Đã có trong V2) Mỗi Process chạy trong Transaction. Lỗi tự rollback.
+3.  **Audit Trace:** (Đã có trong V2) Ghi lại nhật ký Audit (S/A/B/C).

@@ -1,0 +1,77 @@
+# Audit Recipe for Emotion Agent (Industrial Mode)
+# Generated and Refined for Production Run
+
+process_recipes:
+  perception:
+    inputs:
+    - field: env_adapter
+      level: I # Ignore complex adapter object
+    - field: agent_id
+      level: S
+      min: 0
+    outputs:
+    - field: domain_ctx.current_observation
+      level: C # Check exist, log if missing (but it won't be missing)
+      exists: true
+
+  update_belief:
+    inputs:
+    - field: domain_ctx.current_observation
+      level: I # Dict, skip detailed check
+    outputs:
+    - field: domain_ctx.believed_switch_states
+      level: C
+      exists: true
+
+  calculate_emotions:
+    inputs:
+    - field: domain_ctx.N_vector
+      level: I # Tensor
+    outputs:
+    - field: domain_ctx.E_vector
+      level: I # Tensor check hard in yaml
+
+  adjust_exploration:
+    inputs:
+    - field: domain_ctx.current_step
+      level: S
+      min: 0
+    outputs:
+    - field: domain_ctx.current_exploration_rate
+      level: A
+      min: 0.0
+      max: 1.0
+
+  select_action:
+    inputs:
+    - field: domain_ctx.q_table
+      level: I
+    outputs:
+    - field: domain_ctx.selected_action
+      level: S
+      exists: true
+
+  execute_action:
+    inputs:
+    - field: domain_ctx.selected_action
+      level: S
+      exists: true
+    outputs:
+    - field: domain_ctx.last_reward
+      level: I # Dict
+
+  record_consequences:
+    inputs:
+    - field: domain_ctx.last_reward
+      level: I
+    outputs:
+    - field: domain_ctx.q_table
+      level: I
+
+  social_learning:
+    inputs:
+    - field: neighbors
+      level: I # List of Contexts
+    outputs:
+    - field: domain_ctx.long_term_memory
+      level: I

@@ -1,0 +1,133 @@
+context:
+  domain:
+    global_ctx:
+      type: GlobalContext
+      structure: &id001
+        initial_needs:
+          type: list
+          required: true
+        initial_emotions:
+          type: list
+          required: true
+        total_episodes:
+          type: integer
+          required: true
+        max_steps:
+          type: integer
+          required: true
+        seed:
+          type: integer
+          required: true
+        log_level:
+          type: string
+          required: true
+        initial_exploration_rate:
+          type: float
+          required: true
+        exploration_decay:
+          type: float
+          required: true
+        min_exploration:
+          type: float
+          required: true
+        learning_rate:
+          type: float
+          required: true
+        discount_factor:
+          type: float
+          required: true
+        intrinsic_reward_weight:
+          type: float
+          required: true
+        emotional_boost_factor:
+          type: float
+          required: true
+        assimilation_rate:
+          type: float
+          required: true
+        fatigue_growth_rate:
+          type: float
+          required: true
+        short_term_memory_limit:
+          type: integer
+          required: true
+        use_dynamic_curiosity:
+          type: boolean
+          required: true
+        use_adaptive_fatigue:
+          type: boolean
+          required: true
+        switch_locations:
+          type: dict
+          required: true
+        output_path:
+          type: string
+          required: true
+      required: true
+    domain_ctx:
+      type: DomainContext
+      structure:
+        N_vector:
+          type: Tensor
+          required: true
+        E_vector:
+          type: Tensor
+          required: true
+        believed_switch_states:
+          type: dict
+          required: true
+        q_table:
+          type: dict
+          required: true
+        short_term_memory:
+          type: list
+          required: true
+        long_term_memory:
+          type: dict
+          required: true
+        emotion_model:
+          type: Any
+          required: true
+        emotion_optimizer:
+          type: Any
+          required: true
+        current_exploration_rate:
+          type: float
+          required: true
+        base_exploration_rate:
+          type: float
+          required: true
+        current_observation:
+          type: Any
+          required: true
+        previous_observation:
+          type: Any
+          required: true
+        selected_action:
+          type: string
+        last_reward:
+          type: dict
+          required: true
+        td_error:
+          type: float
+          required: true
+        current_episode:
+          type: integer
+          required: true
+        current_step:
+          type: integer
+          required: true
+        total_steps_in_episode:
+          type: integer
+          required: true
+        last_cycle_time:
+          type: float
+          required: true
+      required: true
+    cycle_count:
+      type: integer
+      required: true
+    is_running:
+      type: boolean
+      required: true
+  global: *id001

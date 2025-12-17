@@ -103,10 +103,24 @@ Với mỗi thay đổi trên Context, Kiến trúc sư phải trả lời 5 câ
 
 ---
 
-## 4.6. Hướng dẫn Hiện thực hóa (Implementation)
+## 4.6. Hướng dẫn Hiện thực hóa (Implementation - V2 Standard)
 
-Dựa trên Thang đo Trừu tượng (Chapter 2):
+POP V2 quy định tiêu chuẩn "Contract First" thông qua `context_schema.yaml`:
 
-1.  **Level 1 (Dynamic):** Sử dụng `Dictionary`. *Phù hợp prototype.*
-2.  **Level 2 (Static):** Sử dụng `Dataclass` (Python) hoặc `Struct` (C/Go). *Phù hợp chuẩn công nghiệp.*
-3.  **Level 3 (Validated):** Sử dụng `Pydantic` hoặc `Domain Primitives`. *Phù hợp hệ thống cần an toàn cao.*
+1.  **Level 1 (Concept):** Định nghĩa Schema trong `specs/context_schema.yaml`. Đây là "Single Source of Truth".
+2.  **Level 2 (Code):** Sử dụng `Python Dataclasses` để ánh xạ Schema vào code. Giúp IDE có thể gợi ý (Intellisense) và Type Check.
+3.  **Level 3 (Validation):** Sử dụng các thư viện như `Pydantic` (Optional) nếu cần validation ở mức Field Level ngay khi khởi tạo.
+
+## 4.7. Cấu hình "Single Source of Truth"
+Thay vì định nghĩa rời rạc, file `specs/context_schema.yaml` đóng vai trò trung tâm:
+
+```yaml
+context:
+  domain:
+    user:
+      name: {type: string}
+      age: {type: integer, min: 18} # Static constraints
+```
+
+*   **Lợi ích:** Developer và Non-tech (như PM/BA) đều có thể đọc và hiểu dữ liệu.
+*   **Runtime:** Engine sẽ đọc file này lúc khởi động để validate cấu trúc bộ nhớ.

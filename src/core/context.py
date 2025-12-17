@@ -1,8 +1,8 @@
 import torch
-from dataclasses import dataclass, field
 from typing import Dict, List, Tuple, Any, Optional
 import sys
 import os
+from pydantic import BaseModel, ConfigDict, Field
 
 # Import from Independent SDK
 # Add SDK path to sys.path to ensure it can be imported
@@ -10,14 +10,17 @@ sdk_path = os.path.join(os.getcwd(), 'python_pop_sdk')
 if sdk_path not in sys.path:
     sys.path.append(sdk_path)
 
-from pop import BaseGlobalContext, BaseDomainContext, BaseSystemContext
+# from pop import BaseGlobalContext, BaseDomainContext, BaseSystemContext 
+# Note: Dropping inheritance from SDK Base Contexts to avoid Metaclass conflicts with Pydantic.
+# We implement the schema structure directly.
 
-@dataclass
-class GlobalContext(BaseGlobalContext):
+class GlobalContext(BaseModel):
     """
     Global Context: Chứa cấu hình tĩnh, hằng số, và tham số môi trường bất biến.
     Đây là dữ liệu READ-ONLY trong suốt vòng đời của Workflow.
     """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     # --- Experiment Settings ---
     initial_needs: List[float]
     initial_emotions: List[float]
@@ -43,17 +46,18 @@ class GlobalContext(BaseGlobalContext):
     use_adaptive_fatigue: bool = False
 
     # --- Environment Config ---
-    switch_locations: Dict[str, Tuple[int, int]] = field(default_factory=dict)
+    switch_locations: Dict[str, Tuple[int, int]] = Field(default_factory=dict)
     
     # --- Output Setting ---
     output_path: str = "results"
 
-@dataclass
-class DomainContext(BaseDomainContext):
+class DomainContext(BaseModel):
     """
     Domain Context: Chứa trạng thái nghiệp vụ của hệ thống (Agent State).
     Đây là dữ liệu MUTABLE, nhưng chỉ được thay đổi bởi Process thông qua Contract.
     """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     # --- Internal State (Vectors) ---
     N_vector: torch.Tensor  # Needs
     E_vector: torch.Tensor  # Emotions
@@ -79,23 +83,34 @@ class DomainContext(BaseDomainContext):
     # --- Ephemeral State (Per Cycle) ---
     current_observation: Any = None
     previous_observation: Any = None
-    selected_action: str = None # Changed from last_action_id for compatibility
-    last_reward: Dict[str, float] = field(default_factory=lambda: {'extrinsic': 0.0, 'intrinsic': 0.0})
+    selected_action: Optional[str] = None # Changed from last_action_id for compatibility
+    last_reward: Dict[str, float] = Field(default_factory=lambda: {'extrinsic': 0.0, 'intrinsic': 0.0})
     td_error: float = 0.0
     
     # --- Progression State ---
     current_episode: int = 0
     current_step: int = 0
     total_steps_in_episode: int = 0
+    
+    # Metric tracking
+    last_cycle_time: float = 0.0
 
-@dataclass
-class SystemContext(BaseSystemContext):
+class SystemContext(BaseModel):
     """
     System Context: Wrapper quản lý toàn bộ hệ thống.
     """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
     global_ctx: GlobalContext
     domain_ctx: DomainContext
     
     # System Runtime State (not domain logic)
     cycle_count: int = 0
     is_running: bool = True
+    
+    # Mocking lock manager for compatibility if Engine tries to set it
+    # We can just ignore it or store it privately
+    _lock_manager: Any = None
+    
+    def set_lock_manager(self, manager):
+        self._lock_manager = manager

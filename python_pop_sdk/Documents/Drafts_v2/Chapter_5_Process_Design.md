@@ -89,3 +89,41 @@ Một Process chuẩn mực trong POP nên tuân theo cấu trúc "Sandwich":
 3.  **Update (Đầu ra):** Cập nhật kết quả vào Domain Context (tuân thủ Rule 2 & 4).
 
 > **Lời khuyên:** Hãy viết Process như thể nó là một "Hộp đen minh bạch" (Transparent Blackbox) - Bên ngoài nhìn vào thấy rõ đầu vào/ra, bên trong gói gọn sự phức tạp.
+
+---
+
+## 5.5. Hướng dẫn Hiện thực hóa (Implementation - V2 Standard)
+
+Trong POP V2, Process được hiện thực hóa bằng Python Decorator `@process` để đảm bảo thực thi Contract:
+
+```python
+from pop.contracts import process
+
+@process(
+    inputs=["domain.user.age", "domain.order.amount"], 
+    outputs=["domain.order.is_valid"],
+    errors=["VALUE_ERROR"]
+)
+def validate_order(ctx):
+    # 1. Preparation (Context -> Local)
+    age = ctx.domain.user.age
+    
+    # 2. Logic
+    if age < 18:
+        raise ValueError("Underage")
+        
+    # 3. Update (Local -> Context)
+    ctx.domain.order.is_valid = True
+```
+
+*   **Decorator `@process`:** Đóng vai trò là "Bản cam kết" (Contract). Engine sử dụng thông tin này để dựng "Hàng rào bảo vệ" (Context Guard) trước khi hàm chạy.
+*   **Pure Python:** Không cần kế thừa Class phức tạp. Chỉ cần hàm thuần túy.
+
+> **Hỏi: Tại sao không đưa Input/Output ra file YAML?**
+>
+> **Đáp:** POP phân định rõ 3 loại Contract:
+> 1.  **Structure Contract (`context_schema.yaml`):** Định nghĩa Data (Type, Shape).
+> 2.  **Governance Contract (`audit_recipe.yaml`):** Định nghĩa Chất lượng (Quality, Thresholds).
+> 3.  **Dependency Contract (`@process` decorator):** Định nghĩa **Logic Code cần gì**.
+>
+> Việc để Dependency ngay trên đầu hàm (Decorator) tuân thủ nguyên tắc **Locality of Behavior**. Khi bạn sửa code bên trong hàm (ví dụ đổi từ dùng `user.age` sang `user.dob`), bạn sửa ngay decorator bên trên. Nếu để ở file YAML rời rạc, code và config sẽ dễ bị lệch pha (Drift).

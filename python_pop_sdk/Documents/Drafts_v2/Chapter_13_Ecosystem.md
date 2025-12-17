@@ -20,22 +20,21 @@ Mục tiêu tối thượng của POP không phải là thay thế tất cả m�
 
 ---
 
-## 13.2. Kiến trúc Cốt lõi: Cổng Hải quan Vạn năng (Universal Customs Gate)
+## 13.2. Chiến lược Tương lai: Native First & Compliance Standard
 
-Bất kể viết bằng ngôn ngữ nào, "Cổng Hải quan" luôn là **đích đến kiến trúc** và là bản sắc của POP. Nguyên lý "Cô lập & Kiểm soát" này được tuân thủ nghiêm ngặt ngay từ bản Prototype hiện tại.
+Tại sao phải phức tạp hóa vấn đề với các lớp cầu nối (Bridge/WASM) khi chúng ta có thể làm tốt ngay trên sân nhà của từng ngôn ngữ?
+POP lựa chọn con đường **Chuyên nghiệp & Thực dụng**:
 
-### **Viễn cảnh Kiến trúc (Architectural Spectrum):**
+1.  **Chiến lược Native First:**
+    *   **pop-sdk (Python):** Thuần Python. Dễ đọc, dễ sửa, thân thiện tuyệt đối với cộng đồng AI/Data.
+    *   **pop-rust (Rust):** Thuần Rust. Dành cho các hệ thống yêu cầu hiệu năng cực cao và an toàn bộ nhớ.
+    *   **Không lai tạp:** Không có chuyện nhúng Rust vào Python rồi bắt dev Python debug lỗi memory leak của FFI.
 
-1.  **Soft Customs Gate (Python MVP - Hiện tại):**
-    *   *Nhiệm vụ:* Cung cấp sự an toàn và minh bạch cho các dự án Python.
-    *   *Cơ chế:* Sử dụng Proxy Object (ContextGuard) và Shadowing (Airlock) để giả lập sự cô lập.
-    *   *Trạng thái:* Đang hoạt động. Đảm bảo POP SDK chạy ổn định cho các Monolith quan trọng.
+2.  **Cổng Hải quan Chuẩn hóa (Standardized Customs Gate):**
+    *   Thay vì dùng chung một "Cục Engine Binary", chúng ta dùng chung một **Bộ Luật (Specification)**.
+    *   **POP Compliance Test Suite:** Một bộ test tiêu chuẩn (Language Agnostic). Mọi Engine (dù viết bằng Python, Rust hay Golang) muốn được gọi là "POP Engine" đều phải vượt qua bộ test này để đảm bảo hành vi nhất quán.
 
-2.  **Hard Customs Gate (Rust Core - Tương lai):**
-    *   *Nhiệm vụ:* Nâng cấp hiệu năng và sự cô lập lên mức tuyệt đối.
-    *   *Cơ chế:* Cô lập bộ nhớ vật lý. Engine đóng vai trò "Két sắt", Process chỉ được phép tương tác qua khe cửa hẹp của FFI.
-
-**Khẳng định:** Dù là Soft hay Hard, chúng đều tuân theo cùng một **Contract of Trust** (Chương 9). Code viết cho Python hôm nay sẽ tương thích về mặt tư duy với Rust ngày mai.
+**Khẳng định:** Sự chuyên nghiệp nằm ở **Chất lượng Tiêu chuẩn (Spec)** và **Trải nghiệm Developer (DX)**, không phải ở độ phức tạp của công nghệ nền.
 
 ---
 

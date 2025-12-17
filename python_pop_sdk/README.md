@@ -1,11 +1,11 @@
-# POP SDK (Process-Oriented Programming)
+# Theus (formerly POP SDK)
 
 **The "Operating System" for AI Agents and Complex Systems.**
 
-[![PyPI version](https://badge.fury.io/py/pop-sdk.svg)](https://badge.fury.io/py/pop-sdk)
+[![PyPI version](https://badge.fury.io/py/theus.svg)](https://badge.fury.io/py/theus)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**POP (Process-Oriented Programming)** is a paradigm shift designed for building robust, stateful AI agents. Unlike OOP which encapsulates state and behavior, POP **decouples** them completely to ensure:
+**Theus (Process-Oriented Programming)** is a paradigm shift designed for building robust, stateful AI agents. Unlike OOP which encapsulates state and behavior, Theus **decouples** them completely to ensure:
 1.  **Transactional Integrity**: Every action is atomic.
 2.  **Safety by Default**: Inputs are immutable; outputs are strictly contracted.
 3.  **Observability**: Every state change is logged and reversible.
@@ -29,7 +29,7 @@
 ## 📦 Installation
 
 ```bash
-pip install pop-sdk
+pip install theus
 ```
 
 ---
@@ -38,11 +38,11 @@ pip install pop-sdk
 
 The fastest way to start is using the CLI tool.
 
-> **Note**: We recommend using `python -m pop` to ensure compatibility across all operating systems (Windows/Linux/Mac) without worrying about PATH configuration.
+> **Note**: We recommend using `python -m theus` to ensure compatibility across all operating systems.
 
 ```bash
 # 1. Initialize a new project
-python -m pop init my_agent
+python -m theus init my_agent
 
 # 2. Enter directory
 cd my_agent
@@ -52,26 +52,45 @@ python main.py
 ```
 
 Arguments:
-- `python -m pop init <name>`: Create a new project folder.
-- `python -m pop init .`: Initialize in current directory.
+- `python -m theus init <name>`: Create a new project folder.
+- `python -m theus init .`: Initialize in current directory.
 
-(You can also use the short command `pop init` if your Python Scripts directory is in your system PATH).
+---
+
+---
+
+## 🛠️ Advanced CLI Tools
+
+Beyond initialization, Theus provides tools for Audit & Schema management.
+
+### Audit Generation
+Start from code, generate the rules.
+
+```bash
+python -m theus audit gen-spec
+```
+
+### Schema Generation
+Generate Context Schema from your Pydantic models.
+
+```bash
+python -m theus schema gen --context-file src/context.py
+```
 
 ---
 
 ## 📚 Manual Usage
 
 ### 1. Define Context (Data)
-```python
-from dataclasses import dataclass
-from pop import BaseGlobalContext, BaseDomainContext, BaseSystemContext
+Using Pydantic V2 for robust verification.
 
-@dataclass
-class MyGlobal(BaseGlobalContext):
+```python
+from pydantic import BaseModel
+
+class MyGlobal(BaseModel):
     counter: int = 0
 
-@dataclass
-class MySystem(BaseSystemContext):
+class MySystem(BaseModel):
     global_ctx: MyGlobal
     # ... domain_ctx ...
 ```
@@ -100,7 +119,7 @@ def illegal_write(ctx):
 ```python
 from pop import POPEngine
 
-system = MySystem(MyGlobal(), ...)
+system = MySystem(global_ctx=MyGlobal())
 engine = POPEngine(system) # Default: Warning Mode
 
 engine.register_process("inc", increment)
@@ -115,7 +134,15 @@ You can control strictness via Environment Variables (supported in `.env` files)
 
 | Variable | Values | Description |
 |----------|--------|-------------|
-| `POP_STRICT_MODE` | `1`, `true` | **Enabled**: Raises `LockViolationError` on unsafe external mutation. <br> **Disabled (Default)**: Logs `WARNING` but allows mutation. |
+| `THEUS_STRICT_MODE` | `1`, `true` | **Crash on Violation**: External code (Main Thread) cannot modify Context directly. |
+| | `0`, `false` | **Log Warning**: External code can modify context, but it logs a `LockViolationWarning`. |
+
+### Why Strict Mode? (The Vault)
+Theus enforces **Context Integrity**. 
+- In **Strict Mode (`1`)**, the Context is "Vaulted". Only registered Processes can modify it. Any attempt to modify `ctx.domain` from `main.py` without using `engine.edit()` will raise an error and **crash the agent**. This is recommended for Production/CI to prevent "State Spaghetti".
+- In **Warning Mode (`0`)**, violations are logged but permitted. This is useful for rapid prototyping.
+
+(Legacy `POP_STRICT_MODE` is also supported for backward compatibility).
 
 ### Safe External Mutation
 To modify context from `main.py` without triggering warnings/errors, use the explicit API:
