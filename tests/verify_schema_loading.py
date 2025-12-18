@@ -2,7 +2,7 @@ import sys
 import os
 sys.path.append("python_pop_sdk")
 
-from pop.config import ConfigFactory
+from theus.config import ConfigFactory
 
 def verify():
     schema_path = "specs/context_schema.yaml"
@@ -14,8 +14,8 @@ def verify():
         print(f"   Object: {schema}")
         
         # Assertions
-        assert "age" in schema.domain_fields, "FAIL: 'age' field missing in domain."
-        assert schema.domain_fields["age"].type == "integer", "FAIL: 'age' type mismatch."
+        assert "cycle_count" in schema.domain_fields, "FAIL: 'cycle_count' field missing in domain."
+        assert schema.domain_fields["cycle_count"].type == "integer", "FAIL: 'cycle_count' type mismatch."
         print("✅ Domain Fields: OK")
         
     except Exception as e:

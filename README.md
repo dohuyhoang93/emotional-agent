@@ -77,9 +77,11 @@ python run_experiments.py --config multi_agent_complex_maze.json
 ## 🗺️ 5. Lộ trình Phát triển (Roadmap)
 
 *   **Phase 1 & 2 (Đã xong):**
-    *   ✅ Xây dựng POP Engine & Context Guard.
+    *   ✅ Xây dựng POP Engine & Context Guard (Strict Mode).
     *   ✅ Implement Delta Architecture (Transaction/Rollback).
-    *   ✅ Tách POP SDK thành thư viện riêng.
+    *   ✅ **Hybrid Context Zones:** Phân tách Data (Persistent), Signal (Transient) và Meta (Diagnostic).
+    *   ✅ **Semantic Audit:** Kiểm soát Input/Output/Side-Effect/Error thông qua Dual Gates.
+    *   ✅ Tách POP SDK thành thư viện riêng (Theus).
     *   ✅ Audit & Fix Logic Bugs (Deep Mutation, Zombie Proxy, etc.).
 
 *   **Phase 3 (Hiện tại):**

@@ -16,7 +16,7 @@ class TestContractLoopholes(unittest.TestCase):
             short_term_memory=[1, 2, 3], # Mutable List
             long_term_memory={}
         )
-        self.sys_ctx = SystemContext(global_ctx, domain_ctx)
+        self.sys_ctx = SystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)
         self.engine = POPEngine(self.sys_ctx)
 
     def test_loophole_read_violation(self):
@@ -51,12 +51,17 @@ class TestContractLoopholes(unittest.TestCase):
             
         self.engine.register_process("trojan_writer", trojan_writer)
         
-        self.engine.run_process("trojan_writer")
-        
+        from theus import ContractViolationError
+        try:
+            self.engine.run_process("trojan_writer")
+            # If we reach here, either it worked (bad) or swallowed (maybe bad)
+            print("   -> FAIL: Engine allowed execution without error.")
+        except ContractViolationError:
+             print("   -> PASS: Engine prevented mutation (Immutable Violation).")
+             return
+
         if 9999 in self.sys_ctx.domain_ctx.short_term_memory:
-            print("   -> FAIL: Engine allowed in-place mutation of undeclared output.")
-        else:
-            print("   -> PASS: Engine prevented mutation.")
+            self.fail("Engine allowed in-place mutation of undeclared output.")
 
     def test_loophole_side_effect(self):
         """Loophole 3: Direct Import Side Effect."""

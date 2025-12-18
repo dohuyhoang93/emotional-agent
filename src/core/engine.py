@@ -6,7 +6,7 @@ sdk_path = os.path.join(os.getcwd(), 'python_pop_sdk')
 if sdk_path not in sys.path:
     sys.path.append(sdk_path)
 
-from pop import POPEngine as BasePOPEngine, process, ContractViolationError
+from theus import POPEngine as BasePOPEngine, process, ContractViolationError
 
 # Re-export key components so existing code doesn't break
 ContractViolationError = ContractViolationError

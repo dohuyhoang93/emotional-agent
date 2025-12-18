@@ -27,7 +27,7 @@ from src.processes.p7_execution import execute_action
 from src.processes.p8_consequence import record_consequences
 from src.processes.p9_social_learning import social_learning
 
-from pop.config import ConfigFactory
+from theus.config import ConfigFactory
 
 def recursive_update(d, u):
     for k, v in u.items():

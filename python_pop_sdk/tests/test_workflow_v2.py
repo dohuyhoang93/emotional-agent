@@ -1,9 +1,9 @@
 
 import unittest
 from dataclasses import dataclass, field
-from pop.engine import POPEngine
-from pop.context import BaseSystemContext, BaseDomainContext, BaseGlobalContext
-from pop import process
+from theus.engine import POPEngine
+from theus.context import BaseSystemContext, BaseDomainContext, BaseGlobalContext
+from theus import process
 
 # --- Mock Context ---
 @dataclass

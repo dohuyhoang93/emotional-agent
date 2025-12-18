@@ -30,7 +30,7 @@ def test_pop_arch():
         long_term_memory={}
     )
     
-    system_ctx = SystemContext(global_ctx, domain_ctx)
+    system_ctx = SystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)
     
     # 3. Setup Engine
     engine = POPEngine(system_ctx)

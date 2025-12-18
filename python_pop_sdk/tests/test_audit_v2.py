@@ -2,9 +2,9 @@
 import unittest
 from unittest.mock import MagicMock
 from dataclasses import dataclass, field
-from pop.config import AuditRecipe, ProcessRecipe, RuleSpec
-from pop.audit import ContextAuditor, AuditInterlockError, AuditWarning
-from pop.engine import POPEngine, BaseSystemContext
+from theus.config import AuditRecipe, ProcessRecipe, RuleSpec
+from theus.audit import ContextAuditor, AuditInterlockError, AuditWarning
+from theus.engine import POPEngine, BaseSystemContext
 
 # --- MOCK CONTEXT ---
 @dataclass
@@ -28,8 +28,8 @@ import sys
 import logging
 logging.basicConfig(level=logging.DEBUG, stream=sys.stdout)
 print("DEBUG: sys.path[0] =", sys.path[0])
-import pop.audit
-print("DEBUG: pop.audit file =", pop.audit.__file__)
+import theus.audit
+print("DEBUG: theus.audit file =", theus.audit.__file__)
 
 class TestIndustrialAudit(unittest.TestCase):
     def setUp(self):

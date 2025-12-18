@@ -4,7 +4,7 @@ import shutil
 import tempfile
 import os
 from pathlib import Path
-from pop.cli import init_project, gen_spec
+from theus.cli import init_project, gen_spec
 import yaml
 
 class TestCLIV2(unittest.TestCase):
@@ -24,8 +24,8 @@ class TestCLIV2(unittest.TestCase):
         init_project(self.project_name, self.project_dir)
         
         expected_files = [
-            "src/processes/p_hello.py",
-            "workflows/main_workflow.yaml",
+            "src/processes/chain.py",
+            "specs/workflow.yaml",
             "specs/context_schema.yaml",
             "src/context.py"
         ]

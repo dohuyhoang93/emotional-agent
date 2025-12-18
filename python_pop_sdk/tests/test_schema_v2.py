@@ -2,7 +2,7 @@
 import unittest
 import yaml
 import os
-from pop.config import ConfigFactory, ContextSchema
+from theus.config import ConfigFactory, ContextSchema
 
 class TestSchemaV2(unittest.TestCase):
     def setUp(self):

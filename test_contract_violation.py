@@ -13,7 +13,7 @@ class TestContractEnforcement(unittest.TestCase):
             N_vector=torch.tensor([0.5]), E_vector=torch.tensor([0.0]),
             believed_switch_states={}, q_table={}, short_term_memory=[], long_term_memory={}
         )
-        self.sys_ctx = SystemContext(global_ctx, domain_ctx)
+        self.sys_ctx = SystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)
         self.engine = POPEngine(self.sys_ctx)
 
     def test_illegal_write_violation(self):

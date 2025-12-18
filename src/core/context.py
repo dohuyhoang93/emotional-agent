@@ -10,7 +10,7 @@ sdk_path = os.path.join(os.getcwd(), 'python_pop_sdk')
 if sdk_path not in sys.path:
     sys.path.append(sdk_path)
 
-# from pop import BaseGlobalContext, BaseDomainContext, BaseSystemContext 
+# from theus import BaseGlobalContext, BaseDomainContext, BaseSystemContext 
 # Note: Dropping inheritance from SDK Base Contexts to avoid Metaclass conflicts with Pydantic.
 # We implement the schema structure directly.
 
