@@ -7,6 +7,19 @@
 - **Safety**: "Secure by Default" Context Guard, `LockManager`, and Safe External Mutation (`engine.edit`).
 - **Governance**: Industrial Audit System (Input/Output Gates, S/A/B/C Levels).
 
+### 3. Documentation Improvements
+- **New Configuration Guide:** `Documents/GUIDES/configuration.md` details Workflow YAML and Audit syntax.
+- **Architecture Spec:** Updated `Documents/SPECS/theus_v2_1_architecture.md`.
+- **Showcase Skeleton:** `theus init` now generates a full feature demo including Security, Resilience, and Rollback tests.
+
+### 4. Advanced Safety (Microkernel)
+- **Transaction Rollback:** Automatic state reversion on process crash.
+- **Context Guard:** Block-level permissions for data access.
+- **Audit Interlock:** Runtime Schema validation.
+
+## 🚀 Migration Guide (From v1)
+1.  **Rename Imports:** `import pop` -> `import theus`.
+
 ## 📊 Feature Matrix & Verification Status
 
 | Feature ID | Feature Name | Description | Status |
