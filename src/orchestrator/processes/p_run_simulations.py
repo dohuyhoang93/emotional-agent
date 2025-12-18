@@ -2,7 +2,7 @@ import subprocess
 import os
 import json
 import random
-from src.core.engine import process
+from theus import process
 from src.orchestrator.context import OrchestratorSystemContext, ExperimentRun
 from src.logger import log, log_error
 
@@ -35,9 +35,9 @@ def run_simulations(ctx: OrchestratorSystemContext):
             # Convert parameters dict to JSON string for --settings-override
             settings_override_json = json.dumps(exp_def.parameters)
 
-            # Construct the command to call main.py
+            # Construct the command to call main_v2.py
             command = [
-                "python", "main.py",
+                "python", "main_v2.py",
                 "--num-episodes", str(exp_def.episodes_per_run),
                 "--output-path", output_csv_path,
                 "--settings-override", settings_override_json,

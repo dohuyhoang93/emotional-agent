@@ -1,6 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 import pandas as pd
+from theus import BaseGlobalContext, BaseDomainContext, BaseSystemContext
 
 @dataclass
 class ExperimentRun:
@@ -23,8 +24,8 @@ class ExperimentDefinition:
     aggregated_data: pd.DataFrame = field(default_factory=pd.DataFrame)
     log_level: str = "info"
 
-@dataclass(frozen=True)
-class OrchestratorGlobalContext:
+@dataclass
+class OrchestratorGlobalContext(BaseGlobalContext):
     """
     Global Context cho lớp Orchestration.
     Chứa các tham số đầu vào từ CLI (Immutable).
@@ -33,7 +34,7 @@ class OrchestratorGlobalContext:
     cli_log_level: Optional[str] = None
 
 @dataclass
-class OrchestratorDomainContext:
+class OrchestratorDomainContext(BaseDomainContext):
     """
     Domain Context cho lớp Orchestration.
     Chứa trạng thái tiến trình chạy thử nghiệm (Mutable).
@@ -54,7 +55,7 @@ class OrchestratorDomainContext:
     effective_log_level: str = "info"
 
 @dataclass
-class OrchestratorSystemContext:
+class OrchestratorSystemContext(BaseSystemContext):
     """
     Wrapper System Context cho lớp Orchestration.
     """

@@ -31,7 +31,7 @@ Tác nhân sử dụng **"Vòng lặp Tăng cường Trí tuệ-Cảm xúc"**:
 ```
 EmotionAgent/
 ├── python_pop_sdk/         # [CORE] Bộ SDK Kiến trúc POP (Độc lập, Reusable)
-│   ├── pop/                # Source code SDK
+│   ├── theus/              # Source code SDK
 │   └── examples/           # Ví dụ Hello World
 │
 ├── src/

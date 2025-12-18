@@ -2,7 +2,7 @@ import argparse
 import sys
 import os
 
-from src.core.engine import POPEngine
+from theus import POPEngine
 from src.orchestrator.context import (
     OrchestratorGlobalContext, 
     OrchestratorDomainContext, 
@@ -47,10 +47,12 @@ def main(argv=None):
         effective_log_level="info" # Default
     )
     
-    system_ctx = OrchestratorSystemContext(global_ctx, domain_ctx)
+    system_ctx = OrchestratorSystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)
 
     # 2. Initialize Engine
-    engine = POPEngine(system_ctx)
+    # Note: Orchestrator might arguably NOT use strict mode if it just does IO, 
+    # but for V2 compliance we enable it.
+    engine = POPEngine(system_ctx, strict_mode=True)
     
     # 3. Register Processes
     engine.register_process("load_config", load_config)
@@ -62,17 +64,37 @@ def main(argv=None):
     
     log(system_ctx, "info", "--- STARTING ORCHESTRATION WORKFLOW (POP) ---")
     
-    # 4. Execute Workflow
+    # 4. Execute Workflow (Synchronous List for Simplicity)
+    # Replicating main_v2.py pattern instead of loading YAML which ExecuteWorkflow does implicitly.
+    # Assuming standard orchestration steps
+    workflow_steps = [
+        "load_config",
+        "run_simulations",
+        "aggregate_results",
+        "plot_results",
+        "analyze_data",
+        "save_summary"
+    ]
+    
     try:
-        final_ctx = engine.execute_workflow("workflows/orchestration_workflow.yaml")
-        
-        # Check Final Report for errors (Primitive error handling logic via report string)
-        if hasattr(final_ctx, 'domain_ctx') and hasattr(final_ctx.domain_ctx, 'final_report') and "LỖI" in final_ctx.domain_ctx.final_report:
-             log_error(final_ctx, "Workflow finished with errors reported.")
-             # We might exit code 1 here if strict
+        if hasattr(engine, 'execute_process'):
+             runner = engine.execute_process # SDK v1 naming?
+        else:
+             runner = engine.run_process # SDK v2 naming confirmed in main_v2.py
              
-        log(final_ctx, "info", "--- ORCHESTRATION FINISHED ---")
-        return final_ctx
+        for step in workflow_steps:
+             if hasattr(engine, 'run_process'):
+                 engine.run_process(step)
+             else:
+                 engine.execute_process(step)
+        
+        # Check Final Report
+        if "LỖI" in system_ctx.domain_ctx.final_report:
+             log_error(system_ctx, "Workflow finished with errors reported.")
+             sys.exit(1)
+             
+        log(system_ctx, "info", "--- ORCHESTRATION FINISHED ---")
+        return system_ctx
         
     except Exception as e:
         log_error(system_ctx, f"CRITICAL FAILURE: {e}")

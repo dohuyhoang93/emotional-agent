@@ -1,6 +1,6 @@
 # 📘 **POP Engineering Handbook: Process-Oriented Programming for Robust Systems**
 
-> *Phiên bản 2.0 - Tái cấu trúc theo hướng "Sổ tay Đồng hành" (Companion Handbook)*
+> *Phiên bản 2.1 - Theus Industrial Edition*
 > *Dành cho Developer, Architect và System Engineers.*
 
 ---
@@ -83,20 +83,31 @@ Cuộc đời không chỉ có 0 và 1. Phần mềm cũng vậy. POP từ chố
 Sai lầm phổ biến nhất: Bắt đầu bằng việc viết hàm `def process_something()`.
 **POP Way:** Bắt đầu bằng việc định nghĩa dữ liệu `class SomethingContext`.
 
-### **4.1. Ba tầng Context (Global - Domain - Local)**
+### **4.1. Ma trận Context (The Context Matrix)**
 
-Hãy tưởng tượng chiếc xe bus (Global) chở theo các hành khách (Domain) đi qua từng trạm.
-*   **Global Context:** Chiếc xe bus. Chứa thông tin chung (User ID, Request ID, Config).
-*   **Domain Context:** Hành khách. Đây là dữ liệu nghiệp vụ chính (Order, Payment, CV Data). Nó sống lâu dài.
-*   **Local Context:** Vé xe, rác tạm. Sinh ra khi xử lý và vứt đi ngay sau đó.
+Thay vì chỉ chia theo lớp (Layer), Theus V2 sử dụng mô hình **Ma trận 2 chiều** để quản lý dữ liệu:
+
+**Trục Y: Phạm vi (Scope - Layer)**
+*   **Global Context:** Cấu hình tĩnh, Biến môi trường. (Read-heavy).
+*   **Domain Context:** Trạng thái nghiệp vụ động. (Read/Write).
+
+**Trục X: Phân vùng (Zone)**
+*   **DATA Zone:** Dữ liệu bền vững (Persistent). Được lưu vào DB/Snapshot.
+    *   *Ví dụ:* `user_id`, `balance`, `inventory_list`.
+*   **SIGNAL Zone:** Dữ liệu sự kiện (Transient). Tự động reset sau mỗi chu kỳ (Tick).
+    *   *Ví dụ:* `cmd_scan_now`, `sig_payment_success`.
+    *   *Convention:* Tiền tố `sig_` hoặc `cmd_`.
+*   **META Zone:** Dữ liệu chẩn đoán. Không ảnh hưởng logic nghiệp vụ chính.
+    *   *Ví dụ:* `meta_last_error`, `meta_trace_id`.
+    *   *Convention:* Tiền tố `meta_`.
 
 ### **4.2. Checklist Tư duy: Thiết kế Context**
 
 Trước khi code, hãy tự hỏi:
-1.  [ ] *Dữ liệu này có cần tồn tại sau khi Process kết thúc không?* (Nếu Có -> Domain. Nếu Không -> Local).
-2.  [ ] *Process kế tiếp có cần đọc dữ liệu này không?* (Nếu Có -> Domain).
-3.  [ ] *Dữ liệu này có thuộc về toàn bộ hệ thống không?* (Nếu Có -> Global).
-4.  [ ] *Tôi có đang nhét logic vào trong Class Context không?* (Phải KHÔNG. Context là Dumb Data).
+1.  [ ] *Dữ liệu này cần lưu lại không?* (Nếu Có -> DATA. Nếu Không -> SIGNAL/META).
+2.  [ ] *Dữ liệu này là Input kích hoạt hay Trạng thái?* (Input kích hoạt -> SIGNAL).
+3.  [ ] *Dữ liệu này thuộc về toàn cục hay nghiệp vụ cụ thể?* (Global vs Domain).
+4.  [ ] *Tôi có đang dùng biến Signal để làm logic bền vững không?* (Cấm kỵ trong Strict Mode).
 
 ---
 
@@ -117,14 +128,23 @@ def check_inventory(ctx: OrderContext) -> OrderContext:
     return ctx
 ```
 
-### **5.2. Chế độ Kiểm soát & Thích ứng**
+### **5.2. Hợp đồng Ngữ nghĩa (Semantic Contracts)**
 
-*   **Strict Mode (Kiểm soát):** Khi làm hệ thống thanh toán, y tế. Dữ liệu sai một ly, dừng ngay lập tức.
-*   **Adaptive Mode (Thích ứng):** Khi làm AI, Vision. Dữ liệu thiếu một chút, hãy tự suy luận hoặc dùng giá trị mặc định.
+Theus V2 yêu cầu khai báo rõ 4 trục của một Process: Inputs, Outputs, Side-Effects, và Errors.
+
+```python
+@process(
+    inputs=['domain.user_id'],
+    outputs=['domain.status'],
+    side_effects=['I/O'],
+    errors=['ValueError']
+)
+def check_user(ctx): ...
+```
 
 ### **5.3. Checklist Tư duy: Code Process**
 1.  [ ] *Process này có làm quá 1 việc không?* (Tách nhỏ ra).
-2.  [ ] *Input/Output có rõ ràng trong type hint không?*
+2.  [ ] *Input/Output có rõ ràng trong type hint và decorator không?*
 3.  [ ] *Process có thay đổi biến toàn cục nào bên ngoài không?* (Tuyệt đối không).
 4.  [ ] *Nếu input rỗng, Process có crash không hay handle gracefully?*
 

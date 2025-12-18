@@ -1,6 +1,6 @@
 import torch
 import torch.nn.functional as F
-from src.core.engine import process
+from theus import process
 from src.core.context import SystemContext
 
 def _calculate_dynamic_weight(cycle_time, current_step, current_episode, total_episodes, use_adaptive, max_fatigue_growth, max_steps):

@@ -16,12 +16,12 @@ class StateMachine:
         return self.current_state
     
     def trigger(self, event: str) -> List[str]:
-        print(f"DEBUG: Triggering {event} from {self.current_state}")
+        # print(f"DEBUG: Triggering {event} from {self.current_state}")
         state_def = self.states.get(self.current_state)
-        print(f"DEBUG: state_def for {self.current_state}: {state_def}")
+        # print(f"DEBUG: state_def for {self.current_state}: {state_def}")
         
         if not state_def:
-            print(f"DEBUG: State {self.current_state} not found in {self.states.keys()}")
+            # print(f"DEBUG: State {self.current_state} not found in {self.states.keys()}")
             return []
             
         # Support 'on' or 'transitions' syntax

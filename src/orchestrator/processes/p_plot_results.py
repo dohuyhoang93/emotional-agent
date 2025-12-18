@@ -1,4 +1,4 @@
-from src.core.engine import process
+from theus import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.plotting import plot_all_experiment_results
 from src.logger import log

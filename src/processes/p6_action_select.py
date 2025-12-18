@@ -1,5 +1,5 @@
 import random
-from src.core.engine import process
+from theus import process
 from src.core.context import SystemContext
 
 @process(

@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from src.core.engine import process
+from theus import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log
 

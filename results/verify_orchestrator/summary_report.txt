@@ -1,0 +1,24 @@
+--- BÁO CÁO TỔNG KẾT THỬ NGHIỆM ---
+Thời gian chạy: 2025-12-18 17:07:16
+Thư mục kết quả: results/verify_orchestrator
+
+=== Thử nghiệm: migration_verification_test ===
+  Số lần chạy: 1
+  Số episode mỗi lần chạy: 2
+  Tham số: {'initial_needs': [0.5, 0.5], 'initial_emotions': [0.0, 0.0], 'exploration_rate': 0.8, 'environment_config': {'grid_size': 10, 'max_steps_per_episode': 50, 'num_agents': 2}}
+  Tỷ lệ thành công trung bình (tất cả episode): 0.00%
+  Không có episode thành công nào để tính số bước trung bình.
+  Tỷ lệ khám phá cuối cùng trung bình: 0.7282
+
+  --- Phân tích Xu hướng (Mỗi 1000 Episodes) ---
+  Episodes 0-3:
+    Success Rate: 0.00%
+    Avg Steps: nan
+    Avg Reward: -10.25
+    Avg Exploration: 0.8008
+
+  --- Giai đoạn Về đích (Episodes 1-2) ---
+    Success Rate: 0.00%
+    Avg Steps: nan
+    Avg Exploration: 0.8008
+

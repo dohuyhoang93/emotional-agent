@@ -1,6 +1,6 @@
 from typing import List
 import numpy as np
-from src.core.engine import process
+from theus import process
 from src.core.context import SystemContext, DomainContext
 
 def _is_stagnated(domain: DomainContext, stagnation_threshold: int = 50) -> bool:
@@ -23,8 +23,7 @@ def _is_stagnated(domain: DomainContext, stagnation_threshold: int = 50) -> bool
 @process(
     inputs=[
         'domain.q_table', 'domain.long_term_memory', 'domain.current_episode',
-        'global.assimilation_rate', 'neighbors', 'agent_id'
-        # 'neighbors' is expected to be passed as kwarg: List[SystemContext] or List[DomainContext]
+        'global.assimilation_rate'
     ],
     outputs=[
         'domain.q_table'

@@ -1,11 +1,9 @@
-from src.core.engine import process
+from theus import process
 from src.core.context import SystemContext
 from src.adapters.environment_adapter import EnvironmentAdapter
 
 @process(
     inputs=[
-        'env_adapter', 
-        'agent_id', 
         'domain.selected_action',
         'domain.current_observation',
         'domain.last_reward'
