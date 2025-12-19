@@ -1,71 +1,101 @@
-# Chương 7: Mô hình Workflow & Ngôn ngữ DSL
+# Chương 7: Mô hình Workflow & Ngôn ngữ Spec (Theus Flow)
 
 ---
 
-## 7.1. Workflow là một Đồ thị (Graph Theory applied)
+## 7.1. Workflow là một "Playlist", không phải Code
 
-Trong POP, Workflow không phải là danh sách việc cần làm (ToDo List), mà là một **Đồ thị Thực thi (Execution Graph)**.
-Mỗi nút (Node) là một Process. Các cạnh (Edge) là dòng chảy dữ liệu.
+Trong Theus, file `specs/workflow.yaml` không phải là nơi bạn lập trình. Nó là nơi bạn **kê khai thứ tự**.
 
-Tuy nhiên, POP V2 (Giai đoạn "The Robust Node") ưu tiên sự **Ổn định** hơn sự Phức tạp.
-Vì vậy, Engine hiện tại hỗ trợ chính thức mô hình **Linear** (Tuyến tính). Các mô hình phức tạp khác được xếp vào lộ trình tương lai (V2.x).
+Hãy tưởng tượng bạn là DJ. Các bài hát (Process) đã được thu âm sẵn. Nhiệm vụ của bạn là sắp xếp chúng thành một danh sách phát (Playlist) hợp lý.
+
+**Tại sao Theus giới hạn sức mạnh của Workflow YAML?**
+> Bởi vì chúng tôi đã thấy quá nhiều hệ thống "No-Code" biến thành ác mộng khi người dùng cố gắng viết vòng lặp `for`, biến `if/else`, và xử lý exception ngay trong file YAML/XML.
+
+Theus giữ cho YAML "ngu" (Dumb) để hệ thống đơn giản (Robust).
 
 ---
 
-## 7.2. Các Mô hình Workflow
+## 7.2. Cấu trúc chuẩn của `workflow.yaml`
 
-### A. Linear (Tuyến tính) - HỖ TRỢ CHÍNH THỨC
-*   **Mô hình:** `Nodes` được nối tiếp nhau thành chuỗi đơn `P1 → P2 → P3`.
-*   **Chi tiết:** Đây là dạng cơ bản nhất, đảm bảo thứ tự thực thi tuyệt đối.
-*   **DSL Example (`workflows/main_workflow.yaml`):**
-    ```yaml
-    name: "Standard Checkout Flow"
+File cấu hình này kiểm soát toàn bộ vòng đời của ứng dụng.
+
+```yaml
+version: "2.0"
+name: "Robot Delivery Application"
+
+# [1] Định nghĩa các chế độ chạy
+modes:
+  production:
     steps:
-      - validate_order            # String notation (Simple)
-      - process: check_inventory  # Dict notation (Advanced)
-        timeout: 5s               # (Future feature)
-      - payment_processing
-      - shipping_label
-    ```
-
-### B. Branching (Rẽ nhánh) - ROADMAP V2.1
-*   **Mô hình:** `P1 → if (State) { P2a } else { P2b }`.
-*   **Hiện tại:** Để rẽ nhánh trong V2 MVP, bạn hãy xử lý logic điều hướng bên trong Process, hoặc dùng Python script điều phối `POPEngine`.
-*   **DSL Dự kiến:**
-    ```yaml
+      - "vision.localize"      # Step 1: Định vị
+      - "nav.plan_path"        # Step 2: Lập kế hoạch
+      - "nav.execute_move"     # Step 3: Di chuyển
+      
+  simulation:
     steps:
-      - branch:
-          when: "ctx.quality_score > 0.9"
-          then: [fast_track]
-          else: [manual_review]
-    ```
-
-### C. DAG (Song song hóa) - ROADMAP V2.2
-*   **Mô hình:** `P1 → {P2, P3} → P4`.
-*   **Challenge:** Xử lý Merge State rất phức tạp nếu không có Lock Manager tốt.
-*   **Hiện tại:** Chưa hỗ trợ. Hãy chạy tuần tự.
-
-### D. Dynamic (Vòng lặp) - ROADMAP V2.3
-*   **Mô hình:** `P1 → P2 → P1`.
-*   **Hiện tại:** Chưa hỗ trợ.
+      - "sim.load_mock_map"    # Load map giả
+      - "nav.plan_path"        # (Tái sử dụng logic thật)
+      - "sim.mock_move"        # Di chuyển ảo
+      
+# [2] Cấu hình Runtime
+settings:
+  timeout_ms: 5000       # Timeout cho mỗi step
+  stop_on_error: true    # Gặp lỗi là dừng ngay
+```
 
 ---
 
-## 7.3. Tại sao chỉ Linear?
+## 7.3. Pattern: Theus Orchestrator (Nhạc trưởng)
 
-Bạn có thể thất vọng: *"Tại sao Engine lại yếu thế?"*
+Bạn sẽ hỏi: *"Nếu YAML chỉ chạy tuần tự, thì làm sao tôi xử lý logic rẽ nhánh phức tạp (Cấu trúc If/Else, Loop)?"*
 
-Câu trả lời: **Robustness (Sự bền vững).**
-1.  **Dễ Debug:** Linear flow cực kỳ dễ trace lỗi. Nếu P2 lỗi, chắc chắn P1 đã xong.
-2.  **Dữ liệu an toàn:** Không có Race Condition (điều ám ảnh nhất của Parallel).
-3.  **Thay thế được:** Nếu cần logic quá phức tạp (Nested Loop, State Machine), bạn hoàn toàn có thể viết một Process Python thuần túy để điều phối (Orchestrator Pattern).
+Câu trả lời: **Hãy dùng code Python để làm Nhạc trưởng.**
 
-> **Triết lý POP:** Workflow YAML chỉ nên làm xương sống. Đừng cố biến YAML thành ngôn ngữ lập trình Turing-complete.
+Chúng ta tạo ra một Process đặc biệt, gọi là **Orchestrator**.
+
+### Ví dụ: Xử lý rẽ nhánh "Nếu thấy người thì chào, không thì đi tiếp"
+
+**1. Trong `workflow.yaml` (Vẫn tuyến tính):**
+```yaml
+steps:
+  - "vision.detect_human"
+  - "behavior.decide_action"  <-- Orchestrator
+  - "behavior.execute_action"
+```
+
+**2. Trong `src/domain/behavior.py`:**
+```python
+@process(
+    inputs=["domain.vision.has_human"], 
+    outputs=["domain.cmd.next_action"]
+)
+def decide_action(ctx):
+    # Logic rẽ nhánh nằm ở đây (Nơi nó thuộc về)
+    if ctx.domain.vision.has_human:
+        ctx.domain.cmd.next_action = "GREET"
+    else:
+        ctx.domain.cmd.next_action = "MOVE"
+```
+
+> **Triết lý:** Đừng đưa Logic "If/Else" lên file cấu hình. Hãy để nó trong Code. File cấu hình chỉ nên chứa "Dòng chảy cấp cao".
 
 ---
 
-## 7.4. Trách nhiệm của Engine (Engine Responsibilities)
+## 7.4. Các trường hợp sử dụng nâng cao
 
-1.  **Graph Validation:** (Future) Kiểm tra cấu trúc flow.
-2.  **Snapshot & Rollback:** (Đã có trong V2) Mỗi Process chạy trong Transaction. Lỗi tự rollback.
-3.  **Audit Trace:** (Đã có trong V2) Ghi lại nhật ký Audit (S/A/B/C).
+### A. Dynamic Loop (Vòng lặp động)
+Nếu bạn muốn robot lặp lại hành động gắp đồ cho đến khi hết đồ?
+*   **Không dùng:** `while` trong YAML.
+*   **Hãy dùng:** Cơ chế `Engine.loop()` ở tầng ứng dụng hoặc một Process trả về trạng thái `CONTINUE`.
+
+### B. Parallel Execution (Chạy song song)
+Hiện tại Theus chủ trương **Single Threaded by Default** để đảm bảo an toàn tuyệt đối.
+Tuy nhiên, bên trong một Process, bạn hoàn toàn có thể dùng `concurrent.futures` để download 10 ảnh cùng lúc, miễn là bạn đợi chúng xong (join) trước khi trả lại Context.
+
+---
+
+## 7.5. Kết luận
+*   **Workflow YAML:** Dùng để nhìn tổng quan (Big Picture).
+*   **Python Process:** Dùng để xử lý chi tiết (Nitty Gritty).
+
+Sự phân chia này giúp người quản lý (Manager) có thể đọc hiểu Workflow mà không cần biết code, trong khi Developer có toàn quyền sức mạnh của Python để xử lý logic phức tạp.

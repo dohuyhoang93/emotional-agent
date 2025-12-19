@@ -1,140 +1,100 @@
-# Bước 4: Tương tác với Thực tại (Interacting with Reality)
+# Bước 4: Kết nối Thế giới thực (Adapters & Environment)
 
 ---
 
-## 4.1. Chuyện nhà Dev: "Con tin của Công nghệ"
+## 4.1. Vùng Xanh và Vùng Đỏ
 
-Bạn viết logic xét duyệt vay vốn.
-*   Hôm nay: Sếp bảo lấy điểm tín dụng từ CIC (API).
-*   Ngày mai: Sếp bảo lấy từ Database nội bộ.
-*   Ngày kia: Sếp bảo lấy từ file Excel do đối tác gửi.
+Khi bạn viết một con Robot AI:
+*   **Vùng Xanh (Green Zone):** Logic an toàn. `if obstacle > 5m: speed = 10`.
+*   **Vùng Đỏ (Red Zone):** Phần cứng. `camera.read()`, `motor.set_pwm()`.
 
-Nếu bạn viết `requests.get("https://cic.vn/...")` ngay trong hàm xử lý, logic của bạn đã chết dính với CIC. Khi sếp đổi ý, bạn phải đục code ra sửa. Logic nghiệp vụ trở thành **"Con tin"** của công nghệ.
-
-Vấn đề:
-1.  **Khó thay đổi:** Đổi DB = Sửa Logic.
-2.  **Khó Test:** Muốn test hàm xét duyệt lại phải có mạng internet để gọi API thật.
-3.  **Lộn xộn:** Code nghiệp vụ (vay vốn) lẫn lộn với code kỹ thuật (JSON, HTTP, SQL).
+Vùng Đỏ chứa đầy rủi ro: Mất kết nối, nhiễu tín hiệu, timeout.
+**Nguyên tắc vàng của Theus:** Không bao giờ để Vùng Đỏ xâm nhập vào Vùng Xanh.
 
 ---
 
-## 4.2. Giải pháp POP: Adapter (Người phiên dịch)
+## 4.2. Adapter: Người lính biên phòng
 
-POP áp dụng triệt để quy tắc: **Logic Nghiệp vụ không được biết về Công nghệ bên ngoài.**
-Nó chỉ ra lệnh: *"Lấy cho tôi điểm tín dụng"*.
-Ai lấy? Lấy ở đâu? Bằng cách nào? -> Đó là việc của **Adapter**.
+Adapter là lớp code duy nhất được phép nói chuyện với phần cứng/API bên ngoài.
 
-*   **Process:** Lõi trong sạch (Pure).
-*   **Adapter:** Lớp vỏ bọc (Dirty). Đây là nơi chứa code SQL, HTTP request, File IO.
-*   **Context:** Nơi Process gặp gỡ Adapter.
-
----
-
-## 4.3. Thực hành: Gửi Email mà không cần biết SMTP
-
-Hãy xây dựng tính năng gửi email.
-
-### **Bước A: Viết Adapter**
-Tạo file `src/adapters/email_adapter.py`. Adapter chỉ là một class bình thường, không cần decorator gì cả.
+Hãy tạo file `adapters/camera.py`:
 
 ```python
-# src/adapters/email_adapter.py
-class EmailAdapter:
-    def send(self, to_addr: str, title: str, content: str):
-        # Code kỹ thuật nằm ở đây (SMTP, SendGrid, Mailgun...)
-        print(f"[Real Email Sent] To: {to_addr} | Title: {title}")
-        # Trong thực tế: smtp.sendmail(...)
+# adapters/camera.py
+import cv2
+
+class CameraAdapter:
+    def __init__(self, port=0):
+        self.cap = cv2.VideoCapture(port)
+        
+    def read_frame(self):
+        # Nơi duy nhất chứa code 'dơ' (IO-bound)
+        ret, frame = self.cap.read()
+        if not ret:
+            return None
+        return frame
 ```
 
-### **Bước B: Mở rộng Context (QUAN TRỌNG)**
-Mặc định `pop-sdk` chỉ cho bạn Global và Domain. Bạn cần thêm một ngăn chứa Adapter. 
-**Lưu ý Kỹ thuật:** Bạn PHẢI đặt tên biến có đuôi `_ctx` (ví dụ `env_ctx`) để kích hoạt cơ chế bảo vệ đệ quy (Recursive Guard) của SDK.
+**Quy tắc:** Adapter không bao giờ được import `theus`. Nó phải độc lập hoàn toàn.
 
-Mở `src/context.py`:
+---
+
+## 4.3. Environment: Hộp đựng công cụ
+
+Làm sao Process (ở `src/domain`) gọi được Camera (ở `adapters/`)?
+Chúng ta dùng **Environment Object**.
+
+File `adapters/env.py`:
 
 ```python
 from dataclasses import dataclass
-from pop import BaseSystemContext, BaseGlobalContext, BaseDomainContext
-# Import Adapter
-from src.adapters.email_adapter import EmailAdapter
-
-# ... (Global & Domain giữ nguyên) ...
+from .camera import CameraAdapter
+from .robot_arm import RobotArmAdapter
 
 @dataclass
-class EnvContext:
-    email_client: EmailAdapter = None  # Nơi chứa Adapter
-
-@dataclass
-class SystemContext(BaseSystemContext):
-    global_ctx: GlobalContext
-    domain_ctx: DomainContext
-    
-    # Kỷ luật POP: Phải có suffix _ctx
-    env_ctx: EnvContext = None 
+class Environment:
+    camera: CameraAdapter
+    arm: RobotArmAdapter
 ```
 
-### **Bước C: Đăng ký trong `main.py`**
-Chúng ta phải nhét Adapter thật vào Context lúc khởi chạy.
+---
+
+## 4.4. Sử dụng trong Process
+
+Khi bạn viết Process, hãy khai báo `env` trong tham số hàm. Theus sẽ tự động bơm (inject) Environment vào.
 
 ```python
-# main.py
-ctx = SystemContext(
-    global_ctx=GlobalContext(),
-    domain_ctx=DomainContext(),
-    env_ctx=EnvContext(
-        email_client=EmailAdapter() # Bơm hàng thật vào đây
-    )
-)
-```
+# src/domain/vision.py
 
-### **Bước D: Sử dụng trong Process**
-Giờ thì Process chỉ việc gọi `env.email_client`. Lưu ý `inputs` khai báo là `env...`.
-
-```python
+# [1] Khai báo Side-effect Contract
 @process(
-    name="send_welcome_email",
-    inputs=['domain.user', 'env.email_client'], # Xin quyền dùng Email
-    outputs=[],
-    side_effects=['SEND_EMAIL']
+    inputs=[],
+    outputs=["domain.camera.frame"],
+    side_effects=["camera_read"] # Khai báo để Audit biết
 )
-def send_welcome_email(ctx: SystemContext):
-    user = ctx.domain.user
+def capture_image(ctx, env):  # <--- Theus tự truyền env vào đây
     
-    # SDK Guard tự động map 'env' -> 'env_ctx'
-    # Bạn gọi ctx.env_ctx.email_client
-    ctx.env_ctx.email_client.send(
-        to_addr=user.email,
-        title="Welcome!",
-        content="Xin chào mừng bạn đến với POP!"
-    )
-```
-
-> **Góc Chuyên gia: Tại sao phải là `env_ctx`?**
-> Nếu bạn đặt tên là `env` (không có `_ctx`), SDK sẽ coi đó là một biến thường (như `int` hay `str`). Khi Process truy cập `ctx.env`, SDK sẽ trả về nguyên cục Object Adapter mà không kiểm soát tiếp các con bên trong. Process có thể lén lút gọi `env.database` dù không xin phép.
-> Khi dùng `env_ctx`, SDK hiểu đây là một Lớp (Layer) và sẽ tiếp tục soi xét quyền truy cập bên trong nó.
-
----
-
-## 4.4. Tại sao làm thế này lại sướng?
-
-Khi bạn muốn chạy Unit Test, bạn không cần cài SMTP Server. Bạn chỉ cần viết một `MockEmailAdapter`:
-
-```python
-class MockEmailAdapter:
-    def send(self, to_addr, title, content):
-        print("Giả vờ gửi email thôi!")
-
-# Trong file test
-ctx.env_ctx.email_client = MockEmailAdapter()
-# Chạy process -> code chạy vèo vèo, không phụ thuộc mạng.
+    # [2] Gọi Adapter tường minh
+    frame = env.camera.read_frame()
+    
+    # [3] Lưu vào Context
+    ctx.domain.camera.frame = frame
+    return ctx.done()
 ```
 
 ---
 
-## 4.5. Tổng kết Bước 4
+## 4.5. Tại sao không dùng `import` trực tiếp?
 
-*   **Adapter Pattern:** Đẩy hết những thứ "bẩn" (IO, Side-effect) ra rìa hệ thống.
-*   **Env Context:** Nơi chứa Adapter. Phải tuân thủ quy tắc đặt tên `_ctx`.
-*   **Dependency Injection:** Context là nơi bơm (inject) Adapter vào Process.
+*   **Mocking:** Khi chạy Unit Test, bạn có thể truyền `MockEnvironment(camera=FakeCamera())`. Nếu bạn `import adapters.camera` trực tiếp, bạn không thể mock được.
+*   **Quản lý vòng đời:** Theus có thể tự động `connect()` và `disconnect()` tất cả adapter khi khởi động/tắt app.
 
-**Thử thách:** Hãy viết một `StockAdapter` (để lấy tồn kho) và inject nó vào `env_ctx`. Sau đó sửa process `validate_order` ở Bước 2 để dùng `ctx.env_ctx.stock_adapter.check_availability(sku)` thay vì truy cập `domain.warehouse` trực tiếp.
+---
+
+## 4.6. Tổng kết
+
+*   **Adapter:** Chuyên gia phần cứng.
+*   **Environment:** Hộp đựng công cụ.
+*   **Process:** Người thợ dùng công cụ để làm việc.
+
+**Thử thách:** Viết một `SlackAdapter` và dùng nó để gửi tin nhắn cảnh báo khi Robot gặp vật cản.

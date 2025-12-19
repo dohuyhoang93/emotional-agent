@@ -1,4 +1,4 @@
-# Theus (formerly POP SDK)
+# Theus
 
 **The "Operating System" for AI Agents and Complex Systems.**
 
@@ -14,16 +14,16 @@
 
 ## 🌟 Key Features
 
-# Theus SDK (V2.1)
+# Theus Framework
 
-> **Process-Oriented Programming (POP) SDK for Industrial Agents**
-> *Formerly known as POP SDK*
+> **The Framework for Industrial Agents**
+> *Built on the Process-Oriented Programming (POP) Paradigm*
 
-Theus is a robust, clean-architecture framework for building deterministic, auditable, and resilient AI Agents. It implements the **POP Microkernel Architecture**, separating Data (Context) from Behavior (Process) and Orchestration (Workflow).
+Theus is an opinionated, clean-architecture framework for building deterministic, auditable, and resilient AI Agents. It implements the **POP Microkernel Architecture**, enforcing a strict separation of Data (Context), Behavior (Process), and Orchestration (Workflow).
 
-## 🚀 What's New in V2.1?
+## 🚀 Why Theus?
 
-- **Microkernel Core**: Separated `POPEngine` from Orchestration Logic.
+- **Microkernel Core**: Separated `TheusEngine` from Orchestration Logic.
 - **Hybrid Workflow**: Combine Finite State Machines (FSM) with Linear Process Chains.
 - **Thread-Safe Concurrency**: `ThreadExecutor` for non-blocking I/O and background tasks.
 - **Industrial Safety**:
@@ -34,10 +34,10 @@ Theus is a robust, clean-architecture framework for building deterministic, audi
 
 ## 📚 Documentation
 
-- [Architecture Specification (V2.1)](Documents/SPECS/theus_v2_1_architecture.md)
-- [POP Engineering Handbook (V2.1)](Documents/POP_Specification_v2_1.md)
+- [Architecture Specification](Documents/SPECS/theus_architecture.md)
+- [POP Engineering Handbook](Documents/POP_Specification.md)
 - [Configuration Guide (Workflow & Audit)](Documents/GUIDES/configuration.md)
-- [RELEASE NOTES (v0.2.0)](RELEASE_NOTES_v0.2.0.md)
+- [RELEASE NOTES](RELEASE_NOTES.md)
 
 ## 🛠 Installation
 

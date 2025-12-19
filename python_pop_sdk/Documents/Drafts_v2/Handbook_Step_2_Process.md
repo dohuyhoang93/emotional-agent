@@ -1,110 +1,95 @@
-# Bước 2: Nghệ thuật của Hành động Thuần khiết (The Art of Pure Action)
+# Bước 2: Thiết kế Process (Hành động chuẩn mực)
 
 ---
 
-## 2.1. Chuyện nhà Dev: "Hàm này làm gì? Làm tất cả!"
+## 2.1. Triết lý "Hộp Đen Trong Suốt"
 
-Bạn đang debug một lỗi sai lệch tồn kho. Bạn tìm thấy một hàm `process_order()` dài 500 dòng.
-Nó làm gì?
-1.  Tính tổng tiền, check hạng thành viên (Logic).
-2.  Query DB để lấy tồn kho (Implicit IO).
-3.  Modifiy thẳng vào biến global `TOTAL_REVENUE` (Global Mutation).
+Một Process trong Theus giống như một linh kiện điện tử:
+1.  **Chân cắm vào (Inputs):** Rõ ràng, cố định.
+2.  **Chân cắm ra (Outputs):** Đo lường được.
+3.  **Lõi (Logic):** Xử lý thuần túy.
 
-Đây là **"Spaghetti Function"**. Mọi thứ dính chùm vào nhau, không thể gỡ ra để test riêng lẻ.
-
----
-
-## 2.2. Giải pháp POP: Process & Bản Hợp đồng (The Contract)
-
-Trong POP, hàm không còn tự do. Nó bị ràng buộc bởi **Hợp đồng (Contract)**.
-
-Decorator `@process` cho phép bạn khai báo:
-1.  **`inputs`**: Tôi cần đọc gì?
-2.  **`outputs`**: Tôi sẽ ghi gì?
-
-Ngoài ra, POP V2 giới thiệu **Luật Kiểm Toán (Audit Rules)** nằm bên ngoài code.
-*   **Process Logic**: "Nếu user VIP, giảm giá 10%". (Nghiệp vụ)
-*   **Audit Logic (S/A/B/C)**: "Tổng tiền đơn hàng không bao giờ được âm". (An toàn)
+Khác với hàm Python thông thường (có thể gọi `global`, `print`, `db` lung tung), Theus Process bị ràng buộc bởi **Hợp đồng (Contract)**.
 
 ---
 
-## 2.3. Thực hành: Xử lý Đơn hàng
+## 2.2. Viết Process đầu tiên
+
+Hãy mở file `src/domain/vision.py` và viết một logic kiểm tra chất lượng ảnh.
 
 ```python
-from pop import process
-from src.context import SystemContext
+from theus import process
 
+# [1] Input Contract: Chỉ đọc những gì cần thiết
+# [2] Output Contract: Chỉ ghi những gì đã hứa
+# [3] Error Contract: Khai báo lỗi nghiệp vụ
 @process(
-    name="validate_order",
-    inputs=[
-        'domain.user',      
-        'domain.order',     
-        'domain.warehouse'  
-    ],
-    outputs=[
-        'domain.order.status',  
-        'domain.order.error'    
-    ]
+    inputs=["domain.camera.frame"],
+    outputs=["domain.vision.is_blur", "domain.vision.brightness"],
+    errors=["FRAME_CORRUPTED"]
 )
-def validate_order(ctx: SystemContext):
-    user = ctx.domain.user
-    order = ctx.domain.order
+def check_image_quality(ctx):
+    # Lấy dữ liệu từ Context (Read-Only)
+    frame = ctx.domain.camera.frame
     
-    # 1. Logic Nghiệp vụ (Business Logic)
-    if user.balance < order.total_amount:
-        ctx.domain.order.status = "REJECTED"
-        return "FAILED"
-
-    # 2. Logic cập nhật
-    ctx.domain.order.status = "VALIDATED"
-    return "OK"
+    if frame is None:
+        # Trả về lỗi nghiệp vụ (Không phải Exception!)
+        return ctx.fail("FRAME_CORRUPTED")
+        
+    # Xử lý logic
+    is_blur = detect_blur(frame)
+    brightness = calculate_brightness(frame)
+    
+    # Ghi dữ liệu vào Context (Write-Only)
+    ctx.domain.vision.is_blur = is_blur
+    ctx.domain.vision.brightness = brightness
+    
+    # Trả về thành công
+    return ctx.done()
 ```
 
 ---
 
-## 2.4. Sự bảo vệ 2 Lớp (Dual Layer Protection)
+## 2.3. Ba Quy tắc Vàng của Process
 
-Bạn có thể thắc mắc: *"Tại sao phải chia Process và Audit?"*
+### 1. Pure Function (Hàm thuần túy)
+Process **không được** lưu trạng thái vào biến `self` hay `global`.
+Mọi trạng thái phải nằm trên Context.
+*   *Tại sao?* Để hệ thống có thể Restart, Retry, và Replay bất cứ lúc nào.
 
-Hãy xem kịch bản sau: Bạn viết code giảm giá nhưng bị bug, tính ra số âm:
+### 2. Explicit Dependencies (Phụ thuộc rạch ròi)
+Nếu bạn cần dùng `cv2` hay `numpy`, hãy import nó ở đầu file.
+Nếu bạn cần nối Database, hãy dùng Adapter (xem Step 4). Tuyệt đối không tạo connection lén lút trong hàm.
+
+### 3. Fail Fast (Lỗi là dừng)
+Đừng `try/catch` rộng để giấu lỗi. Nếu có lỗi không lường trước (ví dụ: chia cho 0), hãy để nó crash. Theus sẽ bắt (`catch`) ở tầng ngoài cùng và rollback transaction an toàn.
+
+---
+
+## 2.4. Unit Test cho Process
+
+Vì Process là hàm thuần túy, việc test cực kỳ "sướng":
+
 ```python
-order.total_amount = -100 # BUG!
+def test_check_image_quality():
+    # 1. Setup Mock Context
+    ctx = MockContext()
+    ctx.domain.camera.frame = create_black_image()
+    
+    # 2. Run Process
+    result = check_image_quality(ctx)
+    
+    # 3. Assert
+    assert result.is_success
+    assert ctx.domain.vision.brightness == 0
 ```
 
-1.  **Nếu không có Audit:** Hệ thống chuyển -100đ cho khách. Công ty lỗ vốn.
-2.  **Có Audit (specs/audit_recipe.yaml):**
-    ```yaml
-    validate_order:
-      output_rules:
-        - target: domain.order.total_amount
-          condition: min
-          value: 0
-          level: S  # STOP NGAY LẬP TỨC
-    ```
-    Engine sẽ chặn ngay khi Process vừa chạy xong, trước khi dữ liệu được commit. Bug bị bắt tại trận!
+Bạn không cần Database, không cần Camera thật. Chỉ cần dữ liệu giả.
 
 ---
 
-## 2.5. Sự thật về SDK: Cái gì bị chặn?
+## 2.5. Tổng kết
 
-### **1. Contract Guard (Cứng)**
-`ContextGuard` sẽ chặn đứng nếu bạn đọc/ghi vào biến Context chưa khai báo trong `inputs/outputs`.
-*   *Cố tình ghi `domain.inventory` mà không khai báo Output?* -> **PermissionDenied**.
-
-### **2. Audit Gate (Cứng)**
-Kiểm tra giá trị đầu vào/đầu ra theo Luật S/A/B/C.
-*   *Input vi phạm Level S?* -> **AuditInterlockError** (Process không được chạy).
-
-### **3. Kỷ luật (Mềm)**
-*   **Side Effects:** Bạn phải tự giác không gọi DB/API trong này (dùng Adapter).
-*   **Determinism:** Không dùng `datetime.now()` bừa bãi.
-
----
-
-## 2.6. Tổng kết Bước 2
-
-*   Viết Process = Viết Logic thuần túy.
-*   Khai báo Inputs/Outputs minh bạch.
-*   Để phần "Bảo vệ an toàn" (Safety) cho Audit Recipe lo liệu.
-
-**Thử thách:** Hãy viết một bug cố tình gán `total_amount = -1` và chạy thử xem `pop audit` có bắt được không nhé!
+*   Dùng `@process` để biến hàm thường thành linh kiện Theus.
+*   Khai báo `inputs`/`outputs` để Theus bảo vệ bạn (ContextGuard).
+*   Test logic nghiệp vụ độc lập với hệ thống.

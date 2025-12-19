@@ -1,110 +1,109 @@
-# Bước 5: Tổ hợp Phức tạp (The Complex Monolith)
+# Bước 5: Quản lý Sự phức tạp (The Orchestrator)
 
 ---
 
-## 5.1. Chuyện nhà Dev: "Bản vẽ dài 10 mét"
+## 5.1. Khi YAML trở nên quá tải
 
-Dự án của bạn thành công. File `checkout_flow.yaml` từ 5 bước giờ đã dài 50 bước.
-*   "Nếu user là VIP thì chạy 5 bước A".
-*   "Nếu user mua hàng quốc tế thì chạy 10 bước B".
+Dự án lớn dần. Bạn bắt đầu có nhu cầu:
+*   "Nếu là VIP thì chạy A, còn không chạy B".
+*   "Lặp lại bước X cho đến khi thành công".
+*   "Chạy song song 3 model AI để lấy kết quả nhanh nhất".
 
-Nhưng Engine hiện tại chỉ chạy **Tuyến tính (Linear)**. Bạn không thể viết `if/else` trong YAML. Khủng hoảng xảy ra.
-
----
-
-## 5.2. Sự thật về SDK (V1): Giới hạn Đệ quy
-
-Bạn có thể nghĩ: *"Tại sao không cho Process gọi lại Engine? (Đệ quy)"*
-Tôi đã thử nghiệm kỹ lưỡng điều này và kết luận: **KHÔNG NÊN LÀM VẬY TRONG PHIÊN BẢN HIỆN TẠI.**
-
-*   **Tại sao:** Hệ thống Transaction và Lock của SDK V1 chưa hỗ trợ "Lồng nhau" (Nested Transactions). Việc gọi Engine bên trong Engine dễ dẫn đến **Deadlock** (Treo) hoặc xung đột dữ liệu.
-*   **Roadmap:** Tính năng "Sub-Workflow" chính thức sẽ có trong phiên bản V2.
-
-Vậy giải pháp hiện tại là gì? **Signal Pattern (Mẫu Tín hiệu).**
+Nếu bạn cố nhồi nhét logic này vào `workflow.yaml`, nó sẽ trở thành một mớ hỗn độn (Spaghetti YAML).
+Theus có quy tắc: **YAML phải phẳng (Flat) và Tĩnh (Static).**
 
 ---
 
-## 5.3. Giải pháp: Signal Pattern (Người điều phối nằm ở Main)
+## 5.2. Orchestrator Pattern: Giấu sự phức tạp vào code
 
-Thay vì Process tự quyết định và gọi Engine (rất nguy hiểm), Process chỉ cần **Ra Tín hiệu**.
-Logic điều hướng sẽ nằm ở lớp ngoài cùng (`main.py`).
-
-### **Bước A: Process trả về Tín hiệu**
-Viết một Process đóng vai trò "Bộ định tuyến" (Router). Nhiệm vụ duy nhất là check điều kiện và trả về tên quy trình tiếp theo.
+Thay vì làm YAML phức tạp, hãy tạo một Process đặc biệt gọi là **Orchestrator**.
 
 ```python
 @process(
-    name="route_checkout",
-    inputs=['domain.user.rank'],
-    outputs=[],
-    errors=[] 
+    inputs=["domain.user.rank"],
+    outputs=["domain.commands.next_action"]
 )
-def route_checkout(ctx: SystemContext):
+def decide_vip_flow(ctx):
     rank = ctx.domain.user.rank
     
     if rank == "VIP":
-        # Trả về một chuỗi đặc biệt để báo hiệu
-        return "SIGNAL:RUN_VIP"
+        # Orchestrator quyết định logic phức tạp ở đây
+        if is_weekend():
+             ctx.domain.commands.next_action = "GIFT_VOUCHER"
+        else:
+             ctx.domain.commands.next_action = "FAST_TRACK"
     else:
-        return "SIGNAL:RUN_STANDARD"
+        ctx.domain.commands.next_action = "NORMAL_QUEUE"
+        
+    return ctx.done()
 ```
 
-### **Bước B: Tổ chức Workflow**
-Chúng ta chia nhỏ các file YAML:
-1.  `workflows/setup.yaml`: Chạy các bước chuẩn bị, cuối cùng là `route_checkout`.
-2.  `workflows/vip.yaml`: Quy trình VIP.
-3.  `workflows/standard.yaml`: Quy trình thường.
+Trong YAML, bạn chỉ cần 2 dòng:
+```yaml
+- "domain.behavior.decide_vip_flow"
+- "domain.behavior.execute_decision"
+```
 
-### **Bước C: "Bộ não" tại `main.py`**
-Chúng ta viết một vòng lặp nhỏ trong `main.py` để hứng tín hiệu.
+Sự phức tạp đã được gói gọn vào trong Python - nơi giỏi xử lý logic nhất.
+
+---
+
+## 5.3. Xử lý Song song (Internal Parallelism)
+
+Theus mặc định chạy đơn luồng (Single Thread) để đảm bảo an toàn.
+Nhưng nếu bạn cần download 10 file ảnh cùng lúc?
+
+Hãy dùng `ThreadPoolExecutor` **bên trong** Process.
 
 ```python
-# main.py
+from concurrent.futures import ThreadPoolExecutor
 
-# Bắt đầu với bước Setup
-current_flow = "workflows/setup.yaml"
-
-while current_flow:
-    print(f"--- Running Flow: {current_flow} ---")
+@process(...)
+def download_images(ctx):
+    urls = ctx.domain.inputs.urls
     
-    # 1. Chạy workflow hiện tại
-    # Lưu ý: Engine cần cập nhật hàm run để trả về kết quả của bước cuối cùng
-    # Hoặc chúng ta kiểm tra trạng thái trong Context
-    engine.execute_workflow(current_flow)
-    
-    # 2. Kiểm tra tín hiệu từ Context (Cách an toàn nhất)
-    # Giả sử chúng ta quy ước lưu tín hiệu vào domain.system_signal
-    signal = ctx.domain.system_signal
-    
-    # 3. Điều hướng (Routing Logic)
-    if signal == "SIGNAL:RUN_VIP":
-        current_flow = "workflows/vip.yaml"
-        ctx.domain.system_signal = "" # Reset signal
-    elif signal == "SIGNAL:RUN_STANDARD":
-        current_flow = "workflows/standard.yaml"
-        ctx.domain.system_signal = ""
-    else:
-        # Không có tín hiệu -> Kết thúc
-        current_flow = None
+    def _download(url):
+        # Code download here
+        pass
+        
+    # Tự quản lý luồng nội bộ
+    with ThreadPoolExecutor(max_workers=4) as executor:
+        results = list(executor.map(_download, urls))
+        
+    ctx.domain.outputs.images = results
+    return ctx.done()
 ```
 
----
-
-## 5.4. Quyền lực & Trách nhiệm
-
-Cách tiếp cận này hơi thủ công (bạn phải viết code if/else ở main), nhưng nó mang lại sự **An toàn Tuyệt đối**.
-*   **Không Deadlock:** Mỗi Workflow chạy xong, Commit transaction, thoát ra, rồi mới chạy Workflow kia. Không có Transaction lồng nhau.
-*   **Minh bạch:** Nhìn vào `main.py` là thấy ngay sơ đồ điều hướng tổng thể.
-
-> **Ghi chú về Tương lai (Roadmap):**
-> Team phát triển SDK đang làm việc trên tính năng `Native Branching` trong YAML (ví dụ: `next: vip_flow if $domain.is_vip`). Khi đó, bạn có thể xóa đoạn code điều hướng trong `main.py` đi. Nhưng hiện tại, Signal Pattern là giải pháp "Best Practice".
+**Lưu ý:** Context không an toàn để chia sẻ (Not Thread-Safe). Trong hàm `_download`, đừng bao giờ ghi trực tiếp vào `ctx`. Hãy trả kết quả về (return) và để luồng chính (Main Thread) ghi vào Context.
 
 ---
 
-## 5.5. Tổng kết Bước 5
+## 5.4. Vòng lặp & Retry
 
-*   **Hiện tại (V1):** Tránh gọi Engine đệ quy. Dùng Signal Pattern.
-*   **Chia nhỏ:** Giữ các file YAML nhỏ gọn, chuyên biệt.
-*   **Main Loop:** Biến `main.py` thành một "State Machine" đơn giản để nối các file YAML lại với nhau.
+Nếu cần lặp lại một hành động (như thử connect lại Database)?
+Hãy dùng vòng lặp `while` hoặc thư viện `tenacity` ngay trong Process.
 
-**Thử thách:** Hãy áp dụng Signal Pattern để xử lý nút "Retry". Nếu thanh toán lỗi, Process trả về `SIGNAL:RETRY`. Main loop sẽ đếm số lần thử, nếu < 3 thì chạy lại dòng `payment_flow.yaml`.
+```python
+@process(...)
+def connect_db_with_retry(ctx):
+    attempt = 0
+    while attempt < 3:
+        try:
+            connect()
+            return ctx.done()
+        except error:
+            attempt += 1
+            sleep(1)
+            
+    return ctx.fail("CONNECTION_FAILED")
+```
+
+Đừng bắt Engine phải có tính năng "Retry Step". Process nên tự chịu trách nhiệm về độ bền (Resilience) của chính mình.
+
+---
+
+## 5.5. Tổng kết
+
+*   Giữ `workflow.yaml` đơn giản.
+*   Đẩy logic rẽ nhánh, vòng lặp phức tạp vào trong **Orchestrator Process**.
+*   Sử dụng Parallelism bên trong Process nhưng phải tuân thủ quy tắc "Main Thread Write Only".

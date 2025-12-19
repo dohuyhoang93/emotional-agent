@@ -22,9 +22,26 @@ Chúng ta chia "ngôi nhà" này thành 3 phòng:
 
 ---
 
-## 1.3. Single Source of Truth: `context_schema.yaml`
+## 1.3. Tư duy Thiết kế: 3 Câu hỏi Vàng (3-Axis Thinking)
+Trước khi khai báo một biến vào Context, hãy tự hỏi 3 câu sau:
 
-Ở phiên bản POP V2, chúng ta không định nghĩa dữ liệu bằng miệng hay bằng comment. Chúng ta dùng **Hợp đồng (Contract)**.
+1.  **Sống bao lâu?** (Layer)
+    *   Toàn bộ vòng đời App? -> `Global`
+    *   Chỉ 1 Request/Workflow? -> `Domain`
+    *   Chỉ trong 1 hàm? -> `Local`
+2.  **Là Tài sản hay Tín hiệu?** (Zone)
+    *   Cần lưu lại? -> `Data` (Mặc định)
+    *   Chỉ để kích hoạt gì đó rồi quên luôn? -> `Signal` (Prefix `sig_`)
+    *   Chỉ để debug? -> `Meta` (Prefix `meta_`)
+3.  **Dùng để làm gì?** (Semantic)
+    *   Đọc? -> `Input`
+    *   Ghi? -> `Output`
+
+---
+
+## 1.4. Single Source of Truth: `context_schema.yaml`
+
+Trong Theus, chúng ta không định nghĩa dữ liệu bằng miệng hay bằng comment. Chúng ta dùng **Hợp đồng (Contract)**.
 
 File `specs/context_schema.yaml`:
 
@@ -46,12 +63,12 @@ context:
 
 ---
 
-## 1.4. Thực hành: Khởi tạo Dự án
+## 1.5. Thực hành: Khởi tạo Dự án
 
-Dùng CLI để dựng bộ khung chuẩn V2:
+Dùng CLI để dựng bộ khung chuẩn:
 
 ```bash
-pop init my_agent
+theus init my_agent
 cd my_agent
 ```
 
@@ -59,7 +76,7 @@ Cấu trúc thư mục mới:
 
 ```text
 my_agent/
-├── specs/                # <--- CẤU HÌNH CỐT LÕI (V2)
+├── specs/                # <--- CẤU HÌNH CỐT LÕI
 │   ├── context_schema.yaml
 │   └── audit_recipe.yaml
 ├── workflows/            # Kịch bản chạy (YAML)
@@ -71,16 +88,16 @@ my_agent/
 
 ---
 
-## 1.5. Implementation: `context.py`
+## 1.6. Implementation: `context.py`
 
 Dù Schema là YAML, nhưng chúng ta vẫn cần Class Python để có **Autocompletion** trong IDE.
-POP SDK khuyến khích dùng `dataclasses` để map 1-1 với Schema.
+Theus khuyến khích dùng `dataclasses` để map 1-1 với Schema.
 
 ```python
 # src/context.py
 from dataclasses import dataclass, field
 from typing import List
-from pop import BaseDomainContext, BaseGlobalContext
+from theus import BaseDomainContext, BaseGlobalContext
 
 # 1. Global: Cấu hình Tĩnh
 @dataclass
@@ -95,11 +112,11 @@ class DomainContext(BaseDomainContext):
     order_items: List[str] = field(default_factory=list)
 ```
 
-> **Lưu ý:** Trong tương lai (V3), bước này có thể được tự động hóa (Code Gen).
+> **Lưu ý:** Trong tương lai, bước này có thể được tự động hóa (Code Gen).
 
 ---
 
-## 1.6. Tổng kết Bước 1
+## 1.7. Tổng kết Bước 1
 
 Chúng ta chưa viết logic xử lý nào, nhưng chúng ta đã thắng lớn:
 *   **Minh bạch:** Nhìn vào `specs/context_schema.yaml` là hiểu toàn bộ dữ liệu dự án.

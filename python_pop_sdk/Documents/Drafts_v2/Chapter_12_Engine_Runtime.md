@@ -1,108 +1,97 @@
-# Chương 12: Đặc tả Runtime Engine (Engine Internals)
+# Chương 12: Theus Microkernel - Trái tim máy (Engine Internals)
 
 ---
 
-## 12.1. Tổng quan Kiến trúc Runtime
+## 12.1. Tổng quan Kiến trúc Microkernel
 
-Trong hệ sinh thái POP, Engine đóng vai trò là một **Process Virtual Machine (PVM)**. Nó không chỉ đơn thuần là trình chạy hàm (Function Runner), mà là hệ thống quản lý trọn vẹn vòng đời của dữ liệu và thực thi.
+Engine của Theus không còn là một "Process Runner" đơn thuần. Nó được thiết kế như một **Microkernel** (Hệ điều hành hạt nhân nhỏ) chuyên dụng cho tự động hóa.
 
-Kiến trúc Runtime bao gồm 3 lớp chính (3-Layer Architecture):
-1.  **Transport Layer (Tầng Vận chuyển):** Chứa Context và Dữ liệu "câm" (Dumb Data).
-2.  **Execution Layer (Tầng Thực thi):** Các hàm Process thuần túy thực hiện biến đổi dữ liệu.
-3.  **Governance Layer (Tầng Quản trị):** Hệ thống "Cảnh sát" (Guard & Lock) quản lý quyền truy cập.
+Mục tiêu của Theus Microkernel là quản lý sự **hỗn loạn** của thế giới thực thông qua sự **kỷ luật** của máy tính.
 
-Mục tiêu của Engine là đảm bảo 3 tính chất: **Atomic** (Nguyên tử), **Consistent** (Nhất quán), và **Observable** (Có thể quan sát/Audit).
+### Kiến trúc 3 Lớp (The 3-Layer Architecture)
 
----
+```mermaid
+graph TD
+    UserCode[User Processes] -->|Calls| Kernel API
+    
+    subgraph "Theus Microkernel"
+        Governance[Layer 3: Governance (Cảnh sát)]
+        Execution[Layer 2: Execution (Dây chuyền)]
+        Transport[Layer 1: Transport (Kho vận)]
+    end
+    
+    Governance -->|Enforces| Execution
+    Execution -->|Mutates| Transport
+```
 
-## 12.2. Cơ chế Quản trị Dữ liệu (Data Governance)
-
-Để hiện thực hóa triết lý "Validation First" và "Contract Enforcement", Engine sử dụng 3 cơ chế kỹ thuật cốt lõi:
-
-### **Cơ chế 1: The Airlock (Shadowing & Isolation)**
-Engine sử dụng chiến lược **Implicit Shadowing** để cô lập Process khỏi dữ liệu gốc.
-*   **Nguyên lý:** Process không bao giờ tương tác trực tiếp với Context gốc (Master Context).
-*   **Cơ chế:**
-    1.  Engine tạo bản sao nông (**Shadow Copy**) của Context.
-    2.  Process thực hiện đọc/ghi trên bản sao này.
-    3.  *Commit:* Nếu thành công, Engine merge thay đổi từ Shadow về Master.
-    4.  *Rollback:* Nếu thất bại, Shadow bị hủy. Master giữ nguyên trạng thái cũ.
-*   **Lợi ích:** Đảm bảo tính Transaction (Atomicity).
-
-### **Cơ chế 2: The Customs Officer (Context Guard)**
-Lớp trung gian `ContextGuard` chặn đứng mọi truy cập trái phép.
-*   **Read Access Control:** Nếu Process truy cập `ctx.field` không có trong `input contract` -> `IllegalReadError`.
-*   **Immutability Enforcement:** Các field input (không nằm trong output) được bọc bởi `FrozenList` hoặc `FrozenDict`. Mọi nỗ lực ghi đè sẽ bị chặn Exception ngay lập tức.
-
-### **Cơ chế 3: The Vault (Context Locking)**
-Bảo vệ dữ liệu khỏi các luồng (thread) bên ngoài.
-*   **Trạng thái LOCKED (Mặc định):** Mọi thao tác ghi (`__setattr__`) từ bên ngoài đều bị từ chối.
-*   **Trạng thái UNLOCKED:** Chỉ mở tạm thời trong phạm vi transaction của `engine.run_process()`.
+1.  **Transport Layer (Vận chuyển):** Nơi chứa Context và dữ liệu "câm". Nhiệm vụ duy nhất là lưu trữ đúng chỗ.
+2.  **Execution Layer (Thực thi):** Nơi chạy các Process. Đây là "cơ bắp" của hệ thống.
+3.  **Governance Layer (Quản trị):** Nơi chứa các luật lệ (Guard, Lock, Auditor). Đây là "bộ não" kiểm soát an toàn.
 
 ---
 
-## 12.3. Pipeline Thực thi Quy trình (Execution Pipeline - The Industrial Flow)
+## 12.2. Cơ chế Quản trị Dữ liệu: "The Iron Triangle"
 
-Khi lệnh `engine.run_process(name)` được gọi, một chuỗi 7 bước đồng bộ diễn ra, tích hợp chặt chẽ với hệ thống Audit:
+Để đảm bảo an toàn tuyệt đối, Theus sử dụng bộ 3 cơ chế bảo vệ gọi là "Tam giác sắt":
 
-1.  **Preparation (Chuẩn bị):**
-    *   Lookup Process từ Registry.
-    *   Phân tích Contract (`@process` decorator).
-    *   Khởi tạo Transaction ID.
+### 1. The Airlock (Shadowing) - Cách ly
+*   **Vấn đề:** Nếu cho Process sửa trực tiếp Context gốc (`Master Context`), khi Process lỗi giữa chừng, Context sẽ bị hỏng (Inconsistent State).
+*   **Giải pháp:** Theus tạo một bản sao (**Shadow Context**) cho mỗi Process.
+    *   Process chỉ được sửa bản sao.
+    *   Nếu thành công: Kernel thực hiện **Atomic Commit** (Merge bản sao về bản gốc).
+    *   Nếu thất bại: Kernel hủy bản sao. Bản gốc nguyên vẹn.
 
-2.  **Input Gate (Cổng RMS - Audit Check):**
-    *   **Audit Input:** Hệ thống kiểm tra dữ liệu đầu vào dựa trên `input_rules` trong `audit_recipe.yaml`.
-    *   Nếu vi phạm Level S -> **Interlock** (Dừng ngay).
-    *   Nếu vi phạm Level B/C -> Xử lý theo luật (Block/Log).
+### 2. The Gatekeeper (Context Guard) - Kiểm soát
+*   **Vấn đề:** Process cố tình đọc/ghi vào biến không được phép.
+*   **Giải pháp:** Lớp `ContextGuard` bọc lấy Context.
+    *   Nó chặn mọi truy cập không khai báo (Illegal Read/Write).
+    *   Nó đóng băng (`Frozen`) các biến Input để đảm bảo Process không vô tình sửa tham số đầu vào.
 
-3.  **Isolation (Cách ly):**
-    *   Tạo `ShadowContext`.
-    *   Áp dụng `ContextGuard`.
+### 3. The 3-Axis Matrix - Luật pháp
+Core của việc kiểm soát nằm ở **Ma trận An toàn 3 Trục** (Xem Chương 4). Kernel không chỉ check tên biến, mà check giao điểm của:
+*   **Zone:** (Data/Signal)
+*   **Semantic:** (Input/Output)
+*   **Layer:** (Global/Domain)
 
-4.  **Execution (Thực thi):**
-    *   Thực thi hàm Process với inputs là `GuardedContext`.
-    *   Catch Exception.
-
-5.  **Output Gate (Cổng FDC - Audit Check):**
-    *   **Audit Output:** Hệ thống kiểm tra thành phẩm đầu ra dựa trên `output_rules`.
-    *   Bảo vệ hệ thống khỏi dữ liệu lỗi (Garbage Out).
-    *   Phát hiện các bất thường (Anomaly) trước khi commit.
-
-6.  **Delta Tracking & Commit:**
-    *   So sánh trạng thái trước/sau (Diffing).
-    *   Merge thay đổi vào Master Context.
-
-7.  **Clean-up (Dọn dẹp):**
-    *   Đóng Transaction.
+> **Ví dụ:** Nếu Process cố gắng khai báo `inputs=['sig_stop']` (Dùng Signal làm đầu vào), Kernel sẽ chặn ngay lập tức vì vi phạm nguyên tắc Determinism (Signal không ổn định để Replay).
 
 ---
 
-## 12.4. Khả năng Mở rộng (Extensibility)
+## 12.3. Pipeline Thực thi Công nghiệp (The Industrial Pipeline)
 
-Engine được thiết kế để hỗ trợ:
-1.  **Middleware Support:** Cho phép chèn các hook (Pre/Post-process) để đo lường hiệu năng (`PerformanceMonitor`) hoặc kiểm tra ràng buộc dữ liệu (`DataValidator`) mà không cần sửa code nghiệp vụ.
-2.  **Scientific Computing:** Engine là **Data-Agnostic**. Nó quản lý `numpy.ndarray` hay `torch.Tensor` tốt như quản lý `dict` thông thường, hỗ trợ các bài toán tính toán ma trận phức tạp.
+Mỗi khi bạn gọi lệnh chạy, Theus không chỉ "gọi hàm". Nó kích hoạt một dây chuyền 7 bước nghiêm ngặt:
+
+1.  **Registry Lookup:** Tìm Process và Contract trong sổ cái.
+2.  **Static Validation:** Kiểm tra tĩnh xem Input đã đủ trong Context chưa.
+3.  **Shadowing & Locking:** Tạo Transaction ID, khóa Context, tạo bản sao.
+4.  **Guard Injection:** Bọc bản sao bằng `ContextGuard`.
+5.  **Execution (Unsafe Zone):** Chạy code Python của người dùng bên trong môi trường được bảo vệ.
+6.  **Dynamic Audit:**
+    *   Kiểm tra Output xem có vi phạm Rule ràng buộc không (ví dụ: `age < 0`).
+    *   Nếu vi phạm nghiêm trọng -> **Interlock** (Dừng hệ thống).
+7.  **Atomic Commit:** Merge dữ liệu và mở khóa.
 
 ---
 
-## 12.5. Các Giới hạn & Phân loại An toàn (Limitations & Safety Types)
+## 12.4. Các mức độ An toàn (Safety Tiers)
 
-Để cân bằng giữa An toàn và Tốc độ phát triển (Developer Velocity), POP chấp nhận một số thỏa hiệp:
+Theus chia dữ liệu thành 3 hạng mục để bảo vệ:
 
-### **Giới hạn Kỹ thuật**
-1.  **Overhead:** Cơ chế Shadowing tốn tài nguyên CPU/RAM (~5-10% overhead).
-2.  **Python Limits:** `FrozenList` chỉ bảo vệ ở mức ứng dụng. Một lập trình viên cố tình dùng C-extension vẫn có thể bypass.
+### Tier 1: Primitives (Tuyệt đối an toàn)
+*   `int`, `str`, `tupe`, `bool`.
+*   Python không cho phép sửa nội tại (Immutable). Theus bảo vệ 100%.
 
-### **Phân loại An toàn theo Kiểu dữ liệu (Safety by Type)**
-Engine bảo vệ các loại dữ liệu ở mức độ khác nhau:
+### Tier 2: Managed Structures (An toàn cao)
+*   `List`, `Dict`.
+*   Theus tự động chuyển đổi thành `TrackedList` và `FrozenList`.
+*   Nếu bạn thử `ctx.settings.append(1)` trên một Input List, bạn sẽ nhận lỗi `ContractViolation`.
 
-*   **Nhóm 1: Tuyệt đối An toàn (Immutable Primitives)**
-    *   `int`, `float`, `str`, `tuple`.
-    *   Không thể sửa nội tại (In-place mutation). Luôn an toàn.
-*   **Nhóm 2: Được Bảo vệ (Managed Containers)**
-    *   `list`, `dict`.
-    *   Được Guard tự động chuyển thành `FrozenList`/`FrozenDict`. An toàn cao.
-*   **Nhóm 3: Rủi ro (Unmanaged Mutable Objects)**
-    *   `dataclass`, `numpy.ndarray`, `torch.Tensor`.
-    *   Guard chỉ trả về tham chiếu gốc. Nếu Process gọi `array.append()` hoặc sửa nội tại object, Guard **không thể can thiệp**.
-    *   *Khuyến nghị:* Hạn chế dùng Mutable Object cho State quan trọng, hoặc phải tự kỷ luật.
+### Tier 3: Foreign Objects (Cần kỷ luật)
+*   `numpy.array`, `torch.Tensor`, `CustomClass`.
+*   Theus không thể can thiệp vào bộ nhớ C++ của Numpy.
+*   **Cảnh báo:** Developer phải tự ý thức không được sửa nội tại (mutate inplace) các object này nếu chúng là Input.
+
+---
+
+## 12.5. Kết luận
+Theus Microkernel không sinh ra để làm chậm code của bạn. Nó sinh ra để **bảo hiểm** cho code của bạn. Có Theus, bạn có thể tự tin deploy logic phức tạp mà không sợ hiệu ứng cánh bướm (Butterfly Effect) làm sập hệ thống.
