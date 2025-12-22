@@ -1,4 +1,4 @@
-from theus import POPEngine, process
+from theus import TheusEngine, process
 from theus import BaseGlobalContext, BaseDomainContext, BaseSystemContext
 from dataclasses import dataclass, field
 
@@ -30,7 +30,7 @@ def test_exploit():
     dom = MyDomain()
     sys_ctx = MySystem(global_ctx=BaseGlobalContext(), domain_ctx=dom)
     
-    engine = POPEngine(sys_ctx, strict_mode=True) # Strict mode is ON
+    engine = TheusEngine(sys_ctx, strict_mode=True) # Strict mode is ON
     engine.register_process("lazy", lazy_process)
     
     print("--- Attempting Exploit ---")

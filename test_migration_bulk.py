@@ -1,7 +1,7 @@
 import torch
 from unittest.mock import MagicMock
 from src.core.context import GlobalContext, DomainContext, SystemContext
-from src.core.engine import POPEngine
+from src.core.engine import TheusEngine
 from src.adapters.environment_adapter import EnvironmentAdapter
 
 # Import all processes
@@ -43,7 +43,7 @@ def test_bulk_migration():
     system_ctx = SystemContext(global_ctx, domain_ctx)
     
     # 3. Setup Engine
-    engine = POPEngine(system_ctx)
+    engine = TheusEngine(system_ctx)
     engine.register_process("p1", perception)
     engine.register_process("p2", update_belief)
     engine.register_process("p3", calculate_emotions)

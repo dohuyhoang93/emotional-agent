@@ -1,5 +1,5 @@
 import unittest
-from src.core.engine import POPEngine, process
+from src.core.engine import TheusEngine, process
 from src.core.context import SystemContext, GlobalContext, DomainContext
 import torch
 
@@ -17,7 +17,7 @@ class TestContractLoopholes(unittest.TestCase):
             long_term_memory={}
         )
         self.sys_ctx = SystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)
-        self.engine = POPEngine(self.sys_ctx)
+        self.engine = TheusEngine(self.sys_ctx)
 
     def test_loophole_read_violation(self):
         """Loophole 1: Reading a variable NOT in inputs."""

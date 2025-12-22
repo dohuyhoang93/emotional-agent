@@ -9,25 +9,16 @@ import os
 import yaml
 from typing import List, Dict, Any
 
-# POP Core Imports
+# THEUS V2 SDK Imports
+from theus import TheusEngine
+from theus.config import ConfigFactory
 from src.core.context import GlobalContext, DomainContext, SystemContext
-from src.core.engine import POPEngine
 from src.adapters.environment_adapter import EnvironmentAdapter
 from environment import GridWorld
 from src.models import EmotionCalculatorMLP
 from src.logger import log, log_error
 
-# Process Imports
-from src.processes.p1_perception import perception
-from src.processes.p2_belief_update import update_belief
-from src.processes.p3_emotion_calc import calculate_emotions
-from src.processes.p5_adjust_exploration import adjust_exploration
-from src.processes.p6_action_select import select_action
-from src.processes.p7_execution import execute_action
-from src.processes.p8_consequence import record_consequences
-from src.processes.p9_social_learning import social_learning
-
-from theus.config import ConfigFactory
+# Process Imports (Auto-Discovered)
 
 def recursive_update(d, u):
     for k, v in u.items():
@@ -38,7 +29,7 @@ def recursive_update(d, u):
     return d
 
 def main():
-    parser = argparse.ArgumentParser(description="DeepSearch Agent - POP Architecture")
+    parser = argparse.ArgumentParser(description="DeepSearch Agent - Theus V2 Migration")
     parser.add_argument('--num-episodes', type=int, default=10, help='Number of episodes')
     parser.add_argument('--output-path', type=str, default='results/result.csv', help='Output CSV path')
     parser.add_argument('--settings-override', type=str, default='{}', help='JSON string for settings override')
@@ -53,10 +44,9 @@ def main():
             audit_recipe = ConfigFactory.load_recipe("specs/audit_recipe.yaml")
             print("✅ Loaded Audit Recipe from specs/audit_recipe.yaml")
         except Exception as e:
-            print(f"⚠️ Failed to load audit recipe: {e}")
+            print(f"⚠️ Failed to load audit recipe (Auditing Disability): {e}")
 
-    # 1. Load default config from generate_config.py structure (simulated loading defaults)
-    # Ideally should load from a base json, but we use defaults + override.
+    # 1. Config Loading (Legacy Simulation)
     settings = {
         "initial_needs": [0.5, 0.5],
         "initial_emotions": [0.0, 0.0],
@@ -68,7 +58,6 @@ def main():
         }
     }
     
-    # Apply Overrides
     try:
         overrides = json.loads(args.settings_override)
         recursive_update(settings, overrides)
@@ -81,25 +70,11 @@ def main():
     torch.manual_seed(args.seed)
 
     # 2. Initialize Environment
-    # Note: Environment init requires some config overlap.
-    # We pass the FULL settings to GridWorld as legacy support.
-    env_config = settings.get('environment_config', {})
-    if 'switch_locations' not in settings: # Generate or use default?
-        pass # GridWorld handles it via logical_switches in env_config usually.
-    
-    # Sync settings -> environment config
-    # In legacy config, switch_locations might be separate from environment_config
     # We trust 'settings' has what GridWorld needs.
     environment = GridWorld(settings)
     adapter = EnvironmentAdapter(environment)
     
-    # 3. Hydrate Global Context (Shared by all agents technically, or per agent? Global is usually shared env constants)
-    # But GlobalContext also contains `assimilation_rate` which is config.
-    # We create ONE GlobalContext per agent to simplify if they have diff configs, 
-    # but here allow sharing config.
-    # Extract Switch Locations from Env if not in setting (Env might randomize them).
-    # Use env.switches (dict pos->id). We need id->pos for context?
-    # Context expects `switch_locations: Dict[str, Tuple[int, int]]`.
+    # 3. Hydrate Global Context
     switch_locs = {v: k for k, v in environment.switches.items()} # ID -> Pos
     
     common_global_ctx = GlobalContext(
@@ -111,16 +86,16 @@ def main():
         switch_locations=switch_locs,
         log_level=args.log_level,
         
-        # Hyperparams from settings
+        # Hyperparams
         assimilation_rate=settings.get('assimilation_rate', 0.1),
-        initial_exploration_rate=float(settings.get('exploration_rate', 1.0)), # Initial Base
+        initial_exploration_rate=float(settings.get('exploration_rate', 1.0)),
         use_dynamic_curiosity=settings.get('use_dynamic_curiosity', False),
         use_adaptive_fatigue=settings.get('use_adaptive_fatigue', False),
         fatigue_growth_rate=settings.get('fatigue_growth_rate', 0.001),
         intrinsic_reward_weight=settings.get('intrinsic_reward_weight', 0.1)
     )
 
-    # 4. Initialize Agents (System Contexts)
+    # 4. Initialize Agents (System Contexts + TheusEngine)
     num_agents = environment.num_agents
     system_contexts = []
     engines = []
@@ -131,7 +106,7 @@ def main():
         e_dim = len(settings['initial_emotions'])
         
         # Init Neural Model
-        b_dim = 2 + len(switch_locs) # Pos(2) + Switches
+        b_dim = 2 + len(switch_locs)
         m_dim = 1
         model = EmotionCalculatorMLP(n_dim, b_dim, m_dim, e_dim)
         optimizer = torch.optim.Adam(model.parameters(), lr=settings.get('mlp_learning_rate', 0.01))
@@ -151,22 +126,15 @@ def main():
             current_exploration_rate=common_global_ctx.initial_exploration_rate
         )
         
-        # Pydantic requires kwargs for SystemContext!
         sys_ctx = SystemContext(global_ctx=common_global_ctx, domain_ctx=domain_ctx)
         
-        # Init Engine with Audit Recipe (Dogfooding V2)
-        engine = POPEngine(sys_ctx, audit_recipe=audit_recipe)
+        # Init Engine with Audit Recipe
+        # STRICT MODE: True. Because we want to verify Theus V2 capability.
+        engine = TheusEngine(sys_ctx, audit_recipe=audit_recipe, strict_mode=True)
         
-        # Register Processes
-        engine.register_process("perception", perception)
-        engine.register_process("update_belief", update_belief)
-        engine.register_process("calculate_emotions", calculate_emotions)
-        # engine.register_process("update_needs", ...) # Not migrated yet? Sticky Needs?
-        engine.register_process("adjust_exploration", adjust_exploration)
-        engine.register_process("select_action", select_action)
-        engine.register_process("execute_action", execute_action)
-        engine.register_process("record_consequences", record_consequences)
-        engine.register_process("social_learning", social_learning)
+        # Auto-Discovery (Theus V2)
+        # Scans 'src/processes' recursively and registers all @process functions
+        engine.scan_and_register("src/processes")
         
         system_contexts.append(sys_ctx)
         engines.append(engine)
@@ -174,27 +142,35 @@ def main():
     # 5. Main Simulation Loop
     episode_data = []
     
+    workflow_steps = [
+        "perception",
+        "update_belief",
+        "calculate_emotions",
+        "adjust_exploration",
+        "social_learning", # Run social learning before action selection
+        "select_action",
+        "execute_action",
+        "record_consequences"
+    ]
+
+    print(f"🚀 Starting Simulation: {args.num_episodes} Episodes, {num_agents} Agents.")
+
     for episode in range(args.num_episodes):
-        # Visual/Log
-        # Visual/Log
         if not settings.get('visual_mode'):
             log(common_global_ctx, 'info', f"Starting Episode {episode+1}/{args.num_episodes}...")
             
-        # Reset Environment & Agents
+        # Reset Environment
         obs_dict = environment.reset()
         is_successful = False
         
         for i, eng in enumerate(engines):
-            # Reset Ephemeral
-            dom = eng.get_domain()
-            dom.current_episode = episode + 1
-            dom.current_step = 0
-            dom.current_observation = obs_dict[i]
-            dom.previous_observation = None
-            dom.last_reward = {'extrinsic': 0.0, 'intrinsic': 0.0}
-            
-            # Reset Needs/Emotions if config says so? (Usually keep Memory/Q/Model)
-            pass
+            with eng.edit():
+                dom = eng.ctx.domain_ctx
+                dom.current_episode = episode + 1
+                dom.current_step = 0
+                dom.current_observation = obs_dict[i]
+                dom.previous_observation = None
+                dom.last_reward = {'extrinsic': 0.0, 'intrinsic': 0.0}
 
         episode_rewards = {i: 0.0 for i in range(num_agents)}
         steps_count = 0
@@ -202,40 +178,37 @@ def main():
         # Step Loop
         while not adapter.is_done() and steps_count < common_global_ctx.max_steps:
             steps_count += 1
-            environment.current_step = steps_count # Sync for rendering
-            
-            # For logging cycle time
-            import time
+            environment.current_step = steps_count
             
             # Run Agents
             for i, eng in enumerate(engines):
-                 # Check success individually or globally?
-                 pass
-                 
                  start_t = time.time()
                  
-                 # Prepare Neighbors (List of SystemContexts)
-                 try:
-                     eng.execute_workflow(
-                         "workflows/main_loop.yaml", 
-                         env_adapter=adapter,
-                         agent_id=i,
-                         neighbors=system_contexts
-                     )
-                 except Exception as e:
-                     log_error(common_global_ctx, f"🔥 Agent {i} CRASHED at step {steps_count}: {e}")
-                     # If Crash, we should break? Or continue other agents?
-                     # For Dogfooding, we want to see the error and STOP.
-                     raise e
+                 # PROCESS EXECUTION CHAIN (Synchronous)
+                 for step_name in workflow_steps:
+                     try:
+                         # Pass runtime dependencies as kwargs
+                         eng.run_process(
+                             step_name,
+                             env_adapter=adapter,
+                             agent_id=i,
+                             neighbors=system_contexts
+                         )
+                     except Exception as e:
+                         # If any process fails, crash the agent (or simulation)
+                         # Here we convert to strict crash for debugging
+                         raise RuntimeError(f"Agent {i} crashed at {step_name}: {e}") from e
                  
                  end_t = time.time()
                  cycle_t = end_t - start_t
-                 eng.get_domain().last_cycle_time = cycle_t
-                 eng.get_domain().current_step = steps_count
                  
-                 # Accumulate Reward
-                 last_r = eng.get_domain().last_reward
-                 episode_rewards[i] += last_r['extrinsic'] + last_r['intrinsic']
+                 with eng.edit():
+                     eng.ctx.domain_ctx.last_cycle_time = cycle_t
+                     eng.ctx.domain_ctx.current_step = steps_count
+                     
+                     # Accumulate Reward for Logging
+                     last_r = eng.ctx.domain_ctx.last_reward
+                     episode_rewards[i] += last_r['extrinsic'] + last_r['intrinsic']
 
             # Check Global Success
             if any(tuple(pos) == environment.goal_pos for pos in environment.agent_positions.values()):
@@ -247,23 +220,20 @@ def main():
                 time.sleep(0.01)
 
         # End Episode Logging
-        # Gather stats
-        avg_cycle = 0 # Placeholder
-        
         log_entry = {
             'episode': episode + 1,
             'success': is_successful,
             'steps': steps_count,
-            'total_reward': episode_rewards[0], # Log agent 0
-            'final_exploration_rate': engines[0].get_domain().current_exploration_rate,
-            'avg_cycle_time': 0.0, # Not tracking detailed avg here to save implementation time
+            'total_reward': episode_rewards[0], 
+            'final_exploration_rate': engines[0].ctx.domain_ctx.current_exploration_rate,
+            'avg_cycle_time': 0.0, 
             'max_steps_env': common_global_ctx.max_steps
         }
         episode_data.append(log_entry)
         
-        # Update Long Term Memory (for Social)
+        # Update Memory
         for eng in engines:
-            dom = eng.get_domain()
+            dom = eng.ctx.domain_ctx
             if 'episode_results' not in dom.long_term_memory:
                 dom.long_term_memory['episode_results'] = []
             dom.long_term_memory['episode_results'].append({

@@ -35,9 +35,8 @@ def run_simulations(ctx: OrchestratorSystemContext):
             # Convert parameters dict to JSON string for --settings-override
             settings_override_json = json.dumps(exp_def.parameters)
 
-            # Construct the command to call main_v2.py
             command = [
-                "python", "main_v2.py",
+                "python", "main.py",
                 "--num-episodes", str(exp_def.episodes_per_run),
                 "--output-path", output_csv_path,
                 "--settings-override", settings_override_json,

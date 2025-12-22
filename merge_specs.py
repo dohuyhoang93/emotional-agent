@@ -1,8 +1,8 @@
 
 import os
 
-spec_path = 'python_pop_sdk/Documents/POP_specification.md'
-supplement_path = 'python_pop_sdk/Documents/POP_specification_supplement.md'
+spec_path = 'theus/Documents/POP_specification.md'
+supplement_path = 'theus/Documents/POP_specification_supplement.md'
 
 # Read the main spec
 with open(spec_path, 'r', encoding='utf-8') as f:

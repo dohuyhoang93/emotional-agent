@@ -38,7 +38,8 @@ def adjust_exploration(ctx: SystemContext):
     # 4. Tính toán Rate mới
     new_rate = domain.base_exploration_rate + boost
     
-    # 5. Clamp min
+    # 5. Clamp
     final_rate = max(global_cfg.min_exploration, new_rate)
+    final_rate = min(1.0, final_rate)
     
     domain.current_exploration_rate = final_rate

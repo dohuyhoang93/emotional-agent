@@ -2,7 +2,7 @@ import argparse
 import sys
 import os
 
-from theus import POPEngine
+from theus import TheusEngine
 from src.orchestrator.context import (
     OrchestratorGlobalContext, 
     OrchestratorDomainContext, 
@@ -10,12 +10,7 @@ from src.orchestrator.context import (
 )
 
 # Import Processes
-from src.orchestrator.processes.p_load_config import load_config
-from src.orchestrator.processes.p_run_simulations import run_simulations
-from src.orchestrator.processes.p_aggregate_results import aggregate_results
-from src.orchestrator.processes.p_plot_results import plot_results
-from src.orchestrator.processes.p_analyze_data import analyze_data
-from src.orchestrator.processes.p_save_summary import save_summary
+# Import Processes (Auto-Discovered)
 
 from src.logger import log, log_error
 
@@ -52,15 +47,10 @@ def main(argv=None):
     # 2. Initialize Engine
     # Note: Orchestrator might arguably NOT use strict mode if it just does IO, 
     # but for V2 compliance we enable it.
-    engine = POPEngine(system_ctx, strict_mode=True)
+    engine = TheusEngine(system_ctx, strict_mode=True)
     
-    # 3. Register Processes
-    engine.register_process("load_config", load_config)
-    engine.register_process("run_simulations", run_simulations)
-    engine.register_process("aggregate_results", aggregate_results)
-    engine.register_process("plot_results", plot_results)
-    engine.register_process("analyze_data", analyze_data)
-    engine.register_process("save_summary", save_summary)
+    # 3. Auto-Discovery
+    engine.scan_and_register("src/orchestrator/processes")
     
     log(system_ctx, "info", "--- STARTING ORCHESTRATION WORKFLOW (POP) ---")
     

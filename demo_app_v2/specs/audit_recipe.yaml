@@ -1,0 +1,9 @@
+process_recipes:
+  p_process:
+    inputs: []
+    outputs: []
+
+  p_unsafe_write:
+    # No rules needed, ContextGuard catches it before Audit runs.
+    # But we define it to act as policy placeholder.
+    inputs: []

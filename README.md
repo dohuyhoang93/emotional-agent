@@ -10,7 +10,7 @@
 
 ## 🏗️ 1. Kiến trúc Hướng Quy trình (POP Architecture)
 
-Dự án này là **Reference Implementation** (Bản mẫu) cho POP SDK. Toàn bộ logic lõi của kiến trúc đã được tách ra thành thư viện độc lập: **[POP SDK](python_pop_sdk/README.md)**.
+Dự án này là **Reference Implementation** (Bản mẫu) cho Theus Framework. Toàn bộ logic lõi của kiến trúc đã được tách ra thành thư viện độc lập: **[Theus Framework](theus/README.md)**.
 
 ### Điểm nổi bật của POP trong EmotionAgent:
 *   **Transactional Memory (Delta Architecture):** Mọi thay đổi trạng thái của Agent (học hỏi, di chuyển, cảm xúc) đều được ghi lại dưới dạng `DeltaEntry`.
@@ -30,7 +30,7 @@ Tác nhân sử dụng **"Vòng lặp Tăng cường Trí tuệ-Cảm xúc"**:
 
 ```
 EmotionAgent/
-├── python_pop_sdk/         # [CORE] Bộ SDK Kiến trúc POP (Độc lập, Reusable)
+├── theus/              # [CORE] Theus Framework (Độc lập, Reusable)
 │   ├── theus/              # Source code SDK
 │   └── examples/           # Ví dụ Hello World
 │
@@ -57,7 +57,7 @@ Do dự án sử dụng POP SDK nội bộ, bạn cần cài đặt các depende
 pip install torch pandas matplotlib
 
 # (Tùy chọn) Install POP SDK ở chế độ Editable
-pip install -e python_pop_sdk
+pip install -e theus
 ```
 
 ### Chạy Demo (Visual Mode)

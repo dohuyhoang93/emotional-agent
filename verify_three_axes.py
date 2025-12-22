@@ -12,7 +12,7 @@ except ImportError:
     # If explicit path import is needed we might need to adjust sys.path
     import sys
     import os
-    sys.path.append(os.path.join(os.getcwd(), 'python_pop_sdk'))
+    sys.path.append(os.path.join(os.getcwd(), 'theus'))
     from theus.guards import ContextGuard
     from theus.contracts import ContractViolationError
     from theus.zones import resolve_zone, ContextZone

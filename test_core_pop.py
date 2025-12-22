@@ -1,6 +1,6 @@
 import torch
 from src.core.context import GlobalContext, DomainContext, SystemContext
-from src.core.engine import POPEngine, process
+from src.core.engine import TheusEngine, process
 
 # 1. Define a dummy process
 @process(inputs=['global.initial_exploration_rate'], outputs=['domain.current_exploration_rate'])
@@ -33,7 +33,7 @@ def test_pop_arch():
     system_ctx = SystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)
     
     # 3. Setup Engine
-    engine = POPEngine(system_ctx)
+    engine = TheusEngine(system_ctx)
     engine.register_process("test_p1", dummy_process)
     
     # 4. Execute

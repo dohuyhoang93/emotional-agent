@@ -1,5 +1,5 @@
 import unittest
-from src.core.engine import POPEngine, process, ContractViolationError
+from src.core.engine import TheusEngine, process, ContractViolationError
 from src.core.context import SystemContext, GlobalContext, DomainContext
 import torch
 
@@ -14,7 +14,7 @@ class TestContractEnforcement(unittest.TestCase):
             believed_switch_states={}, q_table={}, short_term_memory=[], long_term_memory={}
         )
         self.sys_ctx = SystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)
-        self.engine = POPEngine(self.sys_ctx)
+        self.engine = TheusEngine(self.sys_ctx)
 
     def test_illegal_write_violation(self):
         """Test catching a write to an undeclared output."""
