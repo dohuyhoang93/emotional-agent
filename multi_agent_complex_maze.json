@@ -1,11 +1,11 @@
 {
-  "output_dir": "results/logic_test_run",
+  "output_dir": "results/multi_agent_complex_maze",
   "log_level": "silent",
   "experiments": [
     {
-      "name": "LogicGate_Test_Run",
+      "name": "multi_agent_complex_maze",
       "runs": 1,
-      "episodes_per_run": 10,
+      "episodes_per_run": 5000,
       "log_level": "silent",
       "parameters": {
         "use_dynamic_curiosity": true,

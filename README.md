@@ -31,20 +31,25 @@ The agent uses an **"Intelligence-Emotion Reinforcement Loop"**:
 ```
 EmotionAgent/
 ├── theus/              # [CORE] Theus Framework (Independent, Reusable)
-│   ├── theus/              # SDK Source code
+│   ├── theus/              # Framework Source code
 │   └── examples/           # Hello World Examples
 │
 ├── src/
 │   ├── processes/          # Agent Business Logic (POP Processes)
 │   ├── orchestrator/       # Experiment Management System
-│   ├── models/             # Neural Network Models (MLP, SNN)
-│   └── adapters/           # Environment Interface (GridWorld)
+│   ├── core/               # Core Components (Context, etc.)
+│   ├── adapters/           # Environment Interface (EnvironmentAdapter)
+│   └── models.py           # Neural Network Models (MLP)
 │
-├── workflows/              # Workflow Definitions (YAML)
+├── specs/              # Workflow Definitions and Schemas (YAML)
+│   ├── workflow.yaml       # Agent Workflow
+│   ├── orchestrator.yaml   # Orchestrator Workflow
+│   └── audit_recipe.yaml   # Audit Configuration
+│
 ├── multi_agent_complex_maze.json # Experiment Environment Config
-│
-├── main.py                 # Simulation Worker
-└── run_experiments.py      # Orchestrator for Large-scale Experiments
+├── environment.py      # Simulated Environment (GridWorld)
+├── main.py             # Simulation Worker
+└── run_experiments.py  # Orchestrator for Large-scale Experimentse-scale Experiments
 ```
 
 ## 🚀 4. Installation & Usage
