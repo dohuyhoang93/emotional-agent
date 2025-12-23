@@ -1,0 +1,35 @@
+# Theus Context Schema Definition
+# Used by: python -m theus.cli schema code
+
+context:
+  # GLOBAL: Read-only configuration (Environment variables, constants)
+  global:
+    app_name: {type: string, default: "MyApp"}
+    version: {type: string, default: "1.0.0"}
+    max_connections: {type: integer, default: 100}
+    debug_mode: {type: boolean, default: false}
+
+  # DOMAIN: Mutable business state (Transactional)
+  domain:
+    # --- Primitive Types ---
+    user_id: {type: string}              # No default = Required (in constructor)
+    score: {type: float, default: 0.0}
+    login_count: {type: integer, default: 0}
+    
+    # --- Complex Types ---
+    # Lists and Dicts are automatically initialized with empty [] or {} if no default provided
+    tags: {type: list}                   # Generates: List[Any] = field(default_factory=list)
+    metadata: {type: dict}               # Generates: Dict[str, Any] = field(default_factory=dict)
+    
+    # --- Signals (Event Triggers) ---
+    # Convention: Prefix with 'sig_'
+    sig_reset_requested: {type: boolean, default: false}
+    sig_process_completed: {type: boolean, default: false}
+
+# --- Supported Types ---
+# string  -> str
+# integer -> int
+# float   -> float
+# boolean -> bool
+# list    -> List[Any]
+# dict    -> Dict[str, Any]

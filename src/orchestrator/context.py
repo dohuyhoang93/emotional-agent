@@ -32,6 +32,7 @@ class OrchestratorGlobalContext(BaseGlobalContext):
     """
     config_path: str
     cli_log_level: Optional[str] = None
+    settings_override: Optional[str] = None
 
 @dataclass
 class OrchestratorDomainContext(BaseDomainContext):

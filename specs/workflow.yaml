@@ -1,0 +1,12 @@
+name: "Emotion Agent Main Loop"
+description: "The primary execution cycle for a single agent including perception, cognition, and action."
+
+steps:
+  - perception
+  - update_belief
+  - calculate_emotions
+  - adjust_exploration
+  - social_learning # Executed sequentially here. In complex scenarios, orchestration might invoke this specifically.
+  - select_action
+  - execute_action
+  - record_consequences

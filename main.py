@@ -142,16 +142,7 @@ def main():
     # 5. Main Simulation Loop
     episode_data = []
     
-    workflow_steps = [
-        "perception",
-        "update_belief",
-        "calculate_emotions",
-        "adjust_exploration",
-        "social_learning", # Run social learning before action selection
-        "select_action",
-        "execute_action",
-        "record_consequences"
-    ]
+
 
     print(f"🚀 Starting Simulation: {args.num_episodes} Episodes, {num_agents} Agents.")
 
@@ -182,33 +173,29 @@ def main():
             
             # Run Agents
             for i, eng in enumerate(engines):
-                 start_t = time.time()
+                start_t = time.time()
                  
-                 # PROCESS EXECUTION CHAIN (Synchronous)
-                 for step_name in workflow_steps:
-                     try:
-                         # Pass runtime dependencies as kwargs
-                         eng.run_process(
-                             step_name,
-                             env_adapter=adapter,
-                             agent_id=i,
-                             neighbors=system_contexts
-                         )
-                     except Exception as e:
-                         # If any process fails, crash the agent (or simulation)
-                         # Here we convert to strict crash for debugging
-                         raise RuntimeError(f"Agent {i} crashed at {step_name}: {e}") from e
+                # PROCESS EXECUTION CHAIN (Declarative via YAML)
+                try:
+                    eng.execute_workflow(
+                        "specs/workflow.yaml",
+                        env_adapter=adapter,
+                        agent_id=i,
+                        neighbors=system_contexts
+                    )
+                except Exception as e:
+                    raise RuntimeError(f"Agent {i} crashed during workflow execution: {e}") from e
                  
-                 end_t = time.time()
-                 cycle_t = end_t - start_t
+                end_t = time.time()
+                cycle_t = end_t - start_t
                  
-                 with eng.edit():
-                     eng.ctx.domain_ctx.last_cycle_time = cycle_t
-                     eng.ctx.domain_ctx.current_step = steps_count
+                with eng.edit():
+                    eng.ctx.domain_ctx.last_cycle_time = cycle_t
+                    eng.ctx.domain_ctx.current_step = steps_count
                      
-                     # Accumulate Reward for Logging
-                     last_r = eng.ctx.domain_ctx.last_reward
-                     episode_rewards[i] += last_r['extrinsic'] + last_r['intrinsic']
+                    # Accumulate Reward for Logging
+                    last_r = eng.ctx.domain_ctx.last_reward
+                    episode_rewards[i] += last_r['extrinsic'] + last_r['intrinsic']
 
             # Check Global Success
             if any(tuple(pos) == environment.goal_pos for pos in environment.agent_positions.values()):

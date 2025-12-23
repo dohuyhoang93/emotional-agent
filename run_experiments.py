@@ -29,12 +29,19 @@ def main(argv=None):
         default=None,
         help='Override log level.'
     )
+    parser.add_argument(
+        '--settings-override',
+        type=str,
+        default=None,
+        help='JSON string to override experiment parameters globally.'
+    )
     args = parser.parse_args(argv)
 
     # 1. Initialize Contexts (3-Layer)
     global_ctx = OrchestratorGlobalContext(
         config_path=args.config,
-        cli_log_level=args.log_level
+        cli_log_level=args.log_level,
+        settings_override=args.settings_override
     )
     
     domain_ctx = OrchestratorDomainContext(
@@ -54,31 +61,18 @@ def main(argv=None):
     
     log(system_ctx, "info", "--- STARTING ORCHESTRATION WORKFLOW (POP) ---")
     
-    # 4. Execute Workflow (Synchronous List for Simplicity)
-    # Replicating main_v2.py pattern instead of loading YAML which ExecuteWorkflow does implicitly.
-    # Assuming standard orchestration steps
-    workflow_steps = [
-        "load_config",
-        "run_simulations",
-        "aggregate_results",
-        "plot_results",
-        "analyze_data",
-        "save_summary"
-    ]
-    
+    # 4. Execute Workflow (Declarative)
     try:
-        if hasattr(engine, 'execute_process'):
-             runner = engine.execute_process # SDK v1 naming?
-        else:
-             runner = engine.run_process # SDK v2 naming confirmed in main_v2.py
-             
-        for step in workflow_steps:
-             if hasattr(engine, 'run_process'):
-                 engine.run_process(step)
-             else:
-                 engine.execute_process(step)
+        log(system_ctx, "info", f"▶️ Loading Orchestrator Workflow: specs/orchestrator.yaml")
+        engine.execute_workflow("specs/orchestrator.yaml")
         
         # Check Final Report
+        if "LỖI" in system_ctx.domain_ctx.final_report:
+             log_error(system_ctx, "Workflow finished with errors reported.")
+             sys.exit(1)
+             
+        log(system_ctx, "info", "--- ORCHESTRATION FINISHED ---")
+        return system_ctx
         if "LỖI" in system_ctx.domain_ctx.final_report:
              log_error(system_ctx, "Workflow finished with errors reported.")
              sys.exit(1)

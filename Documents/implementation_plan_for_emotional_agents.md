@@ -337,13 +337,3 @@ Dưới đây là lộ trình theo năm bước, mỗi bước nêu mục tiêu,
 * Luôn kèm chương phần “biện pháp an toàn” và “giới hạn thực nghiệm” trong mọi tài liệu công bố.
 
 ---
-
-# VIII. Tổng kết ngắn gọn (điểm chính rút gọn)
-
-1. **Hai ý tưởng (repo cũ và quan điểm mới của bạn) kết hợp tốt**: repo cung cấp nền xã hội-emergence; quan điểm mới thay “cảm xúc con người” bằng “cảm xúc máy” nội sinh, toán học hóa.
-2. **Thiết kế đề xuất**: tác nhân có vectơ nhu cầu, vectơ cảm xúc máy, bộ nhớ, chính sách; cảm xúc máy tính từ nhu cầu và niềm tin, dùng để điều tiết hành vi.
-3. **Hàm mục tiêu**: tổng hợp giữa phần thưởng môi trường và phần thưởng nội sinh do cảm xúc máy tạo.
-4. **Lộ trình**: prototype tác nhân đơn lẻ → nhóm nhỏ → sinh quy tắc và siêu nhận thức → quản trị và grounding → mở rộng.
-5. **Quan trọng**: luôn phải có cơ chế an toàn, kiểm chứng bằng dữ liệu ngoại vi, và quyền phủ quyết của con người cho các thay đổi lớn.
-
----

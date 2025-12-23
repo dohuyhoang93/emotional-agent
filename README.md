@@ -1,93 +1,93 @@
 # EmotionAgent: Hybrid Emotional AI meets POP Architecture
 
-**EmotionAgent** là dự án nghiên cứu tiên phong kết hợp hai lĩnh vực:
-1.  **Emotional AI:** Mô phỏng trí tuệ nhân tạo có cảm xúc máy, sử dụng cơ chế lai (Hybrid) giữa Q-Learning (Lý trí) và Neural Networks (Cảm xúc).
-2.  **Process-Oriented Programming (POP):** Một kiến trúc phần mềm hướng quy trình, đảm bảo tính trong suốt, khả năng kiểm thử và toàn vẹn dữ liệu tuyệt đối thông qua cơ chế Transactional Memory.
+**EmotionAgent** is a pioneering research project combining two fields:
+1.  **Emotional AI:** A simulation of artificial intelligence with machine emotions, using a Hybrid mechanism between Q-Learning (Rationality) and Neural Networks (Emotion).
+2.  **Process-Oriented Programming (POP):** A process-oriented software architecture ensuring transparency, testability, and absolute data integrity through Transactional Memory.
 
 > **Project Status:** Active Development (Phase 3: SNN Integration)
 
 ---
 
-## 🏗️ 1. Kiến trúc Hướng Quy trình (POP Architecture)
+## 🏗️ 1. POP Architecture (Process-Oriented Programming)
 
-Dự án này là **Reference Implementation** (Bản mẫu) cho Theus Framework. Toàn bộ logic lõi của kiến trúc đã được tách ra thành thư viện độc lập: **[Theus Framework](theus/README.md)**.
+This project serves as the **Reference Implementation** for the Theus Framework. The entire core logic of the architecture has been extracted into an independent library: **[Theus Framework](https://github.com/dohuyhoang93/theus)**.
 
-### Điểm nổi bật của POP trong EmotionAgent:
-*   **Transactional Memory (Delta Architecture):** Mọi thay đổi trạng thái của Agent (học hỏi, di chuyển, cảm xúc) đều được ghi lại dưới dạng `DeltaEntry`.
-*   **Time Travel & Rollback:** Nếu Agent gặp lỗi trong quá trình suy nghĩ (Process crash), toàn bộ trạng thái sẽ tự động Rollback về thời điểm an toàn trước đó.
-*   **Deep Isolation:** Dữ liệu được bảo vệ 3 lớp. Process không thể sửa đổi lén lút dữ liệu nếu không khai báo trong `contracts`.
+### Key Highlights of POP in EmotionAgent:
+*   **Transactional Memory (Delta Architecture):** Every state change of the Agent (learning, moving, feeling) is recorded as a `DeltaEntry`.
+*   **Time Travel & Rollback:** If the Agent encounters an error during processing (Process crash), the entire state automatically rolls back to the previous safe point.
+*   **Deep Isolation:** Data is protected by 3 layers. Processes cannot modify data secretly without declaring it in `contracts`.
 
-## 🧠 2. Mô hình Agent Hybrid
+## 🧠 2. Hybrid Agent Model
 
-Tác nhân sử dụng **"Vòng lặp Tăng cường Trí tuệ-Cảm xúc"**:
-1.  **Trí tuệ (Q-Learning):** Quyết định hành động dựa trên phần thưởng (`Reward`).
-2.  **Cảm xúc (Intrinsic Motivation):** 
-    *   Tự tạo ra phần thưởng nội sinh (`Intrinsic Reward`) khi gặp điều bất ngờ (`TD-Error` cao).
-    *   Trạng thái cảm xúc kích thích hoặc kìm hãm sự tò mò (`Exploration Rate`).
-3.  **Học hỏi Xã hội (Social):** Agent có khả năng quan sát và học hỏi từ Agent khác ở gần.
+The agent uses an **"Intelligence-Emotion Reinforcement Loop"**:
+1.  **Intelligence (Q-Learning):** Decides actions based on reward (`Reward`).
+2.  **Emotion (Intrinsic Motivation):** 
+    *   Self-generates intrinsic rewards (`Intrinsic Reward`) when encountering surprises (High `TD-Error`).
+    *   Emotional state stimulates or inhibits curiosity (`Exploration Rate`).
+3.  **Social Learning:** The Agent has the ability to observe and learn from other nearby Agents.
 
-## 📂 3. Cấu trúc Dự án
+## 📂 3. Project Structure
 
 ```
 EmotionAgent/
-├── theus/              # [CORE] Theus Framework (Độc lập, Reusable)
-│   ├── theus/              # Source code SDK
-│   └── examples/           # Ví dụ Hello World
+├── theus/              # [CORE] Theus Framework (Independent, Reusable)
+│   ├── theus/              # SDK Source code
+│   └── examples/           # Hello World Examples
 │
 ├── src/
-│   ├── processes/          # Logic nghiệp vụ Agent (POP Processes)
-│   ├── orchestrator/       # Hệ thống quản lý thử nghiệm
+│   ├── processes/          # Agent Business Logic (POP Processes)
+│   ├── orchestrator/       # Experiment Management System
 │   ├── models/             # Neural Network Models (MLP, SNN)
-│   └── adapters/           # Giao tiếp môi trường (GridWorld)
+│   └── adapters/           # Environment Interface (GridWorld)
 │
-├── workflows/              # Định nghĩa luồng xử lý (YAML)
-├── multi_agent_complex_maze.json # Cấu hình môi trường thử nghiệm
+├── workflows/              # Workflow Definitions (YAML)
+├── multi_agent_complex_maze.json # Experiment Environment Config
 │
-├── main.py                 # Worker chạy mô phỏng
-└── run_experiments.py      # Orchestrator chạy thử nghiệm diện rộng
+├── main.py                 # Simulation Worker
+└── run_experiments.py      # Orchestrator for Large-scale Experiments
 ```
 
-## 🚀 4. Hướng dẫn Cài đặt & Chạy
+## 🚀 4. Installation & Usage
 
-### Cài đặt
-Do dự án sử dụng POP SDK nội bộ, bạn cần cài đặt các dependency:
+### Installation
+Since the project uses an internal POP SDK, you need to install dependencies:
 
 ```bash
-# Cài đặt các thư viện AI
+# Install AI libraries
 pip install torch pandas matplotlib
 
-# (Tùy chọn) Install POP SDK ở chế độ Editable
+# (Optional) Install POP SDK in Editable mode
 pip install -e theus
 ```
 
-### Chạy Demo (Visual Mode)
-Chạy một Agent đơn lẻ để xem nó hoạt động trên giao diện đồ họa:
+### Run Demo (Visual Mode)
+Run a single Agent to see it working with a graphical interface:
 
 ```bash
 python main.py --settings-override '{"visual_mode": true}'
 ```
 
-### Chạy Thử nghiệm (Headless)
-Chạy hàng loạt kịch bản để thu thập số liệu (CSV):
+### Run Experiments (Headless)
+Run batch scenarios to collect metrics (CSV):
 
 ```bash
 python run_experiments.py --config multi_agent_complex_maze.json
 ```
 
-## 🗺️ 5. Lộ trình Phát triển (Roadmap)
+## 🗺️ 5. Development Roadmap
 
-*   **Phase 1 & 2 (Đã xong):**
-    *   ✅ Xây dựng POP Engine & Context Guard (Strict Mode).
+*   **Phase 1 & 2 (Completed):**
+    *   ✅ Build POP Engine & Context Guard (Strict Mode).
     *   ✅ Implement Delta Architecture (Transaction/Rollback).
-    *   ✅ **Hybrid Context Zones:** Phân tách Data (Persistent), Signal (Transient) và Meta (Diagnostic).
-    *   ✅ **Semantic Audit:** Kiểm soát Input/Output/Side-Effect/Error thông qua Dual Gates.
-    *   ✅ Tách POP SDK thành thư viện riêng (Theus).
+    *   ✅ **Hybrid Context Zones:** Separate Data (Persistent), Signal (Transient), and Meta (Diagnostic).
+    *   ✅ **Semantic Audit:** Control Input/Output/Side-Effect/Error via Dual Gates.
+    *   ✅ Extract POP SDK into separate library (Theus).
     *   ✅ Audit & Fix Logic Bugs (Deep Mutation, Zombie Proxy, etc.).
 
-*   **Phase 3 (Hiện tại):**
-    *   🚧 **Direct Sensory Mapping:** Chuyển đổi Input từ số (Grid ID) sang Tín hiệu Xung (Spike).
-    *   🚧 **SNN Integration:** Thay thế model Emotion cũ bằng Spiking Neural Network để xử lý tín hiệu xung theo thời gian thực.
-    *   🚧 **Hebbian Learning:** Cài đặt cơ chế học "Fire together, wire together".
+*   **Phase 3 (Current):**
+    *   🚧 **Direct Sensory Mapping:** Convert Input from numbers (Grid ID) to Spike Signals.
+    *   🚧 **SNN Integration:** Replace old Emotion model with Spiking Neural Network to process spike signals in real-time.
+    *   🚧 **Hebbian Learning:** Implement "Fire together, wire together" learning mechanism.
 
 ---
 *Author: Do Huy Hoang*

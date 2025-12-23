@@ -6,8 +6,16 @@ from theus import process
 from src.orchestrator.context import OrchestratorSystemContext, ExperimentDefinition
 from src.logger import log, log_error
 
+def recursive_update(d, u):
+    for k, v in u.items():
+        if isinstance(v, dict):
+            d[k] = recursive_update(d.get(k, {}), v)
+        else:
+            d[k] = v
+    return d
+
 @process(
-    inputs=['global.config_path', 'log_level', 'global.cli_log_level', 'domain.output_dir', 'domain.experiments', 'domain.effective_log_level'],
+    inputs=['global.config_path', 'log_level', 'global.cli_log_level', 'global.settings_override', 'domain.output_dir', 'domain.experiments', 'domain.effective_log_level'],
     outputs=[
         'domain.raw_config',
         'domain.output_dir',
@@ -56,13 +64,27 @@ def load_config(ctx: OrchestratorSystemContext):
     # Create output dir
     os.makedirs(domain.output_dir, exist_ok=True)
 
+    # Parse Overrides
+    settings_override = {}
+    if ctx.global_ctx.settings_override:
+        try:
+            settings_override = json.loads(ctx.global_ctx.settings_override)
+            log(ctx, "info", f"  [Orchestration] Applying global settings override: {settings_override}")
+        except json.JSONDecodeError as e:
+             log_error(ctx, f"  [Orchestration] Failed to parse settings-override JSON: {e}")
+
     # Parse Experiments
     for exp_config in raw_config.get("experiments", []):
+        base_params = exp_config.get("parameters", {})
+        # Apply overrides
+        if settings_override:
+            recursive_update(base_params, settings_override)
+
         exp_def = ExperimentDefinition(
             name=exp_config["name"],
             runs=exp_config["runs"],
             episodes_per_run=exp_config["episodes_per_run"],
-            parameters=exp_config.get("parameters", {}),
+            parameters=base_params,
             log_level=exp_config.get("log_level", domain.effective_log_level)
         )
         domain.experiments.append(exp_def)
