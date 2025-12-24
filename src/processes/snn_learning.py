@@ -13,10 +13,16 @@ def process_stdp_basic(ctx: SNNContext) -> SNNContext:
     Quy tắc:
     - Nếu Pre bắn trước Post (trong cửa sổ thời gian) -> Tăng trọng số (LTP)
     - Nếu Post bắn trước Pre -> Giảm trọng số (LTD)
+    - Weight decay: Giảm nhẹ tất cả weights để tránh runaway
     """
     learning_rate = ctx.params['learning_rate']
     tau_trace = ctx.params['tau_trace']
     time_window = 20  # Cửa sổ thời gian STDP (ms)
+    weight_decay = 0.9999  # Decay factor (0.01% mỗi step)
+    
+    # WEIGHT DECAY: Giảm nhẹ tất cả weights để tránh runaway
+    for synapse in ctx.synapses:
+        synapse.weight *= weight_decay
     
     # Phân rã Trace
     for synapse in ctx.synapses:
@@ -51,3 +57,4 @@ def process_stdp_basic(ctx: SNNContext) -> SNNContext:
                     synapse.weight = max(synapse.weight, 0.0)  # Không âm
     
     return ctx
+

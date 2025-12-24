@@ -76,33 +76,42 @@ def process_fire(ctx: SNNContext) -> SNNContext:
 
 def process_homeostasis(ctx: SNNContext) -> SNNContext:
     """
-    Quy trình cân bằng nội môi (Adaptive Threshold).
-    NOTE: Điều chỉnh ngưỡng theo cả mức độ toàn cục và cá nhân.
+    Quy trình cân bằng nội môi (Adaptive Threshold) - Redesigned.
+    NOTE: Thêm safety checks để tránh death spiral.
     """
     target_rate = ctx.params['target_fire_rate']
     current_rate = ctx.metrics.get('fire_rate', 0.0)
     adjust_rate = ctx.params['homeostasis_rate']
     
-    # Điều chỉnh toàn cục (chậm)
+    # SAFETY: Nếu mạng hoàn toàn chết (fire_rate = 0 trong 100 steps)
+    # → Giảm threshold mạnh để "cứu sống" mạng
+    if current_rate == 0.0:
+        for neuron in ctx.neurons:
+            neuron.threshold *= 0.99  # Giảm 1% mỗi step
+            neuron.threshold = max(neuron.threshold, 0.5)  # Floor cao hơn
+        return ctx
+    
+    # Điều chỉnh bình thường khi có hoạt động
     global_error = current_rate - target_rate
     
-    # Tính tỷ lệ bắn cá nhân (trong 100ms gần nhất)
+    # Tính tỷ lệ bắn cá nhân
     window = 100
     
     for neuron in ctx.neurons:
-        # Điều chỉnh toàn cục
-        neuron.threshold += global_error * adjust_rate * 0.5
+        # Điều chỉnh toàn cục (nhẹ nhàng)
+        neuron.threshold += global_error * adjust_rate * 2.0
         
-        # Điều chỉnh cá nhân (nhanh hơn)
+        # Điều chỉnh cá nhân
         time_since_fire = ctx.current_time - neuron.last_fire_time
         if time_since_fire < window:
-            # Neuron này bắn quá nhiều -> Tăng ngưỡng mạnh
-            neuron.threshold += adjust_rate * 2.0
-        elif time_since_fire > window * 5:
-            # Neuron này bắn quá ít -> Giảm ngưỡng
-            neuron.threshold -= adjust_rate * 0.5
+            # Bắn quá nhiều -> Tăng ngưỡng
+            neuron.threshold += adjust_rate * 1.0
+        elif time_since_fire > window * 10 and current_rate < target_rate:
+            # Bắn quá ít -> Giảm ngưỡng (CHỈ KHI fire_rate THẤP)
+            neuron.threshold -= adjust_rate * 2.0
         
-        # Giới hạn ngưỡng
-        neuron.threshold = np.clip(neuron.threshold, 0.3, 3.0)
+        # Giới hạn ngưỡng (floor cao hơn để dễ bắn)
+        neuron.threshold = np.clip(neuron.threshold, 0.5, 2.5)
     
     return ctx
+
