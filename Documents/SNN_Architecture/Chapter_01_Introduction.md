@@ -1,36 +1,24 @@
-# Chương 01: Đặt vấn đề & Tầm nhìn (Context & Vision)
+# Chương 01: Đặt vấn đề & Định vị Chiến lược (Context & Strategic Positioning) - Revised
 
 ---
 
-## 1.1 Khơi nguồn Vấn đề
+## 1.1 Bối cảnh AI Hiện đại & Nhu cầu Mới
 
-Dự án EmotionAgent đối mặt với một thách thức cốt lõi: **Làm thế nào để tạo ra một Agent AI có khả năng "Cảm xúc" và "Thích nghi" trong môi trường luôn biến động, mà không rơi vào các lối mòn của Deep Learning truyền thống?**
+Deep Learning (DL) đang thống trị nhờ Transformers và cơ chế Attention. Chúng ta không phủ nhận sức mạnh của chúng.
+Tuy nhiên, DL có một gót chân Achilles: **Sự Tĩnh tại (Static Nature)**. Mạng DL rất khó sửa lỗi nóng (Hot-fix) hoặc thích nghi khi một phần phần cứng bị hỏng.
 
-Các mô hình Deep Learning (MLP/Transformer) hiện nay, dù rất mạnh mẽ, nhưng gặp phải những rào cản chí mạng khi áp dụng cho bài toán này:
+### Định vị Chiến lược: "Resilience" over "Benchmarks"
+EmotionAgent chọn con đường SNN không chỉ vì Hiệu suất (Efficiency), mà quan trọng hơn là vì **Sự Bền vững (Resilience)**.
+*   **Tự chữa lành:** Khả năng hoạt động tiếp ngay cả khi mất 20% neuron.
+*   **Phản hỏng (Anti-fragile):** Trở nên thông minh hơn qua các sự cố nhờ cơ chế thích nghi nội tại.
 
-1.  **Sự Vô nghĩa của Vector (Semantic Opacity):**
-    *   MLP ép buộc mọi trạng thái cảm xúc vào các vector số học dày đặc (Dense Vectors), ví dụ `[0.1, 0.9, -0.5]`.
-    *   *Hệ quả:* Chúng ta không thể giải thích tại sao Agent lại "Vui" hay "Buồn". Mọi thứ là một hộp đen toán học vô hồn.
-2.  **Chi phí Tính toán Bất hợp lý (Computational Waste):**
-    *   Để xử lý một thay đổi nhỏ, toàn bộ ma trận trọng số khổng lồ phải được tính toán lại ($O(N^2)$).
-    *   *Hệ quả:* Lãng phí năng lượng, khó chạy realtime trên thiết bị giới hạn.
-3.  **Học tập Thụ động & Quên (Catastrophic Forgetting):**
-    *   MLP cần dữ liệu lớn và học offline. Khi học cái mới, nó có xu hướng ghi đè lên cái cũ.
-    *   *Hệ quả:* Agent không thể thích nghi tức thì (Online Learning) với môi trường thay đổi liên tục.
+SNN được định vị là **Hệ viền (Limbic System)** chuyên biệt cho tác vụ sinh tồn, bổ trợ cho DL chứ không thay thế nó.
 
-## 1.2 Tầm nhìn: "Kỹ thuật Phi Nhân" (Un-human Engineering)
+## 1.2 Tầm nhìn: Kỹ thuật Phi Nhân & Cộng sinh
 
-Chúng ta đề xuất một hướng tiếp cận hoàn toàn mới, gọi là **"Computational SNN"**.
+Tầm nhìn của chúng ta là **Kiến trúc Cộng sinh**.
+*   Kết hợp SNN (Cảm xúc/Phản xạ) với RL (Lý trí/Chiến lược).
+*   Kết hợp Cá nhân với Tập thể (Social Learning).
+*   Kết hợp Học tập với Bảo chứng (Commitment Layer).
 
-Thay vì cố gắng mô phỏng sinh học não bộ một cách mù quáng (Bio-mimicry) hay chạy đua về điểm số Benchmark, chúng ta tiếp cận SNN dưới góc độ **Kỹ thuật Phần mềm (Software Engineering)**:
-
-*   **Không phải Sinh học:** Chúng ta không quan tâm tế bào thần kinh trông như thế nào. Chúng ta quan tâm nó *xử lý thông tin* như thế nào.
-*   **Hiệu năng là cốt lõi:** Một "Neuron Số" (Digital Neuron) chính xác tuyệt đối có sức mạnh bằng hàng ngàn neuron sinh học ồn ào.
-*   **Minh bạch:** Cấu trúc mạng phải có thể đọc hiểu được như một Cơ sở dữ liệu (Database).
-
-## 1.3 Mục tiêu Cụ thể
-
-1.  **Tiết kiệm:** Loại bỏ phép nhân ma trận. Chỉ sử dụng phép cộng và so sánh.
-2.  **Thích nghi:** Agent phải học được quy luật nhân quả ngay sau 1 lần trải nghiệm (One-shot Learning).
-3.  **Bền vững:** Học cái mới không được quên cái cũ (Stability-Plasticity Dilemma).
-4.  **Hòa nhập:** SNN không thay thế Logic (RL), mà đóng vai trò là "Nhạc trưởng Cảm xúc" điều phối Logic.
+Bộ tài liệu này sẽ dẫn dắt bạn đi từ lý thuyết cơ bản đến các chiến lược vận hành nâng cao (Chương 9) để hiện thực hóa tầm nhìn đó.

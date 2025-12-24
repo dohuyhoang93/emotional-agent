@@ -1,87 +1,77 @@
-# Chương 05: Cơ chế Nâng cao & Giải thuật (Advanced Mechanics & Algorithms) - Expanded
+# Chương 05: Cơ chế Nâng cao & Thông minh Tập thể (Advanced Mechanics & Collective Intelligence) - Consolidated
 
-Chương này chuyển hóa các khái niệm trừu tượng (Delay, Inhibition) thành **Cấu trúc dữ liệu cụ thể** để code.
+Chương này tổng hợp các cơ chế giúp SNN vượt qua giới hạn của mạng nơ-ron tĩnh, tích hợp cả cơ chế cá thể, tập thể và khả năng tưởng tượng.
 
 ---
 
-## 5.1 Giải thuật Quản lý Sự kiện Trễ (Delay Implementation)
+## 5.1 Độ trễ Thời gian & Bộ nhớ (Temporal Delays)
+*   **Nguyên lý:** "Delay là Bộ nhớ". Mạng lưu trữ thông tin về trình tự thời gian thông qua độ dài dây thần kinh.
+*   **Cài đặt:** Sử dụng **Circular Time Buckets** ($O(1)$) thay vì Priority Queue để quản lý hàng triệu sự kiện trễ.
 
-Làm sao quản lý hàng triệu sự kiện trễ mà không tốn O(N) để insert?
+## 5.2 Ức chế Bên & Làm nét (Lateral Inhibition & WTA)
+*   **Nguyên lý:** Các neuron cạnh tranh nhau để tạo ra tín hiệu sắc nét.
+*   **Cài đặt:** Mỗi neuron có **Vùng ức chế cục bộ** (Local Inhibition Zone). Khi một neuron bắn, nó gửi tín hiệu ức chế (-V) tới hàng xóm.
+*   **Tối ưu:** Sử dụng **Spatial Hashing** để tìm hàng xóm trong $O(1)$.
 
-### Cấu trúc: Circular Time Buckets (Vòng tròn Thời gian)
-Thay vì dùng `PriorityQueue` (Heap) tốn $O(\log N)$, ta dùng một mảng vòng tròn (Circular Buffer) đại diện cho thời gian tương lai.
+## 5.3 Thuyết Tiến hóa Thần kinh (Neural Darwinism)
+*   **Cơ chế:**
+    *   **Pruning (Đào thải):** Xóa các synapse có `utility_score` thấp (không tham gia dự báo đúng).
+    *   **Neurogenesis (Sinh trưởng):** Khi Agent gặp "Ngạc nhiên" (Error cao), bơm thêm neuron mới vào vùng vỏ não tương ứng để tăng khả năng học.
 
-*   **Thời gian tối đa:** $T_{max} = 1000ms$ (1 giây).
-*   **Buckets:** Mảng `buckets` có kích thước 1000. `buckets[i]` chứa danh sách các sự kiện sẽ xảy ra tại $ms = i$.
-*   **Con trỏ:** `current_tick` chạy từ 0 đến 999.
+---
 
-```python
-class TemporalEngine:
-    def __init__(self, max_delay=1000):
-        self.buckets = [[] for _ in range(max_delay)]
-        self.current_tick = 0
-        self.max_delay = max_delay
+## 5.4 Học Tập Xã hội & Thông minh Tập thể (Collective Intelligence)
 
-    def schedule_event(self, event, delay_ms):
-        # Tính vị trí bucket tương lai (Modulo arithmetic)
-        target_tick = (self.current_tick + delay_ms) % self.max_delay
-        self.buckets[target_tick].append(event) # O(1)
+### 5.4.1 Viral Learning (Học lây nhiễm)
+*   Thay vì cộng trung bình trọng số, Agent trao đổi **"Gói Gen Synapse"** (các kết nối hiệu quả nhất).
+*   Tri thức lan truyền như virus, nhưng Agent giữ hệ miễn dịch riêng.
 
-    def process_current_step(self):
-        # Lấy tất cả sự kiện O(1)
-        events = self.buckets[self.current_tick]
-        self.buckets[self.current_tick] = [] # Clear bucket
-        
-        # Xử lý events...
-        
-        # Nhích đồng hồ
-        self.current_tick = (self.current_tick + 1) % self.max_delay
-```
-*   **Hiệu năng:** Constant Time $O(1)$ cho cả việc thêm sự kiện và lấy sự kiện. Nhanh hơn Heap rất nhiều.
+### 5.4.2 Mỏ neo Văn hóa (Cultural Anchor)
+*   **Ancestor Agent:** Một tác tử ảo học cực chậm, lưu giữ tri thức cốt lõi của quần thể.
+*   Giúp các Agent trẻ "Reset" khi bị lạc lối (Catastrophic Forgeting).
 
-## 5.2 Giải thuật Ức chế Bên (Lateral Inhibition)
+### 5.4.3 Cộng hưởng Cảm xúc (Neural Resonance)
+*   Tín hiệu cảm xúc của đám đông (Panic, Joy) tác động trực tiếp lên ngưỡng kích hoạt ($V_{th}$) của cá nhân.
 
-Làm sao tìm "hàng xóm" của một neuron để ức chế trong O(1)?
+---
 
-### Cấu trúc: Spatial Partitioning (Phân không gian)
-Giả sử neuron có tọa độ 3D hoặc 2D ảo `(x, y)`. Ta chia không gian thành lưới (Grid).
+## 5.5 Giải quyết Xung đột Kiến trúc (Conflict Resolutions)
 
-*   **Grid Size:** Chia không gian thành các ô $10 \times 10$.
-*   **Lookup Table:** `grid[(x,y)] -> List[NeuronID]`.
+### 5.5.1 Sandbox Ký sinh (The Parasitic Sandbox)
+*   *Vấn đề:* Xung đột giữa Tri thức rắn (Internal Commitment) và Tri thức xã hội (External Viral).
+*   *Giải pháp:* Gen ngoại lai chạy trong môi trường **Sandbox** với tư cách là **Shadow Synapse** (Bóng ma).
+    *   Nó đưa ra dự đoán song song nhưng không điều khiển hành động.
+    *   Chỉ khi Shadow Synapse chứng minh độ chính xác vượt trội liên tục, nó mới được phép "Đảo chính" (Revoke tri thức cũ).
 
-**Thuật toán Local WTA:**
-1.  Khi neuron A tại $(x_A, y_A)$ bắn xung.
-2.  Tra cứu `grid[(x_A, y_A)]` để lấy danh sách hàng xóm.
-3.  Gửi tín hiệu ức chế ngay lập tức (-50mV) tới hàng xóm.
-4.  Để tránh ức chế bản thân, kiểm tra `if neighbor_id != self_id`.
+### 5.5.2 Tách biệt Không - Thời gian (Spatiotemporal Decoupling)
+*   *Vấn đề:* Kết hợp Vector Spike (Không gian) và STDP (Thời gian).
+*   *Giải pháp:* Tách quá trình học làm 2 luồng:
+    1.  **Spatial Learning (Unsupervised Clustering):** Xoay `Prototype Vector` để khớp với mẫu hình học của Input.
+    2.  **Temporal Learning (Hebbian STDP):** Tăng giảm trọng số vô hướng $w$ dựa trên quan hệ nhân quả thời gian.
 
-```python
-def process_lateral_inhibition_fast(db, spiked_neurons):
-    for nid in spiked_neurons:
-        coords = db.neurons[nid].coords
-        # Lấy danh sách hàng xóm từ cache O(1)
-        neighbors = db.spatial_grid.get_neighbors(coords)
-        
-        for neighbor_id in neighbors:
-            if neighbor_id == nid: continue
-            # Dập tắt ngay lập tức (Hard Inhibition)
-            db.neurons[neighbor_id].potential = 0 
-            # Đi vào trạng thái trơ cưỡng bức
-            db.neurons[neighbor_id].refractory_end = current_time + 10
-```
+---
 
-## 5.3 Giải thuật Sinh trưởng (Neurogenesis Strategy)
+## 5.6 Vòng lặp Tưởng tượng (The Imagination Loop)
 
-Chúng ta dùng chiến lược **"Tiêm ngẫu nhiên, Chọn lọc tự nhiên"**.
+Cơ chế kỹ thuật để SNN tự mô phỏng và rút ra bài học chiến lược.
 
-### Quy trình:
-1.  **Trigger:** Khi `Average_Reward_Last_100_Steps` giảm đột ngột (Agent đang gặp khó khăn/Ngạc nhiên).
-2.  **Injection:** Sinh ra 100 neuron mới.
-    *   **Vị trí:** Ngẫu nhiên hoặc gần các neuron đang hoạt động mạnh (nơi có vấn đề).
-    *   **Kết nối Input:** Kết nối ngẫu nhiên tới 10% neuron lớp trước.
-    *   **Kết nối Output:** Kết nối ngẫu nhiên tới 10% neuron lớp sau.
-    *   **Trọng số:** Khởi tạo rất nhỏ (gần 0) để không gây nhiễu mạng ngay lập tức ("Silent Synapses").
-3.  **Maturation (Trưởng thành):** Trong 1000 bước đầu, neuron mới có tính dẻo (Learning Rate) cao gấp 10 lần.
-4.  **Selection:** Sau thời gian trưởng thành, nếu `utility_score` vẫn thấp -> Xóa.
+### 5.6.1 Quy trình Mô phỏng (Simulation Process)
+1.  **Detach:** Ngắt kết nối Sensor Input.
+2.  **Seed:** Kích hoạt một mẫu neuron ngẫu nhiên (hoặc dựa trên ký ức gần nhất) tại lớp Input.
+3.  **Propagate:** Để mạng tự do lan truyền tín hiệu (theo các đường mòn synapse đã học).
+4.  **Observe:** Quan sát kết quả tại lớp Cảm xúc (Emotion Layer).
 
-Điều này đảm bảo mạng có khả năng "Thử nghiệm giả thuyết mới" mà không phá vỡ cấu trúc cũ đang chạy tốt.
+### 5.6.2 Rút trích & Áp dụng Chiến thuật (Extraction & Modulation)
+*   **Trường hợp 1: Nightmare (Tưởng tượng ra Cảnh Sợ hãi)**
+    *   Kết quả: Neuron `FEAR` bắn mạnh.
+    *   **Hành động:** Truy vết ngược (Backtrace) xem neuron nào đã kích hoạt FEAR? Gọi là `Neo_Pre_Fear`.
+    *   **Chiến thuật:** Tạo một liên kết ức chế mạnh (Strong Inhibition) từ `Neo_Pre_Fear` tới `Action_Go`.
+    *   *Hiệu quả:* Lần sau khi thức, nếu `Neo_Pre_Fear` kích hoạt (dấu hiệu báo trước), nó sẽ tự động khóa hành động nguy hiểm lại.
+
+*   **Trường hợp 2: Fantasy (Tưởng tượng ra Phần thưởng)**
+    *   Kết quả: Neuron `JOY` bắn mạnh.
+    *   **Hành động:** Xác định `Neo_Pre_Joy`.
+    *   **Chiến thuật:** Tăng độ nhạy (Boost Base Threshold) cho `Neo_Pre_Joy`.
+    *   *Hiệu quả:* Agent trở nên nhạy bén hơn trong việc săn tìm cơ hội này.
+
+Đây chính là cơ chế **"Học trong Mơ" (Dream Learning)**, giúp Agent thông minh hơn sau mỗi giấc ngủ.

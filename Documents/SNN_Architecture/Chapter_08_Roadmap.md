@@ -1,46 +1,54 @@
-# Chương 08: Kế hoạch Triển khai & Kết luận (Roadmap)
+# Chương 08: Lộ trình Triển khai Gia tăng (Incremental Roadmap) - Revised V2
+
+*Phản hồi cho bản Phân tích Phản biện Lần 2 (Incremental Validation Strategy).*
+
+Chúng ta từ bỏ chiến lược "Big Bang" (Làm tất cả cùng lúc). Thay vào đó, áp dụng chiến lược **"Crawl - Walk - Run"** để kiểm soát độ phức tạp.
 
 ---
 
-## 8.1 Lộ trình Thực hiện (Implementation Roadmap)
+## 8.1 Giai đoạn 1: MVM - The Scalar Core (Crawl)
+**Mục tiêu:** Xác thực động lực học cơ bản của SNN mà không bị nhiễu bởi Vector hay Social.
+*   **Neuron:** Scalar Spike (0/1).
+*   **Learning:** Basic STDP (2-factor).
+*   **Control:** Simple Homeostasis (Adaptive Threshold).
+*   **Kiểm thử:**
+    *   Cho chạy bài toán đơn giản (ví dụ: CartPole).
+    *   Chứng minh mạng tự cân bằng được Firing Rate (không chết/động kinh).
 
-Chúng ta chia việc triển khai thành 3 giai đoạn chính (Phases) để giảm rủi ro.
+## 8.2 Giai đoạn 2: The Vector Upgrade (Walk)
+**Mục tiêu:** Nâng cấp khả năng biểu diễn ngữ nghĩa.
+*   **Neuron:** Chuyển sang **Vector Spike** (16-dim).
+*   **Learning:** Kích hoạt Spatiotemporal Decoupling (STDP cho $w$ + Clustering cho Prototype).
+*   **Interface:** Kết nối với RL Agent qua Gated Integration.
+*   **Kiểm thử:**
+    *   Bài toán Maze (Cần nhớ đường đi).
+    *   Đo lường sự cải thiện của RL khi có thêm SNN vector support.
 
-### Giai đoạn 1: Bộ khung SNN (The SNN Skeleton)
-*   **Mục tiêu:** Xây dựng cấu trúc dữ liệu và vòng lặp sự kiện cơ bản. Chưa có học (Learning).
-*   **Công việc:**
-    1.  [ ] Định nghĩa `SnnContext` trong `src/core/context.py`.
-    2.  [ ] Xây dựng Database Schema (In-memory dict hoặc SQLite/Redb) cho Neuron/Synapse.
-    3.  [ ] Viết `process_integrate` và `process_propagate` (có xử lý Delay).
-    4.  [ ] **Unit Test:** Kiểm tra một xung đơn chạy qua chuỗi neuron A -> B -> C đúng thời gian.
+## 8.3 Giai đoạn 3: The Social & Meta Layer (Run)
+**Mục tiêu:** Kích hoạt trí tuệ tập thể và tự động hóa vận hành.
+*   **Collective:** Viral Synapses + Cultural Anchor.
+*   **Stability:** Meta-Homeostasis (PID Controllers cho tham số).
+*   **Conflict:** Parasitic Sandbox.
+*   **Kiểm thử:**
+    *   Multi-agent Environment.
+    *   Thử nghiệm "Echo Chamber": Bơm virus và xem hệ thống có tự lọc được không.
 
-### Giai đoạn 2: Sự sống & Thích nghi (Life & Adaptation)
-*   **Mục tiêu:** Mạng tự điều chỉnh để không chết.
-*   **Công việc:**
-    1.  [ ] Cài đặt `process_homeostasis` (Adaptive Threshold).
-    2.  [ ] Cài đặt `process_lateral_inhibition` (WTA).
-    3.  [ ] Chạy thử nghiệm với Random Input: Mạng phải duy trì hoạt động ổn định (không im lặng, không động kinh).
-
-### Giai đoạn 3: Trí tuệ & Học (Intelligence & Learning)
-*   **Mục tiêu:** Mạng học được quy luật nhân quả.
-*   **Công việc:**
-    1.  [ ] Cài đặt `process_stdp_learning` (3-factor rule).
-    2.  [ ] Tích hợp Reward từ môi trường vào SNN.
-    3.  [ ] Kết nối Output của SNN vào tham số RL (Exploration Rate).
-    4.  [ ] **Thử nghiệm:** Cho Agent chạy trong môi trường Maze. Kiểm tra xem nó có học sợ "Cửa Đỏ" (nơi có bẫy) sau vài lần đau không.
+## 8.4 Giai đoạn 4: The Resilience & Imagination (Fly)
+**Mục tiêu:** Đạt trạng thái Anti-fragile và khả năng dự báo.
+*   **Resilience:** Periodic Resync + Brain Biopsy Tool.
+*   **Imagination:** Dream Loop (Offline Learning).
+*   **Protection:** Social Quarantine + Hysteria Dampener.
+*   **Kiểm thử:**
+    *   Stress Test: Tắt 30% neuron ngẫu nhiên.
+    *   Chaos Engineering: Bơm nhiễu cực đại vào tín hiệu.
 
 ---
 
-## 8.2 Kết luận
+## 8.5 Kết luận
 
-Dự án EmotionAgent đang tiên phong trong việc áp dụng SNN theo hướng **Kỹ thuật Phần mềm (Software Engineering)**.
-Chúng ta không đi theo lối mòn của Deep Learning (chính xác nhưng cứng nhắc), mà chọn con đường **Thích nghi & Bền bỉ**.
+Việc chia nhỏ lộ trình giúp chúng ta gỡ rối bài toán "Gỡ lỗi phức tạp".
+*   Nếu Giai đoạn 1 thất bại -> Sai ở STDP cơ bản.
+*   Nếu Giai đoạn 2 thất bại -> Sai ở Vector Math.
+*   Không bao giờ phải đoán lỗi đến từ đâu trong một mớ bòng bong.
 
-Bằng cách kết hợp:
-*   **Cấu trúc dữ liệu Database/ECS** (Hiệu năng, Quy mô).
-*   **Logic SNN Hebbian** (Học nhân quả, Online).
-*   **Kiến trúc Theus POP** (Minh bạch, Modun hóa).
-
-Chúng ta kỳ vọng tạo ra một thế hệ Agent có khả năng "Cảm nhận" thực sự thông qua cơ chế vật lý của sự tương tác, chứ không phải qua các bảng số vô hồn.
-
-**Bước tiếp theo:** Bắt đầu Code Giai đoạn 1.
+**Tiếp theo:** Chúng ta sẽ bắt đầu code **Giai đoạn 1 (Scalar Core)** tại `src/core/snn_context.py`.
