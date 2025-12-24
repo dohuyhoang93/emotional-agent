@@ -12,14 +12,21 @@ import numpy as np
 @dataclass
 class NeuronRecord:
     """
-    Bản ghi Neuron (Scalar Version).
+    Bản ghi Neuron (Vector Version - Phase 2).
     NOTE: Không có method. Đây là Pure Data Structure.
     """
     neuron_id: int
-    potential: float = 0.0  # Điện thế màng (V)
+    
+    # Scalar properties (giữ nguyên để tương thích ngược)
+    potential: float = 0.0  # Điện thế màng tổng hợp (V)
     threshold: float = 1.0  # Ngưỡng kích hoạt
     last_fire_time: int = -1000  # Thời điểm bắn xung gần nhất
     fire_count: int = 0  # Số lần đã bắn (dùng cho Homeostasis)
+    
+    # Vector properties (Phase 2)
+    vector_dim: int = 16  # Số chiều của vector
+    potential_vector: np.ndarray = field(default_factory=lambda: np.zeros(16))  # Vector điện thế
+    prototype_vector: np.ndarray = field(default_factory=lambda: np.random.randn(16))  # Vector mẫu (học được)
 
 
 @dataclass
