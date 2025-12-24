@@ -179,3 +179,189 @@ neuron.prototype_vector = normalized  # Baseline
 | Phase 2 | 0-3% | Similarity: 0.01→0.09 | Medium (Vector) |
 
 **NOTE:** Fire rate thấp ở Phase 2 do mạng đang học, chưa có kích thích liên tục. Đây là hành vi bình thường.
+
+---
+
+## Phase 3: Social & Meta (Run) ✅
+
+### Mục tiêu
+Thêm Trí tuệ Tập thể (Viral Learning, Sandbox) và Tự điều chỉnh (Meta-Homeostasis với PID).
+
+### Thay đổi Schema
+
+**`SynapseRecord` (upgraded):**
+```python
+# Social Learning fields
+synapse_type: str = "native"  # "native" hoặc "shadow"
+source_agent_id: int = -1
+confidence: float = 0.5
+prediction_error_accum: float = 0.0
+```
+
+**`SNNContext` (upgraded):**
+```python
+agent_id: int = 0  # ID trong quần thể
+social_signals: Dict[str, float]  # fear, curiosity, stress
+pid_state: Dict[str, Dict[str, float]]  # PID controller state
+```
+
+### Các file đã tạo
+
+1. **`src/processes/snn_social.py`**
+   - `extract_top_synapses()`: Trích xuất top-k synapses tốt nhất
+   - `inject_viral_synapses()`: Tiêm synapses từ agent khác (dưới dạng shadow)
+   - `process_sandbox_evaluation()`: Đánh giá và "đảo chính" nếu shadow tốt hơn native
+
+2. **`src/processes/snn_meta.py`**
+   - `pid_controller()`: Bộ điều khiển PID chuẩn
+   - `process_meta_homeostasis()`: Tự động điều chỉnh threshold và learning_rate
+
+3. **`experiments/phase3_social_meta.py`**
+   - Multi-agent experiment với 3 agents
+   - Viral transfer mỗi 200ms
+
+### Vấn đề gặp phải & Giải pháp
+
+#### Bug 1: Agent 2 không hoạt động
+**Triệu chứng:** Chỉ có 2 đường trong biểu đồ fire rate, Agent 2 = 0
+
+**Nguyên nhân:**
+```python
+# Chỉ bơm cho Agent 0 và 1, quên Agent 2
+if step % 100 == 0:
+    inject_pattern_spike(agents[0], [0, 1], pattern_A)
+    inject_pattern_spike(agents[1], [0, 1], pattern_B)
+    # Agent 2: KHÔNG có gì
+```
+
+**Giải pháp:**
+```python
+# Bơm cho TẤT CẢ agents, tăng tần suất
+if step % 50 == 0:  # Từ 100 -> 50ms
+    inject_pattern_spike(agents[0], [0, 1, 2], pattern_A)
+    inject_pattern_spike(agents[1], [0, 1, 2], pattern_B)
+    inject_pattern_spike(agents[2], [0, 1, 2], pattern_A)  # Thêm Agent 2
+```
+
+#### Bug 2: Shadow count nằm ngang (constant)
+**Triệu chứng:** Đồ thị shadow synapses là đường thẳng ngang ở 20
+
+**Nguyên nhân:**
+```python
+# Đếm SAU KHI experiment kết thúc
+for step in range(num_steps):
+    count = sum(...)  # Chỉ đếm 1 lần duy nhất (giá trị cuối)
+    shadow_counts.append(count)  # Lặp lại giá trị đó
+```
+
+**Giải pháp:**
+```python
+# Track TRONG VÒNG LẶP chính
+for step in range(num_steps):
+    # ... run simulation ...
+    if step % 10 == 0:
+        count = sum(1 for s in agents[1].synapses if s.synapse_type == "shadow")
+        shadow_counts.append(count)  # Giá trị thực tế theo thời gian
+```
+
+#### Bug 3: Fire rate logging sai
+**Triệu chứng:** Fire rates không phản ánh đúng trạng thái
+
+**Nguyên nhân:**
+```python
+agents[i] = engine.run_timestep(workflow, ctx)
+fire_rates[i].append(ctx.metrics.get('fire_rate', 0.0))  # ctx CŨ!
+```
+
+**Giải pháp:**
+```python
+agents[i] = engine.run_timestep(workflow, ctx)
+fire_rates[i].append(agents[i].metrics.get('fire_rate', 0.0))  # agents[i] MỚI
+```
+
+### Kết quả (Sau khi fix)
+- ✅ **3 agents hoạt động:** Fire rates = [0.060, 0.060, 0.060]
+- ✅ **Viral transfer:** Agent 0 chia sẻ 5 synapses cho Agent 1 mỗi 200ms
+- ✅ **Shadow accumulation:** Tăng dần từ 0 → 20 (không còn nằm ngang)
+- ✅ **Dynamic behavior:** Step 600 có spike (Agent 1: 0.180, Agent 2: 0.100)
+- 📊 Biểu đồ: `results/phase3_social_meta.png`
+
+### Bài học
+1. **Test coverage:** Phải kiểm tra TẤT CẢ agents, không chỉ một vài cái
+2. **Realtime tracking:** Metrics phải được ghi TRONG vòng lặp, không phải sau
+3. **Context updates:** Luôn dùng biến đã được update, không dùng biến cũ
+4. **Stimulation frequency:** Mạng cần kích thích liên tục (50ms) để duy trì hoạt động
+
+---
+
+## Tổng kết Phase 1-3
+
+### Thành tựu Tổng thể
+Đã hoàn thành 3/4 giai đoạn theo lộ trình "Crawl-Walk-Run":
+
+- ✅ **Phase 1 (Crawl):** SNN Scalar Core hoạt động ổn định với Homeostasis + STDP
+- ✅ **Phase 2 (Walk):** Vector Spike upgrade thành công, clustering học được patterns
+- ✅ **Phase 3 (Run):** Multi-agent social learning và Meta-Homeostasis hoạt động
+
+### Bảng So sánh Metrics
+
+| Phase | Neurons | Fire Rate | Learning Evidence | Key Features | Bugs Fixed |
+|-------|---------|-----------|-------------------|--------------|------------|
+| 1 | 100 | 4-12% | Weight: 0.49→0.80 | Scalar, STDP, Homeostasis | Epilepsy (100% fire) |
+| 2 | 100 | 0-3% | Similarity: 0.01→0.09 | Vector 16D, Cosine, Clustering | Clustering logic |
+| 3 | 3×50 | 6% | Shadow: 0→20 | Viral, Sandbox, PID | Agent coverage, Tracking |
+
+### Độ Phức tạp Đã Quản lý
+
+**Kiến trúc:**
+- ECS/POP: Tách biệt Data và Logic hoàn toàn
+- Workflow Engine: Điều phối linh hoạt qua YAML (chưa implement)
+- Multi-Agent: 3 agents chạy song song, trao đổi tri thức
+
+**Cơ chế:**
+- Homeostasis 2-tầng (Global + Individual)
+- Vector Spike với Cosine Similarity
+- Unsupervised Clustering (Hebbian cho vector space)
+- Viral Synapse Transfer (Shadow Sandbox)
+- Meta-Homeostasis (PID Controllers)
+
+**Debugging:**
+- Đã quen với ECS debugging (metrics thay vì print objects)
+- Phát hiện và sửa 6 bugs nghiêm trọng
+- Học được tầm quan trọng của test coverage
+
+### Bài Học Quan Trọng Nhất
+
+1. **Incremental Strategy Works:** Chiến lược "Crawl-Walk-Run" giúp tách biệt lỗi rõ ràng
+2. **Refractory Period là Bắt buộc:** Ngăn neuron bắn liên tục (epilepsy)
+3. **Normalization Quan Trọng:** Vector phải được normalize để tránh drift
+4. **Test Coverage Matters:** Phải test TẤT CẢ components, không chỉ một vài cái
+5. **Realtime Tracking:** Metrics phải ghi TRONG vòng lặp, không phải sau
+6. **Context Updates:** Luôn dùng biến đã update, không dùng biến cũ
+
+### Tiếp Theo: Phase 4 (Resilience)
+
+Còn lại các tính năng "Anti-fragile":
+- [ ] Brain Biopsy Tool (Debug ECS)
+- [ ] Periodic Resync (Fix drift)
+- [ ] Imagination Loop (Dream Learning)
+- [ ] Social Quarantine (Viral error protection)
+- [ ] Hysteria Dampener (Mass panic prevention)
+
+### Thống Kê Code
+
+**Files Created:** 12
+- Core: 1 (snn_context.py)
+- Processes: 4 (integrate_fire, learning, vector_ops, social, meta)
+- Engine: 1 (workflow_engine.py)
+- Experiments: 3 (phase1, phase2, phase3)
+- Docs: 3 (implementation_log, task, chapters)
+
+**Lines of Code:** ~1500 (ước tính)
+**Time Spent:** ~4 hours (planning + implementation + debugging)
+**Bugs Fixed:** 6 major bugs
+
+---
+
+**Ngày cập nhật:** 2025-12-24 17:30  
+**Trạng thái:** Phase 3 hoàn thành, sẵn sàng Phase 4

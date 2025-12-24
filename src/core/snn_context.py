@@ -32,7 +32,7 @@ class NeuronRecord:
 @dataclass
 class SynapseRecord:
     """
-    Bản ghi Synapse (Scalar Version).
+    Bản ghi Synapse (Phase 3: Social Learning).
     """
     synapse_id: int
     pre_neuron_id: int  # ID neuron tiền synapse
@@ -40,14 +40,22 @@ class SynapseRecord:
     weight: float = 0.5  # Trọng số synapse
     trace: float = 0.0  # Dấu vết STDP (Eligibility Trace)
     delay: int = 1  # Độ trễ truyền xung (ms)
+    
+    # Phase 3: Social Learning
+    synapse_type: str = "native"  # "native" hoặc "shadow" (Sandbox)
+    source_agent_id: int = -1  # ID của agent nguồn (nếu là viral synapse)
+    confidence: float = 0.5  # Độ tin cậy (dùng cho Commitment Layer)
+    prediction_error_accum: float = 0.0  # Tích lũy lỗi dự đoán
 
 
 @dataclass
 class SNNContext:
     """
-    Context Data cho toàn bộ mạng SNN.
-    Đây là "God Object" duy nhất được phép tồn tại trong POP.
+    Context Data cho toàn bộ mạng SNN (Phase 3: Multi-Agent).
     """
+    # Identity
+    agent_id: int = 0  # ID của agent này trong quần thể
+    
     # Thời gian mô phỏng
     current_time: int = 0
     
@@ -58,20 +66,37 @@ class SNNContext:
     synapses: List[SynapseRecord] = field(default_factory=list)
     
     # Hàng đợi sự kiện (Event Queue)
-    # NOTE: Dùng dict để tổ chức theo thời gian: {time: [spike_events]}
     spike_queue: Dict[int, List[int]] = field(default_factory=dict)
     
     # Tham số toàn cục
     params: Dict[str, float] = field(default_factory=lambda: {
-        'tau_decay': 0.9,  # Hệ số rò rỉ điện thế
-        'tau_trace': 0.95,  # Hệ số phân rã Trace
+        'tau_decay': 0.9,
+        'tau_trace': 0.95,
         'learning_rate': 0.01,
-        'target_fire_rate': 0.02,  # Tỷ lệ bắn mục tiêu (2%)
-        'homeostasis_rate': 0.001,  # Tốc độ điều chỉnh ngưỡng
+        'clustering_rate': 0.01,
+        'target_fire_rate': 0.02,
+        'homeostasis_rate': 0.001,
+        # Phase 3: Meta-Homeostasis PID
+        'pid_kp': 0.1,  # Proportional gain
+        'pid_ki': 0.01,  # Integral gain
+        'pid_kd': 0.05,  # Derivative gain
     })
     
     # Metrics (dùng cho giám sát)
     metrics: Dict[str, float] = field(default_factory=dict)
+    
+    # Phase 3: Social Signals
+    social_signals: Dict[str, float] = field(default_factory=lambda: {
+        'fear': 0.0,
+        'curiosity': 0.0,
+        'stress': 0.0,
+    })
+    
+    # Phase 3: PID State (cho Meta-Homeostasis)
+    pid_state: Dict[str, Dict[str, float]] = field(default_factory=lambda: {
+        'threshold': {'error_integral': 0.0, 'error_prev': 0.0},
+        'learning_rate': {'error_integral': 0.0, 'error_prev': 0.0},
+    })
 
 
 def create_snn_context(num_neurons: int, connectivity: float = 0.1) -> SNNContext:
