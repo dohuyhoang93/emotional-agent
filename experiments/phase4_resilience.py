@@ -14,7 +14,8 @@ from src.processes.snn_vector_ops import (
 )
 from src.processes.snn_integrate_fire import process_homeostasis
 from src.processes.snn_learning import process_stdp_basic
-from src.processes.snn_meta import process_meta_homeostasis
+from src.processes.snn_meta import process_meta_homeostasis  # Old version
+from src.processes.snn_meta_fixed import process_meta_homeostasis_fixed  # Fixed version
 from src.processes.snn_resync import process_periodic_resync
 from src.processes.snn_imagination import process_imagination_loop, process_dream_learning
 from src.tools.brain_biopsy import BrainBiopsy
@@ -41,10 +42,13 @@ def run_resilience_experiment(num_neurons=100, num_steps=5000):  # Tăng từ 20
     # Tạo SNN Context
     ctx = create_snn_context(num_neurons=num_neurons, connectivity=0.15)
     
-    # Giảm PID gains để tránh oscillation
-    ctx.params['pid_kp'] = 0.01  # Giảm từ 0.1
-    ctx.params['pid_ki'] = 0.001  # Giảm từ 0.01
-    ctx.params['pid_kd'] = 0.005  # Giảm từ 0.05
+    # Thêm params cho Meta-Homeostasis Fixed
+    ctx.params['meta_pid_kp'] = 0.001
+    ctx.params['meta_pid_ki'] = 0.0001
+    ctx.params['meta_pid_kd'] = 0.0005
+    ctx.params['meta_max_integral'] = 5.0
+    ctx.params['meta_max_output'] = 0.01
+    ctx.params['meta_scale_factor'] = 0.0001
     
     # Tạo Workflow Engine
     engine = WorkflowEngine()
@@ -54,17 +58,17 @@ def run_resilience_experiment(num_neurons=100, num_steps=5000):  # Tăng từ 20
     engine.register('stdp', process_stdp_basic)
     engine.register('homeostasis', process_homeostasis)
     engine.register('meta_homeostasis', process_meta_homeostasis)
+    engine.register('meta_homeostasis_fixed', process_meta_homeostasis_fixed)  # Register fixed version
     engine.register('resync', process_periodic_resync)
     engine.register('imagination', process_imagination_loop)
     engine.register('dream_learning', process_dream_learning)
     
-    # Workflow (BẬT LẠI tất cả features)
+    # Workflow (BẬT Meta-Homeostasis Fixed)
     workflow = [
         'integrate', 'fire', 'clustering', 'stdp',
-        # 'meta_homeostasis',  # VẪN TẮT - gây oscillation
-        'homeostasis',  # Chỉ dùng homeostasis thường
+        'meta_homeostasis_fixed',  # BẬT Fixed version thay vì homeostasis thường
         'resync',
-        'imagination', 'dream_learning'  # BẬT LẠI
+        'imagination', 'dream_learning'
     ]
     
     # Pattern
