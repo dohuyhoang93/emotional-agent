@@ -1,0 +1,128 @@
+{
+  "experiment": "multi_agent_test",
+  "start_time": "2025-12-25T14:29:38.033545",
+  "end_time": "2025-12-25T14:29:41.524869",
+  "duration_seconds": 3.491324,
+  "metrics": [
+    {
+      "episode": 1,
+      "timestamp": "2025-12-25T14:29:40.730493",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 2,
+      "timestamp": "2025-12-25T14:29:40.805101",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 3,
+      "timestamp": "2025-12-25T14:29:40.898319",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 4,
+      "timestamp": "2025-12-25T14:29:40.983595",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 5,
+      "timestamp": "2025-12-25T14:29:41.062041",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 6,
+      "timestamp": "2025-12-25T14:29:41.148205",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 7,
+      "timestamp": "2025-12-25T14:29:41.240968",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 8,
+      "timestamp": "2025-12-25T14:29:41.348972",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 9,
+      "timestamp": "2025-12-25T14:29:41.440189",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 10,
+      "timestamp": "2025-12-25T14:29:41.519848",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ]
+}

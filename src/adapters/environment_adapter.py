@@ -13,8 +13,19 @@ class EnvironmentAdapter:
         """
         Lấy observation thô từ môi trường.
         Output trả về là một Dict chứa trạng thái vật lý.
+        
+        DEPRECATED: Sẽ chuyển sang get_sensor_vector()
         """
         return self.env.get_observation(agent_id)
+    
+    def get_sensor_vector(self, agent_id: int):
+        """
+        Lấy sensor vector 16-dim từ môi trường.
+        
+        Returns:
+            np.ndarray shape (16,)
+        """
+        return self.env.get_sensor_vector(agent_id)
 
     def perform_action(self, agent_id: int, action: str) -> float:
         """

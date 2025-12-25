@@ -1,0 +1,255 @@
+# Multi-Agent Audit Recipe
+# ================================
+# Validation rules cho Multi-Agent SNN-RL System
+#
+# Audit Levels:
+# - C (Check): Exists only
+# - S (Sanity): Basic min/max
+# - A (Assert): Strict validation
+# - B (Block): Rollback on violation
+
+process_recipes:
+  
+  # ========================================================================
+  # SNN Core Processes
+  # ========================================================================
+  
+  encode_state_to_spikes:
+    description: "Encode RL observation to SNN spikes"
+    
+    outputs:
+      - field: snn.domain.neurons
+        level: C
+        exists: true
+        description: "Neurons must exist after encoding"
+      
+      - field: snn.domain.neurons.potential
+        level: S
+        min: 0.0
+        max: 5.0
+        min_threshold: 3
+        max_threshold: 5
+        message: "Spike potential should be reasonable [0, 5]"
+  
+  process_integrate:
+    description: "Integrate neuron potentials"
+    
+    inputs:
+      - field: snn.domain.neurons
+        level: C
+        exists: true
+      
+      - field: snn.global.tau_decay
+        level: A
+        min: 0.5
+        max: 1.0
+        max_threshold: 1
+        message: "Tau decay must be in [0.5, 1.0]"
+    
+    outputs:
+      - field: snn.domain.neurons.potential
+        level: A
+        min: -1.0
+        max: 10.0
+        max_threshold: 1
+        message: "Neuron potential explosion detected!"
+  
+  process_fire:
+    description: "Fire neurons above threshold"
+    
+    outputs:
+      - field: snn.domain.neurons.potential
+        level: S
+        min: -0.5
+        max: 10.0
+        min_threshold: 5
+        max_threshold: 10
+        message: "Post-fire potential should be low or reset"
+      
+      - field: snn.domain.neurons.fire_count
+        level: S
+        min: 0
+        max: 1000
+        min_threshold: 10
+        max_threshold: 20
+        message: "Fire count seems excessive"
+  
+  encode_emotion_vector:
+    description: "Encode SNN activity to emotion vector"
+    
+    outputs:
+      - field: domain.snn_emotion_vector
+        level: C
+        exists: true
+        message: "Emotion vector must exist"
+      
+      # NOTE: Method call support!
+      - field: domain.snn_emotion_vector.norm()
+        level: A
+        min: 0.0
+        max: 1.5
+        max_threshold: 1
+        message: "Emotion vector norm should be ~1.0 (normalized)"
+  
+  # ========================================================================
+  # RL Processes
+  # ========================================================================
+  
+  select_action_gated:
+    description: "Select action using gated network"
+    
+    inputs:
+      - field: domain.snn_emotion_vector
+        level: C
+        exists: true
+      
+      - field: domain.current_exploration_rate
+        level: S
+        min: 0.0
+        max: 1.0
+        max_threshold: 1
+        message: "Exploration rate must be [0, 1]"
+    
+    outputs:
+      - field: domain.last_action
+        level: A
+        min: 0
+        max: 3
+        max_threshold: 1
+        message: "Action must be in [0, 3] (4 actions)"
+      
+      - field: domain.last_q_values
+        level: C
+        exists: true
+  
+  # ========================================================================
+  # Social Learning Processes
+  # ========================================================================
+  
+  extract_elite_synapses:
+    description: "Extract synapses from elite agents"
+    
+    outputs:
+      - field: domain.elite_synapses
+        level: C
+        exists: true
+        message: "Elite synapses must be extracted"
+      
+      - field: domain.elite_synapses
+        level: S
+        min_len: 1
+        max_len: 100
+        min_threshold: 3
+        max_threshold: 5
+        message: "Elite synapses count should be reasonable"
+  
+  inject_viral_with_quarantine:
+    description: "Inject synapses into learner agents"
+    
+    inputs:
+      - field: domain.elite_synapses
+        level: C
+        exists: true
+      
+      - field: snn.domain.synapses
+        level: C
+        exists: true
+    
+    outputs:
+      - field: snn.domain.synapses
+        level: B
+        max_len: 300
+        max_threshold: 1
+        message: "Too many synapses - rollback transfer!"
+        reset_on_success: true
+  
+  # ========================================================================
+  # Revolution Protocol
+  # ========================================================================
+  
+  check_revolution_trigger:
+    description: "Check if revolution should trigger"
+    
+    inputs:
+      - field: domain.population_metrics
+        level: C
+        exists: true
+      
+      - field: domain.revolution_threshold
+        level: S
+        min: 0.0
+        max: 1.0
+        max_threshold: 1
+        message: "Revolution threshold must be [0, 1]"
+    
+    outputs:
+      - field: domain.should_trigger_revolution
+        level: C
+        exists: true
+  
+  update_ancestor:
+    description: "Update ancestor from elite agent"
+    
+    inputs:
+      - field: domain.elite_agent_id
+        level: C
+        exists: true
+      
+      - field: snn.domain.neurons
+        level: C
+        exists: true
+    
+    outputs:
+      - field: domain.ancestor_updated
+        level: C
+        exists: true
+        message: "Ancestor update status must be recorded"
+
+# ========================================================================
+# Custom Validators (Future Extension)
+# ========================================================================
+
+custom_validators:
+  neuron_health:
+    - field: potential
+      min: -1.0
+      max: 10.0
+      description: "Neuron potential range"
+    
+    - field: threshold
+      min: 0.3
+      max: 3.0
+      description: "Biological threshold range"
+    
+    - field: prototype_vector
+      type: ndarray
+      shape: [16]
+      norm_max: 2.0
+      description: "Prototype vector 16-dim"
+  
+  synapse_health:
+    - field: weight
+      min: -10.0
+      max: 10.0
+      description: "Synapse weight range"
+    
+    - field: trace_fast
+      min: 0.0
+      max: 1.0
+      description: "Fast trace [0, 1]"
+    
+    - field: trace_slow
+      min: 0.0
+      max: 1.0
+      description: "Slow trace [0, 1]"
+  
+  emotion_vector_health:
+    - field: norm
+      min: 0.9
+      max: 1.1
+      description: "Should be normalized"
+    
+    - field: mean
+      min: -0.5
+      max: 0.5
+      description: "Mean should be near zero"

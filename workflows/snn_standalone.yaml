@@ -1,0 +1,99 @@
+# SNN Standalone Workflow
+# =======================
+# Workflow cho SNN chạy độc lập (không tích hợp RL)
+
+name: "SNN Standalone Workflow"
+description: "SNN basic workflow với core, learning, homeostasis, và advanced features"
+
+# Global settings
+settings:
+  max_iterations: 1000
+  audit_enabled: true
+  transaction_enabled: true
+
+# Workflow steps
+steps:
+  # === Core Cycle ===
+  
+  - name: "integrate"
+    process: "process_integrate"
+    description: "Tích phân điện thế với vector matching"
+  
+  - name: "fire"
+    process: "process_fire"
+    description: "Bắn xung khi vượt threshold"
+  
+  # === Learning ===
+  
+  - name: "clustering"
+    process: "process_clustering"
+    description: "Spatial learning - xoay prototype vectors"
+  
+  - name: "stdp"
+    process: "process_stdp"
+    description: "Temporal learning - STDP với trace"
+  
+  # === Homeostasis ===
+  
+  - name: "homeostasis"
+    process: "process_homeostasis"
+    description: "Regular homeostasis - điều chỉnh threshold"
+    frequency: 5  # Chạy mỗi 5 steps
+  
+  - name: "meta_homeostasis"
+    process: "process_meta_homeostasis_fixed"
+    description: "Meta-homeostasis với PID anti-windup"
+    frequency: 10  # Chạy mỗi 10 steps
+    enabled: true  # Có thể tắt nếu cần
+  
+  # === Advanced Features ===
+  
+  - name: "imagination"
+    process: "process_imagination_loop"
+    description: "Tưởng tượng - tự sinh spike từ ký ức"
+    frequency: 500  # Chạy mỗi 500ms
+    enabled: true
+  
+  - name: "dream_learning"
+    process: "process_dream_learning"
+    description: "Học từ kết quả tưởng tượng"
+    frequency: 500
+    enabled: true
+  
+  - name: "resync"
+    process: "process_periodic_resync"
+    description: "Periodic resync để fix drift"
+    frequency: 1000  # Chạy mỗi 1000 steps
+    enabled: true
+  
+  # === Social Learning (Multi-agent only) ===
+  
+  - name: "extract_top_synapses"
+    process: "process_extract_top_synapses"
+    description: "Trích xuất top-k synapses để share"
+    frequency: 100
+    enabled: false  # Tắt cho standalone
+  
+  - name: "sandbox_evaluation"
+    process: "process_sandbox_evaluation"
+    description: "Đánh giá shadow vs native synapses"
+    frequency: 100
+    enabled: false  # Tắt cho standalone
+  
+  # === Time ===
+  
+  - name: "tick"
+    process: "process_tick"
+    description: "Tăng thời gian"
+
+# Audit configuration
+audit:
+  recipe_file: "specs/snn_audit_recipe.yaml"
+  log_level: "INFO"
+  track_metrics: true
+
+# Error handling
+error_handling:
+  on_audit_violation: "rollback"  # rollback hoặc continue
+  on_process_error: "stop"  # stop hoặc skip
+  max_retries: 3

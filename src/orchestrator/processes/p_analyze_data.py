@@ -1,4 +1,3 @@
-import pandas as pd
 import numpy as np
 from theus import process
 from src.orchestrator.context import OrchestratorSystemContext
@@ -12,106 +11,78 @@ from src.logger import log
 )
 def analyze_data(ctx: OrchestratorSystemContext):
     """
-    Process: Phân tích dữ liệu tổng hợp và tạo báo cáo tóm tắt.
+    Process: Analyze aggregated multi-agent experiment data.
+    
+    NOTE: Updated to handle JSON metrics format (no 'success' column).
     """
     log(ctx, "info", "  [Orchestration] Analyzing aggregated data...")
     domain = ctx.domain_ctx
 
-    summary_report_lines = ["--- BÁO CÁO TỔNG KẾT THỬ NGHIỆM ---"]
-    summary_report_lines.append(f"Thời gian chạy: {pd.Timestamp.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    summary_report_lines.append(f"Thư mục kết quả: {domain.output_dir}\n")
+    summary_report_lines = ["--- MULTI-AGENT EXPERIMENT SUMMARY ---"]
+    summary_report_lines.append(f"Output directory: {domain.output_dir}\n")
 
-    # --- Bước 1: Tự động xác định đường đi tối ưu ---
-    optimal_path_length = float('inf')
-    all_data_exists = any(not exp.aggregated_data.empty for exp in domain.experiments)
-    
-    if all_data_exists:
-        all_dfs = [exp.aggregated_data for exp in domain.experiments if not exp.aggregated_data.empty]
-        full_df = pd.concat(all_dfs, ignore_index=True)
-        successful_runs = full_df[full_df['success'] == True]
-        if not successful_runs.empty:
-            optimal_path_length = successful_runs['steps'].min()
-
-    if optimal_path_length == float('inf'):
-        log(ctx, "info", "CẢNH BÁO: Không tìm thấy bất kỳ episode thành công nào. Không thể xác định đường đi tối ưu.")
-    else:
-        log(ctx, "info", f"  [Analysis] Đường đi tối ưu xác định: {optimal_path_length} bước.")
-
-    # --- Bước 2: Phân tích từng thử nghiệm ---
     for exp_def in domain.experiments:
-        summary_report_lines.append(f"=== Thử nghiệm: {exp_def.name} ===")
-        summary_report_lines.append(f"  Số lần chạy: {exp_def.runs}")
-        summary_report_lines.append(f"  Số episode mỗi lần chạy: {exp_def.episodes_per_run}")
-        summary_report_lines.append(f"  Tham số: {exp_def.parameters}")
+        summary_report_lines.append(f"=== Experiment: {exp_def.name} ===")
+        summary_report_lines.append(f"  Runs: {exp_def.runs}")
+        summary_report_lines.append(f"  Episodes per run: {exp_def.episodes_per_run}")
+        summary_report_lines.append(f"  Parameters: {exp_def.parameters}\n")
 
-        if not exp_def.aggregated_data.empty:
-            df_agg = exp_def.aggregated_data
-            mean_success_rate = df_agg.groupby('episode')['success'].mean().mean() * 100
-            summary_report_lines.append(f"  Tỷ lệ thành công trung bình (tất cả episode): {mean_success_rate:.2f}%")
-
-            df_successful = df_agg[df_agg['success'] == True]
-            if not df_successful.empty:
-                mean_steps_successful = df_successful.groupby('episode')['steps'].mean().mean()
-                summary_report_lines.append(f"  Số bước trung bình cho episode thành công: {mean_steps_successful:.2f}")
-            else:
-                summary_report_lines.append("  Không có episode thành công nào để tính số bước trung bình.")
+        if exp_def.aggregated_data:
+            metrics = exp_def.aggregated_data
             
-            mean_final_exploration_rate = df_agg.groupby('episode')['final_exploration_rate'].mean().iloc[-1]
-            summary_report_lines.append(f"  Tỷ lệ khám phá cuối cùng trung bình: {mean_final_exploration_rate:.4f}")
-
-            if optimal_path_length != float('inf'):
-                convergence_episodes = []
-                for run_id in df_agg['run_id'].unique():
-                    run_df = df_agg[df_agg['run_id'] == run_id]
-                    optimal_runs = run_df[(run_df['success'] == True) & (run_df['steps'] == optimal_path_length)]
-                    if not optimal_runs.empty:
-                        first_occurrence_episode = optimal_runs['episode'].min()
-                        convergence_episodes.append(first_occurrence_episode)
-                    else:
-                        convergence_episodes.append(np.nan)
-                
-                if convergence_episodes:
-                    average_convergence_episode = np.nanmean(convergence_episodes)
-                    summary_report_lines.append(f"  Episode trung bình tìm ra đường tối ưu ({int(optimal_path_length)} bước): {average_convergence_episode:.2f}")
-                else:
-                    summary_report_lines.append(f"  Đường tối ưu ({int(optimal_path_length)} bước) không được tìm thấy.")
-
-            # Trend Analysis
-            summary_report_lines.append("\n  --- Phân tích Xu hướng (Mỗi 1000 Episodes) ---")
-            chunk_size = 1000
-            max_episode = df_agg['episode'].max()
+            # Extract key metrics
+            episodes = [m.get('episode', 0) for m in metrics]
+            avg_rewards = [m.get('avg_reward', 0.0) for m in metrics]
+            best_rewards = [m.get('best_reward', 0.0) for m in metrics]
             
-            for start_ep in range(0, int(max_episode), chunk_size):
-                end_ep = min(start_ep + chunk_size, int(max_episode) + 1)
-                chunk = df_agg[(df_agg['episode'] >= start_ep) & (df_agg['episode'] < end_ep)]
-                
-                if not chunk.empty:
-                    chunk_success = chunk['success'].mean() * 100
-                    chunk_steps = chunk[chunk['success'] == True]['steps'].mean()
-                    chunk_reward = chunk['total_reward'].mean()
-                    chunk_exploration = chunk['final_exploration_rate'].mean()
-
-                    summary_report_lines.append(f"  Episodes {start_ep}-{end_ep}:")
-                    summary_report_lines.append(f"    Success Rate: {chunk_success:.2f}%")
-                    summary_report_lines.append(f"    Avg Steps: {chunk_steps:.2f}")
-                    summary_report_lines.append(f"    Avg Reward: {chunk_reward:.2f}")
-                    summary_report_lines.append(f"    Avg Exploration: {chunk_exploration:.4f}")
-
-            # Finisher Phase
-            finisher_start = int(max_episode * 0.9)
-            finisher_chunk = df_agg[df_agg['episode'] >= finisher_start]
-            if not finisher_chunk.empty:
-                finisher_success = finisher_chunk['success'].mean() * 100
-                finisher_steps = finisher_chunk[finisher_chunk['success'] == True]['steps'].mean()
-                finisher_exploration = finisher_chunk['final_exploration_rate'].mean()
-
-                summary_report_lines.append(f"\n  --- Giai đoạn Về đích (Episodes {finisher_start}-{int(max_episode)}) ---")
-                summary_report_lines.append(f"    Success Rate: {finisher_success:.2f}%")
-                summary_report_lines.append(f"    Avg Steps: {finisher_steps:.2f}")
-                summary_report_lines.append(f"    Avg Exploration: {finisher_exploration:.4f}")
+            # Social learning metrics
+            social_transfers = [m.get('social_learning_transfers', 0) for m in metrics]
+            total_synapses = [m.get('social_learning_synapses', 0) for m in metrics]
+            
+            # Revolution metrics
+            revolutions = [m.get('revolutions', 0) for m in metrics]
+            
+            # Overall statistics
+            total_episodes = len(metrics)
+            final_avg_reward = avg_rewards[-1] if avg_rewards else 0.0
+            best_overall_reward = max(best_rewards) if best_rewards else 0.0
+            
+            summary_report_lines.append(f"  Total Episodes: {total_episodes}")
+            summary_report_lines.append(f"  Final Avg Reward: {final_avg_reward:.4f}")
+            summary_report_lines.append(f"  Best Reward Achieved: {best_overall_reward:.4f}")
+            
+            # Social learning summary
+            total_transfers = sum(social_transfers)
+            total_synapses_transferred = sum(total_synapses)
+            summary_report_lines.append(f"\n  Social Learning:")
+            summary_report_lines.append(f"    Total Transfers: {total_transfers}")
+            summary_report_lines.append(f"    Total Synapses: {total_synapses_transferred}")
+            
+            # Revolution summary
+            total_revolutions = sum(revolutions)
+            summary_report_lines.append(f"\n  Revolution Protocol:")
+            summary_report_lines.append(f"    Total Revolutions: {total_revolutions}")
+            
+            # Learning progress (last 10% of episodes)
+            last_10_percent = int(total_episodes * 0.1)
+            if last_10_percent > 0:
+                final_phase_rewards = avg_rewards[-last_10_percent:]
+                final_phase_avg = np.mean(final_phase_rewards) if final_phase_rewards else 0.0
+                summary_report_lines.append(f"\n  Final Phase (last 10% episodes):")
+                summary_report_lines.append(f"    Avg Reward: {final_phase_avg:.4f}")
+            
+            # Trend analysis (every 10% of episodes)
+            chunk_size = max(1, total_episodes // 10)
+            summary_report_lines.append(f"\n  Learning Trend (every 10%):")
+            for i in range(0, total_episodes, chunk_size):
+                chunk_rewards = avg_rewards[i:i+chunk_size]
+                if chunk_rewards:
+                    chunk_avg = np.mean(chunk_rewards)
+                    summary_report_lines.append(f"    Episodes {i}-{min(i+chunk_size, total_episodes)}: Avg Reward = {chunk_avg:.4f}")
 
         else:
-            summary_report_lines.append("  Không có dữ liệu tổng hợp cho thử nghiệm này.")
+            summary_report_lines.append("  No aggregated data for this experiment.")
+        
         summary_report_lines.append("\n")
 
     domain.final_report = "\n".join(summary_report_lines)

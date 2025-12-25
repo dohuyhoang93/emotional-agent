@@ -1,0 +1,200 @@
+{
+    "experiments": [
+        {
+            "name": "sensor_test_100ep",
+            "description": "Test sensor system + intermediate rewards với 100 episodes",
+            "parameters": {
+                "environment_config": {
+                    "size": 25,
+                    "num_agents": 5,
+                    "goal_pos": [
+                        24,
+                        24
+                    ],
+                    "max_steps_per_episode": 500,
+                    "static_walls": [
+                        [
+                            0,
+                            5
+                        ],
+                        [
+                            1,
+                            5
+                        ],
+                        [
+                            2,
+                            5
+                        ],
+                        [
+                            3,
+                            5
+                        ],
+                        [
+                            4,
+                            5
+                        ],
+                        [
+                            5,
+                            0
+                        ],
+                        [
+                            5,
+                            1
+                        ],
+                        [
+                            5,
+                            2
+                        ],
+                        [
+                            5,
+                            3
+                        ],
+                        [
+                            5,
+                            4
+                        ],
+                        [
+                            10,
+                            10
+                        ],
+                        [
+                            10,
+                            11
+                        ],
+                        [
+                            10,
+                            12
+                        ],
+                        [
+                            10,
+                            13
+                        ],
+                        [
+                            10,
+                            14
+                        ],
+                        [
+                            15,
+                            5
+                        ],
+                        [
+                            15,
+                            6
+                        ],
+                        [
+                            15,
+                            7
+                        ],
+                        [
+                            15,
+                            8
+                        ],
+                        [
+                            15,
+                            9
+                        ]
+                    ],
+                    "logical_switches": [
+                        {
+                            "id": "A",
+                            "pos": [
+                                1,
+                                1
+                            ]
+                        },
+                        {
+                            "id": "B",
+                            "pos": [
+                                8,
+                                8
+                            ]
+                        },
+                        {
+                            "id": "C",
+                            "pos": [
+                                15,
+                                15
+                            ]
+                        }
+                    ],
+                    "dynamic_walls": {
+                        "gate_A": [
+                            [
+                                6,
+                                0
+                            ],
+                            [
+                                6,
+                                1
+                            ],
+                            [
+                                6,
+                                2
+                            ]
+                        ],
+                        "gate_B": [
+                            [
+                                11,
+                                10
+                            ],
+                            [
+                                11,
+                                11
+                            ],
+                            [
+                                11,
+                                12
+                            ]
+                        ],
+                        "gate_C": [
+                            [
+                                16,
+                                15
+                            ],
+                            [
+                                17,
+                                15
+                            ],
+                            [
+                                18,
+                                15
+                            ]
+                        ]
+                    },
+                    "rules": [
+                        {
+                            "switch": "A",
+                            "gate": "gate_A",
+                            "logic": "toggle"
+                        },
+                        {
+                            "switch": "B",
+                            "gate": "gate_B",
+                            "logic": "toggle"
+                        },
+                        {
+                            "switch": "C",
+                            "gate": "gate_C",
+                            "logic": "toggle"
+                        }
+                    ]
+                },
+                "agent_config": {
+                    "num_neurons": 50,
+                    "vector_dim": 16,
+                    "connectivity": 0.15,
+                    "learning_rate": 0.01,
+                    "exploration_rate": 0.3,
+                    "exploration_decay": 0.995,
+                    "use_social_learning": false,
+                    "use_revolution_protocol": false
+                },
+                "training": {
+                    "num_episodes": 100,
+                    "num_runs": 1,
+                    "save_interval": 50
+                }
+            }
+        }
+    ]
+}

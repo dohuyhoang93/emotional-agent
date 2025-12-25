@@ -55,6 +55,11 @@ class DomainContext(BaseDomainContext):
     N_vector: Optional[torch.Tensor] = None # Needs
     E_vector: Optional[torch.Tensor] = None # Emotions
     
+    # --- SNN Integration (Phase 5) ---
+    snn_context: Any = None  # SNNSystemContext (nested context)
+    snn_emotion_vector: Optional[torch.Tensor] = None  # Emotion từ SNN
+    intrinsic_reward: float = 0.0  # Novelty signal từ SNN
+    
     # --- Belief State ---
     believed_switch_states: Dict[str, bool] = field(default_factory=dict)
     

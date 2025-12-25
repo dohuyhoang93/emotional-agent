@@ -79,13 +79,98 @@ class GridWorld:
         self._update_dynamic_walls()
         return self.get_all_observations()
 
+    def get_sensor_vector(self, agent_id: int) -> 'np.ndarray':
+        """
+        Trả vector cảm biến 16 chiều.
+        
+        Agent CHỈ cảm nhận những gì ở GẦN nó (cục bộ).
+        KHÔNG có "god mode" - không biết toàn bộ maze.
+        
+        Ý nghĩa các kênh: KHÔNG xác định trước!
+        Agent tự học qua R-STDP.
+        
+        Returns:
+            vector: np.ndarray shape (16,)
+        """
+        import numpy as np
+        
+        vector = np.zeros(16, dtype=np.float32)
+        pos = self.agent_positions[agent_id]
+        idx = 0
+        
+        # Kênh 0-1: Proprioception (vị trí tương đối, normalized)
+        if idx < 16:
+            vector[idx] = pos[0] / self.size
+            idx += 1
+        if idx < 16:
+            vector[idx] = pos[1] / self.size
+            idx += 1
+        
+        # Kênh 2-9: Tactile (xúc giác 8 hướng xung quanh)
+        # up, down, left, right, up-left, up-right, down-left, down-right
+        directions = [(-1, 0), (1, 0), (0, -1), (0, 1), 
+                      (-1, -1), (-1, 1), (1, -1), (1, 1)]
+        
+        for dr, dc in directions:
+            if idx >= 16:
+                break
+            
+            neighbor = (pos[0] + dr, pos[1] + dc)
+            sensor_value = 0.0
+            
+            # Cảm nhận: 0=trống, 0.3=tường tĩnh, 0.6=tường động, 1.0=công tắc
+            
+            # Kiểm tra out of bounds
+            if not (0 <= neighbor[0] < self.size and 0 <= neighbor[1] < self.size):
+                sensor_value = 0.3  # Coi như tường
+            # Kiểm tra tường tĩnh
+            elif neighbor in self.static_walls:
+                sensor_value = 0.3
+            else:
+                # Kiểm tra tường động
+                for gate_id, is_closed in self.dynamic_wall_states.items():
+                    if is_closed and neighbor in self.dynamic_walls.get(gate_id, []):
+                        sensor_value = 0.6
+                        break
+                
+                # Kiểm tra công tắc (ưu tiên cao nhất)
+                if neighbor in self.switches:
+                    sensor_value = 1.0
+            
+            vector[idx] = sensor_value
+            idx += 1
+        
+        # Kênh 10-11: "Auditory" (nghe broadcast events gần đây)
+        if idx < 16 and self.broadcast_events:
+            # Có event trong bước này
+            vector[idx] = 1.0
+            idx += 1
+            
+            # Loại event (switch vs gate)
+            if idx < 16:
+                for event in self.broadcast_events:
+                    if event.get('type') == 'switch_toggle':
+                        vector[idx] = 0.5
+                        break
+                    elif event.get('type') == 'gate_changed':
+                        vector[idx] = 1.0
+                        break
+                idx += 1
+        
+        # Kênh 12-15: Dự phòng (có thể dùng cho môi trường khác)
+        # Để trống cho future use
+        
+        return vector
+    
     def get_observation(self, agent_id: int):
         # --- Thay đổi cho Đa tác nhân ---
+        # DEPRECATED: Sẽ dùng get_sensor_vector() thay thế
         return {
             'agent_pos': tuple(self.agent_positions[agent_id]),
             'step_count': self.current_step,
             'global_events': self.broadcast_events # Gửi sự kiện cho agent
         }
+    
     def get_all_observations(self):
         # --- Hàm mới cho Đa tác nhân ---
         return {i: self.get_observation(i) for i in range(self.num_agents)}
@@ -112,28 +197,59 @@ class GridWorld:
                     is_valid_move = False
                     break
         
+        # Base reward
+        reward = -0.1  # Step penalty
+        
         if is_valid_move:
             self.agent_positions[agent_id] = list(new_pos)
+            
+            # INTERMEDIATE REWARD 1: Toggle công tắc
             if tuple(self.agent_positions[agent_id]) in self.switches:
                 switch_id = self.switches[tuple(self.agent_positions[agent_id])]
                 if switch_id in self.switch_states:
+                    # Toggle switch
                     self.switch_states[switch_id] = not self.switch_states[switch_id]
+                    
+                    # Update dynamic walls
+                    old_wall_states = self.dynamic_wall_states.copy()
                     self._update_dynamic_walls()
-                    # --- STRATEGY 3: SHARED BELIEFS ---
-                    # Ghi nhận sự kiện để broadcast cho tất cả agent
+                    
+                    # Broadcast event
                     self.broadcast_events.append({
                         'type': 'switch_toggle',
                         'switch_id': switch_id,
                         'new_state': self.switch_states[switch_id]
                     })
+                    
+                    # REWARD: +1.0 for toggling switch
+                    reward += 1.0
+                    
+                    # INTERMEDIATE REWARD 2: Cổng mở
+                    # Check if any gate changed state
+                    for gate_id in self.dynamic_wall_states:
+                        if old_wall_states[gate_id] != self.dynamic_wall_states[gate_id]:
+                            # Gate state changed
+                            self.broadcast_events.append({
+                                'type': 'gate_changed',
+                                'gate_id': gate_id,
+                                'new_state': 'OPEN' if not self.dynamic_wall_states[gate_id] else 'CLOSED'
+                            })
+                            
+                            # REWARD: +0.5 for opening/closing gate
+                            reward += 0.5
         else:
-            return -0.5
+            # Invalid move penalty
+            reward = -0.5
 
+        # Goal reward (highest priority)
         if tuple(self.agent_positions[agent_id]) == self.goal_pos:
-            return 10.0
-        if self.is_done(): # Kiểm tra is_done() thay vì chỉ current_step
-            return -2.0
-        return -0.1
+            reward += 10.0
+        
+        # Timeout penalty
+        if self.is_done():
+            reward += -2.0
+        
+        return reward
         # --------------------------------
 
     def is_done(self):

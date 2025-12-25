@@ -1,0 +1,1208 @@
+{
+  "experiment": "snn_baseline_run_1",
+  "start_time": "2025-12-25T15:38:51.433261",
+  "end_time": "2025-12-25T15:42:08.623592",
+  "duration_seconds": 197.190331,
+  "metrics": [
+    {
+      "episode": 1,
+      "timestamp": "2025-12-25T15:38:57.698426",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 2,
+      "timestamp": "2025-12-25T15:38:59.802471",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 3,
+      "timestamp": "2025-12-25T15:39:01.878633",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 4,
+      "timestamp": "2025-12-25T15:39:03.807394",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 5,
+      "timestamp": "2025-12-25T15:39:05.741349",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 6,
+      "timestamp": "2025-12-25T15:39:07.660766",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 7,
+      "timestamp": "2025-12-25T15:39:09.735961",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 8,
+      "timestamp": "2025-12-25T15:39:11.712588",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 9,
+      "timestamp": "2025-12-25T15:39:13.721331",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 10,
+      "timestamp": "2025-12-25T15:39:15.689009",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 11,
+      "timestamp": "2025-12-25T15:39:17.602561",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 12,
+      "timestamp": "2025-12-25T15:39:19.088490",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 13,
+      "timestamp": "2025-12-25T15:39:21.033937",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 14,
+      "timestamp": "2025-12-25T15:39:22.957238",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 15,
+      "timestamp": "2025-12-25T15:39:24.874246",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 16,
+      "timestamp": "2025-12-25T15:39:25.989133",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 17,
+      "timestamp": "2025-12-25T15:39:27.907666",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 18,
+      "timestamp": "2025-12-25T15:39:29.874274",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 19,
+      "timestamp": "2025-12-25T15:39:31.923239",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 20,
+      "timestamp": "2025-12-25T15:39:33.974064",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 21,
+      "timestamp": "2025-12-25T15:39:35.962503",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 22,
+      "timestamp": "2025-12-25T15:39:37.919295",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 23,
+      "timestamp": "2025-12-25T15:39:40.029128",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 24,
+      "timestamp": "2025-12-25T15:39:42.036600",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 25,
+      "timestamp": "2025-12-25T15:39:44.195726",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 26,
+      "timestamp": "2025-12-25T15:39:46.273696",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 27,
+      "timestamp": "2025-12-25T15:39:48.210807",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 28,
+      "timestamp": "2025-12-25T15:39:50.134366",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 29,
+      "timestamp": "2025-12-25T15:39:52.062061",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 30,
+      "timestamp": "2025-12-25T15:39:53.986038",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 31,
+      "timestamp": "2025-12-25T15:39:55.951744",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 32,
+      "timestamp": "2025-12-25T15:39:57.895358",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 33,
+      "timestamp": "2025-12-25T15:39:59.822074",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 34,
+      "timestamp": "2025-12-25T15:40:01.639429",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 35,
+      "timestamp": "2025-12-25T15:40:03.538758",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 36,
+      "timestamp": "2025-12-25T15:40:05.441701",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 37,
+      "timestamp": "2025-12-25T15:40:07.357253",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 38,
+      "timestamp": "2025-12-25T15:40:09.274039",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 39,
+      "timestamp": "2025-12-25T15:40:11.246528",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 40,
+      "timestamp": "2025-12-25T15:40:13.190803",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 41,
+      "timestamp": "2025-12-25T15:40:15.106719",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 42,
+      "timestamp": "2025-12-25T15:40:17.000321",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 43,
+      "timestamp": "2025-12-25T15:40:18.956847",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 44,
+      "timestamp": "2025-12-25T15:40:20.678404",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 45,
+      "timestamp": "2025-12-25T15:40:22.574099",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 46,
+      "timestamp": "2025-12-25T15:40:24.478351",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 47,
+      "timestamp": "2025-12-25T15:40:26.362188",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 48,
+      "timestamp": "2025-12-25T15:40:28.285634",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 49,
+      "timestamp": "2025-12-25T15:40:30.193989",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 50,
+      "timestamp": "2025-12-25T15:40:32.111788",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 51,
+      "timestamp": "2025-12-25T15:40:34.051079",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 52,
+      "timestamp": "2025-12-25T15:40:35.962250",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 53,
+      "timestamp": "2025-12-25T15:40:37.863606",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 54,
+      "timestamp": "2025-12-25T15:40:39.757318",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 55,
+      "timestamp": "2025-12-25T15:40:41.668621",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 56,
+      "timestamp": "2025-12-25T15:40:43.051634",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 57,
+      "timestamp": "2025-12-25T15:40:44.994846",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 58,
+      "timestamp": "2025-12-25T15:40:46.906853",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 59,
+      "timestamp": "2025-12-25T15:40:48.837612",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 60,
+      "timestamp": "2025-12-25T15:40:50.879102",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 61,
+      "timestamp": "2025-12-25T15:40:52.924155",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 62,
+      "timestamp": "2025-12-25T15:40:54.933835",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 63,
+      "timestamp": "2025-12-25T15:40:56.393670",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 64,
+      "timestamp": "2025-12-25T15:40:57.805270",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 65,
+      "timestamp": "2025-12-25T15:40:59.937896",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 66,
+      "timestamp": "2025-12-25T15:41:02.255842",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 67,
+      "timestamp": "2025-12-25T15:41:03.670324",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 68,
+      "timestamp": "2025-12-25T15:41:05.796166",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 69,
+      "timestamp": "2025-12-25T15:41:07.396060",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 70,
+      "timestamp": "2025-12-25T15:41:09.491255",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 71,
+      "timestamp": "2025-12-25T15:41:11.163301",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 72,
+      "timestamp": "2025-12-25T15:41:13.116118",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 73,
+      "timestamp": "2025-12-25T15:41:15.061778",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 74,
+      "timestamp": "2025-12-25T15:41:17.057002",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 75,
+      "timestamp": "2025-12-25T15:41:19.103275",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 76,
+      "timestamp": "2025-12-25T15:41:21.083551",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 77,
+      "timestamp": "2025-12-25T15:41:23.074816",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 78,
+      "timestamp": "2025-12-25T15:41:25.093888",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 79,
+      "timestamp": "2025-12-25T15:41:27.128592",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 80,
+      "timestamp": "2025-12-25T15:41:29.117207",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 81,
+      "timestamp": "2025-12-25T15:41:31.123772",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 82,
+      "timestamp": "2025-12-25T15:41:33.273993",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 83,
+      "timestamp": "2025-12-25T15:41:35.186860",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 84,
+      "timestamp": "2025-12-25T15:41:37.105406",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 85,
+      "timestamp": "2025-12-25T15:41:39.028467",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 86,
+      "timestamp": "2025-12-25T15:41:40.952940",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 87,
+      "timestamp": "2025-12-25T15:41:42.893726",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 88,
+      "timestamp": "2025-12-25T15:41:44.878580",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 89,
+      "timestamp": "2025-12-25T15:41:46.816350",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 90,
+      "timestamp": "2025-12-25T15:41:48.878132",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 91,
+      "timestamp": "2025-12-25T15:41:50.800492",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 92,
+      "timestamp": "2025-12-25T15:41:52.719174",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 93,
+      "timestamp": "2025-12-25T15:41:54.648434",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 94,
+      "timestamp": "2025-12-25T15:41:56.593880",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 95,
+      "timestamp": "2025-12-25T15:41:58.600699",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 96,
+      "timestamp": "2025-12-25T15:42:00.595862",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 97,
+      "timestamp": "2025-12-25T15:42:02.696792",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 98,
+      "timestamp": "2025-12-25T15:42:04.695698",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 99,
+      "timestamp": "2025-12-25T15:42:06.678664",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 100,
+      "timestamp": "2025-12-25T15:42:08.618887",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ]
+}

@@ -1,4 +1,3 @@
-import subprocess
 import os
 import json
 import random
@@ -9,6 +8,11 @@ from theus import process
 from src.orchestrator.context import OrchestratorSystemContext, ExperimentRun
 from src.logger import log, log_error
 
+# Import MultiAgentExperiment
+import sys
+sys.path.append('.')
+from experiments.run_multi_agent_experiment import MultiAgentExperiment
+
 def _execute_single_run(
     run_id: int,
     exp_name: str,
@@ -18,82 +22,110 @@ def _execute_single_run(
     output_dir: str
 ) -> dict:
     """
-    Helper function to execute a single simulation run.
-    Returns a dict with result status and metadata to update the Context securely.
+    Execute a single multi-agent experiment run.
+    
+    NOTE: Updated to use MultiAgentExperiment directly instead of subprocess.
     """
     seed = random.randint(0, 1000000)
-    output_csv_path = os.path.join(output_dir, f"run_{run_id}.csv")
-    stdout_log_path = os.path.join(output_dir, f"run_{run_id}_stdout.log")
-    stderr_log_path = os.path.join(output_dir, f"run_{run_id}_stderr.log")
-
-    # Serialize overrides
-    settings_override_json = json.dumps(parameters)
-
-    command = [
-        "python", "main.py",
-        "--num-episodes", str(episodes),
-        "--output-path", output_csv_path,
-        "--settings-override", settings_override_json,
-        "--seed", str(seed),
-        "--log-level", log_level
-    ]
     
-    # Check visual mode
-    is_visual_mode = parameters.get("visual_mode", False)
-
+    # Prepare config for MultiAgentExperiment
+    config = {
+        'name': f"{exp_name}_run_{run_id}",
+        'seed': seed,
+        
+        # Multi-agent parameters
+        'num_agents': parameters.get('num_agents', 5),
+        'num_episodes': episodes,
+        'max_steps': parameters.get('max_steps_per_episode', 50),
+        
+        # SNN parameters
+        'num_neurons': parameters.get('num_neurons', 50),
+        'vector_dim': parameters.get('vector_dim', 16),
+        'connectivity': parameters.get('connectivity', 0.15),
+        
+        # Social learning
+        'social_learning_freq': parameters.get('social_learning_freq', 5),
+        'elite_ratio': parameters.get('elite_ratio', 0.2),
+        'learner_ratio': parameters.get('learner_ratio', 0.5),
+        'synapses_per_transfer': parameters.get('synapses_per_transfer', 10),
+        
+        # Revolution protocol
+        'revolution_threshold': parameters.get('revolution_threshold', 0.5),
+        'revolution_window': parameters.get('revolution_window', 5),
+        'revolution_elite_ratio': parameters.get('revolution_elite_ratio', 0.1),
+        
+        # RL parameters
+        'initial_exploration_rate': parameters.get('initial_exploration', 1.0),
+        'exploration_decay': parameters.get('exploration_decay', 0.995),
+        
+        # Environment
+        'grid_size': parameters.get('environment_config', {}).get('grid_size', 10),
+        'initial_needs': parameters.get('initial_needs', [0.5, 0.5]),
+        'initial_emotions': parameters.get('initial_emotions', [0.0, 0.0]),
+    }
+    
     try:
-        if is_visual_mode:
-            # If visual, we usually want to see it, so we don't capture output?
-            # Or we strictly shouldn't run parallel visual.
-            subprocess.run(command, text=True, check=True)
-        else:
-            with open(stdout_log_path, 'w') as stdout_log, open(stderr_log_path, 'w') as stderr_log:
-                subprocess.run(
-                    command,
-                    stdout=stdout_log,
-                    stderr=stderr_log,
-                    text=True,
-                    check=True
-                )
+        # Create and run experiment
+        experiment = MultiAgentExperiment(config)
+        experiment.run(num_episodes=episodes)
+        
+        # Save metrics to output directory
+        metrics_file = os.path.join(output_dir, f"run_{run_id}_metrics.json")
+        
+        # Copy metrics from experiment logger
+        with open(metrics_file, 'w') as f:
+            json.dump({
+                'run_id': run_id,
+                'seed': seed,
+                'config': config,
+                'metrics': experiment.logger.metrics_history,
+                'summary': experiment.logger.get_summary()
+            }, f, indent=2)
+        
         return {
             "status": "COMPLETED",
             "run_id": run_id,
             "seed": seed,
-            "output_csv_path": output_csv_path
+            "output_csv_path": metrics_file,
+            "metrics": experiment.logger.metrics_history
         }
-    except subprocess.CalledProcessError:
-        return {
-            "status": "FAILED",
-            "run_id": run_id,
-            "seed": seed,
-            "output_csv_path": output_csv_path,
-            "error": "CalledProcessError",
-            "stderr_path": stderr_log_path
-        }
+        
     except Exception as e:
+        log_error_msg = f"Run {run_id} failed: {str(e)}"
+        
+        # Save error info
+        error_file = os.path.join(output_dir, f"run_{run_id}_error.txt")
+        with open(error_file, 'w') as f:
+            f.write(log_error_msg)
+            f.write("\n\n")
+            import traceback
+            traceback.print_exc(file=f)
+        
         return {
             "status": "FAILED",
             "run_id": run_id,
             "seed": seed,
-            "output_csv_path": output_csv_path,
-            "error": str(e)
+            "output_csv_path": None,
+            "error": str(e),
+            "error_file": error_file
         }
 
 @process(
     inputs=['domain.experiments', 'domain.output_dir', 'log_level'],
     outputs=['domain.experiments'],
-    side_effects=['subprocess.run', 'filesystem.write', 'filesystem.mkdir', 'concurrency'],
-    errors=['subprocess.CalledProcessError']
+    side_effects=['filesystem.write', 'filesystem.mkdir', 'concurrency'],
+    errors=['Exception']
 )
 def run_simulations(ctx: OrchestratorSystemContext):
     """
-    Process: Chạy tất cả các mô phỏng (Experiment Runs) song song.
+    Process: Run all multi-agent experiment simulations in parallel.
+    
+    NOTE: Updated to use MultiAgentExperiment directly (no subprocess).
     """
-    log(ctx, "info", "  [Orchestration] Running simulations (Parallel)...")
+    log(ctx, "info", "  [Orchestration] Running multi-agent simulations (Parallel)...")
     domain = ctx.domain_ctx
     
-    # Determine Max Workers (Defaults to CPU count + 4 for IO bound, but this is CPU bound)
-    # python processes are CPU bound.
+    # Determine Max Workers
     max_workers = os.cpu_count() or 4
     log(ctx, "info", f"    [Concurrency] Max Workers: {max_workers}")
 
@@ -121,17 +153,15 @@ def run_simulations(ctx: OrchestratorSystemContext):
                     output_dir=exp_output_dir
                 )
                 
-                # We need to map future back to where to store result (which ExperimentDefinition)
                 future_to_exp_run[future] = (exp_def, run_id)
 
-        # Loop 2: Collect Results as they complete
+        # Loop 2: Collect Results
         for future in concurrent.futures.as_completed(future_to_exp_run):
             exp_def, run_id = future_to_exp_run[future]
             
             try:
                 result = future.result()
                 
-                # Update Context (Thread-safe implicitly because we are in the main thread here getting results)
                 status = result["status"]
                 
                 # Create Record
@@ -148,8 +178,7 @@ def run_simulations(ctx: OrchestratorSystemContext):
                     log(ctx, "info", f"      ✅ [Experiment: {exp_def.name}] Run {run_id} Completed.")
                 else:
                     err_info = result.get('error', 'Unknown')
-                    stderr = result.get('stderr_path', 'N/A')
-                    log_error(ctx, f"      ❌ [Experiment: {exp_def.name}] Run {run_id} Failed: {err_info}. Log: {stderr}")
+                    log_error(ctx, f"      ❌ [Experiment: {exp_def.name}] Run {run_id} Failed: {err_info}")
 
             except Exception as e:
                 log_error(ctx, f"CRITICAL: Future execution failed for {exp_def.name} Run {run_id}: {e}")

@@ -1,0 +1,36 @@
+name: "RL-SNN Integrated Agent Loop"
+description: "End-to-end workflow với SNN emotion processing và RL decision making"
+
+# Workflow settings
+settings:
+  audit_enabled: true
+  rollback_on_error: false  # Environment side-effects cannot rollback
+
+steps:
+  # ===================================================================
+  # PHASE 1: SNN EMOTION PROCESSING
+  # ===================================================================
+  
+  - encode_state_to_spikes
+  - process_integrate
+  - process_fire
+  - process_clustering
+  - encode_emotion_vector
+  
+  # ===================================================================
+  # PHASE 2: RL DECISION MAKING
+  # ===================================================================
+  
+  - compute_intrinsic_reward_snn
+  - select_action_gated
+  - execute_action_with_env
+  - combine_rewards
+  - update_q_learning
+  
+  # ===================================================================
+  # PHASE 3: SNN LEARNING & MAINTENANCE
+  # ===================================================================
+  
+  - process_stdp_3factor
+  - process_commitment
+  - process_homeostasis

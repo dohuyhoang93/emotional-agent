@@ -1,0 +1,17 @@
+name: "RL-SNN Minimal Test Workflow"
+description: "Minimal workflow để test core integration"
+
+settings:
+  audit_enabled: true
+  rollback_on_error: false
+
+steps:
+  # SNN Processing
+  - encode_state_to_spikes
+  - process_integrate
+  - process_fire
+  - encode_emotion_vector
+  
+  # RL Decision
+  - compute_intrinsic_reward_snn
+  - select_action_gated

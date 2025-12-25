@@ -1,0 +1,581 @@
+# Audit Recipe for SNN Processes
+# ================================
+# Validation rules cho SNN parameters và state changes
+#
+# Audit Levels:
+# - I (Ignore): Complex objects, skip validation
+# - C (Check): Exists only
+# - S (Sanity): Basic min/max
+# - A (Assert): Strict validation with detailed rules
+
+process_recipes:
+  
+  # ========================================================================
+  # Core Processes
+  # ========================================================================
+  
+  process_integrate:
+    description: "Tích phân điện thế với vector matching"
+    
+    inputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+        description: "Neurons array phải tồn tại"
+      
+      - field: domain_ctx.synapses
+        level: C
+        exists: true
+        description: "Synapses array phải tồn tại"
+      
+      - field: domain_ctx.spike_queue
+        level: C
+        exists: true
+      
+      - field: global_ctx.tau_decay
+        level: A
+        min: 0.5
+        max: 1.0
+        description: "Tau decay phải trong [0.5, 1.0] để tránh divergence"
+    
+    outputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+        description: "Neurons được update potential"
+      
+      - field: domain_ctx.metrics
+        level: C
+        exists: true
+  
+  process_fire:
+    description: "Bắn xung khi potential vượt threshold"
+    
+    inputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+      
+      - field: domain_ctx.current_time
+        level: S
+        min: 0
+        description: "Current time không âm"
+      
+      - field: global_ctx.refractory_period
+        level: A
+        min: 1
+        max: 20
+        description: "Refractory period 1-20ms (biological range)"
+    
+    outputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+        description: "Neurons được update last_fire_time"
+      
+      - field: domain_ctx.spike_queue
+        level: C
+        exists: true
+      
+      - field: domain_ctx.metrics.fire_rate
+        level: A
+        min: 0.0
+        max: 1.0
+        description: "Fire rate phải [0, 1] (0-100%)"
+  
+  # ========================================================================
+  # Learning Processes
+  # ========================================================================
+  
+  process_clustering:
+    description: "Spatial learning - xoay prototype vectors"
+    
+    inputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+      
+      - field: domain_ctx.synapses
+        level: C
+        exists: true
+      
+      - field: global_ctx.clustering_rate
+        level: A
+        min: 0.0001
+        max: 0.1
+        description: "Clustering rate [0.0001, 0.1] để tránh overshooting"
+    
+    outputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+        description: "Neurons được update prototype_vector"
+  
+  process_stdp:
+    description: "Temporal learning - STDP với trace"
+    
+    inputs:
+      - field: domain_ctx.synapses
+        level: C
+        exists: true
+      
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+      
+      - field: global_ctx.learning_rate
+        level: A
+        min: 0.001
+        max: 0.5
+        description: "Learning rate [0.001, 0.5]"
+      
+      - field: global_ctx.tau_trace
+        level: A
+        min: 0.5
+        max: 1.0
+        description: "Tau trace [0.5, 1.0] (decay rate)"
+      
+      - field: global_ctx.weight_decay
+        level: A
+        min: 0.99
+        max: 1.0
+        description: "Weight decay [0.99, 1.0] (0.01% max decay)"
+    
+    outputs:
+      - field: domain_ctx.synapses
+        level: C
+        exists: true
+        description: "Synapses được update weight và trace"
+  
+  # ========================================================================
+  # Homeostasis Processes
+  # ========================================================================
+  
+  process_homeostasis:
+    description: "Homeostasis thường - điều chỉnh threshold"
+    
+    inputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+      
+      - field: domain_ctx.metrics.fire_rate
+        level: A
+        min: 0.0
+        max: 1.0
+        description: "Fire rate hiện tại [0, 1]"
+      
+      - field: global_ctx.target_fire_rate
+        level: A
+        min: 0.001
+        max: 0.1
+        description: "Target fire rate [0.1%, 10%]"
+      
+      - field: global_ctx.homeostasis_rate
+        level: A
+        min: 0.00001
+        max: 0.01
+        description: "Homeostasis rate [0.00001, 0.01]"
+    
+    outputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+        description: "Neurons được update threshold"
+  
+  process_meta_homeostasis_fixed:
+    description: "Meta-Homeostasis với PID anti-windup"
+    
+    inputs:
+      - field: domain_ctx.metrics.fire_rate
+        level: A
+        min: 0.0
+        max: 1.0
+      
+      - field: global_ctx.meta_pid_kp
+        level: A
+        min: 0.0001
+        max: 0.01
+        description: "Meta PID Kp [0.0001, 0.01]"
+      
+      - field: global_ctx.meta_pid_ki
+        level: A
+        min: 0.00001
+        max: 0.001
+        description: "Meta PID Ki [0.00001, 0.001]"
+      
+      - field: global_ctx.meta_pid_kd
+        level: A
+        min: 0.0001
+        max: 0.01
+        description: "Meta PID Kd [0.0001, 0.01]"
+      
+      - field: global_ctx.meta_max_integral
+        level: A
+        min: 1.0
+        max: 10.0
+        description: "Max integral [1.0, 10.0] để ngăn windup"
+      
+      - field: global_ctx.meta_max_output
+        level: A
+        min: 0.001
+        max: 0.1
+        description: "Max output [0.001, 0.1]"
+    
+    outputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+      
+      - field: domain_ctx.pid_state.threshold.error_integral
+        level: A
+        min: -10.0
+        max: 10.0
+        description: "Integral PHẢI bounded [-10, 10] (anti-windup check)"
+      
+      - field: domain_ctx.metrics.meta_threshold_adj
+        level: A
+        min: -0.1
+        max: 0.1
+        description: "Threshold adjustment [-0.1, 0.1]"
+      
+      - field: domain_ctx.metrics.meta_integral
+        level: A
+        min: -10.0
+        max: 10.0
+        description: "Integral value bounded"
+  
+  # ========================================================================
+  # Advanced Processes
+  # ========================================================================
+  
+  process_periodic_resync:
+    description: "Periodic resync để fix drift"
+    
+    inputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+      
+      - field: domain_ctx.current_time
+        level: S
+        min: 0
+    
+    outputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+      
+      - field: domain_ctx.metrics.resync_count
+        level: S
+        min: 0
+  
+  process_imagination_loop:
+    description: "Imagination - tự sinh spike từ ký ức"
+    
+    inputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+      
+      - field: domain_ctx.current_time
+        level: S
+        min: 0
+      
+      - field: global_ctx.imagination_interval
+        level: A
+        min: 100
+        max: 2000
+        description: "Imagination interval [100, 2000]ms"
+    
+    outputs:
+      - field: domain_ctx.neurons
+        level: C
+        exists: true
+      
+      - field: domain_ctx.last_imagination_time
+        level: S
+        min: 0
+      
+      - field: domain_ctx.metrics
+        level: C
+        exists: true
+  
+  process_dream_learning:
+    description: "Dream learning - học từ imagination"
+    
+    inputs:
+      - field: domain_ctx.metrics.fire_rate
+        level: A
+        min: 0.0
+        max: 1.0
+      
+      - field: global_ctx.nightmare_threshold
+        level: A
+        min: 0.01
+        max: 0.5
+        description: "Nightmare threshold [1%, 50%]"
+    
+    outputs:
+      - field: domain_ctx.nightmare_count
+        level: S
+        min: 0
+        description: "Nightmare count không âm"
+      
+      - field: domain_ctx.fantasy_count
+        level: S
+        min: 0
+        description: "Fantasy count không âm"
+  
+  # ========================================================================
+  # Social Learning Processes
+  # ========================================================================
+  
+  process_extract_top_synapses:
+    description: "Trích xuất top-k synapses để share"
+    
+    inputs:
+      - field: domain_ctx.synapses
+        level: C
+        exists: true
+      
+      - field: global_ctx.viral_top_k
+        level: A
+        min: 1
+        max: 20
+        description: "Top-k [1, 20]"
+    
+    outputs:
+      - field: domain_ctx.synapses
+        level: C
+        exists: true
+  
+  process_inject_viral_synapses:
+    description: "Tiêm viral synapses từ agents khác"
+    
+    inputs:
+      - field: domain_ctx.synapses
+        level: C
+        exists: true
+    
+    outputs:
+      - field: domain_ctx.shadow_synapses
+        level: C
+        exists: true
+      
+      - field: domain_ctx.viral_synapses_received
+        level: S
+        min: 0
+  
+  process_sandbox_evaluation:
+    description: "Đánh giá shadow vs native synapses"
+    
+    inputs:
+      - field: domain_ctx.shadow_synapses
+        level: C
+        exists: true
+      
+      - field: global_ctx.shadow_confidence_threshold
+        level: A
+        min: 0.0
+        max: 1.0
+    
+    outputs:
+      - field: domain_ctx.synapses
+        level: C
+        exists: true
+      
+      - field: domain_ctx.shadow_synapses
+        level: C
+        exists: true
+  
+  # ========================================================================
+  # RL-SNN Integration Processes (Phase 5)
+  # ========================================================================
+  
+  calculate_emotions_snn:
+    description: "Tính emotion vector từ SNN"
+    
+    inputs:
+      - field: domain_ctx.current_observation
+        level: C
+        exists: true
+        description: "Observation từ environment"
+      
+      - field: domain_ctx.snn_context
+        level: C
+        exists: true
+        description: "SNN context (nested)"
+    
+    outputs:
+      - field: domain_ctx.snn_emotion_vector
+        level: C
+        exists: true
+        description: "Emotion vector từ SNN"
+      
+      - field: domain_ctx.snn_context
+        level: C
+        exists: true
+        description: "SNN state updated"
+    
+    side_effects: []  # Pure - SNN internal only
+  
+  modulate_snn_attention:
+    description: "Top-down modulation từ RL → SNN"
+    
+    inputs:
+      - field: domain_ctx.snn_context
+        level: C
+        exists: true
+      
+      - field: domain_ctx.td_error
+        level: A
+        min: -10.0
+        max: 10.0
+        description: "TD-error bounded [-10, 10]"
+    
+    outputs:
+      - field: domain_ctx.snn_context
+        level: C
+        exists: true
+        description: "SNN thresholds modulated"
+    
+    side_effects: []  # Pure function
+  
+  compute_intrinsic_reward_snn:
+    description: "Tính intrinsic reward từ SNN novelty"
+    
+    inputs:
+      - field: domain_ctx.snn_context
+        level: C
+        exists: true
+    
+    outputs:
+      - field: domain_ctx.intrinsic_reward
+        level: A
+        min: 0.0
+        max: 1.0
+        description: "Intrinsic reward [0, 1]"
+    
+    side_effects: []  # Pure - read-only
+  
+  combine_rewards:
+    description: "Kết hợp extrinsic và intrinsic rewards"
+    
+    inputs:
+      - field: domain_ctx.last_reward
+        level: C
+        exists: true
+      
+      - field: domain_ctx.intrinsic_reward
+        level: A
+        min: 0.0
+        max: 1.0
+      
+      - field: global_ctx.intrinsic_reward_weight
+        level: A
+        min: 0.0
+        max: 1.0
+        description: "Intrinsic reward weight [0, 1]"
+    
+    outputs:
+      - field: domain_ctx.last_reward
+        level: C
+        exists: true
+        description: "Combined reward"
+    
+    side_effects: []  # Pure function
+  
+  # ========================================================================
+  # CRITICAL: Environment Interaction với Side-Effects
+  # ========================================================================
+  
+  execute_action_with_env:
+    description: "Execute action trong environment"
+    
+    inputs:
+      - field: domain_ctx.selected_action
+        level: C
+        exists: true
+        description: "Action đã được select"
+    
+    outputs:
+      - field: domain_ctx.current_observation
+        level: C
+        exists: true
+        description: "Next observation từ env"
+      
+      - field: domain_ctx.last_reward
+        level: C
+        exists: true
+        description: "Reward từ env"
+    
+    side_effects:
+      - name: env_adapter.step
+        type: external_call
+        rollback: false
+        description: "CANNOT rollback environment state!"
+        warning: "External state changes are permanent"
+  
+  reset_environment:
+    description: "Reset environment"
+    
+    inputs: []
+    
+    outputs:
+      - field: domain_ctx.current_observation
+        level: C
+        exists: true
+        description: "Initial observation"
+    
+    side_effects:
+      - name: env_adapter.reset
+        type: external_call
+        rollback: false
+        description: "CANNOT rollback environment reset!"
+
+# ========================================================================
+# Custom Validators (Future Extension)
+# ========================================================================
+
+# NOTE: Theus hiện tại chưa hỗ trợ custom validators cho nested objects
+# Đây là spec cho tương lai khi cần validate từng neuron/synapse
+
+custom_validators:
+  neuron_state:
+    - field: potential
+      min: -1.0
+      max: 10.0
+      description: "Neuron potential [-1, 10]"
+    
+    - field: threshold
+      min: 0.3
+      max: 3.0
+      description: "Threshold [0.3, 3.0] (biological range)"
+    
+    - field: prototype_vector
+      type: ndarray
+      shape: [16]
+      norm_max: 2.0
+      description: "Prototype vector 16-dim, norm ≤ 2.0"
+  
+  synapse_state:
+    - field: weight
+      min: 0.0
+      max: 1.0
+      description: "Weight [0, 1]"
+    
+    - field: trace
+      min: 0.0
+      max: 100.0
+      description: "Trace [0, 100]"
+    
+    - field: confidence
+      min: 0.0
+      max: 1.0
+      description: "Confidence [0, 1]"
+    
+    - field: prediction_error_accum
+      min: -1000.0
+      max: 1000.0
+      description: "Prediction error accumulated"
