@@ -154,12 +154,12 @@ def compute_intrinsic_reward_snn(ctx: SystemContext):
 
 @process(
     inputs=[
-        'domain_ctx.last_reward',
-        'domain_ctx.intrinsic_reward',
-        'global_ctx.intrinsic_reward_weight'
+        'domain.last_reward',
+        'domain.intrinsic_reward',
+        'global.intrinsic_reward_weight'
     ],
     outputs=[
-        'domain_ctx.last_reward'  # Combined reward
+        'domain.last_reward'  # Combined reward
     ],
     side_effects=[]  # Pure function
 )

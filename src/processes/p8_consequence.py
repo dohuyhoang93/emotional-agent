@@ -73,8 +73,15 @@ def record_consequences(ctx: SystemContext):
         switch_vals = tuple(switches[k] for k in sorted(switches.keys()))
         return pos + switch_vals
 
-    if not domain.previous_observation or not domain.current_observation:
+    if domain.previous_observation is None or domain.current_observation is None:
         # print("Warning: Missing observation trace. Skipping P8.")
+        return
+    
+    # Skip if observation is numpy array (sensor system) - this process expects dict format
+    import numpy as np
+    if isinstance(domain.current_observation, np.ndarray) or isinstance(domain.previous_observation, np.ndarray):
+        # Sensor system active - skip legacy consequence recording
+        # Q-learning is handled by update_q_learning process in workflow
         return
 
     # 1. State & Next State

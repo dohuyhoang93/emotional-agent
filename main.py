@@ -126,6 +126,24 @@ def main():
             current_exploration_rate=common_global_ctx.initial_exploration_rate
         )
         
+        # === SNN Context Initialization ===
+        # NOTE: Tạo SNN context cho agent để enable SNN processing
+        from src.core.snn_context_theus import create_snn_context_theus
+        
+        snn_ctx = create_snn_context_theus(
+            num_neurons=settings.get('num_neurons', 50),
+            connectivity=settings.get('connectivity', 0.15),
+            vector_dim=16,  # 16-dim sensor system
+            seed=args.seed + i  # Different seed per agent
+        )
+        
+        # Set agent ID
+        snn_ctx.domain_ctx.agent_id = i
+        
+        # Inject SNN context vào domain context
+        # NOTE: Processes sẽ check domain_ctx.snn_context
+        domain_ctx.snn_context = snn_ctx.domain_ctx
+        
         sys_ctx = SystemContext(global_ctx=common_global_ctx, domain_ctx=domain_ctx)
         
         # Init Engine with Audit Recipe

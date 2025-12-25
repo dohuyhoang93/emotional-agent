@@ -227,11 +227,9 @@ class RLAgent:
         """
         # Run workflow
         self.engine.execute_workflow(
-            "workflows/rl_snn_minimal.yaml",
+            "specs/workflow.yaml",
             env_adapter=env_adapter,
-            agent_id=self.agent_id,
-            snn_ctx=self.snn_ctx,
-            gated_network=self.gated_network
+            agent_id=self.agent_id
         )
         
         # Update metrics

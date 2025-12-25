@@ -12,19 +12,11 @@ from src.core.snn_context_theus import SNNSystemContext
 
 
 @process(
-    inputs=[
-        'domain_ctx.neurons',
-        'domain_ctx.synapses',
-        'domain_ctx.spike_queue',
-        'domain_ctx.current_time',
-        'global_ctx.clustering_rate'
-    ],
-    outputs=[
-        'domain_ctx.neurons'  # prototype_vector updated
-    ],
+    inputs=['domain.snn_context'],
+    outputs=['domain.snn_context'],
     side_effects=[]
 )
-def process_clustering(ctx: SNNSystemContext):
+def process_clustering(ctx):
     """
     Quy trình học không gian (Unsupervised Clustering).
     
@@ -34,31 +26,36 @@ def process_clustering(ctx: SNNSystemContext):
     Theus sẽ audit:
     - clustering_rate trong range [0.0001, 0.1]
     """
-    domain = ctx.domain_ctx
-    learning_rate = ctx.global_ctx.clustering_rate
+    from src.core.context import SystemContext
+    snn_ctx = ctx.domain_ctx.snn_context
     
-    current_spikes = domain.spike_queue.get(domain.current_time, [])
+    if snn_ctx is None:
+        return
+    
+    learning_rate = 0.001  # Default clustering rate
+    
+    current_spikes = snn_ctx.domain_ctx.spike_queue.get(snn_ctx.domain_ctx.current_time, [])
     
     if not current_spikes:
         return  # Không có spike, skip
     
     # Với mỗi xung đến, cập nhật prototype của neurons hậu synapse
     for spike_id in current_spikes:
-        if spike_id >= len(domain.neurons):
+        if spike_id >= len(snn_ctx.domain_ctx.neurons):
             continue
         
-        spike_neuron = domain.neurons[spike_id]
+        spike_neuron = snn_ctx.domain_ctx.neurons[spike_id]
         spike_vector = spike_neuron.prototype_vector
         
         # Tìm tất cả neurons nhận xung từ spike_neuron
-        for synapse in domain.synapses:
+        for synapse in snn_ctx.domain_ctx.synapses:
             if synapse.pre_neuron_id != spike_id:
                 continue
             
-            if synapse.post_neuron_id >= len(domain.neurons):
+            if synapse.post_neuron_id >= len(snn_ctx.domain_ctx.neurons):
                 continue
             
-            post_neuron = domain.neurons[synapse.post_neuron_id]
+            post_neuron = snn_ctx.domain_ctx.neurons[synapse.post_neuron_id]
             
             # === HEBBIAN LEARNING CHO VECTOR ===
             # "Neurons that fire together, align their prototypes together"
@@ -73,21 +70,11 @@ def process_clustering(ctx: SNNSystemContext):
 
 
 @process(
-    inputs=[
-        'domain_ctx.synapses',
-        'domain_ctx.neurons',
-        'domain_ctx.spike_queue',
-        'domain_ctx.current_time',
-        'global_ctx.learning_rate',
-        'global_ctx.tau_trace',
-        'global_ctx.weight_decay'
-    ],
-    outputs=[
-        'domain_ctx.synapses'  # weight, trace updated
-    ],
+    inputs=['domain.snn_context'],
+    outputs=['domain.snn_context'],
     side_effects=[]
 )
-def process_stdp(ctx: SNNSystemContext):
+def process_stdp(ctx):
     """
     Quy trình STDP (Spike-Timing-Dependent Plasticity).
     
@@ -102,38 +89,43 @@ def process_stdp(ctx: SNNSystemContext):
     - tau_trace trong range [0.5, 1.0]
     - weight_decay trong range [0.99, 1.0]
     """
-    domain = ctx.domain_ctx
-    learning_rate = ctx.global_ctx.learning_rate
-    tau_trace = ctx.global_ctx.tau_trace
-    weight_decay = ctx.global_ctx.weight_decay
+    from src.core.context import SystemContext
+    snn_ctx = ctx.domain_ctx.snn_context
+    
+    if snn_ctx is None:
+        return
+    
+    learning_rate = 0.01  # Default learning rate
+    tau_trace = 0.9  # Default trace decay
+    weight_decay = 0.9999  # Default weight decay
     time_window = 20  # STDP time window (ms)
     
     # 1. Weight decay (tránh runaway)
-    for synapse in domain.synapses:
+    for synapse in snn_ctx.domain_ctx.synapses:
         synapse.weight *= weight_decay
     
     # 2. Trace decay
-    for synapse in domain.synapses:
+    for synapse in snn_ctx.domain_ctx.synapses:
         synapse.trace *= tau_trace
     
     # 3. Cập nhật trace và weight
-    current_spikes = domain.spike_queue.get(domain.current_time, [])
+    current_spikes = snn_ctx.domain_ctx.spike_queue.get(snn_ctx.domain_ctx.current_time, [])
     
     if not current_spikes:
         return  # Không có spike, skip
     
     for spike_id in current_spikes:
         # Tìm tất cả synapses liên quan đến spike này
-        for synapse in domain.synapses:
+        for synapse in snn_ctx.domain_ctx.synapses:
             # === PRE NEURON BẮN ===
             if synapse.pre_neuron_id == spike_id:
                 # Đánh dấu trace
                 synapse.trace += 1.0
                 
                 # Kiểm tra Post neuron có bắn gần đây không
-                if synapse.post_neuron_id < len(domain.neurons):
-                    post_neuron = domain.neurons[synapse.post_neuron_id]
-                    time_diff = domain.current_time - post_neuron.last_fire_time
+                if synapse.post_neuron_id < len(snn_ctx.domain_ctx.neurons):
+                    post_neuron = snn_ctx.domain_ctx.neurons[synapse.post_neuron_id]
+                    time_diff = snn_ctx.domain_ctx.current_time - post_neuron.last_fire_time
                     
                     if 0 < time_diff < time_window:
                         # LTP: Pre → Post (Causal)
@@ -143,11 +135,12 @@ def process_stdp(ctx: SNNSystemContext):
             # === POST NEURON BẮN ===
             if synapse.post_neuron_id == spike_id:
                 # Kiểm tra Pre neuron có bắn gần đây không
-                if synapse.pre_neuron_id < len(domain.neurons):
-                    pre_neuron = domain.neurons[synapse.pre_neuron_id]
-                    time_diff = domain.current_time - pre_neuron.last_fire_time
+                if synapse.pre_neuron_id < len(snn_ctx.domain_ctx.neurons):
+                    pre_neuron = snn_ctx.domain_ctx.neurons[synapse.pre_neuron_id]
+                    time_diff = snn_ctx.domain_ctx.current_time - pre_neuron.last_fire_time
                     
                     if 0 < time_diff < time_window:
                         # LTD: Post → Pre (Anti-causal)
                         synapse.weight -= learning_rate * 0.5
                         synapse.weight = max(synapse.weight, 0.0)  # Không âm
+

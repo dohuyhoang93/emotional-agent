@@ -81,52 +81,60 @@ def observation_to_state_key(obs: Dict[str, Any]) -> str:
     outputs=['domain.last_action', 'domain.last_q_values'],
     side_effects=[]
 )
-def select_action_gated(
-    ctx: SystemContext,
-    gated_network: GatedIntegrationNetwork
-):
+def select_action_gated(ctx: SystemContext):
     """
-    Select action using Gated Integration Network.
+    Select action using emotion gating from SNN.
     
     Combines observation + emotion → Q-values → action.
-    Uses epsilon-greedy exploration.
+    Uses epsilon-greedy exploration modulated by emotion.
     
     Args:
         ctx: System context
-        gated_network: Gated Integration Network
     """
     obs = ctx.domain_ctx.current_observation
     emotion = ctx.domain_ctx.snn_emotion_vector
     
-    # Convert to tensors
-    obs_tensor = observation_to_tensor(obs)
+    # Fallback: If no emotion vector, use standard epsilon-greedy
+    if emotion is None:
+        if np.random.rand() < ctx.domain_ctx.current_exploration_rate:
+            action = np.random.randint(0, 4)
+        else:
+            state_key = str(obs)
+            q_values = ctx.domain_ctx.q_table.get(state_key, [0.0] * 4)
+            action = int(np.argmax(q_values))
+        
+        ctx.domain_ctx.last_action = action
+        ctx.domain_ctx.last_q_values = torch.tensor([0.0] * 4)
+        return
     
-    # Forward pass
-    with torch.no_grad():
-        q_values = gated_network(obs_tensor.unsqueeze(0), emotion.unsqueeze(0))
-        q_values = q_values.squeeze(0)
+    # Emotion-modulated exploration
+    emotion_magnitude = float(torch.norm(emotion).item())
+    adjusted_exploration = ctx.domain_ctx.current_exploration_rate * (1.0 + 0.5 * emotion_magnitude)
+    adjusted_exploration = min(adjusted_exploration, 1.0)
     
     # Epsilon-greedy
-    if np.random.rand() < ctx.domain_ctx.current_exploration_rate:
+    if np.random.rand() < adjusted_exploration:
         action = np.random.randint(0, 4)
+        q_values_list = [0.0] * 4  # Dummy values for exploration
     else:
-        action = torch.argmax(q_values).item()
+        state_key = str(obs)
+        q_values_list = ctx.domain_ctx.q_table.get(state_key, [0.0] * 4)
+        action = int(np.argmax(q_values_list))
     
     ctx.domain_ctx.last_action = action
-    ctx.domain_ctx.last_q_values = q_values
+    ctx.domain_ctx.last_q_values = torch.tensor(q_values_list, dtype=torch.float32)
 
 
 @process(
     inputs=[
-        'domain_ctx.q_table',
-        'domain_ctx.total_reward',
-        'domain_ctx.current_observation',
-        'domain_ctx.next_observation',
-        'domain_ctx.last_action'
+        'domain.q_table',
+        'domain.last_reward',
+        'domain.current_observation',
+        'domain.last_action'
     ],
     outputs=[
-        'domain_ctx.q_table',
-        'domain_ctx.td_error'
+        'domain.q_table',
+        'domain.td_error'
     ],
     side_effects=[]
 )
@@ -141,26 +149,20 @@ def update_q_learning(ctx: SystemContext):
     Args:
         ctx: System context
     """
-    # Get state keys
-    state = observation_to_state_key(ctx.domain_ctx.current_observation)
-    next_state = observation_to_state_key(ctx.domain_ctx.next_observation)
+    # Get state key
+    state = str(ctx.domain_ctx.current_observation)
     action = ctx.domain_ctx.last_action
-    reward = ctx.domain_ctx.total_reward
+    reward = ctx.domain_ctx.last_reward.get('total', 0.0)
     
     # Initialize Q-values if needed
     if state not in ctx.domain_ctx.q_table:
-        ctx.domain_ctx.q_table[state] = np.zeros(4)
+        ctx.domain_ctx.q_table[state] = [0.0] * 4
     
-    if next_state not in ctx.domain_ctx.q_table:
-        ctx.domain_ctx.q_table[next_state] = np.zeros(4)
-    
-    # TD-learning
+    # Simple Q-learning update (without next state for now)
     current_q = ctx.domain_ctx.q_table[state][action]
-    next_max_q = np.max(ctx.domain_ctx.q_table[next_state])
     
-    # TD-error (for SNN dopamine)
-    gamma = 0.99
-    td_error = reward + gamma * next_max_q - current_q
+    # TD-error (simplified - no next state)
+    td_error = reward - current_q
     
     # Update Q-value
     alpha = 0.1
@@ -168,3 +170,4 @@ def update_q_learning(ctx: SystemContext):
     
     # Store TD-error for SNN
     ctx.domain_ctx.td_error = td_error
+

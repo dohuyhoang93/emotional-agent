@@ -20,23 +20,25 @@ from src.core.snn_context_theus import SNNSystemContext
 # ============================================================================
 
 @process(
-    inputs=['snn.domain.neurons'],
+    inputs=['domain.snn_context'],
     outputs=['domain.snn_emotion_vector'],
     side_effects=[]
 )
-def encode_emotion_vector(
-    ctx: SystemContext,
-    snn_ctx: SNNSystemContext
-):
+def encode_emotion_vector(ctx: SystemContext):
     """
     Encode SNN neuron activity → Emotion vector cho RL.
     
     Population Code: Aggregate neuron vectors → 16-dim emotion.
     
     Args:
-        ctx: RL context (primary)
-        snn_ctx: SNN context (secondary)
+        ctx: System context
     """
+    snn_ctx = ctx.domain_ctx.snn_context
+    
+    if snn_ctx is None:
+        # No SNN - skip
+        return
+    
     neurons = snn_ctx.domain_ctx.neurons
     
     # Aggregate firing neurons' vectors
@@ -69,14 +71,11 @@ def encode_emotion_vector(
 # ============================================================================
 
 @process(
-    inputs=['domain.current_observation'],
-    outputs=['snn.domain.neurons'],
+    inputs=['domain.current_observation', 'domain.snn_context'],
+    outputs=['domain.snn_context'],
     side_effects=[]
 )
-def encode_state_to_spikes(
-    ctx: SystemContext,
-    snn_ctx: SNNSystemContext
-):
+def encode_state_to_spikes(ctx: SystemContext):
     """
     Inject sensor vector từ môi trường vào SNN.
     
@@ -87,10 +86,14 @@ def encode_state_to_spikes(
     Agent tự học ý nghĩa các kênh qua R-STDP.
     
     Args:
-        ctx: RL context (primary)
-        snn_ctx: SNN context (secondary)
+        ctx: System context (chứa cả RL và SNN contexts)
     """
     obs = ctx.domain_ctx.current_observation
+    snn_ctx = ctx.domain_ctx.snn_context
+    
+    if snn_ctx is None:
+        # No SNN - skip
+        return
     
     # Observation ĐÃ LÀ vector 16-dim từ environment.get_sensor_vector()
     # KHÔNG CẦN encoding nữa!
@@ -137,26 +140,24 @@ def encode_state_to_spikes(
 # ============================================================================
 
 @process(
-    inputs=[
-        'domain.last_action',
-        'snn.domain.neurons'
-    ],
-    outputs=['snn.domain.neurons'],
+    inputs=['domain.last_action', 'domain.snn_context'],
+    outputs=['domain.snn_context'],
     side_effects=[]
 )
-def modulate_snn_attention(
-    ctx: SystemContext,
-    snn_ctx: SNNSystemContext
-):
+def modulate_snn_attention(ctx: SystemContext):
     """
     Modulate SNN attention dựa trên RL action.
     
     Top-down control: Action → Neuron threshold adjustment.
     
     Args:
-        ctx: RL context (primary)
-        snn_ctx: SNN context (secondary)
+        ctx: System context
     """
+    snn_ctx = ctx.domain_ctx.snn_context
+    
+    if snn_ctx is None:
+        return
+    
     action = ctx.domain_ctx.last_action
     
     if action is None:
@@ -180,23 +181,25 @@ def modulate_snn_attention(
 # ============================================================================
 
 @process(
-    inputs=['snn.domain.neurons'],
+    inputs=['domain.snn_context'],
     outputs=['domain.intrinsic_reward'],
     side_effects=[]
 )
-def compute_intrinsic_reward_snn(
-    ctx: SystemContext,
-    snn_ctx: SNNSystemContext
-):
+def compute_intrinsic_reward_snn(ctx: SystemContext):
     """
     Compute intrinsic reward từ SNN novelty.
     
     Novelty = 1 - avg_similarity với existing patterns.
     
     Args:
-        ctx: RL context (primary)
-        snn_ctx: SNN context (secondary)
+        ctx: System context
     """
+    snn_ctx = ctx.domain_ctx.snn_context
+    
+    if snn_ctx is None:
+        ctx.domain_ctx.intrinsic_reward = 0.0
+        return
+    
     neurons = snn_ctx.domain_ctx.neurons
     
     # Get current pattern (active neurons)

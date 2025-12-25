@@ -1,0 +1,31 @@
+{
+    "experiments": [
+        {
+            "name": "sensor_test_100ep",
+            "description": "Full test - 100 episodes with sensor system",
+            "runs": 1,
+            "episodes_per_run": 100,
+            "log_level": "info",
+            "parameters": {
+                "num_agents": 5,
+                "num_neurons": 50,
+                "vector_dim": 16,
+                "connectivity": 0.15,
+                "max_steps_per_episode": 500,
+                "grid_size": 15,
+                "initial_exploration": 1.0,
+                "exploration_decay": 0.995,
+                "social_learning_freq": 25,
+                "elite_ratio": 0.2,
+                "learner_ratio": 0.5,
+                "synapses_per_transfer": 10,
+                "revolution_threshold": 0.5,
+                "revolution_window": 10,
+                "revolution_elite_ratio": 0.1,
+                "environment_config": {
+                    "grid_size": 15
+                }
+            }
+        }
+    ]
+}

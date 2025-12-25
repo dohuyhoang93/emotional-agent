@@ -18,6 +18,8 @@ from src.core.snn_context_theus import SNNGlobalContext
 from src.adapters.environment_adapter import EnvironmentAdapter
 from src.utils.logger import ExperimentLogger
 from src.utils.performance_monitor import PerformanceMonitor
+from src.tools.brain_biopsy_theus import BrainBiopsyTheus
+from src.utils.snn_persistence import save_snn_agent
 from environment import GridWorld
 
 
@@ -142,6 +144,10 @@ class MultiAgentExperiment:
                     stats = self.revolution.get_revolution_stats()
                     self.logger.log_revolution(stats)
                 
+                # Brain Biopsy (Start & End only)
+                if episode == 0 or episode == num_episodes - 1:
+                    self._run_brain_biopsy(episode)
+                
             except Exception as e:
                 self.logger.log_error(e, f"Episode {episode}")
                 continue
@@ -151,6 +157,9 @@ class MultiAgentExperiment:
         
         # Save metrics
         self.logger.save_metrics()
+        
+        # Save checkpoints
+        self._save_agents(num_episodes)
     
     def _print_summary(self):
         """Print experiment summary."""
@@ -192,6 +201,41 @@ class MultiAgentExperiment:
         print(f"  Episodes/sec: {perf_stats.get('episodes_per_second', 0):.2f}")
         
         print("=" * 60)
+
+    def _run_brain_biopsy(self, episode: int):
+        """Run brain biopsy on all agents."""
+        import json
+        import os
+        
+        self.logger.logger.info(f"🧠 Running Brain Biopsy for Episode {episode}...")
+        
+        results_dir = f"results/{self.config.get('name', 'experiment')}_biopsy"
+        os.makedirs(results_dir, exist_ok=True)
+        
+        for agent_id, agent in enumerate(self.coordinator.agents):
+            # Inspect population
+            biopsy_data = BrainBiopsyTheus.inspect_population(agent.snn_ctx)
+            
+            # Save to file
+            filename = f"{results_dir}/ep{episode}_agent{agent_id}.json"
+            with open(filename, 'w') as f:
+                json.dump(biopsy_data, f, indent=2)
+
+    def _save_agents(self, episode: int):
+        """Save all agent checkpoints."""
+        import os
+        self.logger.logger.info(f"💾 Saving checkpoints for Episode {episode}...")
+        
+        checkpoint_dir = f"results/{self.config.get('name', 'experiment')}_checkpoints"
+        os.makedirs(checkpoint_dir, exist_ok=True)
+        
+        for agent_id, agent in enumerate(self.coordinator.agents):
+            try:
+                # Use library utility
+                filepath = save_snn_agent(agent.snn_ctx, agent_id, checkpoint_dir)
+                self.logger.logger.info(f"  Saved Agent {agent_id} to {filepath}")
+            except Exception as e:
+                self.logger.log_error(e, f"Saving Agent {agent_id}")
 
 
 def main():

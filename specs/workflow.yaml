@@ -1,12 +1,26 @@
-name: "Emotion Agent Main Loop"
-description: "The primary execution cycle for a single agent including perception, cognition, and action."
+name: "RL-SNN Agent Loop"
+description: "Agent loop với SNN processing và intermediate rewards (16-dim sensor system)"
 
 steps:
+  # Perception (updated với sensor system)
   - perception
-  - update_belief
-  - calculate_emotions
-  - adjust_exploration
-  - social_learning # Executed sequentially here. In complex scenarios, orchestration might invoke this specifically.
-  - select_action
+  
+  # SNN Processing Pipeline
+  - encode_state_to_spikes      # State → SNN spikes
+  - process_integrate            # LIF integrate
+  - process_fire                 # LIF fire
+  - process_clustering           # Cluster analysis
+  - process_stdp                 # STDP learning
+  - encode_emotion_vector        # SNN → emotion vector
+  
+  # RL Decision Making
+  - compute_intrinsic_reward_snn # Novelty-based reward
+  - combine_rewards              # Extrinsic + intrinsic
+  - select_action_gated          # Emotion-gated action
+  
+  # Execution & Learning
   - execute_action
   - record_consequences
+  - update_q_learning
+  
+  # Social Learning is handled by MultiAgentExperiment (Orchestrator level)

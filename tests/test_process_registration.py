@@ -53,18 +53,40 @@ def test_process_registration():
     
     print("\n3. Checking specific processes...")
     required = [
+        # SNN Core
         'encode_state_to_spikes',
+        'process_integrate',
+        'process_fire',
+        'process_clustering',
+        'process_stdp',
         'encode_emotion_vector',
+        
+        # RL-SNN Bridge
         'compute_intrinsic_reward_snn',
+        'combine_rewards',
         'select_action_gated',
-        'update_q_learning'
+        'update_q_learning',
+        
+        # Legacy (for compatibility)
+        'perception',
+        'execute_action',
+        'record_consequences',
+        'social_learning'
     ]
     
+    missing = []
     for proc_name in required:
-        if hasattr(engine, '_process_registry') and proc_name in engine._process_registry:
+        if hasattr(engine, 'process_registry') and proc_name in engine.process_registry:
             print(f"   ✅ {proc_name}")
         else:
             print(f"   ❌ {proc_name} NOT FOUND")
+            missing.append(proc_name)
+    
+    if missing:
+        print(f"\n⚠️  WARNING: {len(missing)} processes missing!")
+        print(f"Missing: {missing}")
+    else:
+        print(f"\n✅ All {len(required)} required processes registered!")
     
     print("\n" + "=" * 60)
 
