@@ -59,7 +59,13 @@ class MultiAgentExperiment:
             max_steps=config.get('max_steps', 50),
             seed=config.get('seed', 42),
             switch_locations={},
-            initial_exploration_rate=config.get('exploration_rate', 1.0)
+            initial_exploration_rate=config.get('exploration_rate', 1.0),
+            # Advanced params
+            intrinsic_reward_weight=config.get('intrinsic_reward_weight', 0.1),
+            use_dynamic_curiosity=config.get('use_dynamic_curiosity', False),
+            use_adaptive_fatigue=config.get('use_adaptive_fatigue', False),
+            fatigue_growth_rate=config.get('fatigue_growth_rate', 0.001),
+            emotional_boost_factor=config.get('emotional_boost_factor', 0.5)
         )
         
         snn_global_ctx = SNNGlobalContext(
@@ -100,7 +106,8 @@ class MultiAgentExperiment:
                 "grid_size": config.get('grid_size', 10),
                 "max_steps_per_episode": config.get('max_steps', 50),
                 "num_agents": config.get('num_agents', 5),
-                "start_positions": [[0, i] for i in range(config.get('num_agents', 5))]
+                "start_positions": [[0, i] for i in range(config.get('num_agents', 5))],
+                **config.get('environment_config', {})
             }
         }
         self.env = GridWorld(env_config)

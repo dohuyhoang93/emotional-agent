@@ -41,15 +41,19 @@ EmotionAgent/
 │   ├── adapters/           # Environment Interface (EnvironmentAdapter)
 │   └── models.py           # Neural Network Models (MLP)
 │
-├── specs/              # Workflow Definitions and Schemas (YAML)
-│   ├── workflow.yaml       # Agent Workflow
+├── workflows/          # Workflow Definitions (YAML)
+│   ├── agent_main.yaml     # [PRODUCTION] Agent Workflow
+│   └── *_experimental.yaml # Lab Workflows
+│
+├── specs/              # Orchestration Specs
 │   ├── orchestrator.yaml   # Orchestrator Workflow
 │   └── audit_recipe.yaml   # Audit Configuration
 │
-├── multi_agent_complex_maze.json # Experiment Environment Config
+├── scripts/            # Helper Scripts (Debug, Demo)
+├── tests/              # Unit & Integration Tests
 ├── environment.py      # Simulated Environment (GridWorld)
-├── main.py             # Simulation Worker
-└── run_experiments.py  # Orchestrator for Large-scale Experimentse-scale Experiments
+├── experiments/        # Experiment Runners
+└── experiments_*.json  # Experiment Configurations
 ```
 
 ## 🚀 4. Installation & Usage
@@ -65,18 +69,19 @@ pip install torch pandas matplotlib
 pip install -e theus
 ```
 
-### Run Demo (Visual Mode)
-Run a single Agent to see it working with a graphical interface:
 
-```bash
-python main.py --settings-override '{"visual_mode": true}'
-```
 
 ### Run Experiments (Headless)
-Run batch scenarios to collect metrics (CSV):
+Run batch scenarios using the Orchestrator with V2 Configuration:
 
+**Option 1: Standard Sensor Experiment (100 episodes)**
 ```bash
-python run_experiments.py --config multi_agent_complex_maze.json
+python run_experiments.py --config experiments_sensor_100ep.json
+```
+
+**Option 2: Complex Maze Experiment (V2)**
+```bash
+python run_experiments.py --config experiments_complex_maze_v2.json
 ```
 
 ## 🗺️ 5. Development Roadmap

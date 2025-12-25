@@ -243,3 +243,48 @@ Logs saved to JSON
 **Date Completed:** 2025-12-25  
 **Total Time:** 13 giờ  
 **Success Rate:** 100%
+
+---
+
+## 📊 Phase 4-9: System Hardening & Expansion (2h)
+
+### Ngày: 2025-12-25 (Đêm)
+
+**Mục tiêu:** Hoàn thiện các tính năng bổ trợ (Analysis, Persistence), dọn dẹp hệ thống và hỗ trợ map phức tạp.
+
+**Công việc:**
+
+1. **Brain Biopsy Integration** (`Phase 5`)
+   - Tích hợp `BrainBiopsyTheus` vào vòng lặp Orchestration.
+   - Strategy: Chỉ chạy tại Start (Ep 0) và End (Ep N) để tiết kiệm hiệu năng.
+   - Output: JSON dump trạng thái neuron/synapse.
+
+2. **Persistence System** (`Phase 6`)
+   - Implement `_save_agents` trong `MultiAgentExperiment`.
+   - Serialize toàn bộ SNN Context (Neurons, Synapses, Weights).
+   - Lưu trữ tại `results/{exp_name}_checkpoints/`.
+
+3. **Refactor & Cleanup** (`Phase 7-8`)
+   - **Consolidation:** Di chuyển `specs/workflow.yaml` về `workflows/agent_main.yaml`.
+   - **Cleanup:** Xóa bỏ code rác (`main.py`, `run_100_episodes.py`).
+   - **Organization:** Gom script vào `scripts/`, test vào `tests/`.
+
+4. **Complex Maze Support** (`Phase 9`)
+   - Update `MultiAgentExperiment` để nhận full `environment_config`.
+   - Port `multi_agent_complex_maze.json` sang chuẩn V2 (`experiments_complex_maze_v2.json`).
+   - Hỗ trợ Dynamic Walls, Logical Switches trong config mới.
+
+**Test Results:**
+- **Smoke Test:** Passed (10 episodes).
+- **Consolidation:** RLAgent load đúng path mới.
+- **Complex Config:** GridWorld load đúng tường và cấu trúc switch.
+
+**Thời gian:** 2h
+
+---
+
+## ✅ FINAL STATUS: COMPLETED
+
+System is now fully operational, clean, and documented.
+Ready for heavy-duty training.
+

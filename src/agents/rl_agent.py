@@ -227,7 +227,7 @@ class RLAgent:
         """
         # Run workflow
         self.engine.execute_workflow(
-            "specs/workflow.yaml",
+            "workflows/agent_main.yaml",
             env_adapter=env_adapter,
             agent_id=self.agent_id
         )
