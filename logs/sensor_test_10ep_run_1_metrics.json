@@ -1,0 +1,128 @@
+{
+  "experiment": "sensor_test_10ep_run_1",
+  "start_time": "2025-12-25T17:25:21.176685",
+  "end_time": "2025-12-25T17:25:27.794935",
+  "duration_seconds": 6.61825,
+  "metrics": [
+    {
+      "episode": 1,
+      "timestamp": "2025-12-25T17:25:24.879526",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 2,
+      "timestamp": "2025-12-25T17:25:25.277720",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 3,
+      "timestamp": "2025-12-25T17:25:25.748331",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 4,
+      "timestamp": "2025-12-25T17:25:25.843623",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 5,
+      "timestamp": "2025-12-25T17:25:26.219011",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 6,
+      "timestamp": "2025-12-25T17:25:26.592445",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 7,
+      "timestamp": "2025-12-25T17:25:26.696178",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 8,
+      "timestamp": "2025-12-25T17:25:27.050486",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 9,
+      "timestamp": "2025-12-25T17:25:27.412264",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    {
+      "episode": 10,
+      "timestamp": "2025-12-25T17:25:27.783981",
+      "avg_reward": 0.0,
+      "agent_rewards": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    }
+  ]
+}

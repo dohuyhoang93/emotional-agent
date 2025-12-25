@@ -123,7 +123,10 @@ def encode_state_to_spikes(
         neuron = snn_ctx.domain_ctx.neurons[i]
         
         # Amplify để vượt threshold
-        neuron.potential = sensor_vector[i] * 2.0
+        # NOTE: Tăng từ 2.0 → 5.0 để neurons có thể bắn
+        # Sensor values [0, 1], threshold = 1.0
+        # Amplification 5.0 → potential [0, 5.0]
+        neuron.potential = sensor_vector[i] * 5.0
         
         # Full context cho vector matching
         neuron.potential_vector = sensor_vector
