@@ -1,0 +1,10 @@
+name: Post Processing
+version: 1.0.0
+description: "Generate plots and summary from existing experiment data."
+
+steps:
+  - load_config
+  - aggregate_results
+  - plot_results
+  - analyze_data
+  - save_summary

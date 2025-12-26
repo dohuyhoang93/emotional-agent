@@ -70,13 +70,14 @@ class SNNGlobalContext(BaseGlobalContext):
     homeostasis_rate: float = 0.0001
     
     # === Meta-Homeostasis (PID) ===
+    # === Meta-Homeostasis (PID) ===
     use_meta_homeostasis: bool = True
-    meta_pid_kp: float = 0.001
-    meta_pid_ki: float = 0.0001
-    meta_pid_kd: float = 0.0005
-    meta_max_integral: float = 5.0
-    meta_max_output: float = 0.01
-    meta_scale_factor: float = 0.0001
+    pid_kp: float = 0.001
+    pid_ki: float = 0.0001
+    pid_kd: float = 0.0005
+    pid_max_integral: float = 5.0
+    pid_max_output: float = 0.01
+    pid_scale_factor: float = 0.0001
     
     # === Imagination Parameters ===
     use_imagination: bool = True
@@ -110,6 +111,7 @@ class SNNGlobalContext(BaseGlobalContext):
     selection_pressure: float = 0.1  # 10% die
     reproduction_rate: float = 0.05  # 5% reproduce
     fitness_decay: float = 0.99
+    darwinism_interval: int = 100 # Run every 100 steps
     
     # === Revolution Protocol (Phase 12) ===
     use_revolution_protocol: bool = False  # Multi-agent only

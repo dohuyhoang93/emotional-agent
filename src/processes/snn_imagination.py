@@ -3,7 +3,8 @@ Imagination Loop: Dream Learning
 =================================
 Cơ chế tưởng tượng - SNN tự mô phỏng để học nhân quả.
 """
-from src.core.snn_context import SNNContext
+# from src.core.snn_context import SNNContext # LEGACY BROKEN
+from src.core.snn_context_theus import SNNSystemContext as SNNContext
 import numpy as np
 from typing import List, Tuple
 

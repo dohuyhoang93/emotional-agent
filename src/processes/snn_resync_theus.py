@@ -13,28 +13,32 @@ from src.core.snn_context_theus import SNNSystemContext
 
 @process(
     inputs=[
-        'domain_ctx.neurons',
-        'domain_ctx.current_time',
-        'global_ctx.tau_decay'
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.snn_context.domain_ctx.current_time',
+        'domain.snn_context.domain_ctx.metrics',
+        'domain.snn_context.global_ctx.tau_decay',
+        'domain.snn_context.global_ctx.threshold_min',
+        'domain.snn_context.global_ctx.threshold_max'
     ],
     outputs=[
-        'domain_ctx.neurons',
-        'domain_ctx.metrics'
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]  # Pure function
 )
 def process_periodic_resync(ctx: SNNSystemContext):
     """
     Periodic Resync - Fix numerical drift.
-    
-    Cơ chế:
-    1. Mỗi 1000 steps, reset các giá trị rất nhỏ về 0
-    2. Normalize prototype vectors
-    3. Clamp thresholds
-    
-    NOTE: Pure function - chỉ cleanup internal state.
     """
-    domain = ctx.domain_ctx
+    # Handle context nesting (RL -> SNN)
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
+        domain = snn_ctx.domain_ctx
+        global_ctx = snn_ctx.global_ctx
+    else:
+        # Standalone SNN context
+        domain = ctx.domain_ctx
+        global_ctx = ctx.global_ctx
     
     # Chỉ chạy mỗi 1000 steps
     if domain.current_time % 1000 != 0:
@@ -64,8 +68,8 @@ def process_periodic_resync(ctx: SNNSystemContext):
         # Clamp threshold
         neuron.threshold = np.clip(
             neuron.threshold,
-            ctx.global_ctx.threshold_min,
-            ctx.global_ctx.threshold_max
+            global_ctx.threshold_min,
+            global_ctx.threshold_max
         )
     
     # Update metrics

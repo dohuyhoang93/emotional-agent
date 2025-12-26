@@ -1,0 +1,47 @@
+name: "Pure POP Experiment FSM"
+description: "Event-driven experiment loop using FSM Orchestrator"
+
+states:
+  IDLE:
+    events:
+      START: INIT
+
+  INIT:
+    entry: initialize_active_experiment
+    events:
+      INIT_DONE: EPISODE_RUN
+      ALL_EXPERIMENTS_DONE: END
+      ERROR: END
+
+  EPISODE_RUN:
+    entry: run_single_episode
+    events:
+      EPISODE_DONE: EPISODE_RUN    # Loop
+      TRIGGER_SOCIAL: SOCIAL_LEARNING
+      TRIGGER_REVOLUTION: REVOLUTION
+      EXPERIMENT_DONE: INIT        # Load next experiment
+      ERROR: END
+
+  REVOLUTION:
+    entry: perform_revolution_protocol
+    events:
+      REVOLUTION_DONE: SOCIAL_LEARNING
+      REVOLUTION_SKIP: SOCIAL_LEARNING
+
+  SOCIAL_LEARNING:
+    entry: process_social_learning # Reusing existing p9_social_learning? Or wrapper?
+    # Wait, p9 is agent-level. We need Orchestrator-level social learning process.
+    # For now, let's assume we call a wrapper 'perform_social_transfer'
+    entry: perform_social_transfer
+    events:
+      SOCIAL_DONE: SLEEP
+
+  SLEEP:
+    entry: run_population_dreaming
+    events:
+      DREAM_DONE: EPISODE_RUN
+
+  END:
+    entry: save_summary
+
+# NOTE: Processes must emit these events via ctx.domain_ctx.event_bus

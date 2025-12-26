@@ -54,6 +54,7 @@ class OrchestratorDomainContext(BaseDomainContext):
     
     # Runtime
     effective_log_level: str = "info"
+    event_bus: Optional[Any] = None  # Reference to SignalBus
 
 @dataclass
 class OrchestratorSystemContext(BaseSystemContext):

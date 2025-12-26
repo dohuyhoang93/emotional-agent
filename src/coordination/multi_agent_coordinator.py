@@ -96,13 +96,21 @@ class MultiAgentCoordinator:
                     # would handle multi-agent actions properly
                     reward = env.perform_action(i, self._action_to_string(action))
                     
+                    # Feed reward back to agent (Phase 16 Fix)
+                    agent.observe_reward(reward)
+                    
                 except Exception as e:
+                    import traceback
+                    traceback.print_exc()
                     print(f"Agent {i} error: {e}")
                     continue
             
             # Increment step
             env.current_step += 1
             step_count += 1
+            
+            if step_count % 10 == 0:
+                print(f"   ... Step {step_count}/{max_steps}")
             
             # Check if any agent reached goal
             if env.is_done():

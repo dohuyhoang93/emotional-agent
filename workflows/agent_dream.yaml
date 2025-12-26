@@ -1,0 +1,12 @@
+name: "Agent Dreaming Workflow"
+description: "Offline learning and memory consolidation"
+
+steps:
+  - process_imagination_loop  # Create spikes from prototypes
+  - process_integrate         # Process hallucinated spikes
+  - process_decode_dream      # [Phase 13] Spike -> State
+  - process_validate_and_reward # [Phase 13] Validate & Inject Reward
+  - process_dream_sanity_check # Validate against Beliefs (Physio Safety)
+  - process_fire
+  - process_stdp              # Learn from dreams (Consolidation)
+  - process_dream_learning    # Adjust thresholds based on dream quality

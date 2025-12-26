@@ -1,7 +1,7 @@
 # Models package
-from .emotion_mlp import EmotionCalculatorMLP
+from .gated_integration import GatedIntegrationNetwork
 
-__all__ = ['EmotionCalculatorMLP']
+__all__ = ['GatedIntegrationNetwork']
 
 
 

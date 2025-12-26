@@ -1,103 +1,110 @@
-# EmotionAgent: Hybrid Emotional AI meets POP Architecture
+# EmotionAgent: A Process-Oriented Neuro-Symbolic Cognitive Architecture
 
-**EmotionAgent** is a pioneering research project combining two fields:
-1.  **Emotional AI:** A simulation of artificial intelligence with machine emotions, using a Hybrid mechanism between Q-Learning (Rationality) and Neural Networks (Emotion).
-2.  **Process-Oriented Programming (POP):** A process-oriented software architecture ensuring transparency, testability, and absolute data integrity through Transactional Memory.
-
-> **Project Status:** Active Development (Phase 3: SNN Integration)
+> **Abstract:** This repository houses the reference implementation of **EmotionAgent**, an autonomous cognitive architecture that integrates Spiking Neural Networks (SNN) with Reinforcement Learning (RL) within a Process-Oriented Programming (POP) framework. Unlike traditional Deep RL models that suffer from catastrophic forgetting and lack interpretability, EmotionAgent employs **True Neural Darwinism** (Structural Plasticity) and a **Strict Audit Trail** to ensure continuous, safe, and transparent learning.
 
 ---
 
-## 🏗️ 1. POP Architecture (Process-Oriented Programming)
+## 🔬 1. The Research Problem
 
-This project serves as the **Reference Implementation** for the Theus Framework. The entire core logic of the architecture has been extracted into an independent library: **[Theus Framework](https://github.com/dohuyhoang93/theus)**.
+Contemporary AI faces three critical challenges:
+1.  **Catastrophic Forgetting:** Neural networks tend to overwrite old knowledge when learning new tasks.
+2.  **Black Box Opacity:** It is difficult to trace *why* an agent made a specific decision.
+3.  **Static Topology:** Most models have a fixed number of neurons/layers, unable to adapt to varying problem complexities.
 
-### Key Highlights of POP in EmotionAgent:
-*   **Transactional Memory (Delta Architecture):** Every state change of the Agent (learning, moving, feeling) is recorded as a `DeltaEntry`.
-*   **Time Travel & Rollback:** If the Agent encounters an error during processing (Process crash), the entire state automatically rolls back to the previous safe point.
-*   **Deep Isolation:** Data is protected by 3 layers. Processes cannot modify data secretly without declaring it in `contracts`.
+**EmotionAgent** addresses these by proposing a **Hybrid Biological-Computational Model** where the network structure itself evolves (neurogenesis/pruning), and every micro-decision is transactionally audited.
 
-## 🧠 2. Hybrid Agent Model
+---
 
-The agent uses an **"Intelligence-Emotion Reinforcement Loop"**:
-1.  **Intelligence (Q-Learning):** Decides actions based on reward (`Reward`).
-2.  **Emotion (Intrinsic Motivation):** 
-    *   Self-generates intrinsic rewards (`Intrinsic Reward`) when encountering surprises (High `TD-Error`).
-    *   Emotional state stimulates or inhibits curiosity (`Exploration Rate`).
-3.  **Social Learning:** The Agent has the ability to observe and learn from other nearby Agents.
+## 🏗️ 2. System Architecture (Theus V2)
 
-## 📂 3. Project Structure
+The project is built on the **Theus Framework**, a dedicated SDK for Process-Oriented Programming.
 
-```
-EmotionAgent/
-├── theus/              # [CORE] Theus Framework (Independent, Reusable)
-│   ├── theus/              # Framework Source code
-│   └── examples/           # Hello World Examples
-│
-├── src/
-│   ├── processes/          # Agent Business Logic (POP Processes)
-│   ├── orchestrator/       # Experiment Management System
-│   ├── core/               # Core Components (Context, etc.)
-│   ├── adapters/           # Environment Interface (EnvironmentAdapter)
-│   └── models.py           # Neural Network Models (MLP)
-│
-├── workflows/          # Workflow Definitions (YAML)
-│   ├── agent_main.yaml     # [PRODUCTION] Agent Workflow
-│   └── *_experimental.yaml # Lab Workflows
-│
-├── specs/              # Orchestration Specs
-│   ├── orchestrator.yaml   # Orchestrator Workflow
-│   └── audit_recipe.yaml   # Audit Configuration
-│
-├── scripts/            # Helper Scripts (Debug, Demo)
-├── tests/              # Unit & Integration Tests
-├── environment.py      # Simulated Environment (GridWorld)
-├── experiments/        # Experiment Runners
-└── experiments_*.json  # Experiment Configurations
-```
+### 2.1 The "Living" Brain (SNN-RL Hybrid)
+Instead of a monolithic network, the agent's brain is a dynamic ecosystem:
 
-## 🚀 4. Installation & Usage
+| Component | Function | Biological Analogue |
+| :--- | :--- | :--- |
+| **SNN Core** | Temporal Pattern Recognition & Clustering | Neocortex (Spiking Dynamics) |
+| **RL Engine** | Goal-Directed Decision Making (Q-Learning) | Basal Ganglia (Reward System) |
+| **Gated Network** | Dynamic weighting of Rational vs. Intuitive | Thalamus (Signal Gating) |
+| **Intrinsic Module**| Curiosity & Fatigue regulation | Neurotransmitters (Dopamine/Serotonin)|
 
-### Installation
-Since the project uses an internal POP SDK, you need to install dependencies:
+### 2.2 True Neural Darwinism (Structural Plasticity)
+We implement a dual-level evolutionary mechanism that operates in real-time:
+*   **Synaptic Selection (Pruning):** Connections with low efficacy are physically removed from the graph. **SOLID** connections (long-term potentiation) are shielded from pruning.
+*   **Neurogenesis (Reincarnation):** "Dead" neurons (inactive > 2k steps) are detected, their potentials reset, and they are re-wired to new latent spaces. This allows the agent to recycle computational resources to learn new concepts without growing the model size.
+
+### 2.3 Semantic Dreaming (Memory Consolidation)
+During idle periods, the agent enters a "Dream State" where high-surprise memories are replayed. Crucially, these memories are not exact replicas but are **semantically warped** towards cluster centroids, reinforcing generalizable concepts rather than overfitting to specific instances.
+
+---
+
+## 📊 3. State-of-the-Art Comparison
+
+| Feature | DeepMind (IMPALA/A3C) | Intel (Loihi/Lava) | **EmotionAgent (Ours)** |
+| :--- | :--- | :--- | :--- |
+| **Core Paradigm** | Deep RL (LSTM/Transformer) | Neuromorphic SNN | **Hybrid Neuro-Symbolic** |
+| **Learning Rule** | Backpropagation (Global) | Local STDP | **3-Factor STDP + Q-Learning** |
+| **Plasticity** | Weights Only (Static Graph) | Weights Only | **Structural (Nodes/Edges Evolve)** |
+| **Safety** | Reward Hacking Risk | Hardware Constraints | **Strict Audit (Theus Engine)** |
+| **Interpretability**| Low (Black Box) | Medium (Spike Trains) | **High (Transactional Logs)** |
+
+> **Key Advantage:** EmotionAgent achieves "Lifetime Learning" through its Commitment Layer (`SOLID` state), significantly outperforming standard RL in non-stationary environments where rules change dynamically.
+
+---
+
+## 📂 4. Repository Structure
+
+The project follows a standardized Process-Oriented Architecture:
 
 ```bash
-# Install AI libraries
-pip install torch pandas matplotlib
+EmotionAgent/
+├── theus/                  # [CORE] Theus Framework (The Engine)
+├── src/
+│   ├── agents/             # Agent Cognitive Modules
+│   ├── processes/          # Business Logic (Pure Functions, e.g., STDP, Pruning)
+│   ├── coordination/       # Multi-Agent Swarm Intelligence
+│   └── orchestrator/       # Experiment Manager
+├── workflows/              # [YAML] Declarative Execution Flows
+├── specs/                  # [YAML] Logic Constraints & Audit Recipes
+└── documents/              # Technical Specifications
+```
 
-# (Optional) Install POP SDK in Editable mode
+---
+
+## 🚀 5. Replication & Usage
+
+### Prerequisites
+*   Python 3.10+
+*   Theus Framework (Included as submodule)
+
+### Installation
+```bash
+# 1. Install Dependencies
+pip install torch pandas matplotlib networkx numpy
+
+# 2. Install Theus Hook
 pip install -e theus
 ```
 
+### Running Experiments
+The complete simulation pipeline (Initialization -> Simulation -> Structual Evolution -> Reporting) is automated.
 
-
-### Run Experiments (Headless)
-Run batch scenarios using the Orchestrator with V2 Configuration:
-
-**Option 1: Standard Sensor Experiment (100 episodes)**
 ```bash
-python run_experiments.py --config experiments_sensor_100ep.json
+# Run the Standard Benchmark (Complex Maze V2)
+python run_experiments.py
 ```
 
-**Option 2: Complex Maze Experiment (V2)**
+### Analysis
+Post-experiment forensics can be performed to generate synaptic connectivity graphs and learning curves:
+
 ```bash
-python run_experiments.py --config experiments_complex_maze_v2.json
+python run_post_process.py
 ```
-
-## 🗺️ 5. Development Roadmap
-
-*   **Phase 1 & 2 (Completed):**
-    *   ✅ Build POP Engine & Context Guard (Strict Mode).
-    *   ✅ Implement Delta Architecture (Transaction/Rollback).
-    *   ✅ **Hybrid Context Zones:** Separate Data (Persistent), Signal (Transient), and Meta (Diagnostic).
-    *   ✅ **Semantic Audit:** Control Input/Output/Side-Effect/Error via Dual Gates.
-    *   ✅ Extract POP SDK into separate library (Theus).
-    *   ✅ Audit & Fix Logic Bugs (Deep Mutation, Zombie Proxy, etc.).
-
-*   **Phase 3 (Current):**
-    *   🚧 **Direct Sensory Mapping:** Convert Input from numbers (Grid ID) to Spike Signals.
-    *   🚧 **SNN Integration:** Replace old Emotion model with Spiking Neural Network to process spike signals in real-time.
-    *   🚧 **Hebbian Learning:** Implement "Fire together, wire together" learning mechanism.
 
 ---
-*Author: Do Huy Hoang*
+
+## 📜 6. Citation & License
+
+This project is open-source under the MIT License.
+*Principal Investigator: Do Huy Hoang*

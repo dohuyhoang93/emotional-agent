@@ -21,7 +21,10 @@ from src.core.snn_context_theus import SNNSystemContext
 
 @process(
     inputs=['domain.snn_context'],
-    outputs=['domain.snn_emotion_vector'],
+    outputs=[
+        'domain.snn_emotion_vector',
+        'domain.previous_snn_emotion_vector'
+    ],
     side_effects=[]
 )
 def encode_emotion_vector(ctx: SystemContext):
@@ -58,6 +61,10 @@ def encode_emotion_vector(ctx: SystemContext):
     norm = np.linalg.norm(emotion_vector)
     if norm > 0:
         emotion_vector = emotion_vector / norm
+    
+    # Shift current to previous (for RL learning)
+    if ctx.domain_ctx.snn_emotion_vector is not None:
+        ctx.domain_ctx.previous_snn_emotion_vector = ctx.domain_ctx.snn_emotion_vector.clone()
     
     # Convert to tensor
     ctx.domain_ctx.snn_emotion_vector = torch.tensor(

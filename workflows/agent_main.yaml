@@ -6,17 +6,26 @@ steps:
   - perception
   
   # SNN Processing Pipeline
+  - process_hysteria_dampener    # [Safety] Prevent runaway excitation
   - encode_state_to_spikes      # State → SNN spikes
   - process_integrate            # LIF integrate
+  - process_lateral_inhibition   # [Focus] WTA / Sparse Coding
   - process_fire                 # LIF fire
   - process_clustering           # Cluster analysis
-  - process_stdp                 # STDP learning
+  - process_stdp_3factor         # 3-Factor R-STDP (Reward Modulated)
+  - process_commitment           # Synaptic Commitment (Phase 7)
+  - process_neural_darwinism     # Evolutionary Selection (Phase 11)
   - encode_emotion_vector        # SNN → emotion vector
   
   # RL Decision Making
   - compute_intrinsic_reward_snn # Novelty-based reward
   - combine_rewards              # Extrinsic + intrinsic
   - select_action_gated          # Emotion-gated action
+  
+  - process_inject_viral_with_quarantine # Filter blacklisted sources (Sandbox Entrance)
+  - process_quarantine_validation # Validate viral synapses (Sandbox Exit)
+  - process_meta_homeostasis_fixed # Advanced stability
+  - process_resync               # Maintenance
   
   # Execution & Learning
   - execute_action

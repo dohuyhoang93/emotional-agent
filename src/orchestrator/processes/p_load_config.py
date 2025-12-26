@@ -15,7 +15,7 @@ def recursive_update(d, u):
     return d
 
 @process(
-    inputs=['global.config_path', 'log_level', 'global.cli_log_level', 'global.settings_override', 'domain.output_dir', 'domain.experiments', 'domain.effective_log_level'],
+    inputs=['global.config_path', 'log_level', 'system.log_level', 'global.cli_log_level', 'global.settings_override', 'domain.output_dir', 'domain.experiments', 'domain.effective_log_level'],
     outputs=[
         'domain.raw_config',
         'domain.output_dir',

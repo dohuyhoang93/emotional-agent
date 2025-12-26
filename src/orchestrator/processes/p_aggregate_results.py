@@ -5,7 +5,7 @@ from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log, log_error
 
 @process(
-    inputs=['domain.experiments', 'log_level'],
+    inputs=['domain.experiments', 'log_level', 'domain.output_dir'],
     outputs=['domain.experiments'],
     side_effects=['filesystem.read'],
     errors=['json.JSONDecodeError']
@@ -23,6 +23,36 @@ def aggregate_results(ctx: OrchestratorSystemContext):
         log(ctx, "info", f"    [Experiment: {exp_def.name}] Aggregating data...")
         
         all_runs_metrics = []
+        if not exp_def.list_of_runs:
+            # Fallback for FSM Architecture (Single Run / Implicit)
+            checkpoints_dir = os.path.join(domain.output_dir, f"{exp_def.name}_checkpoints")
+            metrics_path = os.path.join(checkpoints_dir, "metrics.json")
+            
+            if os.path.exists(metrics_path):
+                try:
+                    with open(metrics_path, 'r') as f:
+                        run_data = json.load(f)
+                    
+                    # FSM Format: List of {'episode': int, 'metrics': dict}
+                    if isinstance(run_data, list):
+                        # Flatten metrics for plotter
+                        for entry in run_data:
+                            flat_metrics = entry.get('metrics', {}).copy()
+                            flat_metrics['episode'] = entry.get('episode')
+                            flat_metrics['run_id'] = 0 # Single run assumption
+                            all_runs_metrics.append(flat_metrics)
+                    # Legacy Format fallback
+                    elif isinstance(run_data, dict):
+                        metrics = run_data.get('metrics', [])
+                        all_runs_metrics.extend(metrics)
+                        
+                    log(ctx, "info", f"    [Experiment: {exp_def.name}] Loaded FSM metrics from {metrics_path}.")
+                except Exception as e:
+                    log_error(ctx, f"Cannot read FSM metrics file '{metrics_path}': {e}")
+            else:
+                log(ctx, "info", f"    [Experiment: {exp_def.name}] No legacy runs and no FSM metrics found.")
+
+        # Legacy Run Logic
         for exp_run in exp_def.list_of_runs:
             if exp_run.status == "COMPLETED" and exp_run.output_csv_path and os.path.exists(exp_run.output_csv_path):
                 try:

@@ -35,6 +35,11 @@ def main(argv=None):
         default=None,
         help='JSON string to override experiment parameters globally.'
     )
+    parser.add_argument(
+        '--headless',
+        action='store_true',
+        help='Run in headless mode (Disable UI/Visualization).'
+    )
     args = parser.parse_args(argv)
 
     # 1. Initialize Contexts (3-Layer)
@@ -43,6 +48,8 @@ def main(argv=None):
         cli_log_level=args.log_level,
         settings_override=args.settings_override
     )
+    # Inject headless flag
+    global_ctx.headless = args.headless
     
     domain_ctx = OrchestratorDomainContext(
         output_dir="results", # Default, updated by p_load_config
@@ -63,8 +70,8 @@ def main(argv=None):
     
     # 4. Execute Workflow (Declarative)
     try:
-        log(system_ctx, "info", f"▶️ Loading Orchestrator Workflow: specs/orchestrator.yaml")
-        engine.execute_workflow("specs/orchestrator.yaml")
+        log(system_ctx, "info", f"▶️ Loading Orchestrator Workflow: workflows/orchestrator.yaml")
+        engine.execute_workflow("workflows/orchestrator.yaml")
         
         # Check Final Report
         if "LỖI" in system_ctx.domain_ctx.final_report:

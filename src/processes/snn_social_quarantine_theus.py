@@ -14,66 +14,88 @@ from src.core.context import SystemContext
 
 @process(
     inputs=[
-        'domain_ctx.shadow_synapses',
-        'domain_ctx.current_time',
-        'domain_ctx.blacklisted_sources',
-        'rl_ctx.domain_ctx.td_error',
-        'rl_ctx.domain_ctx.last_reward',
-        'global_ctx.quarantine_duration',
-        'global_ctx.validation_threshold'
+        'domain.snn_context',
+        'domain.snn_context.domain_ctx.shadow_synapses',
+        'domain.snn_context.domain_ctx.current_time',
+        'domain.snn_context.domain_ctx.blacklisted_sources',
+        'domain.snn_context.domain_ctx.metrics',
+        'domain.td_error',
+        'domain.last_reward'
     ],
     outputs=[
-        'domain_ctx.shadow_synapses',
-        'domain_ctx.synapses',
-        'domain_ctx.blacklisted_sources',
-        'domain_ctx.metrics'
+        'domain.snn_context.domain_ctx.shadow_synapses',
+        'domain.snn_context.domain_ctx.synapses',
+        'domain.snn_context.domain_ctx.blacklisted_sources',
+        'domain.snn_context.domain_ctx.metrics'
     ],
-    side_effects=[]  # Pure function
+    side_effects=[]
 )
 def process_quarantine_validation(
-    snn_ctx: SNNSystemContext,
-    rl_ctx: SystemContext
+    ctx: SystemContext
 ):
     """
     Validate viral synapses trong quarantine sandbox.
     
-    Logic (from spec 9.2.1):
-    1. Track performance trong quarantine period
-    2. Promote nếu validation_score > threshold
-    3. Reject và blacklist nếu negative reward
-    
-    NOTE: Pure function - no side effects.
-    
     Args:
-        snn_ctx: SNN system context
-        rl_ctx: RL system context (for reward signal)
+        ctx: RL system context
     """
+    rl_ctx = ctx
+    snn_ctx = ctx.domain_ctx.snn_context
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
     
-    # Get reward signal
+    # Get reward signal (Target)
     reward = rl_ctx.domain_ctx.last_reward.get('total', 0.0)
-    error = abs(rl_ctx.domain_ctx.td_error)
+    native_error = abs(rl_ctx.domain_ctx.td_error) # |Target - Native|
     
-    # Counters
+    # Shadow Logic: Counterfactual Evaluation
+    # Did the shadow synapse predict better?
+    # Approximation:
+    # 1. Check if Pre-neuron fired (Shadow active).
+    # 2. If 'Yes', does the synapse Type match the 'Error Direction'?
+    #    - If Native UNDER-estimated (Error > 0) AND Shadow is Excitatory -> REDUCES Error.
+    #    - If Native OVER-estimated (Error < 0) AND Shadow is Inhibitory -> REDUCES Error.
+    #    (Assumes simple signed error model)
+    
+    # Let's use TD Error directly (Target - Prediction)
+    raw_error = rl_ctx.domain_ctx.td_error 
+    
+    # Init counters
+    blacklisted = 0
     promoted = 0
     rejected = 0
-    blacklisted = 0
     
-    # Update quarantine synapses
     for synapse in domain.shadow_synapses:
         synapse.quarantine_time += 1
         
-        # Update validation score based on performance
-        if error < 0.1:
-            # Good prediction
-            synapse.validation_score += 0.1
-        else:
-            # Bad prediction
-            synapse.validation_score -= 0.05
+        # Check if active
+        pre_neuron = domain.neurons[synapse.pre_neuron_id]
+        if pre_neuron.last_fire_time == domain.current_time:
+            # Synapse was active.
+            # Would adding this weight have helped?
+            # Output = Prediction.
+            # New_Prediction = Prediction + Weight.
+            # New_Error = Target - (Prediction + Weight) = (Target - Prediction) - Weight = raw_error - Weight
+            
+            new_error = abs(raw_error - synapse.weight)
+            
+            # IMPROVEMENT CONDITION
+            if new_error < native_error:
+                # Shadow improved reality!
+                synapse.validation_score += 0.2  # Bonus
+                domain.metrics['shadow_hit'] = domain.metrics.get('shadow_hit', 0) + 1
+            else:
+                # Shadow made it worse!
+                synapse.validation_score -= 0.1
+                domain.metrics['shadow_miss'] = domain.metrics.get('shadow_miss', 0) + 1
         
-        # CRITICAL: Blacklist nếu negative reward
-        if reward < 0:
+        else:
+            # Synapse silent. Small decay or neutral?
+            # Decay score slightly to encourage active participation?
+            pass
+
+        # CRITICAL: Blacklist logic remains (Safety Net)
+        if reward < -0.5: # Major failure
             synapse.is_blacklisted = True
             if synapse.source_agent_id not in domain.blacklisted_sources:
                 domain.blacklisted_sources.append(synapse.source_agent_id)
@@ -120,25 +142,26 @@ def process_quarantine_validation(
 
 @process(
     inputs=[
-        'domain_ctx.shadow_synapses',
-        'domain_ctx.blacklisted_sources'
+        'domain.snn_context',
+        'domain.snn_context.domain_ctx.shadow_synapses',
+        'domain.snn_context.domain_ctx.blacklisted_sources',
+        'domain.snn_context.domain_ctx.metrics'
     ],
     outputs=[
-        'domain_ctx.shadow_synapses',
-        'domain_ctx.metrics'
+        'domain.snn_context.domain_ctx.shadow_synapses',
+        'domain.snn_context.domain_ctx.metrics'
     ],
-    side_effects=[]  # Pure function
+    side_effects=[]
 )
-def process_inject_viral_with_quarantine(ctx: SNNSystemContext):
+def process_inject_viral_with_quarantine(ctx: SystemContext):
     """
     Inject viral synapses vào quarantine (với blacklist check).
     
-    NOTE: Viral synapses từ blacklisted sources bị reject ngay.
-    
     Args:
-        ctx: SNN system context
+        ctx: RL system context
     """
-    domain = ctx.domain_ctx
+    snn_ctx = ctx.domain_ctx.snn_context
+    domain = snn_ctx.domain_ctx
     
     # Filter out blacklisted sources
     before = len(domain.shadow_synapses)

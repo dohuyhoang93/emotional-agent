@@ -19,84 +19,63 @@ from src.core.context import SystemContext
 
 @process(
     inputs=[
-        'domain_ctx.synapses',
-        'domain_ctx.neurons',
-        'domain_ctx.spike_queue',
-        'domain_ctx.current_time',
-        'global_ctx.learning_rate',
-        'global_ctx.tau_trace_fast',
-        'global_ctx.tau_trace_slow',
-        'global_ctx.dopamine_learning_rate',
-        'global_ctx.solid_learning_rate_factor',
-        'rl_ctx.domain_ctx.td_error'  # ← Dopamine signal từ RL!
+        'domain.snn_context', # Implicit dependency
+        'domain.td_error',
+        # Global params are inside snn_context.global_ctx usually, or accessible via path?
+        # Since ctx is RL Context, global_ctx is RL global.
+        # SNN Global is in snn_ctx.global_ctx.
+        # Theus Engine inputs are checked against ctx.
+        # So inputs must match RL Context paths.
+        'domain.snn_context.domain_ctx.synapses' 
     ],
     outputs=[
-        'domain_ctx.synapses'  # weight, traces updated
+        'domain.snn_context.domain_ctx.synapses'
     ],
-    side_effects=[]  # Pure function
+    side_effects=[]
 )
 def process_stdp_3factor(
-    snn_ctx: SNNSystemContext,
-    rl_ctx: SystemContext
+    ctx: SystemContext
 ):
     """
     3-Factor Learning: Hebbian + Dopamine với Protected Learning.
     
-    Δw = η_dopamine · eligibility · D(t)
-    
-    where:
-    - eligibility = trace_fast + trace_slow
-    - D(t) = tanh(TD-error)  # Dopamine signal
-    
-    Protected Learning (Phase 7):
-    - FLUID: Full learning rate
-    - SOLID: 10% learning rate (protected)
-    - REVOKED: Skip learning
-    
-    Multi-timescale traces:
-    - trace_fast: Decay ~20ms (immediate Hebbian)
-    - trace_slow: Decay ~5000ms (synaptic tag for delayed reward)
-    
-    NOTE: Nhận dopamine từ RL context.
-    Pure function - no side effects.
-    
     Args:
-        snn_ctx: SNN system context
-        rl_ctx: RL system context (for TD-error)
+        ctx: RL System Context (contains snn_context in domain)
     """
+    # Extract Contexts
+    rl_ctx = ctx
+    snn_ctx = ctx.domain_ctx.snn_context
+    
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
     
     # Compute dopamine signal từ TD-error
+    # Compute dopamine signal từ TD-error
     td_error = rl_ctx.domain_ctx.td_error
-    dopamine = np.tanh(td_error)  # Normalize [-1, 1]
+    dopamine = float(np.tanh(td_error))  # Ensure scalar
     
-    # 1. Decay traces
+    # Pre-fetch spikes for O(1) lookup
+    current_spikes = set(domain.spike_queue.get(domain.current_time, []))
+    
+    # Single loop over synapses (O(S))
     for synapse in domain.synapses:
+        # 1. Decay traces
         synapse.trace_fast *= global_ctx.tau_trace_fast
         synapse.trace_slow *= global_ctx.tau_trace_slow
-    
-    # 2. Update traces on spike
-    current_spikes = domain.spike_queue.get(domain.current_time, [])
-    
-    for spike_id in current_spikes:
-        for synapse in domain.synapses:
-            if synapse.pre_neuron_id == spike_id:
-                # Increment traces
-                synapse.trace_fast += 1.0
-                synapse.trace_slow += 1.0
-                synapse.last_active_time = domain.current_time
-    
-    # 3. Compute eligibility
-    for synapse in domain.synapses:
+        
+        # 2. Update traces on spike
+        if synapse.pre_neuron_id in current_spikes:
+            synapse.trace_fast += 1.0
+            synapse.trace_slow += 1.0
+            synapse.last_active_time = domain.current_time
+            
+        # 3. Compute eligibility
         synapse.eligibility = synapse.trace_fast + synapse.trace_slow
-    
-    # 4. 3-Factor Learning với Protected Learning
-    for synapse in domain.synapses:
-        # Skip REVOKED synapses
+        
+        # 4 & 5. Learning & Decay (Skip REVOKED)
         if synapse.commit_state == COMMIT_STATE_REVOKED:
             continue
-        
+            
         # Adjust learning rate based on commitment state
         if synapse.commit_state == COMMIT_STATE_SOLID:
             # Protected: 10% learning rate
@@ -107,15 +86,15 @@ def process_stdp_3factor(
         else:  # FLUID
             # Full learning rate
             effective_lr = global_ctx.dopamine_learning_rate
-        
+            
         # Δw = η · eligibility · dopamine
         delta_weight = effective_lr * synapse.eligibility * dopamine
         
         synapse.weight += delta_weight
-        synapse.weight = np.clip(synapse.weight, 0.0, 1.0)
-    
-    # 5. Weight decay (optional)
-    for synapse in domain.synapses:
-        if synapse.commit_state != COMMIT_STATE_REVOKED:
-            synapse.weight *= global_ctx.weight_decay
-            synapse.weight = np.clip(synapse.weight, 0.0, 1.0)
+        
+        # Weight decay
+        synapse.weight *= global_ctx.weight_decay
+        
+        # Single clip at the end
+        if synapse.weight > 1.0: synapse.weight = 1.0
+        elif synapse.weight < 0.0: synapse.weight = 0.0

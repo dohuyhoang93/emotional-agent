@@ -19,36 +19,29 @@ from src.core.context import SystemContext
 
 @process(
     inputs=[
-        'domain_ctx.synapses',
-        'rl_ctx.domain_ctx.td_error',  # Prediction error proxy
-        'global_ctx.commitment_threshold',
-        'global_ctx.revoke_threshold',
-        'global_ctx.prediction_error_threshold'
+        'domain.snn_context',
+        'domain.snn_context.domain_ctx.metrics', # Added
+        'domain.td_error'
     ],
     outputs=[
-        'domain_ctx.synapses',
-        'domain_ctx.metrics'
+        'domain.snn_context.domain_ctx.synapses',
+        'domain.snn_context.domain_ctx.metrics'
     ],
-    side_effects=[]  # Pure function
+    side_effects=[]
 )
 def process_commitment(
-    snn_ctx: SNNSystemContext,
-    rl_ctx: SystemContext
+    ctx: SystemContext
 ):
     """
     Commitment Layer: FLUID → SOLID → REVOKED.
     
-    State Transitions:
-    - FLUID → SOLID: After N consecutive correct predictions
-    - SOLID → REVOKED: After M consecutive wrong predictions
-    
-    NOTE: Dùng TD-error làm prediction error proxy.
-    Pure function - no side effects.
-    
     Args:
-        snn_ctx: SNN system context
-        rl_ctx: RL system context (for prediction error)
+        ctx: RL System Context
     """
+    # Extract Contexts
+    rl_ctx = ctx
+    snn_ctx = ctx.domain_ctx.snn_context
+    
     global_ctx = snn_ctx.global_ctx
     domain = snn_ctx.domain_ctx
     
@@ -106,7 +99,10 @@ def process_commitment(
 
 
 @process(
-    inputs=['domain_ctx.synapses'],
+    inputs=[
+        'domain_ctx.synapses',
+        'domain_ctx.metrics' # Added
+    ],
     outputs=['domain_ctx.synapses', 'domain_ctx.metrics'],
     side_effects=[]  # Pure function
 )

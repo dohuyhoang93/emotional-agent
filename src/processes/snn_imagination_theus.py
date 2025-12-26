@@ -16,6 +16,7 @@ from src.core.snn_context_theus import SNNSystemContext
         'domain_ctx.neurons',
         'domain_ctx.current_time',
         'domain_ctx.last_imagination_time',
+        'domain_ctx.metrics', # Added for full access
         'global_ctx.imagination_interval'
     ],
     outputs=[

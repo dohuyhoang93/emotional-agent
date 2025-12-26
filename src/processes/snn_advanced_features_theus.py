@@ -20,23 +20,24 @@ from typing import List
 
 @process(
     inputs=[
-        'domain_ctx.neurons',
-        'domain_ctx.metrics.fire_rate',
-        'domain_ctx.emotion_saturation_level',
-        'domain_ctx.dampening_active',
-        'global_ctx.saturation_threshold',
-        'global_ctx.dampening_factor',
-        'global_ctx.recovery_rate'
+        'domain.snn_context', # Explicit access for drill-down
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.snn_context.domain_ctx.metrics', 
+        'domain.snn_context.domain_ctx.emotion_saturation_level',
+        'domain.snn_context.domain_ctx.dampening_active',
+        'domain.snn_context.global_ctx.saturation_threshold',
+        'domain.snn_context.global_ctx.dampening_factor',
+        'domain.snn_context.global_ctx.recovery_rate'
     ],
     outputs=[
-        'domain_ctx.neurons',
-        'domain_ctx.emotion_saturation_level',
-        'domain_ctx.dampening_active',
-        'domain_ctx.metrics'
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.snn_context.domain_ctx.emotion_saturation_level',
+        'domain.snn_context.domain_ctx.dampening_active',
+        'domain.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
-def process_hysteria_dampener(ctx: SNNSystemContext):
+def process_hysteria_dampener(ctx: SystemContext):
     """
     Prevent runaway emotions (saturation).
     
@@ -46,10 +47,12 @@ def process_hysteria_dampener(ctx: SNNSystemContext):
     3. Gradual recovery
     
     Args:
-        ctx: SNN system context
+        ctx: RL System Context (contains snn_context)
     """
-    domain = ctx.domain_ctx
-    global_ctx = ctx.global_ctx
+    # Extract SNN Context
+    snn_ctx = ctx.domain_ctx.snn_context
+    domain = snn_ctx.domain_ctx
+    global_ctx = snn_ctx.global_ctx
     
     fire_rate = domain.metrics.get('fire_rate', 0.0)
     
@@ -90,19 +93,21 @@ def process_hysteria_dampener(ctx: SNNSystemContext):
 
 @process(
     inputs=[
-        'domain_ctx.neurons',
-        'domain_ctx.spike_queue',
-        'domain_ctx.current_time',
-        'global_ctx.inhibition_strength',
-        'global_ctx.wta_k'
+        'domain.snn_context', # Explicit access
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.snn_context.domain_ctx.spike_queue',
+        'domain.snn_context.domain_ctx.current_time',
+        'domain.snn_context.domain_ctx.metrics',
+        'domain.snn_context.global_ctx.inhibition_strength',
+        'domain.snn_context.global_ctx.wta_k'
     ],
     outputs=[
-        'domain_ctx.neurons',
-        'domain_ctx.metrics'
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
-def process_lateral_inhibition(ctx: SNNSystemContext):
+def process_lateral_inhibition(ctx: SystemContext):
     """
     Winner-Take-All competition cho sparse coding.
     
@@ -112,10 +117,12 @@ def process_lateral_inhibition(ctx: SNNSystemContext):
     3. Sparse representation
     
     Args:
-        ctx: SNN system context
+        ctx: RL System Context
     """
-    domain = ctx.domain_ctx
-    global_ctx = ctx.global_ctx
+    # Extract SNN Context
+    snn_ctx = ctx.domain_ctx.snn_context
+    domain = snn_ctx.domain_ctx
+    global_ctx = snn_ctx.global_ctx
     
     current_spikes = domain.spike_queue.get(domain.current_time, [])
     
@@ -149,38 +156,51 @@ def process_lateral_inhibition(ctx: SNNSystemContext):
 
 @process(
     inputs=[
-        'domain_ctx.synapses',
-        'rl_ctx.domain_ctx.td_error',
-        'global_ctx.selection_pressure',
-        'global_ctx.reproduction_rate',
-        'global_ctx.fitness_decay'
+        'domain.snn_context',
+        'domain.td_error',
+        'domain.snn_context.domain_ctx.synapses',
+        'domain.snn_context.domain_ctx.neurons', # Added for recycling
+        'domain.snn_context.domain_ctx.metrics',
+        'domain.snn_context.domain_ctx.current_time',
+        'domain.snn_context.global_ctx.darwinism_interval'
     ],
     outputs=[
-        'domain_ctx.synapses',
-        'domain_ctx.metrics'
+        'domain.snn_context.domain_ctx.synapses',
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
 def process_neural_darwinism(
-    snn_ctx: SNNSystemContext,
-    rl_ctx: SystemContext
+    ctx: SystemContext
 ):
     """
-    Evolutionary synapse selection.
+    Evolutionary synapse selection and Neuron Recycling ("True Darwinism").
     
     Logic:
     1. Update fitness based on performance
-    2. Selection (remove weak)
+    2. Selection (remove weak but PROTECT committed)
     3. Reproduction (clone strong)
+    4. Recycling (reset dead neurons + rewire)
     
     Args:
-        snn_ctx: SNN system context
-        rl_ctx: RL system context
+        ctx: RL System Context
     """
+    from src.core.snn_context_theus import COMMIT_STATE_SOLID, SynapseState
+    # Extract
+    rl_ctx = ctx
+    snn_ctx = ctx.domain_ctx.snn_context
+    
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
     
+    # Check interval
+    if domain.current_time % global_ctx.darwinism_interval != 0:
+        return
+    
     error = abs(rl_ctx.domain_ctx.td_error)
+    
+    # === PART 1: SYNAPSE EVOLUTION ===
     
     # 1. Update fitness
     for synapse in domain.synapses:
@@ -193,16 +213,21 @@ def process_neural_darwinism(
         synapse.fitness = np.clip(synapse.fitness, 0.0, 1.0)
     
     # 2. Selection: Remove weak
-    if len(domain.synapses) > 10:  # Keep minimum population
+    if len(domain.synapses) > 100:  # Keep minimum population
         fitnesses = [s.fitness for s in domain.synapses]
         threshold = np.percentile(fitnesses, global_ctx.selection_pressure * 100)
         
-        survivors = [s for s in domain.synapses if s.fitness >= threshold]
+        # FIX: Protect SOLID synapses from culling
+        survivors = [
+            s for s in domain.synapses 
+            if s.fitness >= threshold or s.commit_state == COMMIT_STATE_SOLID
+        ]
     else:
         survivors = domain.synapses
     
     # 3. Reproduction: Clone strong
     if len(survivors) > 0:
+        import dataclasses
         fitnesses = [s.fitness for s in survivors]
         top_threshold = np.percentile(
             fitnesses,
@@ -213,18 +238,95 @@ def process_neural_darwinism(
         
         offspring = []
         for parent in to_reproduce:
-            child = copy.deepcopy(parent)
-            child.synapse_id = len(survivors) + len(offspring)
+            child = dataclasses.replace(parent)
+            # Find next ID (max + 1 is risky in distributed, but fine here)
+            # Safer: max of CURRENT list
+            max_id = max(s.synapse_id for s in survivors) if survivors else 0
+            if offspring:
+                max_id = max(max_id, max(s.synapse_id for s in offspring))
+            
+            child.synapse_id = max_id + 1
             child.generation = parent.generation + 1
             child.weight += np.random.randn() * 0.01  # Mutation
             child.weight = np.clip(child.weight, 0.0, 1.0)
+            child.commit_state = 0 # FLUID (Reset commitment)
             offspring.append(child)
         
         domain.synapses = survivors + offspring
     
+    # === PART 2: NEURON RECYCLING (True Darwinism) ===
+    
+    DEAD_THRESHOLD = 2000 # Steps without firing
+    recycled_count = 0
+    new_synapses = []
+    
+    max_syn_id = 0
+    if domain.synapses:
+        max_syn_id = max(s.synapse_id for s in domain.synapses)
+    
+    connection_prob = global_ctx.connectivity
+    
+    for neuron in domain.neurons:
+        # Check if dead
+        is_dead = (domain.current_time - neuron.last_fire_time) > DEAD_THRESHOLD
+        
+        # FIX: Do not kill SOLID neurons (neurons with many SOLID synapses)
+        # Scan synapses to check solidity
+        # Optimization: Pre-calculate solid map? Naive Check for now.
+        solid_connections = sum(1 for s in domain.synapses 
+                                if (s.pre_neuron_id == neuron.neuron_id or s.post_neuron_id == neuron.neuron_id) 
+                                and s.commit_state == COMMIT_STATE_SOLID)
+        
+        if is_dead and solid_connections == 0:
+            # RECYCLE
+            recycled_count += 1
+            
+            # Reset Vector (New location in semantic space)
+            new_proto = np.random.randn(neuron.vector_dim)
+            new_proto = new_proto / (np.linalg.norm(new_proto) + 1e-8)
+            neuron.prototype_vector = new_proto
+            
+            # Reset State
+            neuron.potential = 0.0
+            neuron.fire_count = 0
+            neuron.last_fire_time = domain.current_time # Reset timer
+            neuron.threshold = global_ctx.initial_threshold
+            
+            # REWIRE (Generate new synapses for this neuron)
+            # 1. Incoming (Others -> Me)
+            for pre_n in domain.neurons:
+                if pre_n.neuron_id == neuron.neuron_id: continue
+                if np.random.random() < connection_prob:
+                    max_syn_id += 1
+                    syn = SynapseState(
+                        synapse_id=max_syn_id,
+                        pre_neuron_id=pre_n.neuron_id,
+                        post_neuron_id=neuron.neuron_id,
+                        weight=np.random.uniform(0.3, 0.7)
+                    )
+                    new_synapses.append(syn)
+            
+            # 2. Outgoing (Me -> Others)
+            for post_n in domain.neurons:
+                if post_n.neuron_id == neuron.neuron_id: continue
+                if np.random.random() < connection_prob:
+                    max_syn_id += 1
+                    syn = SynapseState(
+                        synapse_id=max_syn_id,
+                        pre_neuron_id=neuron.neuron_id,
+                        post_neuron_id=post_n.neuron_id,
+                        weight=np.random.uniform(0.3, 0.7)
+                    )
+                    new_synapses.append(syn)
+    
+    if new_synapses:
+        domain.synapses.extend(new_synapses)
+    
     # Update metrics
     domain.metrics['darwinism_survivors'] = len(survivors)
     domain.metrics['darwinism_offspring'] = len(offspring) if 'offspring' in locals() else 0
+    domain.metrics['recycled_neurons'] = recycled_count
+    domain.metrics['new_synapses_generated'] = len(new_synapses)
 
 
 # ============================================================================
@@ -236,6 +338,7 @@ def process_neural_darwinism(
         'domain_ctx.synapses',
         'domain_ctx.ancestor_weights',
         'domain_ctx.population_performance',
+        'domain_ctx.metrics', # Added
         'rl_ctx.domain_ctx.last_reward',
         'global_ctx.revolution_threshold',
         'global_ctx.revolution_window',

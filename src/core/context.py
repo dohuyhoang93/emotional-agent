@@ -43,6 +43,10 @@ class GlobalContext(BaseGlobalContext):
     
     # --- Output Setting ---
     output_path: str = "results"
+    
+    # --- Persistence & Monitoring (Phase 15) ---
+    enable_recorder: bool = False
+    checkpoint_freq: int = 50
 
 @dataclass
 class DomainContext(BaseDomainContext):
@@ -58,6 +62,7 @@ class DomainContext(BaseDomainContext):
     # --- SNN Integration (Phase 5) ---
     snn_context: Any = None  # SNNSystemContext (nested context)
     snn_emotion_vector: Optional[torch.Tensor] = None  # Emotion từ SNN
+    previous_snn_emotion_vector: Optional[torch.Tensor] = None # Emotion cũ (t-1)
     intrinsic_reward: float = 0.0  # Novelty signal từ SNN
     
     # --- Belief State ---
@@ -69,8 +74,12 @@ class DomainContext(BaseDomainContext):
     long_term_memory: Dict[str, Any] = field(default_factory=dict)
     
     # --- ML Models (Mutable Objects) ---
-    emotion_model: Any = None # Torch Model
-    emotion_optimizer: Any = None # Torch Optimizer
+    emotion_model: Any = None # Torch Model (Legacy)
+    emotion_optimizer: Any = None # Torch Optimizer (Legacy)
+    
+    # --- Integration Models (Phase 2 Upgrade) ---
+    gated_network: Any = None # GatedIntegrationNetwork
+    gated_optimizer: Any = None # Optimizer for Gated Net
     
     # --- Dynamic Parameters ---
     current_exploration_rate: float = 1.0
@@ -89,6 +98,7 @@ class DomainContext(BaseDomainContext):
     total_steps_in_episode: int = 0
     
     # Metric tracking
+    metrics: Dict[str, Any] = field(default_factory=dict)
     last_cycle_time: float = 0.0
 
 @dataclass

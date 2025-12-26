@@ -26,6 +26,8 @@ class GridWorld:
         self.dynamic_wall_rules = {rule['id']: rule for rule in env_config.get("dynamic_wall_rules", [])}
         
         self.max_steps = env_config.get("max_steps_per_episode", 500)
+        self.step_penalty = env_config.get("step_penalty", -0.1)
+        self.wall_penalty = env_config.get("wall_penalty", -0.5)
         
         self.base_grid = self._create_base_grid()
         self.broadcast_events = [] # Danh sách sự kiện để "thần giao cách cảm"

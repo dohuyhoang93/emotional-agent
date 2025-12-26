@@ -19,6 +19,7 @@ from src.core.snn_context_theus import (
 )
 from src.models.gated_integration import GatedIntegrationNetwork
 from src.adapters.environment_adapter import EnvironmentAdapter
+from src.utils.snn_recorder import SNNRecorder
 
 
 class RLAgent:
@@ -103,6 +104,30 @@ class RLAgent:
             lr=0.001
         )
         
+        # Inject into Domain Context for processes
+        self.domain_ctx.gated_network = self.gated_network
+        self.domain_ctx.gated_optimizer = self.optimizer
+        
+        
+        
+        # === AUDIT RECIPE LOADING (Activated by User) ===
+        # We load specs/snn_audit_recipe.yaml manually here
+        from theus.config import AuditRecipe
+        import yaml
+        import os
+        
+        # Ensure strict audit is used if none provided
+        if audit_recipe is None:
+            recipe_path = "specs/snn_audit_recipe.yaml"
+            if os.path.exists(recipe_path):
+                try:
+                    with open(recipe_path, "r", encoding='utf-8') as f:
+                        recipe_dict = yaml.safe_load(f)
+                    audit_recipe = AuditRecipe(recipe_dict)
+                    print(f"✅ RLAgent {agent_id}: Loaded Audit Recipe from {recipe_path}")
+                except Exception as e:
+                    print(f"⚠️ Failed to load Audit Recipe: {e}")
+
         # Theus Engine
         self.engine = TheusEngine(
             self.rl_ctx,
@@ -118,6 +143,9 @@ class RLAgent:
         )
         self.engine.scan_and_register(processes_dir)
         
+        # Register manual aliases (overrides scan if colliding, or adds new aliases)
+        self._register_all_processes()
+        
         # Metrics
         self.episode_metrics = {
             'total_reward': 0.0,
@@ -125,6 +153,16 @@ class RLAgent:
             'extrinsic_reward_total': 0.0,
             'steps': 0
         }
+        
+        # Recorder (Phase 15: Monitoring)
+        self.recorder = None
+        if getattr(global_ctx, 'enable_recorder', False):
+            import os
+            self.recorder = SNNRecorder(
+                agent_id=agent_id,
+                output_dir=os.path.join("results", "recordings"), # Default dir, orchestrator might override
+                buffer_size=1000
+            )
     
     def _register_all_processes(self):
         """Register tất cả processes manually."""
@@ -157,8 +195,20 @@ class RLAgent:
             process_commitment
         )
         from src.processes.snn_homeostasis_theus import (
-            process_homeostasis
+            process_homeostasis,
+            process_meta_homeostasis_fixed
         )
+        from src.processes.snn_advanced_features_theus import (
+            process_hysteria_dampener,
+            process_lateral_inhibition,
+            process_neural_darwinism
+        )
+        from src.processes.snn_resync_theus import (
+            process_periodic_resync
+        )
+        # Phase 13: Semantic Dream
+        from src.processes.p_dream_decoder import process_decode_dream
+        from src.processes.p_dream_validator import process_validate_and_reward
         
         # Register SNN-RL bridge
         self.engine.register_process('encode_state_to_spikes', encode_state_to_spikes)
@@ -181,6 +231,18 @@ class RLAgent:
         self.engine.register_process('snn_stdp_3factor', process_stdp_3factor)
         self.engine.register_process('process_commitment', process_commitment)
         self.engine.register_process('process_homeostasis', process_homeostasis)
+        self.engine.register_process('process_meta_homeostasis_fixed', process_meta_homeostasis_fixed)
+        self.engine.register_process('process_meta_homeostasis_fixed', process_meta_homeostasis_fixed)
+        self.engine.register_process('process_resync', process_periodic_resync)
+        
+        # Register Advanced Features (Phase 9-11)
+        self.engine.register_process('process_hysteria_dampener', process_hysteria_dampener)
+        self.engine.register_process('process_lateral_inhibition', process_lateral_inhibition)
+        self.engine.register_process('process_neural_darwinism', process_neural_darwinism)
+        
+        # Register Semester Dream (Phase 13)
+        self.engine.register_process('process_decode_dream', process_decode_dream)
+        self.engine.register_process('process_validate_and_reward', process_validate_and_reward)
     
     def reset(self, observation: Dict[str, Any]):
         """
@@ -189,6 +251,10 @@ class RLAgent:
         Args:
             observation: Initial observation từ environment
         """
+        # Flush recorder if active from previous episode
+        if self.recorder:
+            self.recorder.flush()
+        
         with self.engine.edit():
             # Reset RL state
             self.domain_ctx.current_observation = observation
@@ -232,13 +298,48 @@ class RLAgent:
             agent_id=self.agent_id
         )
         
+        # Record Step (Phase 15)
+        if self.recorder:
+            # We record running metrics
+            # ep_metrics has 'steps' which is count
+            current_step = self.episode_metrics['steps']
+            # We assume episode index is handled externally or we pass it? 
+            # Actually recorder needs Ep Index. 
+            # We don't have Ep Index in RLAgent state easily (it's in Runner).
+            # But we can assume sequential or pass it in reset?
+            # For now passing 0 or adding episode_count to DomainContext.
+            # Let's use 0 for now as placeholder, or self.snn_ctx.domain_ctx.cycle_count
+            
+            # Better: context likely has it or we just use global timestamp
+            self.recorder.record_step(self.snn_ctx, 0, current_step)
+        
         # Update metrics
         self.episode_metrics['steps'] += 1
-        self.episode_metrics['total_reward'] += self.domain_ctx.last_reward.get('total', 0.0)
-        self.episode_metrics['intrinsic_reward_total'] += self.domain_ctx.intrinsic_reward
-        self.episode_metrics['extrinsic_reward_total'] += self.domain_ctx.last_reward.get('extrinsic', 0.0)
-        
         return self.domain_ctx.last_action
+    
+    def observe_reward(self, extrinsic_reward: float):
+        """
+        Receive extrinsic reward from environment and update metrics.
+        Called by Coordinator after action execution.
+        """
+        # Calculate total reward
+        intrinsic = self.domain_ctx.intrinsic_reward if hasattr(self.domain_ctx, 'intrinsic_reward') else 0.0
+        total = extrinsic_reward + intrinsic
+        
+        # Update context within transaction
+        with self.engine.edit():
+            self.domain_ctx.last_reward = {
+                'extrinsic': extrinsic_reward,
+                'intrinsic': intrinsic,
+                'total': total
+            }
+        
+        # Accumulate metrics (Local field, not guarded? Wait, episode_metrics is dict on self)
+        # self.episode_metrics is NOT a Context field. It is instance attr. Safe to write?
+        # Yes, LockViolationError was on 'last_reward' which is domain_ctx.
+        self.episode_metrics['total_reward'] += total
+        self.episode_metrics['intrinsic_reward_total'] += intrinsic
+        self.episode_metrics['extrinsic_reward_total'] += extrinsic_reward
     
     def get_metrics(self) -> Dict[str, Any]:
         """

@@ -89,6 +89,7 @@ def process_inject_viral_synapses(ctx: SNNSystemContext):
     inputs=[
         'domain_ctx.synapses',
         'domain_ctx.shadow_synapses',
+        'domain_ctx.metrics', # Added for reading
         'global_ctx.shadow_confidence_threshold'
     ],
     outputs=[

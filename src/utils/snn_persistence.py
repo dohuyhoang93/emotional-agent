@@ -15,6 +15,7 @@ from src.core.snn_context_theus import SNNSystemContext
 
 def save_snn_agent(
     snn_ctx: SNNSystemContext,
+    rl_ctx: Any, # SystemContext (optional)
     agent_id: int,
     output_dir: str
 ) -> str:
@@ -40,8 +41,22 @@ def save_snn_agent(
             'vector_dim': snn_ctx.global_ctx.vector_dim,
         },
         'neurons': [],
-        'synapses': []
+        'synapses': [],
+        'memory': {
+            'q_table': {},
+            'beliefs': {},
+            'short_term': []
+        }
     }
+    
+    # Save RL Memory
+    if rl_ctx:
+        domain = rl_ctx.domain_ctx
+        state['memory']['q_table'] = domain.q_table
+        state['memory']['beliefs'] = domain.believed_switch_states
+        # Save short term (simplified)
+        state['memory']['short_term'] = [str(x) for x in domain.short_term_memory][-10:] # Last 10
+
     
     # Save neurons
     for neuron in snn_ctx.domain_ctx.neurons:

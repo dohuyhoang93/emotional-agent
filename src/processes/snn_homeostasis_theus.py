@@ -14,6 +14,7 @@ from src.core.snn_context_theus import SNNSystemContext
 @process(
     inputs=[
         'domain_ctx.neurons',
+        'domain_ctx.metrics', # Allow reading dict
         'domain_ctx.metrics.fire_rate',
         'global_ctx.target_fire_rate',
         'global_ctx.homeostasis_rate',
@@ -119,45 +120,39 @@ def pid_controller_with_antiwindup(
 
 @process(
     inputs=[
-        'domain_ctx.neurons',
-        'domain_ctx.metrics.fire_rate',
-        'domain_ctx.pid_state',
-        'global_ctx.target_fire_rate',
-        'global_ctx.meta_pid_kp',
-        'global_ctx.meta_pid_ki',
-        'global_ctx.meta_pid_kd',
-        'global_ctx.meta_max_integral',
-        'global_ctx.meta_max_output',
-        'global_ctx.meta_scale_factor',
-        'global_ctx.threshold_min',
-        'global_ctx.threshold_max'
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.snn_context.domain_ctx.metrics',
+        'domain.snn_context.domain_ctx.pid_state',
+        'domain.snn_context.global_ctx.target_fire_rate',
+        'domain.snn_context.global_ctx.pid_kp',
+        'domain.snn_context.global_ctx.pid_ki',
+        'domain.snn_context.global_ctx.pid_kd',
+        'domain.snn_context.global_ctx.pid_max_integral',
+        'domain.snn_context.global_ctx.pid_max_output',
+        'domain.snn_context.global_ctx.pid_scale_factor',
+        'domain.snn_context.global_ctx.threshold_min',
+        'domain.snn_context.global_ctx.threshold_max'
     ],
     outputs=[
-        'domain_ctx.neurons',  # threshold updated
-        'domain_ctx.pid_state',
-        'domain_ctx.metrics'
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.snn_context.domain_ctx.pid_state',
+        'domain.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
 def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
     """
     Quy trình Meta-Homeostasis với PID anti-windup (FIXED VERSION).
-    
-    Mục tiêu: Điều chỉnh threshold toàn cục với PID controller.
-    
-    Improvements:
-    - Anti-windup (clamping + back-calculation)
-    - Reduced gains (100x)
-    - Reduced scale factor (1000x)
-    - Bounded integral
-    
-    Theus sẽ audit:
-    - PID gains trong range hợp lý
-    - Integral bounded [-10, 10]
-    - Threshold adjustment [-0.1, 0.1]
     """
-    domain = ctx.domain_ctx
-    global_ctx = ctx.global_ctx
+    # Handle context nesting (RL -> SNN)
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
+        domain = snn_ctx.domain_ctx
+        global_ctx = snn_ctx.global_ctx
+    else:
+        # Standalone SNN context
+        domain = ctx.domain_ctx
+        global_ctx = ctx.global_ctx
     
     current_fire_rate = domain.metrics.get('fire_rate', 0.0)
     target_fire_rate = global_ctx.target_fire_rate
@@ -168,18 +163,18 @@ def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
     # === PID CONTROLLER CHO THRESHOLD ===
     threshold_adjustment = pid_controller_with_antiwindup(
         error=fire_rate_error,
-        kp=global_ctx.meta_pid_kp,
-        ki=global_ctx.meta_pid_ki,
-        kd=global_ctx.meta_pid_kd,
+        kp=global_ctx.pid_kp,
+        ki=global_ctx.pid_ki,
+        kd=global_ctx.pid_kd,
         state=domain.pid_state['threshold'],
-        max_integral=global_ctx.meta_max_integral,
-        max_output=global_ctx.meta_max_output
+        max_integral=global_ctx.pid_max_integral,
+        max_output=global_ctx.pid_max_output
     )
     
     # Áp dụng điều chỉnh cho tất cả neurons
     for neuron in domain.neurons:
         # NOTE: Giảm threshold khi fire_rate thấp (error > 0)
-        neuron.threshold -= threshold_adjustment * global_ctx.meta_scale_factor
+        neuron.threshold -= threshold_adjustment * global_ctx.pid_scale_factor
         neuron.threshold = np.clip(
             neuron.threshold,
             global_ctx.threshold_min,

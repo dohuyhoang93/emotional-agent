@@ -79,7 +79,10 @@ def process_integrate(ctx: SystemContext):
 
 
 @process(
-    inputs=['domain.snn_context'],
+    inputs=[
+        'domain.snn_context',
+        'domain.snn_context.domain_ctx.metrics' # Added
+    ],
     outputs=['domain.snn_context'],
     side_effects=[]
 )
