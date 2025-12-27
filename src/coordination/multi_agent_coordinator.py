@@ -109,8 +109,8 @@ class MultiAgentCoordinator:
             env.current_step += 1
             step_count += 1
             
-            if step_count % 10 == 0:
-                print(f"   ... Step {step_count}/{max_steps}")
+            # if step_count % 10 == 0:
+            #     print(f"   ... Step {step_count}/{max_steps}")
             
             # Check if any agent reached goal
             if env.is_done():

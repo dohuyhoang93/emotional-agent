@@ -317,7 +317,7 @@ class RLAgent:
         self.episode_metrics['steps'] += 1
         
         # DEBUG: Trace steps
-        print(f"Agent {self.agent_id} Step {self.episode_metrics['steps']}")
+        # print(f"Agent {self.agent_id} Step {self.episode_metrics['steps']}")
         # if self.episode_metrics['steps'] % 10 == 0:
         #    print(f"Agent {self.agent_id} Step {self.episode_metrics['steps']}")
             

@@ -1,0 +1,12 @@
+[
+  {
+    "episode": 0,
+    "metrics": {
+      "episode": 1,
+      "avg_reward": -0.22333248794779664,
+      "agent_rewards": [
+        -0.22333248794779664
+      ]
+    }
+  }
+]

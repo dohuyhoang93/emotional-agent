@@ -1,0 +1,22 @@
+--- MULTI-AGENT EXPERIMENT SUMMARY ---
+Output directory: results
+
+=== Experiment: debug_run ===
+  Runs: 1
+  Episodes per run: 1
+  Parameters: {'num_agents': 1, 'environment_config': {'grid_size': 10, 'num_agents': 1, 'max_steps_per_episode': 20, 'goal_pos': [9, 9], 'start_positions': [[0, 0]], 'walls': [], 'logical_switches': [], 'dynamic_walls': []}}
+
+  Total Episodes: 1
+  Final Avg Reward: -0.2233
+  Best Reward Achieved: 0.0000
+
+  Social Learning:
+    Total Transfers: 0
+    Total Synapses: 0
+
+  Revolution Protocol:
+    Total Revolutions: 0
+
+  Learning Trend (every 10%):
+    Episodes 0-1: Avg Reward = -0.2233
+
