@@ -18,15 +18,12 @@ from src.core.snn_context_theus import SNNSystemContext
 )
 def process_clustering(ctx):
     """
-    Quy trình học không gian (Unsupervised Clustering).
-    
-    Xoay prototype vector về phía input patterns.
-    NOTE: Spatial learning - học "cái gì", không quan tâm "khi nào".
-    
-    Theus sẽ audit:
-    - clustering_rate trong range [0.0001, 0.1]
+    Quy trình học không gian (Unsupervised Clustering). Wraps _clustering_impl.
     """
-    from src.core.context import SystemContext
+    _clustering_impl(ctx)
+
+def _clustering_impl(ctx):
+    """Internal clustering implementation."""
     snn_ctx = ctx.domain_ctx.snn_context
     
     if snn_ctx is None:
@@ -76,20 +73,12 @@ def process_clustering(ctx):
 )
 def process_stdp(ctx):
     """
-    Quy trình STDP (Spike-Timing-Dependent Plasticity).
-    
-    NOTE: Temporal learning - học "khi nào", không quan tâm "cái gì".
-    
-    Quy tắc:
-    - Pre bắn TRƯỚC Post (trong 20ms) → Tăng weight (LTP)
-    - Pre bắn SAU Post → Giảm weight (LTD)
-    
-    Theus sẽ audit:
-    - learning_rate trong range [0.001, 0.5]
-    - tau_trace trong range [0.5, 1.0]
-    - weight_decay trong range [0.99, 1.0]
+    Quy trình STDP (Spike-Timing-Dependent Plasticity). Wraps _stdp_impl.
     """
-    from src.core.context import SystemContext
+    _stdp_impl(ctx)
+
+def _stdp_impl(ctx):
+    """Internal STDP implementation."""
     snn_ctx = ctx.domain_ctx.snn_context
     
     if snn_ctx is None:

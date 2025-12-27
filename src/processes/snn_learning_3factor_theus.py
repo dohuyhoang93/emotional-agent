@@ -21,11 +21,6 @@ from src.core.context import SystemContext
     inputs=[
         'domain.snn_context', # Implicit dependency
         'domain.td_error',
-        # Global params are inside snn_context.global_ctx usually, or accessible via path?
-        # Since ctx is RL Context, global_ctx is RL global.
-        # SNN Global is in snn_ctx.global_ctx.
-        # Theus Engine inputs are checked against ctx.
-        # So inputs must match RL Context paths.
         'domain.snn_context.domain_ctx.synapses' 
     ],
     outputs=[
@@ -33,15 +28,14 @@ from src.core.context import SystemContext
     ],
     side_effects=[]
 )
-def process_stdp_3factor(
-    ctx: SystemContext
-):
+def process_stdp_3factor(ctx: SystemContext):
     """
-    3-Factor Learning: Hebbian + Dopamine với Protected Learning.
-    
-    Args:
-        ctx: RL System Context (contains snn_context in domain)
+    3-Factor Learning: Hebbian + Dopamine với Protected Learning. Wraps _stdp_3factor_impl.
     """
+    _stdp_3factor_impl(ctx)
+
+def _stdp_3factor_impl(ctx: SystemContext):
+    """Internal 3-factor learning implementation."""
     # Extract Contexts
     rl_ctx = ctx
     snn_ctx = ctx.domain_ctx.snn_context

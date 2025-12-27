@@ -245,6 +245,14 @@ class SNNDomainContext(BaseDomainContext):
     ancestor_weights: Dict[int, float] = field(default_factory=dict)
     population_performance: List[float] = field(default_factory=list)
     revolution_triggered: bool = False
+    
+    # === Optimization: Shadow Tensors (Phase 2) ===
+    # Holds numpy arrays for vectorized computation:
+    # - potentials: (N,)
+    # - thresholds: (N,)
+    # - weights: (N, N) - Connectivity matrix (0.0 if incomplete)
+    # - prototypes: (N, D) - For vector matching
+    tensors: Dict[str, np.ndarray] = field(default_factory=dict)
 
 
 # ============================================================================
@@ -337,3 +345,133 @@ def create_snn_context_theus(
     )
     
     return sys_ctx
+
+
+# ============================================================================
+# Vectorization Helpers (Compute-Sync Strategy)
+# ============================================================================
+
+def ensure_tensors_initialized(ctx: SNNSystemContext):
+    """
+    Ensure shadow tensors exist and match object state.
+    Call this at the start of Vectorized Process blocks.
+    
+    Creates:
+    - potentials: (N,)
+    - thresholds: (N,)
+    - weights: (N, N)
+    - prototypes: (N, D)
+    """
+    domain = ctx.domain_ctx
+    neurons = domain.neurons
+    N = len(neurons)
+    
+    # Initialize if missing or size mismatch
+    if 'potentials' not in domain.tensors or len(domain.tensors['potentials']) != N:
+        # Potentials & Thresholds
+        domain.tensors['potentials'] = np.array([n.potential for n in neurons], dtype=np.float32)
+        domain.tensors['thresholds'] = np.array([n.threshold for n in neurons], dtype=np.float32)
+        
+        # Last Fire Times (for Refractory)
+        domain.tensors['last_fire_times'] = np.array([n.last_fire_time for n in neurons], dtype=np.int32)
+        
+        # Prototypes (N, D)
+        D = neurons[0].vector_dim if N > 0 else 16
+        prototypes = np.zeros((N, D), dtype=np.float32)
+        for i, n in enumerate(neurons):
+            prototypes[i] = n.prototype_vector
+        domain.tensors['prototypes'] = prototypes
+        
+        # Potential Vectors (N, D) - Mutable State!
+        pot_vecs = np.zeros((N, D), dtype=np.float32)
+        for i, n in enumerate(neurons):
+            pot_vecs[i] = n.potential_vector
+        domain.tensors['potential_vectors'] = pot_vecs
+        
+        # Weights (N, N)
+        # We assume sparse connectivity mapped to dense matrix for fast multiply
+        # If N is large (>1000), sparse matrix is better. Here N=50-100.
+        weights = np.zeros((N, N), dtype=np.float32)
+        for s in domain.synapses:
+            if s.pre_neuron_id < N and s.post_neuron_id < N:
+                weights[s.pre_neuron_id, s.post_neuron_id] = s.weight
+        domain.tensors['weights'] = weights
+    
+    # If tensors exist, we assume they are stale if we came from Object-logic land?
+    # NO. The "Sync" strategy assumes Tensors are valid ONLY during compute burst.
+    # But initialization should happen.
+    # For robust Compute-Sync: Always overwrite Tensors from Objects OR 
+    # keep them in sync.
+    # "Load" step says: Sync Objects -> Tensors.
+    
+    # FULL SYNC (Objects -> Tensors)
+    sync_to_tensors(ctx)
+
+def sync_to_tensors(ctx: SNNSystemContext):
+    """
+    Sync Objects (Source of Truth) -> Tensors (Cache).
+    """
+    domain = ctx.domain_ctx
+    neurons = domain.neurons
+    N = len(neurons)
+    if N == 0: return
+
+    # 1. Potentials & Last Fire Times
+    pots = np.array([n.potential for n in neurons], dtype=np.float32)
+    domain.tensors['potentials'] = pots
+    lfts = np.array([n.last_fire_time for n in neurons], dtype=np.int32)
+    domain.tensors['last_fire_times'] = lfts
+    
+    # 2. Weights (Expensive! But needed if STDP changed weights)
+    # Using existing tensor buffer to avoid reallocation if possible, but simplest is re-create.
+    weights = np.zeros((N, N), dtype=np.float32)
+    for s in domain.synapses:
+        if s.pre_neuron_id < N and s.post_neuron_id < N:
+             weights[s.pre_neuron_id, s.post_neuron_id] = s.weight
+    domain.tensors['weights'] = weights
+    
+    # 3. Prototypes & Potential Vectors
+    D = neurons[0].vector_dim
+    # prototypes = np.zeros((N, D), dtype=np.float32)
+    # pot_vecs = np.zeros((N, D), dtype=np.float32)
+    # Optimized:
+    prototypes = np.array([n.prototype_vector for n in neurons], dtype=np.float32)
+    pot_vecs = np.array([n.potential_vector for n in neurons], dtype=np.float32)
+    
+    domain.tensors['prototypes'] = prototypes
+    domain.tensors['potential_vectors'] = pot_vecs
+
+
+def sync_from_tensors(ctx: SNNSystemContext):
+    """
+    Sync Tensors (Cache) -> Objects (Source of Truth).
+    Call this AFTER vectorized computation.
+    """
+    domain = ctx.domain_ctx
+    if 'potentials' not in domain.tensors:
+        return
+        
+    pots = domain.tensors['potentials']
+    lfts = domain.tensors.get('last_fire_times', [])
+    pvecs = domain.tensors.get('potential_vectors', [])
+    
+    check_lft = len(lfts) > 0
+    check_pvec = len(pvecs) > 0
+    
+    # 1. Sync State Variables
+    for i, neuron in enumerate(domain.neurons):
+        # Update Potential
+        neuron.potential = float(pots[i])
+        
+        # Update Last Fire Time
+        if check_lft:
+            neuron.last_fire_time = int(lfts[i])
+            
+        # Update Potential Vector
+        if check_pvec:
+             # COPY values, don't just assign reference if pvecs[i] is a view
+             neuron.potential_vector[:] = pvecs[i]
+        
+    # NOTE: We do NOT sync weights back yet because Vectorized STDP is not implemented.
+    # If we vectorized STDP, we would sync weights back to domain.synapses.
+

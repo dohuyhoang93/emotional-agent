@@ -315,6 +315,12 @@ class RLAgent:
         
         # Update metrics
         self.episode_metrics['steps'] += 1
+        
+        # DEBUG: Trace steps
+        print(f"Agent {self.agent_id} Step {self.episode_metrics['steps']}")
+        # if self.episode_metrics['steps'] % 10 == 0:
+        #    print(f"Agent {self.agent_id} Step {self.episode_metrics['steps']}")
+            
         return self.domain_ctx.last_action
     
     def observe_reward(self, extrinsic_reward: float):

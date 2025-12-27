@@ -46,22 +46,35 @@ The RL and SNN are not separate. They form a **Closed Loop**:
 *   Emotion -> RL (Bias)
 *   RL -> Action (Change Env)
 
-## 4.5 The Neo-Cortex (Gated MLP)
-**Process**: `GatedIntegrationNetwork`
+## 4.5 The Neo-Cortex (Cross-Attention Network)
+**Process**: `GatedIntegrationNetwork` with `MultiHeadAttention`
 
-Beyond strict Rules (Q-Table) and pure Intuition (SNN), the agent has a **Synthesizer**.
+Beyond strict Rules (Q-Table) and pure Intuition (SNN), the agent uses **Cross-Attention** to synthesize Logic and Emotion.
 
-### Architecture (PyTorch Implementation)
-*   **Dual Encoders**: Two parallel 2-layer MLPs transform inputs into a shared latent space (`hidden_dim=64`).
-    *   `Obs_Encoder`: `Input(10) -> Linear -> ReLU -> Linear -> Hidden(64)`
-    *   `Emo_Encoder`: `Input(16) -> Linear -> ReLU -> Linear -> Hidden(64)`
-*   **Element-wise Gating (The "Synthesizer")**:
-    *   Unlike simple scalar gating, this uses a **Gate Vector** (size 64).
-    *   `Gate = Sigmoid(Linear(Concatenate(Hidden_Obs, Hidden_Emo)))`
-    *   **Fusion w/ Interpolation**: `H_Fused = Gate * H_Obs + (1 - Gate) * H_Emo`
-    *   **Meaning**: The brain can choose to trust Logic for specific features (e.g., Position) while trusting Experience for others (e.g., Danger Level) *simultaneously*.
-*   **Q-Head**: A final MLP maps the fused state to Action Values (`Action_Dim=4`).
-*   **Significance**: The agent **learns when to trust its feelings vs. facts**.
-    *   In stable environments, it might rely on facts (`Gate -> 1`).
-    *   In chaotic/novel environments, it might fall back on intuition (`Gate -> 0`).
-*   **Deep RL**: This network is trained via standard DQN (MSE Loss against temporal targets), allowing it to generalize beyond the tabular Q-learning limits.
+### Architecture (PyTorch Attentional Mechanism)
+
+Instead of simple gating, we treat the Interaction as a **Query-Key-Value** problem:
+*   **Query (Q)**: The **Emotional State** ("What do I feel? What matters to me right now?").
+*   **Key (K)**: The **Observation Features** ("What acts/objects are present?").
+*   **Value (V)**: The **Observation Data** itself.
+
+### The Flow
+1.  **Dual Encoders**:
+    *   `Obs_Encoder`: `Input(5) -> MLP -> Hidden(64)`
+    *   `Emo_Encoder`: `Input(16) -> MLP -> Hidden(64)`
+2.  **Sub-feature Attention (4 Heads)**:
+    *   We split the 64-dim vectors into 4 Heads (16 dims each).
+    *   Each head allows the emotion to attend to different "subspaces" of reality (e.g., Head 1 tracks Danger, Head 2 tracks Rewards).
+3.  **Attention Score**:
+    *   `Score = Sigmoid( (Q @ K.T) / scale )`
+    *   We uses **Sigmoid** instead of Softmax to allow multiple independent features to be highlighted (or none).
+4.  **Fusion**:
+    *   `Context = Score * V`
+    *   `Output = LayerNorm(Obs + Context)` (Residual Connection).
+    *   The agent *always* sees reality (`Obs`), but Emotion highlights specific parts of it (`Context`).
+5.  **Output**:
+    *   Fused State -> MLP -> Q-Values (Action Potentials).
+
+### Significance
+*   **Focus, not just Bias**: The agent can choose to *ignore* irrelevant logical features if the emotional "Query" doesn't match the observation "Key".
+*   **Deep RL**: Trained via DQN (MSE Loss) with gradient clipping for stability.

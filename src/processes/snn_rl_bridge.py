@@ -29,13 +29,12 @@ from src.core.snn_context_theus import SNNSystemContext
 )
 def encode_emotion_vector(ctx: SystemContext):
     """
-    Encode SNN neuron activity → Emotion vector cho RL.
-    
-    Population Code: Aggregate neuron vectors → 16-dim emotion.
-    
-    Args:
-        ctx: System context
+    Encode SNN neuron activity → Emotion vector cho RL. Wraps _encode_emotion_vector_impl.
     """
+    _encode_emotion_vector_impl(ctx)
+
+def _encode_emotion_vector_impl(ctx: SystemContext):
+    """Internal implementation."""
     snn_ctx = ctx.domain_ctx.snn_context
     
     if snn_ctx is None:
@@ -84,17 +83,12 @@ def encode_emotion_vector(ctx: SystemContext):
 )
 def encode_state_to_spikes(ctx: SystemContext):
     """
-    Inject sensor vector từ môi trường vào SNN.
-    
-    KHÔNG CÒN ENCODING HARDCODE!
-    Observation từ môi trường ĐÃ LÀ vector 16-dim (từ get_sensor_vector).
-    Chỉ cần inject trực tiếp vào input neurons.
-    
-    Agent tự học ý nghĩa các kênh qua R-STDP.
-    
-    Args:
-        ctx: System context (chứa cả RL và SNN contexts)
+    Inject sensor vector từ môi trường vào SNN. Wraps _encode_state_to_spikes_impl.
     """
+    _encode_state_to_spikes_impl(ctx)
+
+def _encode_state_to_spikes_impl(ctx: SystemContext):
+    """Internal implementation."""
     obs = ctx.domain_ctx.current_observation
     snn_ctx = ctx.domain_ctx.snn_context
     

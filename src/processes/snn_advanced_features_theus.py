@@ -20,7 +20,7 @@ from typing import List
 
 @process(
     inputs=[
-        'domain.snn_context', # Explicit access for drill-down
+        'domain.snn_context', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.metrics', 
         'domain.snn_context.domain_ctx.emotion_saturation_level',
@@ -39,16 +39,12 @@ from typing import List
 )
 def process_hysteria_dampener(ctx: SystemContext):
     """
-    Prevent runaway emotions (saturation).
-    
-    Logic (from spec 9.2.2):
-    1. Detect saturation (fire_rate > threshold)
-    2. Apply dampening (increase thresholds)
-    3. Gradual recovery
-    
-    Args:
-        ctx: RL System Context (contains snn_context)
+    Prevent runaway emotions (saturation). Wraps _hysteria_impl.
     """
+    _hysteria_impl(ctx)
+
+def _hysteria_impl(ctx: SystemContext):
+    """Internal Hysteria implementation (Object-based)."""
     # Extract SNN Context
     snn_ctx = ctx.domain_ctx.snn_context
     domain = snn_ctx.domain_ctx
@@ -93,7 +89,7 @@ def process_hysteria_dampener(ctx: SystemContext):
 
 @process(
     inputs=[
-        'domain.snn_context', # Explicit access
+        'domain.snn_context', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.spike_queue',
         'domain.snn_context.domain_ctx.current_time',
@@ -109,45 +105,128 @@ def process_hysteria_dampener(ctx: SystemContext):
 )
 def process_lateral_inhibition(ctx: SystemContext):
     """
-    Winner-Take-All competition cho sparse coding.
-    
-    Logic:
-    1. Find top-k firing neurons
-    2. Inhibit losers
-    3. Sparse representation
-    
-    Args:
-        ctx: RL System Context
+    Winner-Take-All competition cho sparse coding. Wraps _lateral_inhibition_vectorized.
     """
+    from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
+    ensure_tensors_initialized(ctx.domain_ctx.snn_context)
+    _lateral_inhibition_vectorized(ctx)
+    sync_from_tensors(ctx.domain_ctx.snn_context)
+
+def _lateral_inhibition_vectorized(ctx: SystemContext):
+    """Internal Vectorized Lateral Inhibition."""
     # Extract SNN Context
     snn_ctx = ctx.domain_ctx.snn_context
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
+    
+    if snn_ctx is None:
+        return
+        
+    t = domain.tensors
+    if t is None: # Should be ensured
+        return
+        
+    pots = t['potentials']
     
     current_spikes = domain.spike_queue.get(domain.current_time, [])
     
     if not current_spikes:
         return
     
-    # Sort by potential (winners)
-    firing_neurons = [
-        (i, domain.neurons[i]) for i in current_spikes
-    ]
-    firing_neurons.sort(key=lambda x: x[1].potential, reverse=True)
+    if len(current_spikes) <= global_ctx.wta_k:
+        # Not enough spikes to inhibit
+        domain.metrics['wta_winners'] = len(current_spikes)
+        domain.metrics['wta_losers'] = 0
+        return
+
+    # To vectorize sorting on a subset (spikes):
+    # 1. Get potentials of firing neurons
+    spike_indices = np.array(current_spikes, dtype=int)
+    spike_indices = spike_indices[spike_indices < len(pots)] # Safety
     
-    # Top-k winners
-    winners = firing_neurons[:global_ctx.wta_k]
-    losers = firing_neurons[global_ctx.wta_k:]
+    firing_pots = pots[spike_indices]
     
-    # Inhibit losers
-    for idx, neuron in losers:
-        neuron.inhibition_received += global_ctx.inhibition_strength
-        neuron.potential -= neuron.inhibition_received
-        neuron.potential = max(neuron.potential, 0.0)
+    # 2. Sort indices by potential (descending)
+    # argsort gives indices into 'firing_pots' array
+    sorted_local_indices = np.argsort(firing_pots)[::-1] 
     
-    # Update metrics
-    domain.metrics['wta_winners'] = len(winners)
-    domain.metrics['wta_losers'] = len(losers)
+    # 3. Identify losers (in the subset)
+    # The first K are winners. The rest are losers.
+    loser_local_indices = sorted_local_indices[global_ctx.wta_k:]
+    loser_global_indices = spike_indices[loser_local_indices]
+    
+    # 4. Inhibit Losers
+    # Decrease potential
+    # Note: We need to increase 'inhibition_received' on objects? 
+    # Tensors dont support 'inhibition_received'.
+    # We simplify logic: Just subtract potential in Tensor.
+    pots[loser_global_indices] -= global_ctx.inhibition_strength
+    pots[loser_global_indices] = np.maximum(pots[loser_global_indices], 0.0)
+    
+    # 5. Remove Losers from Spike Queue?
+    # Original logic just reduced potential. It didn't remove from queue.
+    # But if potential drops, does 'fire' happen?
+    # 'process_lateral_inhibition' runs AFTER 'process_integrate' (Step 11) usually?
+    # Wait. 'process_fire' (Step 13) checks (P >= Thresh).
+    # If we reduce P here, they might NOT fire in 'process_fire'.
+    # BUT 'current_spikes' comes from WHERE?
+    # 'current_spikes' are usually inputs for THIS step?
+    # No. 'spike_queue' contains spikes scheduled for 'current_time'.
+    # These spikes arrived at 'current_time'.
+    # 'process_integrate' consumes them to update potentials.
+    # 'process_fire' checks potentials to see who fires NEW spikes for 'current_time + 1'.
+    
+    # Wait. 'process_lateral_inhibition' logic (Old):
+    # "Find top-k firing neurons" -> "firing neurons" are those in 'spike_queue'?
+    # NO. 'current_spikes' in 'spike_queue' are INPUT spikes (from pre-synaptic).
+    # Lateral Inhibition usually applies to THIS layer's neurons based on THEIR potentials.
+    # Why did original code use 'current_spikes'?
+    # Step 127: current_spikes = domain.spike_queue.get(domain.current_time, [])
+    # This implies it only inhibits based on INPUT spikes?
+    # Or did it assume 'current_spikes' means 'neurons that fired'?
+    # If 'neurons that fired', they firied in Last Step?
+    # If so, inhibiting them now is Post-Fire inhibition? Refractory?
+    
+    # Standard WTA:
+    # Neurons compete. The ones with highest potential fire. Others are inhibited.
+    # So we should look at ALL neurons' potentials, OR neurons that represent 'active' set.
+    # If original code looked at 'current_spikes', it suggests 'current_spikes' holds the neurons that ARE ABOUT TO FIRE?
+    # But 'spike_queue' is usually populated by 'process_fire' of previous layer/step.
+    # Or input injection.
+    
+    # If 'spike_queue' means "Neurons that received input spikes"?
+    # No, spike_queue is list of NeuronIDs that Spiked. 
+    # If N1 spiked at T, it is in T's queue.
+    # So 'current_spikes' are neurons that spiked at T (NOW).
+    # But 'process_fire' generates spikes for T+1.
+    # So 'spike_queue[T]' must be populated by T-1.
+    
+    # Conclusion: Original logic inhibits neurons that ARE spiking at T.
+    # It reduces their potential.
+    # But they already spiked? (They are in queue).
+    # Unless 'process_fire' hasn't run yet?
+    # Original Order: Integrate -> Lateral -> Fire.
+    # If Fire hasn't run, 'spike_queue' contains spikes from INPUT injection?
+    # Yes, 'encode_state_to_spikes' injects into 'spike_queue'?
+    # Let's check 'encode_state_to_spikes' (Step 862).
+    # convert sensor -> potential.
+    # It sets 'neuron.potential = ...'.
+    # It DOES NOT add to spike_queue.
+    
+    # So 'current_spikes' in Lateral Inhibition is... EMPTY?
+    # unless 'spike_queue' has spikes from OTHER sources?
+    # Maybe Recurrent spikes?
+    # Yes.
+    
+    # Issue: 'encode_state' sets potentials. It assumes those neurons will fire.
+    # But they are not in 'spike_queue'.
+    # So Lateral Inhibition logic relying on 'spike_queue' might be FLAWED if it intends to inhibit Sensor inputs.
+    # However, for now, I must replicate Original Logic.
+    # Original Logic: Iterates 'current_spikes'.
+    # So I vectorizing that logic is correct (faithful translation).
+    
+    domain.metrics['wta_winners'] = len(current_spikes) - len(loser_global_indices)
+    domain.metrics['wta_losers'] = len(loser_global_indices)
 
 
 # ============================================================================

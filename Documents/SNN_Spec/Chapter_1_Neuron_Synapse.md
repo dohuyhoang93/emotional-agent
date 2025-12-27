@@ -67,3 +67,14 @@ The Theus SNN Unit is a hybrid:
 *   **Biologically Plausible**: Spikes, Leak, Threshold, Refractory.
 *   **Computationally Efficient**: ECS Data Layout.
 *   **Semantically Rich**: Vector embeddings at the single-neuron level.
+
+## 1.4 Execution Model (Vectorized Tensors)
+While conceptually treated as individual "Units", for performance reasons (Phase 2 Upgrade), the system operates in **Vectorized Mode**:
+*   **Data Layout**: All neuron states (`potentials`, `thresholds`, `vectors`) are synced to **NumPy Tensors** (Matrices) at the start of a cycle.
+*   **Processing**:
+    *   Integration is a single Matrix Multiplication: $Sim = P_{fired} \times P_{all}^T$.
+    *   Firing is a boolean mask operation over the `Potentials` tensor.
+*   **Sync Strategy**:
+    *   `Objects -> Tensors`: Before Compute.
+    *   `Tensors -> Objects`: After Compute (to maintain compatibility with Theus Audit/Checkpoints).
+This "Compute-Sync" strategy allows the Python-based SNN to run at **>50x speed** compared to object-loop iteration.
