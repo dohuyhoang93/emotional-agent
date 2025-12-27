@@ -10,12 +10,13 @@ Dreams in Theus SNN serve as a **Memory Consolidation** mechanism, functioning i
 *   **Input**: The system injects **Stochastic Noise** (White Noise) into the input neurons to simulate REM sleep.
 *   **Deep Sleep (PGO Waves)**: Occasional strong bursts of stimulus (probability ~1%) are injected to forcibly trigger random associative chains, retrieving dormant memories.
 
-### B. Consolidation (`process_stdp_3factor`)
-*   **Logic**: Standard STDP (Spike-Timing Dependent Plasticity) continues to operate.
-*   **Effect**:
-    *   **Reinforcement**: Existing strong synapse chains (valid memories) fire synchronously due to the noise, reinforcing their weights (LTP).
-    *   **Pruning**: Weak or spurious connections fail to synchronize and eventually decay or are pruned by Darwinism processes.
-    *   **Outcome**: Transformation of "Fluid" short-term memories into "Solid" long-term structures.
+### B. Consolidation & Evaluation (`process_stdp_3factor`)
+*   **Logic**: 3-Factor STDP conditioned by an **Internal Reward Signal** (`td_error`).
+*   **Coherence Reward** (`process_dream_coherence_reward`):
+    *   Since there is no external environment, the brain evaluates its own activity stability.
+    *   **Reward (+0.1)**: If Active Ratio is healthy (5% - 30%). This reinforces valid, coordinated memory chains.
+    *   **Punishment (-0.1 -> -0.5)**: If the brain is too quiet (<5%, Noise) or seizing (>30%, Epilepsy). This triggers LTD to pruned bad connections.
+*   **Effect**: Transformation of "Fluid" short-term memories into "Solid" long-term structures.
 
 ### C. Visualization (`process_decode_dream`)
 *   **Problem**: Monitoring internal state without external context.
@@ -25,11 +26,11 @@ Dreams in Theus SNN serve as a **Memory Consolidation** mechanism, functioning i
 ## 3.2 Defense Mechanisms (The Immune System)
 To prevent "Epileptic Seizures" (Runaway Feedback Loops) common in Recurrent SNNs.
 
-### Layer 1: Self-Regulation (Fast Homeostasis)
-*   **Process**: `process_dream_learning`
-*   **Logic**: Proportional Control (Heuristic).
-    *   If `Fire_Rate > Nightmare_Threshold`: **Aggressively Increase Thresholds**.
-    *   Effect: Makes neurons "numb" immediately.
+### Layer 1: Self-Regulation (Hysteria Dampener)
+*   **Process**: `process_hysteria_dampener`
+*   **Logic**: Homeostatic Threshold Regulation.
+    *   If `Fire_Rate > Panic_Threshold`: **Aggressively Increase Thresholds**.
+    *   Effect: Makes neurons "numb" immediately to cool down the network.
 
 ### Layer 2: Emergency Brake (Sanity Check)
 *   **Process**: `process_dream_sanity_check`

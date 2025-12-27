@@ -46,7 +46,7 @@ The RL and SNN are not separate. They form a **Closed Loop**:
 *   Emotion -> RL (Bias)
 *   RL -> Action (Change Env)
 
-## 4.5 The Neo-Cortex (Cross-Attention Network)
+## 4.5 The Neo-Cortex (Gated Integration Network)
 **Process**: `GatedIntegrationNetwork` with `MultiHeadAttention`
 
 Beyond strict Rules (Q-Table) and pure Intuition (SNN), the agent uses **Cross-Attention** to synthesize Logic and Emotion.
