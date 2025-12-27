@@ -1,0 +1,68 @@
+[
+  {
+    "episode": 0,
+    "metrics": {
+      "episode": 1,
+      "avg_reward": 1.4572794591029092,
+      "agent_rewards": [
+        0.20407526507112284,
+        2.7104836531346956
+      ]
+    }
+  },
+  {
+    "episode": 1,
+    "metrics": {
+      "episode": 2,
+      "avg_reward": 0.9500000649999978,
+      "agent_rewards": [
+        -1.699999870000004,
+        3.5999999999999996
+      ]
+    }
+  },
+  {
+    "episode": 2,
+    "metrics": {
+      "episode": 3,
+      "avg_reward": 4.00000004,
+      "agent_rewards": [
+        1.6000000799999978,
+        6.400000000000001
+      ]
+    }
+  },
+  {
+    "episode": 3,
+    "metrics": {
+      "episode": 4,
+      "avg_reward": 3.5999999999999996,
+      "agent_rewards": [
+        4.8,
+        2.4
+      ]
+    }
+  },
+  {
+    "episode": 4,
+    "metrics": {
+      "episode": 5,
+      "avg_reward": 3.200000059999999,
+      "agent_rewards": [
+        4.500000029999999,
+        1.9000000899999985
+      ]
+    }
+  },
+  {
+    "episode": 5,
+    "metrics": {
+      "episode": 6,
+      "avg_reward": 5.4,
+      "agent_rewards": [
+        4.8,
+        6.000000000000001
+      ]
+    }
+  }
+]

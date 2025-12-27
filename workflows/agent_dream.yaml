@@ -5,11 +5,15 @@ steps:
   # 1. Inject Dream Stimulus (Noise/Replay)
   - process_inject_dream_stimulus
   
-  # 2. SNN Core Cycle (Atomic Steps)
+  # 2. SNN Core Cycle (Atomic Steps) with Safety
+  - process_hysteria_dampener      # Safety Brake (Homeostasis)
   - process_integrate
-  - process_lateral_inhibition # Standard SNN feature
+  - process_lateral_inhibition     # Local inhibition
   - process_fire
-  - process_stdp_3factor       # Learning/Consolidation
   
-  # 3. Visualization/Analysis
+  # 3. Learning & Consolidation
+  - process_dream_coherence_reward # Generate internal reward signal
+  - process_stdp_3factor           # Learning (uses coherence reward)
+  
+  # 4. Visualization/Analysis
   - process_decode_dream

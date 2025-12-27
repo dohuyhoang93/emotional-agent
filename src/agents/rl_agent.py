@@ -257,6 +257,7 @@ class RLAgent:
         # Legacy/Std STDP might be in snn_learning_theus.py or similar, but for now we use 3factor
         # If we need the basic 2-factor, we need to find it. 
         # But 'process_stdp' was requested. Let's assume we use 3-factor as main driver.
+        from src.processes.snn_dream_safety import process_dream_coherence_reward
         
         self.engine.register_process('process_integrate', process_integrate)
         self.engine.register_process('process_fire', process_fire)
