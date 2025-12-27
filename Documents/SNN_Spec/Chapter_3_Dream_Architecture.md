@@ -2,24 +2,25 @@
 
 **Scope**: How the agent simulates reality, learns from it, and protects itself from "mental crashes".
 
-## 3.1 The Dream Cycle (Simulation)
-Dreams in Theus SNN are not random noise; they are **Constructed Simulations**.
+## 3.1 The Dream Cycle (Biological Simulation)
+Dreams in Theus SNN serve as a **Memory Consolidation** mechanism, functioning independently of external sensory input.
 
-### A. Genesis (`process_imagination_loop`)
-*   **Mechanism**: The agent disconnects from sensory input (Sleep Paralysis).
-*   **Input**: It picks a random "Seed Neuron" and injects its `prototype_vector` back into the network.
-*   **Propagation**: The network naturally associates from this seed (associative memory replay).
+### A. Stimulation (`process_inject_dream_stimulus`)
+*   **Mechanism**: The agent enters a "Sleep State" where external sensors are disconnected.
+*   **Input**: The system injects **Stochastic Noise** (White Noise) into the input neurons to simulate REM sleep.
+*   **Deep Sleep (PGO Waves)**: Occasional strong bursts of stimulus (probability ~1%) are injected to forcibly trigger random associative chains, retrieving dormant memories.
 
-### B. Decoding (`process_decode_dream`)
-*   **Problem**: SNN spikes are unintelligible to the Validator.
-*   **Solution**: The system calculates the **Average Prototype Vector** of all firing neurons.
-*   **Result**: It maps this vector back to physical coordinates `(x, y)` using Heuristic Decoding (Argmax). The agent "sees" where it is in the dream.
+### B. Consolidation (`process_stdp_3factor`)
+*   **Logic**: Standard STDP (Spike-Timing Dependent Plasticity) continues to operate.
+*   **Effect**:
+    *   **Reinforcement**: Existing strong synapse chains (valid memories) fire synchronously due to the noise, reinforcing their weights (LTP).
+    *   **Pruning**: Weak or spurious connections fail to synchronize and eventually decay or are pruned by Darwinism processes.
+    *   **Outcome**: Transformation of "Fluid" short-term memories into "Solid" long-term structures.
 
-### C. Validation (`process_validate_and_reward`)
-The agent consults its **World Model (Beliefs)** to judge the dream.
-*   **Scenario 1: Novelty (Explore)** -> `Reward +0.5`.
-*   **Scenario 2: Danger/Impossible (Lava/Walls)** -> `Punishment -1.0`.
-*   **Outcome**: It injects a synthetic `td_error`, triggering STDP to learn *without* physical consequences.
+### C. Visualization (`process_decode_dream`)
+*   **Problem**: Monitoring internal state without external context.
+*   **Solution**: The system decodes the `Spike_Queue` into a spatial coordinate `(x, y)` using the `process_decode_dream` inverse model.
+*   **Result**: Allows observers to see "what the agent is dreaming about" (e.g., replaying a path to the goal).
 
 ## 3.2 Defense Mechanisms (The Immune System)
 To prevent "Epileptic Seizures" (Runaway Feedback Loops) common in Recurrent SNNs.

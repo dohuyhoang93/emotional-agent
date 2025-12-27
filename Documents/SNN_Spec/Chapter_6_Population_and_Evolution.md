@@ -36,9 +36,12 @@ Evolution doesn't just happen at the individual level; it happens to the **Basel
     *   Condition: If >60% of the current population outperforms the original `Ancestor` (Default Weights).
 *   **The Revolution**:
     1.  **Select Elite**: Identify the Top 10% performing agents.
-    2.  **Synthesize**: Compute the average weights of this elite group.
-    3.  **Overwrite**: This new weight configuration becomes the **New Ancestor**.
-*   **Effect**: All future agents spawned will start from this superior baseline. The species has "leveled up".
+    2.  **Synthesize**: Compute the average weights of this elite group to create a new **Ancestor**.
+    3.  **Active Assimilation** (`process_assimilate_ancestor`):
+        *   **Mechanism**: All active agents immediately begin to "download" the new Ancestor's weights.
+        *   **Diversity Noise**: A small Gaussian noise is added during download to maintain population diversity.
+        *   **Protection Policy**: Synapses marked as **SOLID** (Long-term Memory) are **Protected** and NOT overwritten. Only "Fluid" (weak/new) connections are replaced by the Ancestor's wisdom.
+*   **Effect**: The population "raises its floor" to the level of the elite, while retaining individual specialized knowledge.
 
 ## 6.4 Conclusion
 Theus agents form a **Complex Adaptive System**.

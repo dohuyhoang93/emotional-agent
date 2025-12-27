@@ -1,9 +1,0 @@
---- STARTING ORCHESTRATION WORKFLOW (POP) ---
-▶️ Loading Orchestrator Workflow: workflows/orchestrator.yaml
-  [Orchestration] Loading experiment configuration from experiments.json...
-  [Orchestration] Loaded 1 experiments.
-Starting Simulation Loop...
-Initializing Experiment: multi_agent_complex_maze
-DEBUG: FSMRunner env_config keys: ['grid_size', 'sleep_interval', 'sleep_duration', 'num_agents', 'step_penalty', 'wall_penalty', 'goal_pos', 'start_positions', 'walls', 'logical_switches', 'dynamic_walls', 'dynamic_wall_rules']
-DEBUG: FSMRunner env_config num_agents: 5
-Khởi tạo GridWorld đa tác nhân với Mê cung Logic Phức tạp...

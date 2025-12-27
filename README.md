@@ -21,21 +21,22 @@ The project is built on the **Theus Framework**, a dedicated SDK for Process-Ori
 
 ### 2.1 The "Living" Brain (SNN-RL Hybrid)
 Instead of a monolithic network, the agent's brain is a dynamic ecosystem:
-
-| Component | Function | Biological Analogue |
-| :--- | :--- | :--- |
-| **SNN Core** | Temporal Pattern Recognition & Clustering | Neocortex (Spiking Dynamics) |
-| **RL Engine** | Goal-Directed Decision Making (Q-Learning) | Basal Ganglia (Reward System) |
-| **Gated Network** | Dynamic weighting of Rational vs. Intuitive | Thalamus (Signal Gating) |
-| **Intrinsic Module**| Curiosity & Fatigue regulation | Neurotransmitters (Dopamine/Serotonin)|
+*   **Gated Integration:** We replaced the traditional concatenation fusion with a **Multi-Head Feature-wise Cross-Attention** mechanism. The Emotion Vector acts as a "Query" that dynamically amplifies or suppresses specific features of the Observation ("Key/Value"), effectively allowing the agent's emotional state to dictate what it "pays attention to".
 
 ### 2.2 True Neural Darwinism (Structural Plasticity)
 We implement a dual-level evolutionary mechanism that operates in real-time:
 *   **Synaptic Selection (Pruning):** Connections with low efficacy are physically removed from the graph. **SOLID** connections (long-term potentiation) are shielded from pruning.
 *   **Neurogenesis (Reincarnation):** "Dead" neurons (inactive > 2k steps) are detected, their potentials reset, and they are re-wired to new latent spaces. This allows the agent to recycle computational resources to learn new concepts without growing the model size.
 
-### 2.3 Semantic Dreaming (Memory Consolidation)
-During idle periods, the agent enters a "Dream State" where high-surprise memories are replayed. Crucially, these memories are not exact replicas but are **semantically warped** towards cluster centroids, reinforcing generalizable concepts rather than overfitting to specific instances.
+### 2.3 Biological Sleep & Semantic Dreaming (Phase 14)
+The agent operates on a periodic **Sleep Cycle** (disconnecting from sensors). During this state:
+*   **REM Simulation:** White noise and PGO waves (bursts) are injected to trigger random associative chains.
+*   **Memory Consolidation:** **STDP** reinforces synapse chains that fire synchronously (valid memories), while pruning spurious noise connections. This converts "Fluid" short-term knowledge into "Solid" long-term skills.
+
+### 2.4 Cultural Revolution (Social Evolution)
+Beyond individual learning, the system implements **Population-Level Evolution**:
+*   **Revolution Protocol:** When the population's performance stabilizes/peaks, the system identifies the **Elite 10%**.
+*   **Active Assimilation:** A new "Ancestor" is synthesized from the Elite's weights. All agents immediately "download" and assimilate this ancestor's knowledge, protecting their own specialized (`SOLID`) memories while overwriting weak (`FLUID`) ones. This "raises the floor" of the entire species instantly.
 
 ---
 
