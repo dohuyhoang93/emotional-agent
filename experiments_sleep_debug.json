@@ -1,0 +1,38 @@
+{
+    "experiments": [
+        {
+            "name": "sleep_debug",
+            "description": "Debug Run for Sleep Cycle",
+            "runs": 1,
+            "episodes_per_run": 6,
+            "log_level": "info",
+            "parameters": {
+                "num_agents": 2,
+                "sleep_interval": 2,
+                "sleep_duration": 10,
+                "environment_config": {
+                    "grid_size": 10,
+                    "num_agents": 2,
+                    "max_steps_per_episode": 20,
+                    "goal_pos": [
+                        9,
+                        9
+                    ],
+                    "start_positions": [
+                        [
+                            0,
+                            0
+                        ],
+                        [
+                            0,
+                            1
+                        ]
+                    ],
+                    "walls": [],
+                    "logical_switches": [],
+                    "dynamic_walls": []
+                }
+            }
+        }
+    ]
+}

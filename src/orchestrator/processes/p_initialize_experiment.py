@@ -97,10 +97,20 @@ class FSMExperimentRunner:
             def end_episode(self): pass
         self.perf_monitor = PerfMonitor()
         
-        # 5. Revolution (Mock or Implement)
-        class RevolutionMock:
-            def check_and_execute_revolution(self): return False
-        self.revolution = RevolutionMock()
+        # 5. Revolution (Activated)
+        from src.coordination.revolution_protocol import RevolutionProtocolManager
+        
+        # Determine params from config
+        rev_threshold = config.get('revolution_threshold', 0.5)
+        rev_window = config.get('revolution_window', 10)
+        rev_elite = config.get('revolution_elite_ratio', 0.1)
+        
+        self.revolution = RevolutionProtocolManager(
+            coordinator=self.coordinator,
+            threshold=rev_threshold,
+            window=rev_window,
+            elite_ratio=rev_elite
+        )
         
         # Agents are already initialized in Coordinator __init__
         # self.coordinator.initialize_agents()

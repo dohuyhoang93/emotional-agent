@@ -12,6 +12,7 @@ steps:
   # Advanced Features (Post-Cycle)
   - process_commitment
   - process_neural_darwinism
+  - process_assimilate_ancestor
   
   # RL Decision Making
   - compute_intrinsic_reward_snn # Novelty-based reward

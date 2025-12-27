@@ -81,12 +81,23 @@ def run_single_episode(ctx: OrchestratorSystemContext):
             if bus: bus.emit("TRIGGER_SOCIAL")
             return # FSM will transition to Social State
 
+        # Sleep Cycle (Biological)
+        sleep_interval = runner.config.get('sleep_interval', 25)
+        sleep_duration = runner.config.get('sleep_duration', 100)
+        
+        if current_episode > 0 and current_episode % sleep_interval == 0:
+            from src.orchestrator.processes.p_sleep_cycle import run_sleep_cycle
+            run_sleep_cycle(runner.coordinator, duration=sleep_duration)
+
+
         # Revolution
         if runner.revolution.check_and_execute_revolution():
              # Logic is inside check_and_execute currently, ideally should separate check vs execute
              # For now, if implemented inside runner, we just log it.
              # In Pure FSM, trigger 'TRIGGER_REVOLUTION'
-             pass
+             log(ctx, "info", f"🔥 REVOLUTION TRIGGERED at Episode {current_episode}! Ancestor updated.")
+             # In Pure FSM, we might trigger 'TRIGGER_REVOLUTION' to pause, 
+             # but here we executed it synchronously inside the manager.
         
         # Episode Done (Normal)
         if bus: bus.emit("EPISODE_DONE")

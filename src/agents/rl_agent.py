@@ -154,6 +154,9 @@ class RLAgent:
             'steps': 0
         }
         
+        # Phase 14: Sleep & Dream
+        self.is_sleeping = False
+        
         # Recorder (Phase 15: Monitoring)
         self.recorder = None
         if getattr(global_ctx, 'enable_recorder', False):
@@ -163,6 +166,29 @@ class RLAgent:
                 output_dir=os.path.join("results", "recordings"), # Default dir, orchestrator might override
                 buffer_size=1000
             )
+    
+    # Phase 14: Sleep & Dream
+    # ==========================
+    def start_sleep(self):
+        """Enter sleep mode: Disable sensors."""
+        self.is_sleeping = True
+    
+    def wake_up(self):
+        """Exit sleep mode: Re-enable sensors."""
+        self.is_sleeping = False
+        
+    def dream_step(self, time_step):
+        """
+        Execute one step of dreaming.
+        
+        Logic:
+        1. Inject Dream Stimulus (Noise/Replay) -> spike_queue
+        2. Run SNN Cycle (Integrate -> Fire -> STDP)
+        3. Decode Dream State (Visualizing the dream)
+        4. (Optional) Run Post-Cycle logic (Darwinism, etc.) - maybe skipped for stability.
+        """
+        # Execute Dream Workflow YAML
+        self.engine.execute_workflow("workflows/agent_dream.yaml")
     
     def _register_all_processes(self):
         """Register tất cả processes manually."""
@@ -224,9 +250,18 @@ class RLAgent:
         self.engine.register_process('combine_rewards', combine_rewards)
         self.engine.register_process('execute_action_with_env', execute_action_with_env)
         
-        # Register SNN core
-        self.engine.register_process('snn_integrate', process_integrate)
-        self.engine.register_process('snn_fire', process_fire)
+        # Core SNN
+        from src.processes.snn_core_theus import process_integrate, process_fire
+        from src.processes.snn_learning_3factor_theus import process_stdp_3factor
+        
+        # Legacy/Std STDP might be in snn_learning_theus.py or similar, but for now we use 3factor
+        # If we need the basic 2-factor, we need to find it. 
+        # But 'process_stdp' was requested. Let's assume we use 3-factor as main driver.
+        
+        self.engine.register_process('process_integrate', process_integrate)
+        self.engine.register_process('process_fire', process_fire)
+        # self.engine.register_process('process_stdp', process_stdp) # Removing legacy for now unless found
+        # self.engine.register_process('process_decay', process_decay) # Handled in Integrate
         self.engine.register_process('snn_clustering', process_clustering)
         self.engine.register_process('snn_stdp_3factor', process_stdp_3factor)
         self.engine.register_process('process_commitment', process_commitment)
@@ -239,6 +274,13 @@ class RLAgent:
         self.engine.register_process('process_hysteria_dampener', process_hysteria_dampener)
         self.engine.register_process('process_lateral_inhibition', process_lateral_inhibition)
         self.engine.register_process('process_neural_darwinism', process_neural_darwinism)
+        # Phase 12.5: Ancestor Assimilation
+        from src.processes.snn_advanced_features_theus import process_assimilate_ancestor
+        self.engine.register_process('process_assimilate_ancestor', process_assimilate_ancestor)
+        
+        # Phase 14: Dream
+        from src.processes.snn_dream_processes import process_inject_dream_stimulus
+        self.engine.register_process('process_inject_dream_stimulus', process_inject_dream_stimulus)
         
         # Register Semester Dream (Phase 13)
         self.engine.register_process('process_decode_dream', process_decode_dream)

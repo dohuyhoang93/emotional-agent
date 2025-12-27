@@ -1,12 +1,15 @@
-name: "Agent Dreaming Workflow"
-description: "Offline learning and memory consolidation"
+name: "Agent Dream Loop"
+description: "Workflow for Internal Simulation (Dreaming) without external sensory input"
 
 steps:
-  - process_imagination_loop  # Create spikes from prototypes
-  - process_integrate         # Process hallucinated spikes
-  - process_decode_dream      # [Phase 13] Spike -> State
-  - process_validate_and_reward # [Phase 13] Validate & Inject Reward
-  - process_dream_sanity_check # Validate against Beliefs (Physio Safety)
+  # 1. Inject Dream Stimulus (Noise/Replay)
+  - process_inject_dream_stimulus
+  
+  # 2. SNN Core Cycle (Atomic Steps)
+  - process_integrate
+  - process_lateral_inhibition # Standard SNN feature
   - process_fire
-  - process_stdp              # Learn from dreams (Consolidation)
-  - process_dream_learning    # Adjust thresholds based on dream quality
+  - process_stdp_3factor       # Learning/Consolidation
+  
+  # 3. Visualization/Analysis
+  - process_decode_dream

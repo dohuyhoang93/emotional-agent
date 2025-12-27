@@ -14,12 +14,13 @@ from src.core.context import SystemContext
 
 @process(
     inputs=[
-        'domain_ctx.snn_context.domain_ctx.spike_queue',
-        'domain_ctx.snn_context.domain_ctx.neurons',
-        'domain_ctx.metrics'
+        'domain.snn_context',
+        'domain.snn_context.domain_ctx.spike_queue',
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.metrics'
     ],
     outputs=[
-        'domain_ctx.metrics' # Writes 'dream_state_x', 'dream_state_y'
+        'domain.metrics' # Writes 'dream_state_x', 'dream_state_y'
     ],
     side_effects=[]
 )

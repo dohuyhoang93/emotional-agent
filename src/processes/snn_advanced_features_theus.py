@@ -526,3 +526,72 @@ def process_revolution_protocol(
     
     # Update metrics
     domain.metrics['outperform_ratio'] = outperform_ratio
+
+# ============================================================================
+# Phase 12.5: Ancestor Assimilation (Theus V2)
+# ============================================================================
+
+@process(
+    inputs=[
+        'domain.snn_context',
+        'domain.snn_context.domain_ctx.synapses',
+        'domain.snn_context.domain_ctx.ancestor_weights',
+        'domain.snn_context.domain_ctx.metrics',
+        'domain.snn_context.global_ctx.assimilation_rate', # New param
+        'domain.snn_context.global_ctx.diversity_noise'    # New param
+    ],
+    outputs=[
+        'domain.snn_context.domain_ctx.synapses',
+        'domain.snn_context.domain_ctx.metrics'
+    ],
+    side_effects=[]
+)
+def process_assimilate_ancestor(ctx: SystemContext):
+    """
+    Apply Ancestor Knowledge to current Agent with Noise.
+    
+    Logic:
+    1. Check if ancestor_weights available.
+    2. Iterate synapses.
+    3. If FLUID (not SOLID), soft-update towards ancestor.
+    4. Add noise to maintain diversity.
+    
+    Eq: w = (1-alpha)*w + alpha*ancestor_w + N(0, noise)
+    """
+    from src.core.snn_context_theus import COMMIT_STATE_SOLID
+    
+    snn_ctx = ctx.domain_ctx.snn_context
+    domain = snn_ctx.domain_ctx
+    global_ctx = snn_ctx.global_ctx
+    
+    ancestor = domain.ancestor_weights
+    if not ancestor:
+        return
+        
+    # Default params if not in config
+    alpha = getattr(global_ctx, 'assimilation_rate', 0.05)
+    noise_std = getattr(global_ctx, 'diversity_noise', 0.02)
+    
+    assimilated_count = 0
+    
+    for synapse in domain.synapses:
+        # PROTECT SOLID KNOWLEDGE
+        # Diversity Preservation Rule #1: Do not overwrite specialized knowledge
+        if synapse.commit_state == COMMIT_STATE_SOLID:
+            continue
+            
+        if synapse.synapse_id in ancestor:
+            target_w = ancestor[synapse.synapse_id]
+            
+            # Soft Update
+            new_w = (1.0 - alpha) * synapse.weight + alpha * target_w
+            
+            # Diversity Noise
+            noise = np.random.randn() * noise_std
+            new_w += noise
+            
+            # Clip
+            synapse.weight = np.clip(new_w, 0.0, 1.0)
+            assimilated_count += 1
+            
+    domain.metrics['assimilated_synapses'] = assimilated_count
