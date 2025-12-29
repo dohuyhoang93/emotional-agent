@@ -198,3 +198,12 @@ class MultiAgentCoordinator:
         ]
         rankings.sort(key=lambda x: x[1], reverse=True)
         return rankings
+    def _action_to_string(self, action_id: int) -> str:
+        """Helper to convert discrete action ID to string direction."""
+        mapping = {
+            0: 'up',
+            1: 'down', 
+            2: 'left',
+            3: 'right'
+        }
+        return mapping.get(action_id, 'stay')
