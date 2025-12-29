@@ -84,26 +84,33 @@ class RevolutionProtocolManager:
         num_elite = max(1, int(len(rankings) * self.elite_ratio))
         elite_ids = [r[0] for r in rankings[:num_elite]]
         
-        # Collect weights from elite
-        all_weights = []
+        # Collect weights from elite (as Dicts)
+        all_weights_dicts = []
+        all_synapse_ids = set()
+        
         for elite_id in elite_ids:
             agent = self.coordinator.agents[elite_id]
-            weights = [
-                s.weight for s in agent.snn_ctx.domain_ctx.synapses
-            ]
-            all_weights.append(weights)
+            # Use Dict {id: weight}
+            weights_dict = {
+                s.synapse_id: s.weight 
+                for s in agent.snn_ctx.domain_ctx.synapses
+            }
+            all_weights_dicts.append(weights_dict)
+            all_synapse_ids.update(weights_dict.keys())
         
-        if not all_weights:
+        if not all_weights_dicts:
             return
         
-        # Compute average (ancestor)
-        max_len = max(len(w) for w in all_weights)
-        padded = [
-            w + [0.0] * (max_len - len(w))
-            for w in all_weights
-        ]
-        
-        ancestor_weights = np.mean(padded, axis=0)
+        # Compute average (ancestor) per Synapse ID
+        ancestor_weights = {}
+        for syn_id in all_synapse_ids:
+            values = []
+            for w_dict in all_weights_dicts:
+                if syn_id in w_dict:
+                    values.append(w_dict[syn_id])
+            
+            if values:
+                ancestor_weights[syn_id] = float(np.mean(values))
         
         # Update all agents
         for agent in self.coordinator.agents:
@@ -118,7 +125,7 @@ class RevolutionProtocolManager:
             'episode': self.coordinator.episode_count,
             'elite_ids': elite_ids,
             'num_weights': len(ancestor_weights),
-            'avg_weight': float(np.mean(np.abs(ancestor_weights)))
+            'avg_weight': float(np.mean(np.abs(list(ancestor_weights.values()))))
         })
     
     def get_revolution_stats(self) -> Dict[str, Any]:

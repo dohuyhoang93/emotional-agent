@@ -49,12 +49,61 @@ def _encode_emotion_vector_impl(ctx: SystemContext):
         if neuron.fire_count > 0:  # Has fired
             active_vectors.append(neuron.prototype_vector)
     
-    if active_vectors:
-        # Average of active neurons
-        emotion_vector = np.mean(active_vectors, axis=0)
-    else:
+    # Phase 9: Attention-based Aggregation using Sigmoid Gating
+    # Query: Current Observation (Context)
+    # Key: Neuron Prototype Vector (Memory)
+    # Value: Neuron Prototype Vector
+    
+    # 1. Get Query (Context)
+    query_vector = None
+    obs = ctx.domain_ctx.current_observation
+    
+    if isinstance(obs, np.ndarray) and obs.shape == (16,):
+        query_vector = obs
+    elif snn_ctx.domain_ctx.snn_emotion_vector is not None:
+         # Fallback: Use previous emotion state as context if obs not available
+        query_vector = snn_ctx.domain_ctx.snn_emotion_vector.numpy()
+        
+    # 2. Collect Keys/Values from Active Neurons
+    active_vectors = []
+    keys = []
+    
+    for neuron in neurons:
+        if neuron.fire_count > 0:
+            active_vectors.append(neuron.prototype_vector)
+            keys.append(neuron.prototype_vector)
+            
+    if not active_vectors:
         # No activity → neutral
         emotion_vector = np.zeros(16)
+    else:
+        # 3. Compute Attention if Query is available
+        if query_vector is not None:
+             # Stack for vectorized operations
+            K = np.array(keys) # [N, 16]
+            Q = query_vector   # [16]
+            
+            # Score = Q . KT
+            # Shape: [N]
+            scores = np.dot(K, Q)
+            
+            # 4. Gating (Sigmoid)
+            # Allows multi-modal attention (e.g., Fear AND Curiosity)
+            # range (0, 1)
+            gates = 1 / (1 + np.exp(-scores))
+            
+            # 5. Weighted Sum
+            # V_out = Sum(Gate_i * V_i)
+            # Shape: [N, 1] * [N, 16] -> [N, 16] -> Sum -> [16]
+            weighted_vectors = K * gates[:, np.newaxis]
+            emotion_vector = np.sum(weighted_vectors, axis=0)
+            
+            # Debug/Audit log (optional - keep minimal for performance)
+            # print(f"Bridge Attention: {len(active_vectors)} active. Max Gate: {np.max(gates):.2f}")
+            
+        else:
+            # Fallback to Mean if no Context
+            emotion_vector = np.mean(active_vectors, axis=0)
     
     # Normalize
     norm = np.linalg.norm(emotion_vector)

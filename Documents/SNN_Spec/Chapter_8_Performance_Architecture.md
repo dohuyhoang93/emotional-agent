@@ -62,3 +62,21 @@ graph LR
 The Neo-Cortex (Chapter 4) uses `MultiHeadAttention`.
 *   **Batching**: Inputs are batched where possible.
 *   **Gradient Clipping**: Gradients are clipped to 1.0 to prevent explosion during the hybrid SNN-RL backprop.
+
+## 8.5 CPU Threading Optimization (Important)
+**Issue**: When running Agents with small-to-medium SNNs (N < 1000), typical linear algebra backends (OpenBLAS, MKL) default to using ALL available CPU cores for matrix operations.
+*   **Symptom**: 100% CPU usage across all cores, but no performance gain (or even slowdown due to thread context switching overhead).
+*   **Cause**: The matrix operations ($50 \times 50$) are too small to benefit from multi-threading. The cost of spawning/managing threads exceeds the computation cost.
+
+**Optimization**:
+Force the BLAS backend to run in **Single-Threaded** mode. This maximizes throughput for sequential or multi-process execution.
+```python
+# Add to entry point (run_experiments.py) BEFORE importing numpy
+import os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+os.environ["NUMEXPR_NUM_THREADS"] = "1"
+```
+*   **Result**: CPU usage drops significantly, allowing multiple agents to run efficiently on the same machine without fighting for cores.

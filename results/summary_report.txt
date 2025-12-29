@@ -9,6 +9,7 @@ Output directory: results
   Total Episodes: 10
   Final Avg Reward: 33.0800
   Best Reward Achieved: 0.0000
+  Final Success Rate: 0.00%
 
   Social Learning:
     Total Transfers: 0
@@ -19,16 +20,17 @@ Output directory: results
 
   Final Phase (last 10% episodes):
     Avg Reward: 33.0800
+    Success Rate: 0.00%
 
   Learning Trend (every 10%):
-    Episodes 0-1: Avg Reward = 9.9607
-    Episodes 1-2: Avg Reward = 32.4890
-    Episodes 2-3: Avg Reward = 32.4000
-    Episodes 3-4: Avg Reward = 35.6907
-    Episodes 4-5: Avg Reward = 34.3600
-    Episodes 5-6: Avg Reward = 34.6348
-    Episodes 6-7: Avg Reward = 31.6000
-    Episodes 7-8: Avg Reward = 35.8600
-    Episodes 8-9: Avg Reward = 29.8200
-    Episodes 9-10: Avg Reward = 33.0800
+    Episodes 0-1: Reward=10.18, Success=0.0%
+    Episodes 1-2: Reward=32.49, Success=0.0%
+    Episodes 2-3: Reward=32.40, Success=0.0%
+    Episodes 3-4: Reward=35.69, Success=0.0%
+    Episodes 4-5: Reward=34.36, Success=0.0%
+    Episodes 5-6: Reward=34.63, Success=0.0%
+    Episodes 6-7: Reward=31.60, Success=0.0%
+    Episodes 7-8: Reward=35.86, Success=0.0%
+    Episodes 8-9: Reward=29.82, Success=0.0%
+    Episodes 9-10: Reward=33.08, Success=0.0%
 

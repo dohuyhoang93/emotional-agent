@@ -3,10 +3,10 @@ import copy
 
 class GridWorld:
     """
-    Môi trường Thế giới Lưới (Grid World) hỗ trợ nhiều tác nhân và Mê cung Logic Phức tạp.
+    The Grid World environment supports multiple agents and complex logic mazes.
     """
     def __init__(self, settings):
-        print("Khởi tạo GridWorld đa tác nhân với Mê cung Logic Phức tạp...")
+        print("Initialize a multi-agent GridWorld with a Complex Logic Maze...")
         
         env_config = settings.get("environment_config", {})
         self.size = env_config.get("grid_size", 15)
