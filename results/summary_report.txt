@@ -19,7 +19,7 @@ Output directory: results
     Total Revolutions: 0
 
   Learning Trend (every 10%):
-    Episodes 0-1: Reward=-1.33, Success=0.0%
+    Episodes 0-1: Reward=3.47, Success=0.0%
     Episodes 1-2: Reward=12.10, Success=0.0%
     Episodes 2-3: Reward=23.60, Success=0.0%
     Episodes 3-4: Reward=29.20, Success=0.0%

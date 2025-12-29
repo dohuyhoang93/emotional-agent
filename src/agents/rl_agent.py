@@ -91,7 +91,10 @@ class RLAgent:
         obs_dim = 5
         emotion_dim = 16  # SNN emotion vector
         hidden_dim = 64
-        action_dim = 4  # up, down, left, right
+        # Phase 11b: Expanded Action Space (8 actions)
+        # 0-3: Move UP/DOWN/LEFT/RIGHT + EXCITE (Focus)
+        # 4-7: Move UP/DOWN/LEFT/RIGHT + INHIBIT (Ignore)
+        action_dim = 8 
         
         self.gated_network = GatedIntegrationNetwork(
             obs_dim=obs_dim,
@@ -230,6 +233,9 @@ class RLAgent:
             process_lateral_inhibition,
             process_neural_darwinism
         )
+        # Phase 11: Safety
+        from src.processes.snn_safety_theus import monitor_safety_triggers
+        
         from src.processes.snn_resync_theus import (
             process_periodic_resync
         )
@@ -277,6 +283,7 @@ class RLAgent:
         self.engine.register_process('process_hysteria_dampener', process_hysteria_dampener)
         self.engine.register_process('process_lateral_inhibition', process_lateral_inhibition)
         self.engine.register_process('process_neural_darwinism', process_neural_darwinism)
+        self.engine.register_process('monitor_safety_triggers', monitor_safety_triggers)
         # Phase 12.5: Ancestor Assimilation
         from src.processes.snn_advanced_features_theus import process_assimilate_ancestor
         self.engine.register_process('process_assimilate_ancestor', process_assimilate_ancestor)

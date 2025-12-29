@@ -6,6 +6,9 @@ steps:
   - perception
   
   # SNN Processing Pipeline
+  # Phase 11: Safety & Robustness
+  - monitor_safety_triggers
+  
   # Phase 10: Top-Down Modulation
   - restore_snn_attention  # Elasticity (Return to baseline)
   - modulate_snn_attention # Top-down control (Action -> Threshold)

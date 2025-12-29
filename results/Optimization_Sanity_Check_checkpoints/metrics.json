@@ -3,10 +3,10 @@
     "episode": 0,
     "metrics": {
       "episode": 1,
-      "avg_reward": 16.44023591660382,
+      "avg_reward": 3.4675925139176718,
       "success_rate": 0.0,
       "agent_rewards": [
-        16.44023591660382
+        3.4675925139176718
       ],
       "agent_success": [
         false
@@ -17,10 +17,52 @@
     "episode": 1,
     "metrics": {
       "episode": 2,
-      "avg_reward": 12.100000349999988,
+      "avg_reward": 12.100000349999977,
       "success_rate": 0.0,
       "agent_rewards": [
-        12.100000349999988
+        12.100000349999977
+      ],
+      "agent_success": [
+        false
+      ]
+    }
+  },
+  {
+    "episode": 2,
+    "metrics": {
+      "episode": 3,
+      "avg_reward": 23.59999999999998,
+      "success_rate": 0.0,
+      "agent_rewards": [
+        23.59999999999998
+      ],
+      "agent_success": [
+        false
+      ]
+    }
+  },
+  {
+    "episode": 3,
+    "metrics": {
+      "episode": 4,
+      "avg_reward": 29.19999999999996,
+      "success_rate": 0.0,
+      "agent_rewards": [
+        29.19999999999996
+      ],
+      "agent_success": [
+        false
+      ]
+    }
+  },
+  {
+    "episode": 4,
+    "metrics": {
+      "episode": 5,
+      "avg_reward": 19.800000099999984,
+      "success_rate": 0.0,
+      "agent_rewards": [
+        19.800000099999984
       ],
       "agent_success": [
         false

@@ -257,6 +257,15 @@ class SNNDomainContext(BaseDomainContext):
     # - prototypes: (N, D) - For vector matching
     tensors: Dict[str, np.ndarray] = field(default_factory=dict)
 
+    # === Phase 11: Robust Control (Safety) ===
+    # Stores the current state of defense mechanisms
+    safety_state: Dict[str, Any] = field(default_factory=lambda: {
+        'emergency_override_steps': 0,  # If > 0, modulation is blocked
+        'veto_active': False,           # Curiosity Veto
+        'saccade_triggered': False,     # Context switch detected
+        'last_action': -1               # Track for Saccade detection
+    })
+
 
 # ============================================================================
 # System Context (Wrapper)

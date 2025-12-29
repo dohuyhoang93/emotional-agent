@@ -215,21 +215,67 @@ def modulate_snn_attention(ctx: SystemContext):
     if action is None:
         return
         
+    snn_domain = ctx.domain_ctx.snn_context.domain_ctx
+    safety = snn_domain.safety_state
+    
+    # === PHASE 11: DEFENSE LAYER CHECKS ===
+    
+    # 1. Bottom-Up Override (Emergency Brake)
+    if safety['emergency_override_steps'] > 0:
+        # Block Top-Down Modulation
+        # And potentially force restoration? (Handled by restore_snn_attention implicitly)
+        return
+        
+    # 2. Curiosity Veto
+    if safety['veto_active']:
+        # Block Top-Down Modulation
+        return
+        
     # 1. Ensure Tensors (Critical for Sync)
     ensure_tensors_initialized(snn_ctx)
     t = snn_ctx.domain_ctx.tensors
     thresh = t['thresholds']
     N = len(thresh)
     
+    # 3. Saccadic Reset (Blink)
+    # If context switch, we clear OLD attention immediately.
+    # How? Reset all thresholds to baseline?
+    # Or rely on 'restore_snn_attention'?
+    # Saccadic Reset implies FASTER restoration.
+    if safety['saccade_triggered']:
+        # Rapidly push all thresholds back to baseline
+        baseline = snn_ctx.global_ctx.initial_threshold
+        # Strong push (e.g. 50% restoration in one step)
+        thresh += (baseline - thresh) * 0.5
+        # And continue to apply NEW modulation below.
+    
     # 2. Action Mapping (Hardcoded for now, but documented risk)
-    # WARNING: Assumes Action=4 and N is divisible.
+    # WARNING: Assumes ActionSpace=8 (Phase 11b) and N is divisible.
+    # Actions 0-3: Excite (Focus) -> Indices 0-25...
+    # Actions 4-7: Inhibit (Ignore) -> Indices 0-25... corresponding to Action-4
+    
+    # Decode Action
+    # base_action: 0-3 (Direction/Concept)
+    if action >= 4:
+        # INHIBITORY MODE
+        base_action = action - 4
+        is_inhibition = True
+        modulation_factor = 1.2 # Harder to fire (Inhibit)
+    else:
+        # EXCITATORY MODE
+        base_action = action
+        is_inhibition = False
+        modulation_factor = 0.9 # Easier to fire (Excite)
+
+    # Calculate Indices based on base_action
     # Risk: If N=100, N//4 = 25. Indices 0-25, 25-50, 50-75, 75-100.
     neurons_per_action = N // 4
     
-    start_idx = action * neurons_per_action
+    start_idx = base_action * neurons_per_action
     end_idx = min(start_idx + neurons_per_action, N)
     
     # 3. Apply Modulation (Vectorized)
+    
     # Decrease threshold by 10% (Easier to fire)
     # RISK MITIGATION: Novelty Masking (Phase 10.5)
     # Only modulate SOLID neurons (committed), leave FLUID neurons (new) alone to evolve.
@@ -249,11 +295,11 @@ def modulate_snn_attention(ctx: SystemContext):
         final_mask = action_mask & solid_mask
         
         # Apply modulation only to Solid neurons in target group
-        thresh[final_mask] *= 0.9
+        thresh[final_mask] *= modulation_factor
         
     else:
         # Fallback: Modulate all in range if no solidity info (Legacy/Init)
-        thresh[start_idx:end_idx] *= 0.9
+        thresh[start_idx:end_idx] *= modulation_factor
     
     # Clip to safety minimum (Prevent collapse)
     np.clip(thresh, snn_ctx.global_ctx.threshold_min, snn_ctx.global_ctx.threshold_max, out=thresh)
