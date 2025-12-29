@@ -1,0 +1,30 @@
+[
+  {
+    "episode": 0,
+    "metrics": {
+      "episode": 1,
+      "avg_reward": 16.44023591660382,
+      "success_rate": 0.0,
+      "agent_rewards": [
+        16.44023591660382
+      ],
+      "agent_success": [
+        false
+      ]
+    }
+  },
+  {
+    "episode": 1,
+    "metrics": {
+      "episode": 2,
+      "avg_reward": 12.100000349999988,
+      "success_rate": 0.0,
+      "agent_rewards": [
+        12.100000349999988
+      ],
+      "agent_success": [
+        false
+      ]
+    }
+  }
+]

@@ -152,6 +152,9 @@ class NeuronState:
     
     # Metadata
     vector_dim: int = 16
+    
+    # Phase 10.5: Derived Commitment
+    solidity_ratio: float = 0.0  # 0.0 (Fluid) -> 1.0 (Solid)
 
 
 @dataclass
@@ -429,7 +432,12 @@ def ensure_tensors_initialized(ctx: SNNSystemContext):
             if syn.pre_neuron_id < N and syn.post_neuron_id < N:
                 domain.tensors['commit_states'][syn.pre_neuron_id, syn.post_neuron_id] = syn.commit_state
                 domain.tensors['consecutive_correct'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_correct
+                domain.tensors['consecutive_correct'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_correct
                 domain.tensors['consecutive_wrong'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_wrong
+
+    # NEW (Phase 10.5): Derived Neuron Commitment
+    if 'solidity_ratios' not in domain.tensors:
+         domain.tensors['solidity_ratios'] = np.array([n.solidity_ratio for n in neurons], dtype=np.float32)
 
     # FULL SYNC (Objects -> Tensors)
     sync_to_tensors(ctx)
@@ -461,6 +469,7 @@ def sync_to_tensors(ctx: SNNSystemContext):
     # 3. Prototypes & Potential Vectors
     domain.tensors['prototypes'] = np.array([n.prototype_vector for n in neurons], dtype=np.float32)
     domain.tensors['potential_vectors'] = np.array([n.potential_vector for n in neurons], dtype=np.float32)
+    domain.tensors['solidity_ratios'] = np.array([n.solidity_ratio for n in neurons], dtype=np.float32)
 
     # 4. Traces & Fitness (Avoid allocations if possible)
     # Check if tensors exist, otherwise create them. 
@@ -491,11 +500,14 @@ def sync_from_tensors(ctx: SNNSystemContext):
     pots = domain.tensors['potentials']
     lfts = domain.tensors.get('last_fire_times', [])
     pvecs = domain.tensors.get('potential_vectors', [])
+    pvecs = domain.tensors.get('potential_vectors', [])
     thresholds = domain.tensors.get('thresholds', [])
+    solidity_ratios = domain.tensors.get('solidity_ratios', [])
     
     check_lft = len(lfts) > 0
     check_pvec = len(pvecs) > 0
     check_thresh = len(thresholds) > 0
+    check_solidity = len(solidity_ratios) > 0
     
     # 1. Sync State Variables
     for i, neuron in enumerate(domain.neurons):
@@ -514,6 +526,10 @@ def sync_from_tensors(ctx: SNNSystemContext):
         # Update Thresholds (Phase 7: Homeostasis/Hysteria)
         if check_thresh:
             neuron.threshold = float(thresholds[i])
+            
+        # Update Solidity Ratio (Phase 10.5)
+        if check_solidity:
+             neuron.solidity_ratio = float(solidity_ratios[i])
         
     # NOTE: We do NOT sync weights back yet because Vectorized STDP is not implemented.
     # If we vectorized STDP, we would sync weights back to domain.synapses.

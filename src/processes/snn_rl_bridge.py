@@ -196,34 +196,113 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
 )
 def modulate_snn_attention(ctx: SystemContext):
     """
-    Modulate SNN attention dựa trên RL action.
+    Modulate SNN attention dựa trên RL action (Top-Down Control).
     
-    Top-down control: Action → Neuron threshold adjustment.
+    Refactored for Tensor Compatibility & Stability.
     
     Args:
         ctx: System context
     """
-    snn_ctx = ctx.domain_ctx.snn_context
+    from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
     
+    snn_ctx = ctx.domain_ctx.snn_context
     if snn_ctx is None:
         return
-    
+        
     action = ctx.domain_ctx.last_action
     
+    # Needs action to modulate
     if action is None:
         return
+        
+    # 1. Ensure Tensors (Critical for Sync)
+    ensure_tensors_initialized(snn_ctx)
+    t = snn_ctx.domain_ctx.tensors
+    thresh = t['thresholds']
+    N = len(thresh)
     
-    # Action-specific modulation
-    num_neurons = len(snn_ctx.domain_ctx.neurons)
-    neurons_per_action = num_neurons // 4
+    # 2. Action Mapping (Hardcoded for now, but documented risk)
+    # WARNING: Assumes Action=4 and N is divisible.
+    # Risk: If N=100, N//4 = 25. Indices 0-25, 25-50, 50-75, 75-100.
+    neurons_per_action = N // 4
     
     start_idx = action * neurons_per_action
-    end_idx = min(start_idx + neurons_per_action, num_neurons)
+    end_idx = min(start_idx + neurons_per_action, N)
     
-    # Boost threshold (easier to fire)
-    for i in range(start_idx, end_idx):
-        neuron = snn_ctx.domain_ctx.neurons[i]
-        neuron.threshold *= 0.9  # 10% easier
+    # 3. Apply Modulation (Vectorized)
+    # Decrease threshold by 10% (Easier to fire)
+    # RISK MITIGATION: Novelty Masking (Phase 10.5)
+    # Only modulate SOLID neurons (committed), leave FLUID neurons (new) alone to evolve.
+    
+    # We use the Derived Solidity Ratio (Phase 10.5)
+    if 'solidity_ratios' in t:
+        solidity_ratios = t['solidity_ratios']
+        # Mask: (In Action Range) AND (Is Solid > 0.5)
+        
+        # Create full mask first
+        action_mask = np.zeros(N, dtype=bool)
+        action_mask[start_idx:end_idx] = True
+        
+        solid_mask = (solidity_ratios > 0.5)
+        
+        # Combine
+        final_mask = action_mask & solid_mask
+        
+        # Apply modulation only to Solid neurons in target group
+        thresh[final_mask] *= 0.9
+        
+    else:
+        # Fallback: Modulate all in range if no solidity info (Legacy/Init)
+        thresh[start_idx:end_idx] *= 0.9
+    
+    # Clip to safety minimum (Prevent collapse)
+    np.clip(thresh, snn_ctx.global_ctx.threshold_min, snn_ctx.global_ctx.threshold_max, out=thresh)
+    
+    # 4. Sync Back (Optional here if next step is Tensor-based SNN Cycle, 
+    # but safe to sync for audit)
+    sync_from_tensors(snn_ctx)
+
+
+@process(
+    inputs=['domain.snn_context'],
+    outputs=['domain.snn_context'],
+    side_effects=[]
+)
+def restore_snn_attention(ctx: SystemContext):
+    """
+    Restore SNN attention (thresholds) to baseline.
+    
+    Mechanism: Elasticity (Spring force).
+    Prevents Threshold Collapse from repeated Top-Down modulation.
+    
+    Args:
+        ctx: System context
+    """
+    from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
+    
+    snn_ctx = ctx.domain_ctx.snn_context
+    if snn_ctx is None:
+        return
+        
+    # 1. Ensure Tensors
+    ensure_tensors_initialized(snn_ctx)
+    t = snn_ctx.domain_ctx.tensors
+    thresh = t['thresholds']
+    
+    baseline = snn_ctx.global_ctx.initial_threshold
+    restoration_rate = 0.05 # 5% return per step
+    
+    # 2. Apply Restoration Force
+    # Delta = (Target - Current) * Rate
+    # If Thresh < Baseline, it increases.
+    delta = (baseline - thresh) * restoration_rate
+    thresh += delta
+    
+    # 3. Clip
+    np.clip(thresh, snn_ctx.global_ctx.threshold_min, snn_ctx.global_ctx.threshold_max, out=thresh)
+    
+    # 4. Sync Back
+    sync_from_tensors(snn_ctx)
 
 
 # ============================================================================

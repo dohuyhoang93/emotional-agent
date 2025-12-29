@@ -1,13 +1,13 @@
 --- MULTI-AGENT EXPERIMENT SUMMARY ---
 Output directory: results
 
-=== Experiment: multi_agent_complex_maze ===
+=== Experiment: Optimization_Sanity_Check ===
   Runs: 1
-  Episodes per run: 10
-  Parameters: {'num_agents': 5, 'num_neurons': 50, 'vector_dim': 16, 'connectivity': 0.15, 'max_steps_per_episode': 500, 'total_episodes': 10, 'initial_exploration': 1.0, 'exploration_decay': 0.995, 'intrinsic_reward_weight': 0.05, 'use_dynamic_curiosity': True, 'use_adaptive_fatigue': True, 'fatigue_growth_rate': 5.0, 'emotional_boost_factor': 0.4, 'social_learning_freq': 25, 'elite_ratio': 0.2, 'learner_ratio': 0.5, 'synapses_per_transfer': 10, 'revolution_threshold': 0.5, 'revolution_window': 10, 'revolution_elite_ratio': 0.1, 'enable_recorder': True, 'checkpoint_freq': 50, 'use_neural_darwinism': True, 'darwinism_interval': 100, 'selection_pressure': 0.1, 'reproduction_rate': 0.05, 'environment_config': {'grid_size': 25, 'sleep_interval': 25, 'sleep_duration': 100, 'num_agents': 5, 'step_penalty': -0.01, 'wall_penalty': -0.1, 'goal_pos': [24, 24], 'start_positions': [[0, 0], [0, 1], [1, 0], [1, 1], [0, 2]], 'walls': [[0, 5], [1, 5], [2, 5], [3, 5], [4, 5], [5, 5], [6, 5], [7, 5], [8, 5], [8, 6], [8, 7], [8, 8], [8, 9], [8, 10], [12, 0], [12, 1], [12, 2], [12, 3], [12, 4], [12, 5], [12, 6], [12, 7], [12, 8], [13, 8], [14, 8], [15, 8], [16, 8], [17, 8], [18, 8], [19, 8], [20, 8], [20, 0], [20, 1], [20, 2], [20, 3], [20, 4], [20, 5], [20, 6], [20, 7], [5, 15], [6, 15], [7, 15], [8, 15], [9, 15], [10, 15], [11, 15], [12, 15], [13, 15], [14, 15], [15, 15], [22, 18], [23, 18], [24, 18], [18, 22], [18, 23], [18, 24]], 'logical_switches': [{'id': 'A', 'pos': [1, 1]}, {'id': 'B', 'pos': [10, 2]}, {'id': 'C', 'pos': [15, 12]}, {'id': 'D', 'pos': [16, 20]}, {'id': 'E', 'pos': [22, 22]}], 'dynamic_walls': [{'id': 'gate_A', 'pos': [[9, 0], [9, 1], [9, 2], [9, 3], [9, 4], [9, 5], [9, 6], [9, 7], [9, 8], [9, 9], [9, 10]]}, {'id': 'gate_B', 'pos': [[0, 13], [1, 13], [2, 13], [3, 13], [4, 13], [5, 13], [6, 13], [7, 13], [8, 13], [9, 13], [10, 13]]}, {'id': 'gate_C', 'pos': [[21, 16], [21, 17], [21, 18], [21, 19], [21, 20], [21, 21], [21, 22], [21, 23], [21, 24]]}, {'id': 'gate_D', 'pos': [[18, 18], [18, 19], [18, 20], [18, 21]]}], 'dynamic_wall_rules': [{'id': 'gate_A', 'type': 'toggle', 'inputs': ['A']}, {'id': 'gate_B', 'type': 'toggle', 'inputs': ['B']}, {'id': 'gate_C', 'type': 'toggle', 'inputs': ['C']}, {'id': 'gate_D', 'type': 'toggle', 'inputs': ['D']}]}}
+  Episodes per run: 5
+  Parameters: {'environment_config': {'grid_size': 15, 'num_agents': 1, 'max_steps_per_episode': 100, 'walls': [[1, 1], [1, 2], [2, 1]], 'logical_switches': [{'id': 'StartSw', 'pos': [3, 3]}], 'dynamic_walls': [{'id': 'Gate1', 'pos': [[5, 5]]}], 'dynamic_wall_rules': [{'id': 'Rule1', 'type': 'toggle', 'inputs': ['StartSw']}]}, 'snn_config': {'num_neurons': 100, 'connectivity': 0.2}, 'rl_config': {'learning_rate': 0.1, 'discount_factor': 0.9}}
 
-  Total Episodes: 10
-  Final Avg Reward: 33.0800
+  Total Episodes: 5
+  Final Avg Reward: 19.8000
   Best Reward Achieved: 0.0000
   Final Success Rate: 0.00%
 
@@ -18,19 +18,10 @@ Output directory: results
   Revolution Protocol:
     Total Revolutions: 0
 
-  Final Phase (last 10% episodes):
-    Avg Reward: 33.0800
-    Success Rate: 0.00%
-
   Learning Trend (every 10%):
-    Episodes 0-1: Reward=10.18, Success=0.0%
-    Episodes 1-2: Reward=32.49, Success=0.0%
-    Episodes 2-3: Reward=32.40, Success=0.0%
-    Episodes 3-4: Reward=35.69, Success=0.0%
-    Episodes 4-5: Reward=34.36, Success=0.0%
-    Episodes 5-6: Reward=34.63, Success=0.0%
-    Episodes 6-7: Reward=31.60, Success=0.0%
-    Episodes 7-8: Reward=35.86, Success=0.0%
-    Episodes 8-9: Reward=29.82, Success=0.0%
-    Episodes 9-10: Reward=33.08, Success=0.0%
+    Episodes 0-1: Reward=-1.33, Success=0.0%
+    Episodes 1-2: Reward=12.10, Success=0.0%
+    Episodes 2-3: Reward=23.60, Success=0.0%
+    Episodes 3-4: Reward=29.20, Success=0.0%
+    Episodes 4-5: Reward=19.80, Success=0.0%
 

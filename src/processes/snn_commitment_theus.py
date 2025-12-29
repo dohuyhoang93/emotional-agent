@@ -89,6 +89,51 @@ def process_commitment(
     newly_revoked_mask = (commit_states == COMMIT_STATE_SOLID) & (con_wrong >= THRESHOLD_REVOKE)
     commit_states[newly_revoked_mask] = COMMIT_STATE_REVOKED
     
+    # === NEW (Phase 10.5): Derived Neuron Commitment ===
+    # Calculate Solidity Ratio for each Neuron
+    # Ratio = Count(Incoming Solid Synapses) / Count(Total Incoming Synapses)
+    
+    # 1. Identify Solid Synapses (Matrix [N, N])
+    is_solid = (commit_states == COMMIT_STATE_SOLID)
+    
+    # 2. Sum per Post-Synaptic Neuron (Axis 0 = Pre, Axis 1 = Post)
+    # Result: [N]
+    incoming_solid_count = np.sum(is_solid, axis=0)
+    
+    # 3. Count Total Incoming (Adjacency)
+    # We use 'weights' or simply count non-zero elements if needed.
+    # But 'commit_states' is dense 0. We need to know which synapses exist.
+    # We can check 'weights' tensor if it exists, or assume commit_states tracks all.
+    # BUT: 'commit_states' was initialized with 0 (FLUID).
+    # Does 'commit_states' include non-existent synapses? 
+    # Yes, it's (N,N). But we only care about ACTUAL synapses.
+    # We need the WEIGHTS matrix to know topology.
+    
+    if 'weights' in t:
+        weights = t['weights']
+        # Adjacency: Weight > 0
+        incoming_total_count = np.sum(weights > 0, axis=0)
+    else:
+        # Fallback: Treat all non-REVOKED as existing? 
+        # Or just use commit_states != REVOKED?
+        # A bit risky if weights are 0 but state is tracked.
+        # Let's use weights > 0 as safer proxy.
+        # If weights unavailable, we skip update to avoid INF.
+        incoming_total_count = np.ones(len(commit_states)) # Dummy
+    
+    # 4. Compute Ratio (Safe Divide)
+    # Avoid div by zero
+    incoming_total_count[incoming_total_count == 0] = 1.0 
+    
+    ratios = incoming_solid_count / incoming_total_count
+    
+    # 5. Update Tensor
+    t['solidity_ratios'] = ratios.astype(np.float32)
+    
+    # 6. Metrics for Solidity
+    domain.metrics['avg_solidity_ratio'] = float(np.mean(ratios))
+    domain.metrics['solid_neurons_count'] = int(np.sum(ratios > 0.5))
+    
     # 3. Metrics
     solidified = np.sum(newly_solid_mask)
     revoked = np.sum(newly_revoked_mask)

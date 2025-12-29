@@ -197,7 +197,8 @@ class RLAgent:
             encode_state_to_spikes,
             encode_emotion_vector,
             compute_intrinsic_reward_snn,
-            modulate_snn_attention
+            modulate_snn_attention,
+            restore_snn_attention
         )
         from src.processes.rl_processes import (
             select_action_gated,
@@ -241,6 +242,7 @@ class RLAgent:
         self.engine.register_process('encode_emotion_vector', encode_emotion_vector)
         self.engine.register_process('compute_intrinsic_reward_snn', compute_intrinsic_reward_snn)
         self.engine.register_process('modulate_snn_attention', modulate_snn_attention)
+        self.engine.register_process('restore_snn_attention', restore_snn_attention)
         
         # Register RL processes
         self.engine.register_process('select_action_gated', select_action_gated)
