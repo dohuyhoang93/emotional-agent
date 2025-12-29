@@ -2,7 +2,7 @@ import json
 import os
 from typing import Dict, Any
 
-from theus import process
+from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext, ExperimentDefinition
 from src.logger import log, log_error
 

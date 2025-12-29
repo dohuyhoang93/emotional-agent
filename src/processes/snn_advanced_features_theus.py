@@ -8,7 +8,7 @@ Date: 2025-12-25
 """
 import numpy as np
 import copy
-from theus import process
+from theus.contracts import process
 from src.core.snn_context_theus import SNNSystemContext
 from src.core.context import SystemContext
 from typing import List
@@ -65,14 +65,27 @@ def _hysteria_impl(ctx: SystemContext):
     )
     
     # Apply dampening
+    # Apply dampening (Vectorized)
     if domain.dampening_active:
-        for neuron in domain.neurons:
-            neuron.threshold *= (1 + global_ctx.dampening_factor)
-            neuron.threshold = np.clip(
-                neuron.threshold,
-                global_ctx.threshold_min,
-                global_ctx.threshold_max
-            )
+        from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
+        
+        # Ensure tensors on the SNN context
+        ensure_tensors_initialized(snn_ctx)
+        t = domain.tensors
+        
+        # Vector Update: Multiply all thresholds
+        t['thresholds'] *= (1 + global_ctx.dampening_factor)
+        
+        # Clip
+        np.clip(
+            t['thresholds'],
+            global_ctx.threshold_min,
+            global_ctx.threshold_max,
+            out=t['thresholds']
+        )
+        
+        # Sync back
+        sync_from_tensors(snn_ctx)
         
         # Deactivate if recovered
         if domain.emotion_saturation_level < 0.1:
@@ -315,16 +328,16 @@ def process_neural_darwinism(
         
         to_reproduce = [s for s in survivors if s.fitness >= top_threshold]
         
+        # Optimization: Calculate max_id ONCE
+        current_max_id = max(s.synapse_id for s in survivors) if survivors else 0
+        
         offspring = []
         for parent in to_reproduce:
             child = dataclasses.replace(parent)
-            # Find next ID (max + 1 is risky in distributed, but fine here)
-            # Safer: max of CURRENT list
-            max_id = max(s.synapse_id for s in survivors) if survivors else 0
-            if offspring:
-                max_id = max(max_id, max(s.synapse_id for s in offspring))
             
-            child.synapse_id = max_id + 1
+            current_max_id += 1
+            child.synapse_id = current_max_id
+            
             child.generation = parent.generation + 1
             child.weight += np.random.randn() * 0.01  # Mutation
             child.weight = np.clip(child.weight, 0.0, 1.0)

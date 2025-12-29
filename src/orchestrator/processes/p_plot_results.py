@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import os
-from theus import process
+from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log
 

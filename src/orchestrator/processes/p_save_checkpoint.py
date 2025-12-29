@@ -1,5 +1,5 @@
 import os
-from theus import process
+from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.utils.snn_persistence import save_all_agents
 from src.logger import log

@@ -1,4 +1,4 @@
-from theus import process
+from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log as system_log, log_error as system_log_error
 from src.coordination.multi_agent_coordinator import MultiAgentCoordinator

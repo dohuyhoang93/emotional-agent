@@ -1,5 +1,5 @@
 import torch
-from theus import process
+from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(

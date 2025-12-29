@@ -4,7 +4,7 @@
             "name": "multi_agent_complex_maze",
             "description": "Complex Maze experiment with SNN Agents (V2 Standard) - [PERSISTENCE ENABLED]",
             "runs": 1,
-            "episodes_per_run": 1000,
+            "episodes_per_run": 10,
             "log_level": "info",
             "parameters": {
                 "num_agents": 5,
@@ -12,6 +12,7 @@
                 "vector_dim": 16,
                 "connectivity": 0.15,
                 "max_steps_per_episode": 500,
+                "total_episodes": 10,
                 "initial_exploration": 1.0,
                 "exploration_decay": 0.995,
                 "intrinsic_reward_weight": 0.05,

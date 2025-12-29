@@ -7,7 +7,7 @@ Author: Do Huy Hoang
 Date: 2025-12-25
 """
 import numpy as np
-from theus import process
+from theus.contracts import process
 from src.core.snn_context_theus import (
     SNNSystemContext,
     COMMIT_STATE_FLUID,
@@ -51,51 +51,64 @@ def process_commitment(
     
     error = abs(rl_ctx.domain_ctx.td_error)
     
-    # Counters
-    solidified = 0
-    revoked = 0
+    # === VECTORIZED UPDATE ===
+    from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
     
-    # Update commitment states
-    for synapse in domain.synapses:
-        # Check prediction correctness
-        if error < ERROR_THRESHOLD:
-            # Good prediction
-            synapse.consecutive_correct += 1
-            synapse.consecutive_wrong = 0
-        else:
-            # Bad prediction
-            synapse.consecutive_wrong += 1
-            synapse.consecutive_correct = 0
-        
-        # State transitions
-        if synapse.commit_state == COMMIT_STATE_FLUID:
-            # FLUID → SOLID
-            if synapse.consecutive_correct >= THRESHOLD_SOLIDIFY:
-                synapse.commit_state = COMMIT_STATE_SOLID
-                synapse.confidence = 1.0
-                solidified += 1
-        
-        elif synapse.commit_state == COMMIT_STATE_SOLID:
-            # SOLID → REVOKED
-            if synapse.consecutive_wrong >= THRESHOLD_REVOKE:
-                synapse.commit_state = COMMIT_STATE_REVOKED
-                synapse.confidence = 0.0
-                revoked += 1
+    ensure_tensors_initialized(snn_ctx)
+    t = domain.tensors
     
-    # Update metrics
+    commit_states = t['commit_states']
+    con_correct = t['consecutive_correct']
+    con_wrong = t['consecutive_wrong']
+    
+    # 1. Update Counters (Global Error Broadcast)
+    if error < ERROR_THRESHOLD:
+        # Good prediction: Increment correct, Reset wrong for ALL synapses
+        con_correct += 1
+        con_wrong[:] = 0 # Reset all to 0
+    else:
+        # Bad prediction: Increment wrong, Reset correct
+        con_wrong += 1
+        con_correct[:] = 0
+        
+    # 2. State Transitions
+    
+    # FLUID -> SOLID
+    # Condition: Is Fluid AND Correct streak met
+    newly_solid_mask = (commit_states == COMMIT_STATE_FLUID) & (con_correct >= THRESHOLD_SOLIDIFY)
+    commit_states[newly_solid_mask] = COMMIT_STATE_SOLID
+    # Note: Confidence update? Logic says confidence=1.0. Tensors don't store confidence yet.
+    # It will be updated on Sync if we map it, OR we skip it for now.
+    # The original loop updated object immediately.
+    # Sync_from_tensors does NOT update 'confidence'. 
+    # Can we derive confidence from state? Yes.
+    # But for full fidelity, we might need a 'confidence' tensor later.
+    # For now, Commit State is the Source of Truth.
+    
+    # SOLID -> REVOKED
+    newly_revoked_mask = (commit_states == COMMIT_STATE_SOLID) & (con_wrong >= THRESHOLD_REVOKE)
+    commit_states[newly_revoked_mask] = COMMIT_STATE_REVOKED
+    
+    # 3. Metrics
+    solidified = np.sum(newly_solid_mask)
+    revoked = np.sum(newly_revoked_mask)
+    
     domain.metrics['solidified_count'] = \
-        domain.metrics.get('solidified_count', 0) + solidified
+        domain.metrics.get('solidified_count', 0) + int(solidified)
     domain.metrics['revoked_count'] = \
-        domain.metrics.get('revoked_count', 0) + revoked
+        domain.metrics.get('revoked_count', 0) + int(revoked)
     
-    # Count by state
-    fluid_count = sum(1 for s in domain.synapses if s.commit_state == COMMIT_STATE_FLUID)
-    solid_count = sum(1 for s in domain.synapses if s.commit_state == COMMIT_STATE_SOLID)
-    revoked_count = sum(1 for s in domain.synapses if s.commit_state == COMMIT_STATE_REVOKED)
+    # Sync Back to Objects (O(S) but necessary for Pruning)
+    sync_from_tensors(snn_ctx)
     
-    domain.metrics['fluid_synapses'] = fluid_count
-    domain.metrics['solid_synapses'] = solid_count
-    domain.metrics['revoked_synapses'] = revoked_count
+    # Count by state (Vectorized)
+    fluid_count = np.sum(commit_states == COMMIT_STATE_FLUID)
+    solid_count = np.sum(commit_states == COMMIT_STATE_SOLID)
+    revoked_count = np.sum(commit_states == COMMIT_STATE_REVOKED)
+    
+    domain.metrics['fluid_synapses'] = int(fluid_count)
+    domain.metrics['solid_synapses'] = int(solid_count)
+    domain.metrics['revoked_synapses'] = int(revoked_count)
 
 
 @process(

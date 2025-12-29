@@ -9,7 +9,7 @@ Date: 2025-12-25
 import numpy as np
 from dataclasses import dataclass, field
 from typing import Dict, List, Any
-from theus import BaseGlobalContext, BaseDomainContext, BaseSystemContext
+from theus.context import BaseGlobalContext, BaseDomainContext, BaseSystemContext
 
 
 # ============================================================================
@@ -404,6 +404,33 @@ def ensure_tensors_initialized(ctx: SNNSystemContext):
     # keep them in sync.
     # "Load" step says: Sync Objects -> Tensors.
     
+    # NEW: Add STDP traces tensor
+    if 'traces' not in domain.tensors:
+        domain.tensors['traces'] = np.zeros((N, N), dtype=np.float32)
+        # Sync from synapses
+        for syn in domain.synapses:
+            if syn.pre_neuron_id < N and syn.post_neuron_id < N:
+                domain.tensors['traces'][syn.pre_neuron_id, syn.post_neuron_id] = syn.trace
+    
+    # NEW: Add fitness tensor (for Neural Darwinism)
+    if 'fitnesses' not in domain.tensors:
+        domain.tensors['fitnesses'] = np.zeros((N, N), dtype=np.float32)
+        for syn in domain.synapses:
+            if syn.pre_neuron_id < N and syn.post_neuron_id < N:
+                domain.tensors['fitnesses'][syn.pre_neuron_id, syn.post_neuron_id] = syn.fitness
+
+    # NEW (Phase 7): Commitment Tensors
+    if 'commit_states' not in domain.tensors:
+        domain.tensors['commit_states'] = np.zeros((N, N), dtype=np.int8)
+        domain.tensors['consecutive_correct'] = np.zeros((N, N), dtype=np.int16)
+        domain.tensors['consecutive_wrong'] = np.zeros((N, N), dtype=np.int16)
+        
+        for syn in domain.synapses:
+            if syn.pre_neuron_id < N and syn.post_neuron_id < N:
+                domain.tensors['commit_states'][syn.pre_neuron_id, syn.post_neuron_id] = syn.commit_state
+                domain.tensors['consecutive_correct'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_correct
+                domain.tensors['consecutive_wrong'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_wrong
+
     # FULL SYNC (Objects -> Tensors)
     sync_to_tensors(ctx)
 
@@ -416,30 +443,40 @@ def sync_to_tensors(ctx: SNNSystemContext):
     N = len(neurons)
     if N == 0: return
 
-    # 1. Potentials & Last Fire Times
-    pots = np.array([n.potential for n in neurons], dtype=np.float32)
-    domain.tensors['potentials'] = pots
-    lfts = np.array([n.last_fire_time for n in neurons], dtype=np.int32)
-    domain.tensors['last_fire_times'] = lfts
+    # 1. Potentials & Last Fire Times & Thresholds (Vectorized Sync)
+    # Optimized: Use list comprehension is faster than direct loop for small objects
+    domain.tensors['potentials'] = np.array([n.potential for n in neurons], dtype=np.float32)
+    domain.tensors['last_fire_times'] = np.array([n.last_fire_time for n in neurons], dtype=np.int32)
+    domain.tensors['thresholds'] = np.array([n.threshold for n in neurons], dtype=np.float32)
     
-    # 2. Weights (Expensive! But needed if STDP changed weights)
-    # Using existing tensor buffer to avoid reallocation if possible, but simplest is re-create.
-    weights = np.zeros((N, N), dtype=np.float32)
-    for s in domain.synapses:
-        if s.pre_neuron_id < N and s.post_neuron_id < N:
-             weights[s.pre_neuron_id, s.post_neuron_id] = s.weight
-    domain.tensors['weights'] = weights
+    # 2. Weights (Expensive! Only sync if missing to avoid O(S) loop)
+    # We assume weights are primarily updated via Tensors (STDP) or valid if present.
+    if 'weights' not in domain.tensors:
+        weights = np.zeros((N, N), dtype=np.float32)
+        for s in domain.synapses:
+             if s.pre_neuron_id < N and s.post_neuron_id < N:
+                  weights[s.pre_neuron_id, s.post_neuron_id] = s.weight
+        domain.tensors['weights'] = weights
     
     # 3. Prototypes & Potential Vectors
-    D = neurons[0].vector_dim
-    # prototypes = np.zeros((N, D), dtype=np.float32)
-    # pot_vecs = np.zeros((N, D), dtype=np.float32)
-    # Optimized:
-    prototypes = np.array([n.prototype_vector for n in neurons], dtype=np.float32)
-    pot_vecs = np.array([n.potential_vector for n in neurons], dtype=np.float32)
-    
-    domain.tensors['prototypes'] = prototypes
-    domain.tensors['potential_vectors'] = pot_vecs
+    domain.tensors['prototypes'] = np.array([n.prototype_vector for n in neurons], dtype=np.float32)
+    domain.tensors['potential_vectors'] = np.array([n.potential_vector for n in neurons], dtype=np.float32)
+
+    # 4. Traces & Fitness (Avoid allocations if possible)
+    # Check if tensors exist, otherwise create them. 
+    # NOTE: Re-creating from scratch is O(S), ideally we assume tensors are authoritative during RUN.
+    # But if objects are authoritative (e.g. after Load), we need to sync.
+    # For now, we only sync if missing or explicitly triggered (this function is called explicitly).
+    if 'traces' not in domain.tensors: 
+        ensure_tensors_initialized(ctx) # Logic matches ensure_tensors
+    else:
+        # If tensors exist, we do NOT perform full sync from objects every step.
+        # This function is meant for "Force Sync" or "Initialization".
+        # During runtime loop, we trust tensors.
+        pass
+
+    # 5. Connectome Metadata (Phase 7)
+    # Similar to weights, usually static structure unless Darwinism runs.
 
 
 def sync_from_tensors(ctx: SNNSystemContext):
@@ -454,9 +491,11 @@ def sync_from_tensors(ctx: SNNSystemContext):
     pots = domain.tensors['potentials']
     lfts = domain.tensors.get('last_fire_times', [])
     pvecs = domain.tensors.get('potential_vectors', [])
+    thresholds = domain.tensors.get('thresholds', [])
     
     check_lft = len(lfts) > 0
     check_pvec = len(pvecs) > 0
+    check_thresh = len(thresholds) > 0
     
     # 1. Sync State Variables
     for i, neuron in enumerate(domain.neurons):
@@ -471,7 +510,36 @@ def sync_from_tensors(ctx: SNNSystemContext):
         if check_pvec:
              # COPY values, don't just assign reference if pvecs[i] is a view
              neuron.potential_vector[:] = pvecs[i]
+
+        # Update Thresholds (Phase 7: Homeostasis/Hysteria)
+        if check_thresh:
+            neuron.threshold = float(thresholds[i])
         
     # NOTE: We do NOT sync weights back yet because Vectorized STDP is not implemented.
     # If we vectorized STDP, we would sync weights back to domain.synapses.
-
+    
+    # NEW: Sync Traces & Fitness & Commitment Back (Partial Sync if they exist)
+    if 'commit_states' in domain.tensors:
+         traces = domain.tensors.get('traces')
+         fitnesses = domain.tensors.get('fitnesses')
+         
+         # Commitment Tensors
+         commit_states = domain.tensors.get('commit_states')
+         consecutive_correct = domain.tensors.get('consecutive_correct')
+         consecutive_wrong = domain.tensors.get('consecutive_wrong')
+         
+         N = len(domain.neurons)
+         
+         for synapse in domain.synapses:
+             if synapse.pre_neuron_id < N and synapse.post_neuron_id < N:
+                 u, v = synapse.pre_neuron_id, synapse.post_neuron_id
+                 
+                 if traces is not None:
+                     synapse.trace = float(traces[u, v])
+                 if fitnesses is not None:
+                     synapse.fitness = float(fitnesses[u, v])
+                     
+                 if commit_states is not None:
+                     synapse.commit_state = int(commit_states[u, v])
+                     synapse.consecutive_correct = int(consecutive_correct[u, v])
+                     synapse.consecutive_wrong = int(consecutive_wrong[u, v])

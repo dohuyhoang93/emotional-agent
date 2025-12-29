@@ -9,7 +9,7 @@ Author: Do Huy Hoang
 Date: 2025-12-25
 """
 import torch
-from theus import process
+from theus.contracts import process
 from src.core.context import SystemContext
 
 # NOTE: Functions `calculate_emotions`, `modulate_attention` etc. 

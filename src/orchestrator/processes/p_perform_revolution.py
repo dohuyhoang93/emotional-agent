@@ -1,4 +1,4 @@
-from theus import process
+from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log
 from src.processes.snn_advanced_features_theus import process_revolution_protocol

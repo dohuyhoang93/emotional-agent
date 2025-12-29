@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 import pandas as pd
-from theus import BaseGlobalContext, BaseDomainContext, BaseSystemContext
+from theus.context import BaseGlobalContext, BaseDomainContext, BaseSystemContext
 
 @dataclass
 class ExperimentRun:

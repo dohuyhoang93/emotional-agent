@@ -7,8 +7,8 @@ Author: Do Huy Hoang
 Date: 2025-12-25
 """
 import numpy as np
-from theus import process
-from src.core.snn_context_theus import SNNSystemContext
+from theus.contracts import process
+from src.core.snn_context_theus import SNNSystemContext, ensure_tensors_initialized, sync_from_tensors
 
 
 @process(
@@ -19,27 +19,24 @@ from src.core.snn_context_theus import SNNSystemContext
         'global_ctx.target_fire_rate',
         'global_ctx.homeostasis_rate',
         'global_ctx.threshold_min',
-        'global_ctx.threshold_max'
+        'global_ctx.threshold_max',
+        'domain_ctx.tensors' # NEW
     ],
     outputs=[
-        'domain_ctx.neurons'  # threshold updated
+        'domain_ctx.neurons',  # threshold updated
+        'domain_ctx.tensors'   # NEW
     ],
     side_effects=[]
 )
 def process_homeostasis(ctx: SNNSystemContext):
     """
-    Quy trình Homeostasis thường - điều chỉnh threshold.
+    Quy trình Homeostasis thường - điều chỉnh threshold (VECTORIZED).
     
     Mục tiêu: Duy trì fire rate gần target_fire_rate.
     
     Logic:
     - Fire rate cao → Tăng threshold (khó bắn hơn)
     - Fire rate thấp → Giảm threshold (dễ bắn hơn)
-    
-    Theus sẽ audit:
-    - target_fire_rate trong range [0.001, 0.1]
-    - homeostasis_rate trong range [0.00001, 0.01]
-    - fire_rate trong range [0, 1]
     """
     domain = ctx.domain_ctx
     global_ctx = ctx.global_ctx
@@ -51,18 +48,24 @@ def process_homeostasis(ctx: SNNSystemContext):
     # Tính error
     error = current_fire_rate - target_fire_rate
     
-    # Điều chỉnh threshold cho tất cả neurons
-    for neuron in domain.neurons:
-        # Fire rate cao → Tăng threshold
-        # Fire rate thấp → Giảm threshold
-        neuron.threshold += error * homeostasis_rate
-        
-        # Clamp trong range hợp lý
-        neuron.threshold = np.clip(
-            neuron.threshold,
-            global_ctx.threshold_min,
-            global_ctx.threshold_max
-        )
+    # === VECTORIZED UPDATE ===
+    # 1. Ensure tensors exist
+    ensure_tensors_initialized(ctx)
+    t = domain.tensors
+    
+    # 2. Vectorized calculation
+    t['thresholds'] += error * homeostasis_rate
+    
+    # 3. Clip
+    np.clip(
+        t['thresholds'],
+        global_ctx.threshold_min,
+        global_ctx.threshold_max,
+        out=t['thresholds'] # Update in-place
+    )
+    
+    # 4. Sync back to objects (Risk #9 Mitigation)
+    sync_from_tensors(ctx)
 
 
 def pid_controller_with_antiwindup(
@@ -76,16 +79,6 @@ def pid_controller_with_antiwindup(
 ) -> float:
     """
     PID Controller với anti-windup.
-    
-    Args:
-        error: Error hiện tại
-        kp, ki, kd: PID gains
-        state: Dict chứa error_integral, error_prev
-        max_integral: Max giá trị integral (clamping)
-        max_output: Max output (saturation)
-    
-    Returns:
-        PID output (bounded)
     """
     # Proportional
     p_term = kp * error
@@ -131,18 +124,20 @@ def pid_controller_with_antiwindup(
         'domain.snn_context.global_ctx.pid_max_output',
         'domain.snn_context.global_ctx.pid_scale_factor',
         'domain.snn_context.global_ctx.threshold_min',
-        'domain.snn_context.global_ctx.threshold_max'
+        'domain.snn_context.global_ctx.threshold_max',
+        'domain.snn_context.domain_ctx.tensors' # NEW
     ],
     outputs=[
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.pid_state',
-        'domain.snn_context.domain_ctx.metrics'
+        'domain.snn_context.domain_ctx.metrics',
+        'domain.snn_context.domain_ctx.tensors' # NEW
     ],
     side_effects=[]
 )
 def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
     """
-    Quy trình Meta-Homeostasis với PID anti-windup (FIXED VERSION).
+    Quy trình Meta-Homeostasis với PID anti-windup (VECTORIZED).
     """
     # Handle context nesting (RL -> SNN)
     if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
@@ -151,6 +146,7 @@ def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
         global_ctx = snn_ctx.global_ctx
     else:
         # Standalone SNN context
+        snn_ctx = ctx
         domain = ctx.domain_ctx
         global_ctx = ctx.global_ctx
     
@@ -171,15 +167,25 @@ def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
         max_output=global_ctx.pid_max_output
     )
     
-    # Áp dụng điều chỉnh cho tất cả neurons
-    for neuron in domain.neurons:
-        # NOTE: Giảm threshold khi fire_rate thấp (error > 0)
-        neuron.threshold -= threshold_adjustment * global_ctx.pid_scale_factor
-        neuron.threshold = np.clip(
-            neuron.threshold,
-            global_ctx.threshold_min,
-            global_ctx.threshold_max
-        )
+    # === VECTORIZED UPDATE ===
+    # 1. Ensure tensors
+    ensure_tensors_initialized(snn_ctx)
+    t = domain.tensors
+
+    # 2. Vectorized Update
+    # NOTE: Giảm threshold khi fire_rate thấp (error > 0)
+    t['thresholds'] -= threshold_adjustment * global_ctx.pid_scale_factor
+    
+    # 3. Clip
+    np.clip(
+         t['thresholds'],
+         global_ctx.threshold_min,
+         global_ctx.threshold_max,
+         out=t['thresholds']
+    )
+    
+    # 4. Sync back
+    sync_from_tensors(snn_ctx)
     
     # Cập nhật metrics để audit
     domain.metrics['meta_threshold_adj'] = threshold_adjustment

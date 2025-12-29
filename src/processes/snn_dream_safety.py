@@ -6,7 +6,7 @@ Processes for ensuring stability and coherence during Dream state.
 Author: Theus Agent
 Date: 2025-12-27
 """
-from theus import process
+from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(

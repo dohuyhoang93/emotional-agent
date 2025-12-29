@@ -5,7 +5,14 @@
 ## 4.1 Downstream: Environment to Intuition (`RL -> SNN`)
 **Process**: `encode_state_to_spikes`
 
-The SNN needs to "feel" what the agent sees.
+**Strategic Design Choice: "Blind RL, Sighted SNN"**
+The architecture intentionally splits sensory input to force reliance on emotional processing:
+*   **RL Agent ("The Rational Mind")**: Receives a **5-dimensional sliced vector** (Position, Step Count). It is effectively **"Blind"** to walls, gates, and switches.
+*   **SNN ("The Intuitive Brain")**: Receives the **Full 16-dimensional vector** (including Proximity Sensors, Auditory signals).
+
+**Implication**: The RL Agent *cannot* solve the maze purely by rational observation of its input. It **MUST** rely on the `snn_emotion_vector` (which encodes the SNN's reaction to walls/dangers) to navigate. This proves the system's "Emotional Intelligence."
+
+**Mechanism**:
 1.  **Input**: `current_observation` (16-dim vector from sensors).
 2.  **Action**: Direct Injection.
     *   The system takes the first 16 neurons (Input Layer).

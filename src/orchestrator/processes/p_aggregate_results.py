@@ -1,13 +1,13 @@
 import json
 import os
-from theus import process
+from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log, log_error
 
 @process(
     inputs=['domain.experiments', 'log_level', 'domain.output_dir'],
     outputs=['domain.experiments'],
-    side_effects=['filesystem.read'],
+    side_effects=['filesystem.read', 'filesystem.write'],
     errors=['json.JSONDecodeError']
 )
 def aggregate_results(ctx: OrchestratorSystemContext):
@@ -80,6 +80,21 @@ def aggregate_results(ctx: OrchestratorSystemContext):
             # Store as list of dicts (easier to work with than DataFrame for JSON data)
             exp_def.aggregated_data = all_runs_metrics
             log(ctx, "info", f"    [Experiment: {exp_def.name}] Aggregated data for {len(exp_def.list_of_runs)} runs, {len(all_runs_metrics)} episodes total.")
+            
+            # === LEGACY SUPPORT: RAW CSV DUMP ===
+            try:
+                import pandas as pd
+                df = pd.DataFrame(all_runs_metrics)
+                csv_filename = f"{exp_def.name}_aggregated.csv"
+                csv_path = os.path.join(domain.output_dir, csv_filename)
+                df.to_csv(csv_path, index=False)
+                log(ctx, "info", f"    [Legacy] Dumped raw data to {csv_path}")
+            except ImportError:
+                 log(ctx, "info", "    [Legacy] Pandas not installed, skipping CSV dump.")
+            except Exception as e:
+                 log_error(ctx, f"    [Legacy] Failed to dump CSV: {e}")
+            # ====================================
+            
         else:
             log(ctx, "info", f"    [Experiment: {exp_def.name}] No data to aggregate.")
             exp_def.aggregated_data = []

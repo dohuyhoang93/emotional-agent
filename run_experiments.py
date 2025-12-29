@@ -2,7 +2,7 @@ import argparse
 import sys
 import os
 
-from theus import TheusEngine
+from theus.engine import TheusEngine
 from src.orchestrator.context import (
     OrchestratorGlobalContext, 
     OrchestratorDomainContext, 
@@ -58,13 +58,41 @@ def main(argv=None):
     
     system_ctx = OrchestratorSystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)
 
+    # 1.5. Configure Logging & Audit
+    import logging
+    from theus.config import ConfigFactory
+    
+    # Configure logging to file for Audit Review
+    logging.basicConfig(
+        filename='audit.log',
+        filemode='w',
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        level=logging.INFO
+    )
+    
+    # Load Audit Recipe
+    audit_recipe = None
+    if os.path.exists("specs/snn_audit_recipe.yaml"):
+        try:
+            log(global_ctx, "info", "✅ Loading SNN Audit Recipe...")
+            audit_recipe = ConfigFactory.load_recipe("specs/snn_audit_recipe.yaml")
+        except Exception as e:
+            log_error(global_ctx, f"Failed to load Audit Recipe: {e}")
+
     # 2. Initialize Engine
     # Note: Orchestrator might arguably NOT use strict mode if it just does IO, 
     # but for V2 compliance we enable it.
-    engine = TheusEngine(system_ctx, strict_mode=True)
+    engine = TheusEngine(
+        system_ctx, 
+        strict_mode=True,
+        audit_recipe=audit_recipe # Inject Recipe
+    )
     
     # 3. Auto-Discovery
     engine.scan_and_register("src/orchestrator/processes")
+    # Also register SNN processes (they reside in src/processes)
+    # Orchestrator usually loads them via imports in workflows, but Engine needs registry.
+    engine.scan_and_register("src/processes")
     
     log(system_ctx, "info", "--- STARTING ORCHESTRATION WORKFLOW (POP) ---")
     
@@ -74,12 +102,6 @@ def main(argv=None):
         engine.execute_workflow("workflows/orchestrator.yaml")
         
         # Check Final Report
-        if "LỖI" in system_ctx.domain_ctx.final_report:
-             log_error(system_ctx, "Workflow finished with errors reported.")
-             sys.exit(1)
-             
-        log(system_ctx, "info", "--- ORCHESTRATION FINISHED ---")
-        return system_ctx
         if "LỖI" in system_ctx.domain_ctx.final_report:
              log_error(system_ctx, "Workflow finished with errors reported.")
              sys.exit(1)

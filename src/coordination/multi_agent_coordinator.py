@@ -92,12 +92,17 @@ class MultiAgentCoordinator:
                     action = agent.step(env_adapter)
                     
                     # Execute action in environment
-                    # NOTE: This is simplified - actual implementation
-                    # would handle multi-agent actions properly
                     reward = env.perform_action(i, self._action_to_string(action))
                     
-                    # Feed reward back to agent (Phase 16 Fix)
+                    # Feed reward back to agent
                     agent.observe_reward(reward)
+                    
+                    # NEW: Check Goal Achievement explicitly
+                    if tuple(env.agent_positions[i]) == env.goal_pos:
+                        if not agent.episode_metrics.get('success', False):
+                             print(f"\n🏆 SUCCESS: Agent {i} Reached Goal at Step {step_count}!")
+                             agent.episode_metrics['success'] = True
+                             agent.episode_metrics['steps_to_goal'] = step_count
                     
                 except Exception as e:
                     import traceback
@@ -109,10 +114,7 @@ class MultiAgentCoordinator:
             env.current_step += 1
             step_count += 1
             
-            # if step_count % 10 == 0:
-            #     print(f"   ... Step {step_count}/{max_steps}")
-            
-            # Check if any agent reached goal
+            # Check Global Done
             if env.is_done():
                 break
         
@@ -121,12 +123,7 @@ class MultiAgentCoordinator:
         self.episode_count += 1
         
         return self.get_episode_metrics()
-    
-    def _action_to_string(self, action: int) -> str:
-        """Convert action index to string."""
-        actions = ['up', 'down', 'left', 'right']
-        return actions[action] if 0 <= action < 4 else 'up'
-    
+
     def _collect_population_metrics(self):
         """Collect metrics from all agents."""
         total_reward = sum(
@@ -135,20 +132,38 @@ class MultiAgentCoordinator:
         )
         avg_reward = total_reward / self.num_agents
         
+        # New: Collect success count
+        success_count = sum(
+            1 for agent in self.agents if agent.episode_metrics.get('success', False)
+        )
+        success_rate = success_count / self.num_agents
+        
+        # Store tuple or dict in history?
+        # Current code assumes float list. Let's make it robust or separate list.
+        # To avoid breaking existing code, assume population_performance is avg_reward.
+        # We'll add a new list for success_rates if needed, or just return it in get_episode_metrics.
+        
         self.population_performance.append(avg_reward)
-    
+        self.last_success_rate = success_rate # Store for immediate retrieval
+
     def get_episode_metrics(self) -> Dict[str, Any]:
         """Get metrics for last episode."""
         if not self.population_performance:
             return {}
         
+        # Calculate success details
+        successes = [agent.episode_metrics.get('success', False) for agent in self.agents]
+        success_rate = sum(successes) / len(successes) if successes else 0.0
+        
         return {
             'episode': self.episode_count,
             'avg_reward': self.population_performance[-1],
+            'success_rate': success_rate,
             'agent_rewards': [
                 agent.episode_metrics['total_reward']
                 for agent in self.agents
-            ]
+            ],
+            'agent_success': successes
         }
     
     def get_population_metrics(self) -> Dict[str, Any]:

@@ -8,7 +8,7 @@ Date: 2025-12-25
 """
 import numpy as np
 import torch
-from theus import process
+from theus.contracts import process
 from src.core.context import SystemContext
 from src.models.gated_integration import GatedIntegrationNetwork
 from typing import Dict, Any

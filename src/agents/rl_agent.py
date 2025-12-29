@@ -10,7 +10,7 @@ import numpy as np
 import torch
 from typing import Dict, Any, Optional
 
-from theus import TheusEngine
+from theus.engine import TheusEngine
 from src.core.context import GlobalContext, DomainContext, SystemContext
 from src.core.snn_context_theus import (
     create_snn_context_theus,
@@ -321,7 +321,9 @@ class RLAgent:
                 'total_reward': 0.0,
                 'intrinsic_reward_total': 0.0,
                 'extrinsic_reward_total': 0.0,
-                'steps': 0
+                'steps': 0,
+                'success': False,
+                'steps_to_goal': None
             }
     
     def step(self, env_adapter: EnvironmentAdapter) -> int:

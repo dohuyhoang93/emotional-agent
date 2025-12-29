@@ -1,6 +1,6 @@
 from typing import List
 import numpy as np
-from theus import process
+from theus.contracts import process
 from src.core.context import SystemContext, DomainContext
 
 def _is_stagnated(domain: DomainContext, stagnation_threshold: int = 50) -> bool:

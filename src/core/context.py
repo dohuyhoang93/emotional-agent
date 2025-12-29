@@ -5,7 +5,7 @@ import os
 from dataclasses import dataclass, field
 
 # THEUS V2 SDK Migration
-from theus import BaseGlobalContext, BaseDomainContext, BaseSystemContext
+from theus.context import BaseGlobalContext, BaseDomainContext, BaseSystemContext
 
 @dataclass
 class GlobalContext(BaseGlobalContext):
