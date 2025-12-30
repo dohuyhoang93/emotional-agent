@@ -40,61 +40,46 @@ class RLAgent:
     
     def __init__(
         self,
-        agent_id: int,
-        global_ctx: GlobalContext,
-        snn_global_ctx: SNNGlobalContext,
+        rl_ctx: SystemContext,
+        engine: TheusEngine,
         audit_recipe: Optional[Any] = None
     ):
         """
         Initialize RL Agent.
         
         Args:
-            agent_id: Agent ID
-            global_ctx: RL global context
-            snn_global_ctx: SNN global context
-            audit_recipe: Theus audit recipe (optional)
+            rl_ctx: Theus SystemContext (Global + Domain)
+            engine: Configured TheusEngine
+            audit_recipe: Audit recipe (optional)
         """
-        self.agent_id = agent_id
+        self.engine = engine
+        self.rl_ctx = rl_ctx
+        self.global_ctx = rl_ctx.global_ctx
+        self.agent_id = rl_ctx.domain_ctx.agent_id
         
-        # RL Components
-        self.global_ctx = global_ctx
-        self.domain_ctx = DomainContext(
-            N_vector=torch.tensor(global_ctx.initial_needs),
-            E_vector=torch.tensor(global_ctx.initial_emotions),
-            believed_switch_states={
-                slug: False for slug in global_ctx.switch_locations.keys()
-            },
-            q_table={},
-            short_term_memory=[],
-            long_term_memory={},
-            base_exploration_rate=global_ctx.initial_exploration_rate,
-            current_exploration_rate=global_ctx.initial_exploration_rate
-        )
-        self.rl_ctx = SystemContext(
-            global_ctx=global_ctx,
-            domain_ctx=self.domain_ctx
-        )
+        # SNN Context (Link via Domain)
+        # Assuming rl_ctx.domain_ctx.snn_context is initialized by Caller or empty?
+        # In current logic, RLAgent inits SNN Context. 
+        # Domain Context is now in rl_ctx.domain_ctx
+        self.domain_ctx = rl_ctx.domain_ctx
+        
         
         # SNN Components
-        self.snn_ctx = create_snn_context_theus(
-            num_neurons=snn_global_ctx.num_neurons,
-            connectivity=snn_global_ctx.connectivity,
-            vector_dim=snn_global_ctx.vector_dim,
-            seed=snn_global_ctx.seed
-        )
-        
-        # Link SNN to RL context
-        self.domain_ctx.snn_context = self.snn_ctx
+        # Expecting SNN Context to be injected via Domain Context
+        self.snn_ctx = self.domain_ctx.snn_context
+        if self.snn_ctx is None:
+             raise ValueError("RLAgent requires an injected snn_context in domain_ctx")
         
         # Gated Integration Network
-        # obs_dim: (x, y, step_count, norm_x, norm_y)
-        obs_dim = 5
-        emotion_dim = 16  # SNN emotion vector
-        hidden_dim = 64
-        # Phase 11b: Expanded Action Space (8 actions)
-        # 0-3: Move UP/DOWN/LEFT/RIGHT + EXCITE (Focus)
-        # 4-7: Move UP/DOWN/LEFT/RIGHT + INHIBIT (Ignore)
-        action_dim = 8 
+        # Gated Integration Network
+        # Configuration from GlobalContext (Phase 2)
+        model_cfg = getattr(self.global_ctx, 'model_config', {})
+        
+        obs_dim = model_cfg.get('obs_dim', 5)
+        emotion_dim = model_cfg.get('emotion_dim', 16)
+        hidden_dim = model_cfg.get('hidden_dim', 64)
+        action_dim = model_cfg.get('action_dim', 8)
+        gated_lr = model_cfg.get('gated_lr', 0.001)
         
         self.gated_network = GatedIntegrationNetwork(
             obs_dim=obs_dim,
@@ -104,12 +89,13 @@ class RLAgent:
         )
         self.optimizer = torch.optim.Adam(
             self.gated_network.parameters(),
-            lr=0.001
+            lr=gated_lr
         )
         
-        # Inject into Domain Context for processes
-        self.domain_ctx.gated_network = self.gated_network
-        self.domain_ctx.gated_optimizer = self.optimizer
+        # Link state to Domain Context (Safe Mutation)
+        with self.engine.edit():
+            self.domain_ctx.gated_network = self.gated_network
+            self.domain_ctx.gated_optimizer = self.optimizer
         
         
         
@@ -118,36 +104,29 @@ class RLAgent:
         from theus.config import AuditRecipe
         import yaml
         import os
-        
-        # Ensure strict audit is used if none provided
+        # Loading Audit Recipe (Phase 13)
+        # Using self.agent_id since agent_id arg is removed
         if audit_recipe is None:
-            recipe_path = "specs/snn_audit_recipe.yaml"
-            if os.path.exists(recipe_path):
-                try:
-                    with open(recipe_path, "r", encoding='utf-8') as f:
-                        recipe_dict = yaml.safe_load(f)
-                    audit_recipe = AuditRecipe(recipe_dict)
-                    print(f"✅ RLAgent {agent_id}: Loaded Audit Recipe from {recipe_path}")
-                except Exception as e:
-                    print(f"⚠️ Failed to load Audit Recipe: {e}")
+             # Try load from file based on Agent ID
+             try:
+                 import json
+                 recipe_path = f"audit_recipes/agent_{self.agent_id}.json"
+                 if os.path.exists(recipe_path):
+                     with open(recipe_path, 'r') as f:
+                         recipe_dict = json.load(f)
+                     audit_recipe = AuditRecipe(recipe_dict)
+                     print(f"✅ RLAgent {self.agent_id}: Loaded Audit Recipe from {recipe_path}")
+             except Exception as e:
+                 print(f"⚠️ Failed to load Audit Recipe: {e}")
 
-        # Theus Engine
-        self.engine = TheusEngine(
-            self.rl_ctx,
-            audit_recipe=audit_recipe,
-            strict_mode=True
-        )
+        # Theus Engine (Injected) already assigned self.engine = engine
         
-        # Auto-discover processes (use absolute path)
-        import os
-        processes_dir = os.path.join(
-            os.path.dirname(os.path.dirname(__file__)),
-            'processes'
-        )
-        self.engine.scan_and_register(processes_dir)
+        # Verify Engine is scanned (Optional safety check)
+        # engine.scan_and_register(...) is responsibility of the caller
         
         # Register manual aliases (overrides scan if colliding, or adds new aliases)
-        self._register_all_processes()
+        # Scan and Register is sufficient
+        # self._register_all_processes()
         
         # Metrics
         self.episode_metrics = {
@@ -160,15 +139,15 @@ class RLAgent:
         # Phase 14: Sleep & Dream
         self.is_sleeping = False
         
-        # Recorder (Phase 15: Monitoring)
-        self.recorder = None
-        if getattr(global_ctx, 'enable_recorder', False):
-            import os
-            self.recorder = SNNRecorder(
-                agent_id=agent_id,
+        # Recorder (Feature Flag in GlobalContext)
+        if getattr(self.global_ctx, 'enable_recorder', False):
+             self.recorder = SNNRecorder(
+                agent_id=self.agent_id,
                 output_dir=os.path.join("results", "recordings"), # Default dir, orchestrator might override
                 buffer_size=1000
             )
+        else:
+             self.recorder = None
     
     # Phase 14: Sleep & Dream
     # ==========================
@@ -193,108 +172,8 @@ class RLAgent:
         # Execute Dream Workflow YAML
         self.engine.execute_workflow("workflows/agent_dream.yaml")
     
-    def _register_all_processes(self):
-        """Register tất cả processes manually."""
-        # Import processes
-        from src.processes.snn_rl_bridge import (
-            encode_state_to_spikes,
-            encode_emotion_vector,
-            compute_intrinsic_reward_snn,
-            modulate_snn_attention,
-            restore_snn_attention
-        )
-        from src.processes.rl_processes import (
-            select_action_gated,
-            update_q_learning
-        )
-        from src.processes.rl_snn_integration import (
-            combine_rewards,
-            execute_action_with_env
-        )
-        from src.processes.snn_core_theus import (
-            process_integrate,
-            process_fire
-        )
-        from src.processes.snn_learning_theus import (
-            process_clustering
-        )
-        from src.processes.snn_learning_3factor_theus import (
-            process_stdp_3factor
-        )
-        from src.processes.snn_commitment_theus import (
-            process_commitment
-        )
-        from src.processes.snn_homeostasis_theus import (
-            process_homeostasis,
-            process_meta_homeostasis_fixed
-        )
-        from src.processes.snn_advanced_features_theus import (
-            process_hysteria_dampener,
-            process_lateral_inhibition,
-            process_neural_darwinism
-        )
-        # Phase 11: Safety
-        from src.processes.snn_safety_theus import monitor_safety_triggers
-        
-        from src.processes.snn_resync_theus import (
-            process_periodic_resync
-        )
-        # Phase 13: Semantic Dream
-        from src.processes.p_dream_decoder import process_decode_dream
-        from src.processes.p_dream_validator import process_validate_and_reward
-        
-        # Register SNN-RL bridge
-        self.engine.register_process('encode_state_to_spikes', encode_state_to_spikes)
-        self.engine.register_process('encode_emotion_vector', encode_emotion_vector)
-        self.engine.register_process('compute_intrinsic_reward_snn', compute_intrinsic_reward_snn)
-        self.engine.register_process('modulate_snn_attention', modulate_snn_attention)
-        self.engine.register_process('restore_snn_attention', restore_snn_attention)
-        
-        # Register RL processes
-        self.engine.register_process('select_action_gated', select_action_gated)
-        self.engine.register_process('update_q_learning', update_q_learning)
-        
-        # Register RL-SNN integration
-        self.engine.register_process('combine_rewards', combine_rewards)
-        self.engine.register_process('execute_action_with_env', execute_action_with_env)
-        
-        # Core SNN
-        from src.processes.snn_core_theus import process_integrate, process_fire
-        from src.processes.snn_learning_3factor_theus import process_stdp_3factor
-        
-        # Legacy/Std STDP might be in snn_learning_theus.py or similar, but for now we use 3factor
-        # If we need the basic 2-factor, we need to find it. 
-        # But 'process_stdp' was requested. Let's assume we use 3-factor as main driver.
-        from src.processes.snn_dream_safety import process_dream_coherence_reward
-        
-        self.engine.register_process('process_integrate', process_integrate)
-        self.engine.register_process('process_fire', process_fire)
-        # self.engine.register_process('process_stdp', process_stdp) # Removing legacy for now unless found
-        # self.engine.register_process('process_decay', process_decay) # Handled in Integrate
-        self.engine.register_process('snn_clustering', process_clustering)
-        self.engine.register_process('snn_stdp_3factor', process_stdp_3factor)
-        self.engine.register_process('process_commitment', process_commitment)
-        self.engine.register_process('process_homeostasis', process_homeostasis)
-        self.engine.register_process('process_meta_homeostasis_fixed', process_meta_homeostasis_fixed)
-        self.engine.register_process('process_meta_homeostasis_fixed', process_meta_homeostasis_fixed)
-        self.engine.register_process('process_resync', process_periodic_resync)
-        
-        # Register Advanced Features (Phase 9-11)
-        self.engine.register_process('process_hysteria_dampener', process_hysteria_dampener)
-        self.engine.register_process('process_lateral_inhibition', process_lateral_inhibition)
-        self.engine.register_process('process_neural_darwinism', process_neural_darwinism)
-        self.engine.register_process('monitor_safety_triggers', monitor_safety_triggers)
-        # Phase 12.5: Ancestor Assimilation
-        from src.processes.snn_advanced_features_theus import process_assimilate_ancestor
-        self.engine.register_process('process_assimilate_ancestor', process_assimilate_ancestor)
-        
-        # Phase 14: Dream
-        from src.processes.snn_dream_processes import process_inject_dream_stimulus
-        self.engine.register_process('process_inject_dream_stimulus', process_inject_dream_stimulus)
-        
-        # Register Semester Dream (Phase 13)
-        self.engine.register_process('process_decode_dream', process_decode_dream)
-        self.engine.register_process('process_validate_and_reward', process_validate_and_reward)
+    # _register_all_processes removed (Refactoring Phase 1.3)
+    # Reliance on engine.scan_and_register('src/processes')
     
     def reset(self, observation: Dict[str, Any]):
         """

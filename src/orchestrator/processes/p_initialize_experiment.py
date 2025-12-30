@@ -72,6 +72,10 @@ class FSMExperimentRunner:
              global_ctx.initial_needs = self.config['needs']
         if 'emotions' in self.config and not global_ctx.initial_emotions:
              global_ctx.initial_emotions = self.config['emotions']
+             
+        # Phase 2: Inject centralized model config
+        if 'model_config' in self.config:
+            global_ctx.model_config = self.config['model_config']
         
         # Create SNN Global Context
         snn_config = self.config.get('snn_config', {})
@@ -97,20 +101,15 @@ class FSMExperimentRunner:
             def end_episode(self): pass
         self.perf_monitor = PerfMonitor()
         
-        # 5. Revolution (Activated)
-        from src.coordination.revolution_protocol import RevolutionProtocolManager
         
-        # Determine params from config
-        rev_threshold = config.get('revolution_threshold', 0.5)
-        rev_window = config.get('revolution_window', 10)
-        rev_elite = config.get('revolution_elite_ratio', 0.1)
-        
-        self.revolution = RevolutionProtocolManager(
-            coordinator=self.coordinator,
-            threshold=rev_threshold,
-            window=rev_window,
-            elite_ratio=rev_elite
-        )
+        # 5. Revolution Config Injection (Phase 1 Refactor)
+        # Move params from Experiment Config to SNN Global Context for Process access
+        if 'revolution_threshold' in config:
+            snn_global_ctx.revolution_threshold = config['revolution_threshold']
+        if 'revolution_window' in config:
+            snn_global_ctx.revolution_window = config['revolution_window']
+        if 'revolution_elite_ratio' in config:
+            snn_global_ctx.top_elite_percent = config['revolution_elite_ratio']
         
         # Agents are already initialized in Coordinator __init__
         # self.coordinator.initialize_agents()

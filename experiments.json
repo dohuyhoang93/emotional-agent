@@ -33,6 +33,13 @@
                 "darwinism_interval": 100,
                 "selection_pressure": 0.1,
                 "reproduction_rate": 0.05,
+                "model_config": {
+                    "obs_dim": 5,
+                    "emotion_dim": 16,
+                    "hidden_dim": 64,
+                    "action_dim": 8,
+                    "gated_lr": 0.001
+                },
                 "environment_config": {
                     "grid_size": 25,
                     "sleep_interval": 25,

@@ -9,8 +9,13 @@ Date: 2025-12-25
 import numpy as np
 from typing import List, Dict, Any
 from src.agents.rl_agent import RLAgent
-from src.core.context import GlobalContext
-from src.core.snn_context_theus import SNNGlobalContext
+from theus import TheusEngine
+from theus.config import AuditRecipe
+import os
+import torch
+import numpy as np
+from src.core.context import GlobalContext, DomainContext, SystemContext
+from src.core.snn_context_theus import SNNGlobalContext, create_snn_context_theus
 from src.adapters.environment_adapter import EnvironmentAdapter
 
 
@@ -45,11 +50,64 @@ class MultiAgentCoordinator:
         
         # Create agents
         self.agents: List[RLAgent] = []
+        # Shared Engine Configuration
+        # self.engine_factory = self._create_engine_factory(global_ctx) # Removed factory for inline logic
+
+        # Create agents
+        self.agents: List[RLAgent] = []
+        processes_dir = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            'processes'
+        )
+        
         for i in range(num_agents):
-            agent = RLAgent(
+            # 1. Create Domain Context
+            # Default values (similar to legacy RLAgent init)
+            domain_ctx = DomainContext(
                 agent_id=i,
+                position=global_ctx.start_positions[i] if hasattr(global_ctx, 'start_positions') and i < len(global_ctx.start_positions) else [0,0],
+                has_key=False,
+                is_at_goal=False,
+                last_action=-1,
+                emotion_state=np.zeros(16, dtype=np.float32),
+                N_vector=torch.tensor(global_ctx.initial_needs) if hasattr(global_ctx, 'initial_needs') else torch.zeros(2),
+                E_vector=torch.tensor(global_ctx.initial_emotions) if hasattr(global_ctx, 'initial_emotions') else torch.zeros(16),
+                
+                # Beliefs etc (defaults in dataclass are empty usually, but let's be explicit if needed)
+                believed_switch_states={slug: False for slug in getattr(global_ctx, 'switch_locations', {}).keys()},
+                
+                # ML params
+                base_exploration_rate=getattr(global_ctx, 'initial_exploration_rate', 1.0),
+                current_exploration_rate=getattr(global_ctx, 'initial_exploration_rate', 1.0)
+            )
+            
+            # 2. SNN Context
+            snn_ctx = create_snn_context_theus(
+                num_neurons=snn_global_ctx.num_neurons,
+                connectivity=snn_global_ctx.connectivity,
+                vector_dim=snn_global_ctx.vector_dim,
+                seed=snn_global_ctx.seed + i # Varied seed per agent? Or same? Usually varied.
+            )
+            domain_ctx.snn_context = snn_ctx
+            
+            # 3. System Context
+            system_ctx = SystemContext(
                 global_ctx=global_ctx,
-                snn_global_ctx=snn_global_ctx
+                domain_ctx=domain_ctx
+            )
+            
+            # 4. Engine
+            engine = TheusEngine(
+                system_ctx,
+                audit_recipe=None, # TODO: Load recipe?
+                strict_mode=True
+            )
+            engine.scan_and_register(processes_dir)
+            
+            # 5. Agent
+            agent = RLAgent(
+                rl_ctx=system_ctx,
+                engine=engine
             )
             self.agents.append(agent)
         
@@ -57,8 +115,8 @@ class MultiAgentCoordinator:
         self.population_performance: List[float] = []
         self.episode_count = 0
         
-        # Shared context for Revolution Protocol
-        self.ancestor_weights: np.ndarray = None
+        self.ancestor_weights: np.ndarray = None # Deprecated, use snn_global_ctx.domain_ctx.ancestor_weights
+
     
     def run_episode(self, env, env_adapter: EnvironmentAdapter):
         """
@@ -142,6 +200,17 @@ class MultiAgentCoordinator:
         # Current code assumes float list. Let's make it robust or separate list.
         # To avoid breaking existing code, assume population_performance is avg_reward.
         # We'll add a new list for success_rates if needed, or just return it in get_episode_metrics.
+        
+        # Sync to SNN Global Context (Source of Truth for Revolution Protocol)
+        # Note: We append only if the process hasn't already (to avoid duplicates if process runs in loop)
+        # Actually, let the Coordinator be the one to push the metric.
+        if self.agents:
+             # Use Agent 0 as the "Leader" / Storage for Population State
+             # This allows the Revolution Process (running on Agent 0 context) to see history
+             leader_ctx = self.agents[0].snn_ctx.domain_ctx
+             if not hasattr(leader_ctx, 'population_performance'):
+                 leader_ctx.population_performance = []
+             leader_ctx.population_performance.append(avg_reward)
         
         self.population_performance.append(avg_reward)
         self.last_success_rate = success_rate # Store for immediate retrieval

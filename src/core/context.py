@@ -47,6 +47,10 @@ class GlobalContext(BaseGlobalContext):
     # --- Persistence & Monitoring (Phase 15) ---
     enable_recorder: bool = False
     checkpoint_freq: int = 50
+    
+    # --- Model Configuration (Phase 2) ---
+    # Centralized config for Model Params (Network dims, etc.)
+    model_config: Dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class DomainContext(BaseDomainContext):
@@ -54,6 +58,18 @@ class DomainContext(BaseDomainContext):
     Domain Context: Chứa trạng thái nghiệp vụ của hệ thống (Agent State).
     Đây là dữ liệu MUTABLE, nhưng chỉ được thay đổi bởi Process thông qua Contract.
     """
+
+    # --- Identification ---
+    agent_id: int = 0
+
+    # --- GridWorld State ---
+    position: List[int] = field(default_factory=lambda: [0, 0])
+    has_key: bool = False
+    is_at_goal: bool = False
+    last_action: int = -1
+    
+    # --- Emotion ---
+    emotion_state: Any = None # Numpy array (Legacy compat with RLAgent?)
 
     # --- Internal State (Vectors) ---
     N_vector: Optional[torch.Tensor] = None # Needs

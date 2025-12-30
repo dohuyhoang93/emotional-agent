@@ -5,6 +5,7 @@ from src.logger import log
 # Import granular processes
 from src.orchestrator.processes.p_initialize_experiment import initialize_active_experiment
 from src.orchestrator.processes.p_episode_runner import run_single_episode
+from src.processes.snn_social_learning_theus import process_social_learning_protocol
 
 @process(
     inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'log_level', 'domain.event_bus'],
@@ -44,6 +45,27 @@ def run_simulations(ctx: OrchestratorSystemContext):
         while runner.current_episode_count < total_episodes:
             # Run One Episode
             run_single_episode(ctx)
+            
+            # --- PHASE 1.2: Check Social Learning ---
+            social_freq = runner.config.get('social_learning_freq', 25)
+            # Use current count (which was incremented in run_single_episode)
+            # If current=25, 25%25==0. Run.
+            if runner.current_episode_count > 0 and runner.current_episode_count % social_freq == 0:
+                log(ctx, "info", f"Executing Social Learning at Episode {runner.current_episode_count}")
+                
+                # Prepare Args
+                if runner.coordinator.agents:
+                    rankings = runner.coordinator.get_agent_rankings()
+                    pop_contexts = [a.snn_ctx for a in runner.coordinator.agents]
+                    # Use Agent 0 as Global handle
+                    snn_global = runner.coordinator.agents[0].snn_ctx
+                    
+                    # Execute Process
+                    process_social_learning_protocol(
+                        snn_global,
+                        pop_contexts,
+                        rankings
+                    )
             
             # === PERSIST METRICS IMMEDIATELY ===
             # This ensures we see results even if we kill the process.

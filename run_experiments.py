@@ -1,6 +1,8 @@
 import argparse
 import sys
 import os
+sys.path.append(os.getcwd())
+sys.path.append('theus')
 
 from theus.engine import TheusEngine
 from src.orchestrator.context import (
@@ -90,9 +92,13 @@ def main(argv=None):
     
     # 3. Auto-Discovery
     engine.scan_and_register("src/orchestrator/processes")
-    # Also register SNN processes (they reside in src/processes)
-    # Orchestrator usually loads them via imports in workflows, but Engine needs registry.
     engine.scan_and_register("src/processes")
+    
+    # Manual Registration (Fallback) - REMOVED
+    # Fixed underlying ImportErrors and improved Engine logging
+    # engine.scan_and_register should now work or report errors.
+
+    log(system_ctx, "info", "--- STARTING ORCHESTRATION WORKFLOW (POP) ---")
     
     log(system_ctx, "info", "--- STARTING ORCHESTRATION WORKFLOW (POP) ---")
     

@@ -4,6 +4,7 @@ from src.orchestrator.context import OrchestratorSystemContext
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log, log_error
 from src.orchestrator.processes.p_save_checkpoint import save_periodic_checkpoint
+from src.processes.snn_advanced_features_theus import process_revolution_protocol
 
 @process(
     inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level'],
@@ -75,11 +76,8 @@ def run_single_episode(ctx: OrchestratorSystemContext):
         
         # --- CHECK EVENTS ---
         
-        # Social Learning
-        freq = runner.config.get('social_learning_freq', 25)
-        if current_episode > 0 and current_episode % freq == 0:
-            if bus: bus.emit("TRIGGER_SOCIAL")
-            return # FSM will transition to Social State
+        
+        # Social Learning Check moved to p_run_simulations.py (Orchestration Layer)
 
         # Sleep Cycle (Biological)
         sleep_interval = runner.config.get('sleep_interval', 25)
@@ -91,11 +89,27 @@ def run_single_episode(ctx: OrchestratorSystemContext):
 
 
         # Revolution
-        if runner.revolution.check_and_execute_revolution():
-             # Logic is inside check_and_execute currently, ideally should separate check vs execute
-             # For now, if implemented inside runner, we just log it.
-             # In Pure FSM, trigger 'TRIGGER_REVOLUTION'
-             log(ctx, "info", f"🔥 REVOLUTION TRIGGERED at Episode {current_episode}! Ancestor updated.")
+        if runner.coordinator.agents:
+            # Prepare contexts
+            snn_global = runner.coordinator.agents[0].snn_ctx # Use first agent to access Global
+            pop_contexts = [a.snn_ctx for a in runner.coordinator.agents]
+            
+            # Execute Process
+            # Note: rl_ctx is optional now, passing None is fine as we don't collect reward here
+            process_revolution_protocol(snn_global, None, pop_contexts)
+            
+            # Check Result
+            if getattr(snn_global.domain_ctx, 'revolution_triggered', False):
+                 log(ctx, "info", f"🔥 REVOLUTION TRIGGERED at Episode {current_episode}! Ancestor updated.")
+                 
+                 # BROADCAST ANCESTOR WEIGHTS (Phase 1 Fix)
+                 new_ancestor = snn_global.domain_ctx.ancestor_weights
+                 if new_ancestor:
+                     for agent in runner.coordinator.agents:
+                         agent.snn_ctx.domain_ctx.ancestor_weights = new_ancestor
+                         
+                 # Reset trigger flag
+                 snn_global.domain_ctx.revolution_triggered = False 
              # In Pure FSM, we might trigger 'TRIGGER_REVOLUTION' to pause, 
              # but here we executed it synchronously inside the manager.
         

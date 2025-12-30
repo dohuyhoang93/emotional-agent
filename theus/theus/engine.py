@@ -82,7 +82,9 @@ class TheusEngine(IEngine):
                                     self.register_process(name, obj)
                                     
                         except Exception as e:
-                            logger.error(f"Failed to load module {file}: {e}")
+                            logger.error(f"❌ [TheusEngine] Failed to load module {file}: {e}")
+                            import traceback
+                            traceback.print_exc() # Ensure visibility in console
 
 
     def get_process(self, name: str) -> Callable:

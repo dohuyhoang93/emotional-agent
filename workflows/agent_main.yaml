@@ -29,10 +29,10 @@ steps:
   - process_inject_viral_with_quarantine # Filter blacklisted sources (Sandbox Entrance)
   - process_quarantine_validation # Validate viral synapses (Sandbox Exit)
   - process_meta_homeostasis_fixed # Advanced stability
-  - process_resync               # Maintenance
+  - process_periodic_resync        # Maintenance
   
   # Execution & Learning
-  - execute_action
+  - execute_action_with_env
   - record_consequences
   - update_q_learning
   

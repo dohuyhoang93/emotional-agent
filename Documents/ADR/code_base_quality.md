@@ -79,3 +79,18 @@
    - Đề xuất:
        - **Migration Strategy:** Cần lộ trình loại bỏ hoàn toàn các Manager Class (OO). Logic trong các class này nên được tách thành các hàm thuần túy (Pure Functions) và được gọi bởi các Process wrapper.
        - **Trạng thái:** Toàn bộ trạng thái (như `revolution_history`, `ancestor_weights`) phải được lưu trữ rõ ràng trong `SNNDomainContext` hoặc `ProductionContext`, không ẩn giấu trong thuộc tính `self` của các instance.
+
+  6. Đánh giá sau Refactoring (Phase 1-4) [CẬP NHẬT 30/12/2025]
+
+   - Tình trạng: Đã giải quyết phần lớn các nợ kỹ thuật nghiêm trọng được nêu ở trên (Mục 1, 2, 4, 5).
+
+   - Cải thiện Cụ thể:
+       - **Hiệu năng SNN (Giải quyết Mục 1):** Đã hoàn thành Vector hóa (Phase 3). Các hàng đợi spike (`spike_queue`) dựa trên dictionary đã được thay thế bằng Tensor/Matrix tuần tự, loại bỏ nút thắt cổ chai vòng lặp Python trong các tác vụ `integrate` và `fire`.
+       - **Kiến trúc RLAgent (Giải quyết Mục 2):** Đã áp dụng Dependency Injection (Phase 1.3). `RLAgent` không còn tự khởi tạo `TheusEngine` hay `Context` nội bộ. Toàn bộ dependencies được tiêm từ `MultiAgentCoordinator`, giúp agent tuân thủ IoC và dễ test hơn.
+       - **Quản lý Cấu hình (Giải quyết Mục 4):** Đã centralized tham số mô hình (Phase 2). `experiments.json` giờ là nguồn sự thật duy nhất cho hyperparameters (`hidden_dim`, `action_dim`...), code chỉ đọc cấu hình, không hardcode.
+       - **Nhất quán Kiến trúc (Giải quyết Mục 5):** Đã loại bỏ hoàn toàn `RevolutionProtocolManager` và `SocialLearningManager` (Legacy OO). Tất cả logic nghiệp vụ cao cấp giờ đây là Pure Processes (trong `src/processes/`), tuân thủ chuẩn POP.
+
+   - Thách thức & Nợ Kỹ thuật Mới:
+       - **Độ phức tạp của Context Initialization:** Việc khởi tạo `DomainContext` và `SystemContext` bên ngoài Agent (trong Coordinator) làm cho code khởi tạo dài dòng hơn, tuy nhiên đây là sự đánh đổi cần thiết cho tính minh bạch và testability.
+
+   - **CẬP NHẬT (Ngay lập tức):** Vấn đề `Auto-Discovery` đã được giải quyết bằng việc cải thiện logging trong `TheusEngine` (không còn nuốt lỗi import silent) và chuẩn hóa `sys.path` trong entrypoint. Cơ chế scan hiện tại đã hoạt động ổn định.

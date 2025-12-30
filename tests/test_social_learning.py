@@ -1,116 +1,93 @@
 """
-Test Social Learning
-=====================
-Test social learning manager.
+Test Social Learning (Process Based)
+=====================================
+Test social learning process (Pure POP).
 """
 import sys
+import numpy as np
+import pytest
+
 sys.path.append('.')
 
-from src.coordination.multi_agent_coordinator import MultiAgentCoordinator
-from src.coordination.social_learning import SocialLearningManager
-from src.core.context import GlobalContext
-from src.core.snn_context_theus import SNNGlobalContext
-from src.adapters.environment_adapter import EnvironmentAdapter
-from environment import GridWorld
+from src.core.context import GlobalContext, SystemContext
+from src.core.snn_context_theus import SNNGlobalContext, SNNSystemContext, SNNDomainContext, SynapseState
+from src.processes.snn_social_learning_theus import process_social_learning_protocol
 
-
-def test_social_learning():
-    """Test social learning."""
+def test_social_learning_process_logic():
     print("=" * 60)
-    print("Test: Social Learning")
+    print("Test: Social Learning Process")
     print("=" * 60)
     
-    # Setup
-    global_ctx = GlobalContext(
-        initial_needs=[0.5, 0.5],
-        initial_emotions=[0.0, 0.0],
-        total_episodes=1,
-        max_steps=10,
-        seed=42,
-        switch_locations={},
-        initial_exploration_rate=1.0
-    )
-    
-    snn_global_ctx = SNNGlobalContext(
-        num_neurons=30,
-        vector_dim=16,
-        connectivity=0.15,
+    # 1. Setup Contexts
+    snn_global_config = SNNGlobalContext(
+        num_neurons=10,
+        connectivity=1.0,
         seed=42
     )
+    # Set params (which are usually in Global but can be overridden)
+    # For now relying on default getattrs in process if not present
+    # Or inject them manually into global context helper wrapper
+    # The process reads global_snn_ctx.global_ctx
+    snn_global_config.social_elite_ratio = 0.5 
+    snn_global_config.social_learner_ratio = 0.5 
+    snn_global_config.social_synapses_per_transfer = 2
     
-    # Create coordinator with 5 agents
-    coordinator = MultiAgentCoordinator(
-        num_agents=5,
-        global_ctx=global_ctx,
-        snn_global_ctx=snn_global_ctx
-    )
+    # Create 2 agents
+    domain0 = SNNDomainContext(agent_id=0) # Elite
+    agent0_ctx = SNNSystemContext(global_ctx=snn_global_config, domain_ctx=domain0)
     
-    # Create social learning manager
-    social_learning = SocialLearningManager(
-        coordinator=coordinator,
-        elite_ratio=0.2,
-        learner_ratio=0.5,
-        synapses_per_transfer=5
-    )
+    domain1 = SNNDomainContext(agent_id=1) # Learner
+    agent1_ctx = SNNSystemContext(global_ctx=snn_global_config, domain_ctx=domain1)
     
-    print(f"  ✅ Created social learning manager")
-    print(f"  ✅ Elite ratio: {social_learning.elite_ratio}")
-    print(f"  ✅ Learner ratio: {social_learning.learner_ratio}")
+    population_contexts = [agent0_ctx, agent1_ctx]
     
-    # Create environment
-    settings = {
-        "initial_needs": [0.5, 0.5],
-        "initial_emotions": [0.0, 0.0],
-        "switch_locations": {},
-        "environment_config": {
-            "grid_size": 5,
-            "max_steps_per_episode": 10,
-            "num_agents": 5,
-            "start_positions": [[0, i] for i in range(5)]
-        }
-    }
-    env = GridWorld(settings)
-    adapter = EnvironmentAdapter(env)
+    # Setup Synapses
+    # Agent 0 (Elite): High weights
+    for i in range(5):
+        s = SynapseState(synapse_id=i, pre_neuron_id=0, post_neuron_id=1, weight=0.9)
+        domain0.synapses.append(s)
+        
+    # Agent 1 (Learner): Empty or different
+    # Let's give it some random synapses
+    s = SynapseState(synapse_id=100, pre_neuron_id=1, post_neuron_id=2, weight=0.1)
+    domain1.synapses.append(s)
     
-    # Run one episode
-    print("\n  Running episode...")
-    coordinator.run_episode(env, adapter)
+    print(f"  Agent 0 Synapses: {len(domain0.synapses)}")
+    print(f"  Agent 1 Synapses: {len(domain1.synapses)}")
     
-    # Get initial synapse counts
-    initial_counts = [
-        len(agent.snn_ctx.domain_ctx.synapses)
-        for agent in coordinator.agents
-    ]
-    print(f"  ✅ Initial synapse counts: {initial_counts}")
+    # 2. Setup Rankings
+    # Agent 0: Reward 100
+    # Agent 1: Reward 0
+    rankings = [(0, 100.0), (1, 0.0)]
     
-    # Perform social learning
-    print("\n  Performing social learning...")
-    social_learning.perform_social_learning()
+    # 3. Run Process
+    print("  Running process_social_learning_protocol...")
+    # Using Agent 0 as the 'Global/Leader' context
+    process_social_learning_protocol(agent0_ctx, population_contexts, rankings)
     
-    # Get final synapse counts
-    final_counts = [
-        len(agent.snn_ctx.domain_ctx.synapses)
-        for agent in coordinator.agents
-    ]
-    print(f"  ✅ Final synapse counts: {final_counts}")
+    # 4. Verify Injection
+    # Agent 1 should have received top 2 synapses from Agent 0
+    # Total synapses for Agent 1 = 1 (old) + 2 (injected) = 3
+    final_count = len(domain1.synapses)
+    print(f"  Agent 1 Final Synapses: {final_count}")
     
-    # Check transfer stats
-    stats = social_learning.get_transfer_stats()
-    print(f"\n  ✅ Transfer stats:")
-    print(f"     Total transfers: {stats['total_transfers']}")
-    print(f"     Total synapses: {stats['total_synapses']}")
-    print(f"     Avg per transfer: {stats['avg_synapses_per_transfer']:.2f}")
+    assert final_count == 3, f"Agent 1 should have 3 synapses, got {final_count}"
     
-    # Validate synapses were transferred
-    assert stats['total_transfers'] > 0, "No transfers occurred"
-    assert stats['total_synapses'] > 0, "No synapses transferred"
-    
-    print("\n✅ Social learning works!")
+    # Check injected properties
+    # Validating that new synapses are copies of Agent 0's high weight syns
+    new_syns = [s for s in domain1.synapses if s.synapse_id not in [100]] # Filter out original
+    assert len(new_syns) == 2
+    for s in new_syns:
+        assert s.weight == 0.9, "Injected synapse should have weight 0.9"
+        # IDs were remapped? Yes, logic re-IDs them.
+        print(f"  Injected Synapse ID: {s.synapse_id} Weight: {s.weight}")
 
+    # Check Metrics
+    injected_metric = domain1.metrics.get('social_learning_injected', 0)
+    print(f"  Metric 'social_learning_injected': {injected_metric}")
+    assert injected_metric == 2
+    
+    print("\n✅ Social Learning Process Logic verified!")
 
 if __name__ == '__main__':
-    test_social_learning()
-    
-    print("\n" + "=" * 60)
-    print("✅ SOCIAL LEARNING TESTS COMPLETE!")
-    print("=" * 60)
+    test_social_learning_process_logic()

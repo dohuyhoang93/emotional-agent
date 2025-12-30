@@ -58,47 +58,62 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
     pots *= tau_decay
     p_vecs *= tau_decay
     
-    # 3. Handle Spikes
+    # 3. Handle Spikes (Vectorized Buffer)
     current_time = snn_ctx.domain_ctx.current_time
-    current_spikes = snn_ctx.domain_ctx.spike_queue.get(current_time, [])
     
-    if current_spikes:
-        # Convert spikes to indices
-        spike_indices = np.array(current_spikes, dtype=int)
-        # Filter out invalid indices
-        N = len(pots)
-        spike_indices = spike_indices[spike_indices < N]
+    use_vectorized = t.get('use_vectorized_queue', False)
+    
+    if use_vectorized:
+        # Read from Spike Buffer
+        spike_buffer = t['spike_buffer']
+        buffer_size = spike_buffer.shape[0]
+        t_idx = current_time % buffer_size
         
-        if len(spike_indices) > 0:
-            # Gather Firing Prototypes: (K, D)
-            firing_protos = protos[spike_indices]
-            
-            # Compute Similarity Matrix: (K, N)
-            # Sim[k, j] = dot(Proto_k, Proto_j)
-            # Assumes protos are normalized!
-            sim_matrix = np.matmul(firing_protos, protos.T)
-            
-            # ReLU (Similarity > 0)
-            sim_matrix = np.maximum(0, sim_matrix)
-            
-            # Gather Weights: (K, N) - Row k corresponds to weights FROM spike_k TO all j
-            # Connectivity matrix W[i, j] is weight i->j
-            firing_weights = weights[spike_indices, :]
-            
-            # Effective Weights: (K, N)
-            eff_weights = firing_weights * sim_matrix
-            
-            # 4. Integrate Scalar Potential: (N,)
-            # Sum contributions from all K spikes for each neuron j
-            delta_pots = np.sum(eff_weights, axis=0) # Sum over K (rows) -> (N,)
-            pots += delta_pots
-            
-            # 5. Integrate Vector Potential: (N, D)
-            # delta_V[j] += sum_k (eff_weights[k, j] * firing_protos[k])
-            # This is: eff_weights.T (N, K) @ firing_protos (K, D) -> (N, D)
-            delta_vecs = np.matmul(eff_weights.T, firing_protos)
-            p_vecs += delta_vecs
-            
+        # Get firing neurons (indices where buffer == 1)
+        current_spikes_mask = spike_buffer[t_idx] > 0
+        spike_indices = np.where(current_spikes_mask)[0]
+        
+        # Clear buffer slot for reuse (circular)
+        spike_buffer[t_idx] = 0
+    else:
+        # Legacy Dict Loop
+        current_spikes = snn_ctx.domain_ctx.spike_queue.get(current_time, [])
+        spike_indices = np.array(current_spikes, dtype=int)
+        
+    # Filter out invalid indices
+    N = len(pots)
+    spike_indices = spike_indices[spike_indices < N]
+        
+    if len(spike_indices) > 0:
+        # Gather Firing Prototypes: (K, D)
+        firing_protos = protos[spike_indices]
+        
+        # Compute Similarity Matrix: (K, N)
+        # Sim[k, j] = dot(Proto_k, Proto_j)
+        # Assumes protos are normalized!
+        sim_matrix = np.matmul(firing_protos, protos.T)
+        
+        # ReLU (Similarity > 0)
+        sim_matrix = np.maximum(0, sim_matrix)
+        
+        # Gather Weights: (K, N) - Row k corresponds to weights FROM spike_k TO all j
+        # Connectivity matrix W[i, j] is weight i->j
+        firing_weights = weights[spike_indices, :]
+        
+        # Effective Weights: (K, N)
+        eff_weights = firing_weights * sim_matrix
+        
+        # 4. Integrate Scalar Potential: (N,)
+        # Sum contributions from all K spikes for each neuron j
+        delta_pots = np.sum(eff_weights, axis=0) # Sum over K (rows) -> (N,)
+        pots += delta_pots
+        
+        # 5. Integrate Vector Potential: (N, D)
+        # delta_V[j] += sum_k (eff_weights[k, j] * firing_protos[k])
+        # This is: eff_weights.T (N, K) @ firing_protos (K, D) -> (N, D)
+        delta_vecs = np.matmul(eff_weights.T, firing_protos)
+        p_vecs += delta_vecs
+        
     # 6. Sync Back to Objects (Audit Compatibility)
     if sync:
         sync_from_tensors(snn_ctx)
@@ -247,10 +262,24 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
             # Non-tensor Metrics
             neurons[idx].fire_count += 1
             
-        # Queue Logic
-        if next_time not in snn_ctx.domain_ctx.spike_queue:
-            snn_ctx.domain_ctx.spike_queue[next_time] = []
-        snn_ctx.domain_ctx.spike_queue[next_time].extend(future_spikes)
+        # Queue Logic (Hybrid: Object + Vectorized)
+        
+        use_vectorized = t.get('use_vectorized_queue', False)
+        delay = 1 # Standard Delay check logic later
+        
+        if use_vectorized:
+            # Write to Spike Buffer
+            spike_buffer = t['spike_buffer']
+            buffer_size = spike_buffer.shape[0]
+            t_idx = (cur_time + delay) % buffer_size
+            
+            # Set fired indices to 1 (or accumulate if counting)
+            spike_buffer[t_idx, fired_indices] = 1
+        else:
+            # Legacy Dict
+            if next_time not in snn_ctx.domain_ctx.spike_queue:
+                snn_ctx.domain_ctx.spike_queue[next_time] = []
+            snn_ctx.domain_ctx.spike_queue[next_time].extend(future_spikes)
         
     # 4. Sync Back (LastFire, Pots, PVecs changed)
     if sync:

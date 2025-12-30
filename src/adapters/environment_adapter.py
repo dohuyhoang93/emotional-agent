@@ -9,6 +9,30 @@ class EnvironmentAdapter:
     def __init__(self, env: GridWorld):
         self.env = env
 
+    def reset(self):
+        """Reset environment."""
+        return self.env.reset()
+
+    def step(self, agent_id: int, action: str):
+        """
+        Execute step for specific agent.
+        Returns: (next_obs, reward, done, info)
+        """
+        reward = self.env.perform_action(agent_id, action)
+        
+        # Determine observation type (Vector vs Dict)
+        # Should align with system config. 
+        # For now, return vector if available, else dict?
+        # GridWorld V2 uses sensor vectors primarily for SNN.
+        try:
+             next_obs = self.env.get_sensor_vector(agent_id)
+        except:
+             next_obs = self.env.get_observation(agent_id)
+             
+        done = self.env.is_done()
+        info = {}
+        return next_obs, reward, done, info
+
     def get_observation(self, agent_id: int) -> Dict[str, Any]:
         """
         Lấy observation thô từ môi trường.

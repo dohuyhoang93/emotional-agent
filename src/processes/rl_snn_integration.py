@@ -59,17 +59,17 @@ def combine_rewards(ctx: SystemContext):
 
 @process(
     inputs=[
-        'domain_ctx.selected_action',
-        'domain_ctx.metrics'
+        'domain.selected_action',
+        'domain.metrics'
     ],
     outputs=[
-        'domain_ctx.current_observation',
-        'domain_ctx.last_reward',
-        'domain_ctx.metrics'
+        'domain.current_observation',
+        'domain.last_reward',
+        'domain.metrics'
     ],
     side_effects=['env_adapter.step']  # ← KHAI BÁO RÕ RÀNG!
 )
-def execute_action_with_env(ctx: SystemContext):
+def execute_action_with_env(ctx: SystemContext, env_adapter=None, agent_id=0):
     """
     Execute action trong environment.
     
@@ -80,13 +80,17 @@ def execute_action_with_env(ctx: SystemContext):
     
     Args:
         ctx: System context
+        env_adapter: Environment Adapter (Injected param)
+        agent_id: Agent ID (Injected param)
     """
+    if env_adapter is None:
+        raise ValueError("Critical: env_adapter not provided to execute_action_with_env")
+
     domain = ctx.domain_ctx
-    env_adapter = ctx.env_adapter  # Injected dependency
     
     # Execute action (SIDE EFFECT!)
     # NOTE: Đây là external call, không thể rollback
-    next_obs, reward, done, info = env_adapter.step(domain.selected_action)
+    next_obs, reward, done, info = env_adapter.step(agent_id, domain.selected_action)
     
     # Update context
     domain.current_observation = next_obs
@@ -105,11 +109,11 @@ def execute_action_with_env(ctx: SystemContext):
 @process(
     inputs=[],
     outputs=[
-        'domain_ctx.current_observation'
+        'domain.current_observation'
     ],
     side_effects=['env_adapter.reset']  # ← KHAI BÁO RÕ RÀNG!
 )
-def reset_environment(ctx: SystemContext):
+def reset_environment(ctx: SystemContext, env_adapter=None):
     """
     Reset environment.
     
@@ -119,8 +123,10 @@ def reset_environment(ctx: SystemContext):
     
     Args:
         ctx: System context
+        env_adapter: Environment Adapter
     """
-    env_adapter = ctx.env_adapter  # Injected dependency
+    if env_adapter is None:
+        raise ValueError("Critical: env_adapter not provided to reset_environment")
     
     # Reset environment (SIDE EFFECT!)
     initial_obs = env_adapter.reset()

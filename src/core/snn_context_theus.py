@@ -445,6 +445,14 @@ def ensure_tensors_initialized(ctx: SNNSystemContext):
                 domain.tensors['consecutive_correct'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_correct
                 domain.tensors['consecutive_wrong'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_wrong
 
+    # Phase 3: Vectorized Spike Buffer
+    # Shape: (Buffer_Size, Num_Neurons)
+    # Default buffer size 10ms is sufficient for most delays
+    buffer_size = 10
+    if 'spike_buffer' not in domain.tensors:
+        domain.tensors['spike_buffer'] = np.zeros((buffer_size, N), dtype=np.int8)
+        domain.tensors['use_vectorized_queue'] = True  # Flag to switch logic
+
     # NEW (Phase 10.5): Derived Neuron Commitment
     if 'solidity_ratios' not in domain.tensors:
          domain.tensors['solidity_ratios'] = np.array([n.solidity_ratio for n in neurons], dtype=np.float32)

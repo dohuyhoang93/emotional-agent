@@ -1,27 +1,17 @@
 
 import sys
 import os
+sys.path.append(os.getcwd())
+sys.path.append('theus')
 
-print(f"CWD: {os.getcwd()}")
-print(f"sys.path[0]: {sys.path[0]}")
-
-try:
-    import theus
-    print(f"theus imported from: {theus}")
-    print(f"theus file: {getattr(theus, '__file__', 'None')}")
-    print(f"theus path: {getattr(theus, '__path__', 'None')}")
-    print(f"dir(theus): {dir(theus)}")
-except ImportError as e:
-    print(f"ImportError: {e}")
+print("PWD:", os.getcwd())
+print("SYS PATH:", sys.path)
 
 try:
-    from theus import TheusEngine
-    print("Successfully imported TheusEngine via 'from theus'")
-except ImportError as e:
-    print(f"Failed 'from theus import TheusEngine': {e}")
-
-try:
-    from theus.engine import TheusEngine
-    print("Successfully imported TheusEngine via 'from theus.engine'")
-except ImportError as e:
-    print(f"Failed 'from theus.engine import TheusEngine': {e}")
+    print("Attempting import...")
+    from src.orchestrator.processes import p_run_simulations
+    print("✅ Import Successful:", p_run_simulations)
+except Exception as e:
+    print(f"❌ Import Failed: {e}")
+    import traceback
+    traceback.print_exc()

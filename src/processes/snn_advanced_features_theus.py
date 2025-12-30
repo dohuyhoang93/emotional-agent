@@ -445,7 +445,7 @@ def process_neural_darwinism(
 )
 def process_revolution_protocol(
     snn_ctx: SNNSystemContext,
-    rl_ctx: SystemContext,
+    rl_ctx: SystemContext = None,
     population_contexts: List[SNNSystemContext] = None
 ):
     """
@@ -472,13 +472,14 @@ def process_revolution_protocol(
         domain.metrics['revolution_skipped'] = 1
         return
     
-    # 1. Collect performance
-    current_reward = rl_ctx.domain_ctx.last_reward.get('total', 0.0)
-    domain.population_performance.append(current_reward)
     
-    # Keep only recent window
-    if len(domain.population_performance) > global_ctx.revolution_window:
-        domain.population_performance = domain.population_performance[-global_ctx.revolution_window:]
+    # 1. Collect performance
+    # NOTE: Population performance is collected by Coordinator/Metrics process 
+    # and synced to SNNGlobalContext. We just read it here.
+    
+    # Check if we have enough history
+    if not domain.population_performance:
+        return
     
     # 2. Check revolution condition
     if len(domain.population_performance) < global_ctx.revolution_window:
