@@ -1,7 +1,10 @@
-from theus import TheusEngine
-from src.orchestrator.context import OrchestratorSystemContext
-from src.core.context import GlobalContext, DomainContext
+import sys
 import os
+
+# Ensure path (Project Root)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+from theus import TheusEngine
 
 def main():
     print("--- STARTING POST-PROCESSING ---")

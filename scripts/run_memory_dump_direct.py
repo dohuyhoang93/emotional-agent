@@ -3,7 +3,8 @@ import os
 import json
 
 # Ensure path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+# Ensure path (Project Root)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from src.orchestrator.context import ExperimentDefinition, OrchestratorDomainContext
 from src.orchestrator.processes.p_initialize_experiment import FSMExperimentRunner

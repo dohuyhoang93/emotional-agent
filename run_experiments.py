@@ -102,10 +102,10 @@ def main(argv=None):
     
     log(system_ctx, "info", "--- STARTING ORCHESTRATION WORKFLOW (POP) ---")
     
-    # 4. Execute Workflow (Declarative)
+    # 4. Execute Workflow (Declarative Flux)
     try:
-        log(system_ctx, "info", f"▶️ Loading Orchestrator Workflow: workflows/orchestrator.yaml")
-        engine.execute_workflow("workflows/orchestrator.yaml")
+        log(system_ctx, "info", f"▶️ Loading Orchestrator Workflow: workflows/orchestrator_flux.yaml")
+        engine.execute_workflow("workflows/orchestrator_flux.yaml")
         
         # Check Final Report
         if "LỖI" in system_ctx.domain_ctx.final_report:

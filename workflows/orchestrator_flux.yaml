@@ -1,0 +1,42 @@
+name: Experiment Orchestration (Flux)
+version: 2.0.0
+description: "Declarative Workflow using Theus Flux Engine."
+
+steps:
+  - process: load_config
+  
+  # Experiment Loop
+  - flux: while
+    condition: "domain.active_experiment_idx < len(domain.experiments)"
+    do:
+       # Initialize Runner
+       - process: initialize_active_experiment
+       
+       # Episode Loop
+       - flux: while
+         # condition: "domain.experiments[domain.active_experiment_idx].runner and domain.experiments[domain.active_experiment_idx].runner.current_episode_count < domain.experiments[domain.active_experiment_idx].episodes_per_run"
+         # Accessing deeply nested objects in restricted eval can be verbose/fragile.
+         # Safer to rely on runner state if accessible or Helper Process return value?
+         # Or alias helper?
+         # Let's try the verbose path first.
+         condition: "domain.experiments[domain.active_experiment_idx].runner.current_episode_count < domain.experiments[domain.active_experiment_idx].episodes_per_run"
+         do:
+            - process: run_single_episode
+            - process: save_metrics_snapshot
+            
+            # Social Learning Trigger (Every 25 eps)
+            - flux: if
+              condition: "domain.experiments[domain.active_experiment_idx].runner.current_episode_count > 0 and domain.experiments[domain.active_experiment_idx].runner.current_episode_count % 25 == 0"
+              then:
+                 - process: execute_social_learning_if_needed
+                 
+            # Periodic Checkpoint (Every 50 eps - logic inside process currently)
+            - process: save_periodic_checkpoint
+            
+       # Advance to next Experiment
+       - process: advance_experiment_index
+       
+  - process: aggregate_results
+  - process: plot_results
+  - process: analyze_data
+  - process: save_summary
