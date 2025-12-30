@@ -9,11 +9,9 @@ Date: 2025-12-25
 import sys
 sys.path.append('.')
 
-import torch
 import numpy as np
 from src.core.snn_context_theus import create_snn_context_theus
 from src.core.context import GlobalContext, DomainContext, SystemContext
-from src.adapters.snn_rl_interface import SNNRLInterface
 from src.processes.rl_snn_integration import (
     calculate_emotions_snn,
     modulate_snn_attention,
@@ -127,7 +125,7 @@ def test_modulate_attention():
     # Check SNN thresholds changed
     # (Curiosity region should have lower thresholds)
     
-    print(f"✅ Attention modulated")
+    print("✅ Attention modulated")
     print(f"✅ TD-error: {ctx.domain_ctx.td_error}")
 
 
@@ -207,7 +205,7 @@ def test_full_workflow():
             print(f"    Intrinsic: {ctx.domain_ctx.intrinsic_reward:.4f}")
             print(f"    Total reward: {ctx.domain_ctx.last_reward['total']:.4f}")
     
-    print(f"\n✅ Full workflow OK")
+    print("\n✅ Full workflow OK")
     print(f"✅ SNN fire rate: {ctx.domain_ctx.snn_context.domain_ctx.metrics.get('fire_rate', 0):.4f}")
 
 
@@ -260,7 +258,7 @@ def test_with_mock_environment():
             print(f"  Episode done at step {step}!")
             break
     
-    print(f"\n✅ Episode complete")
+    print("\n✅ Episode complete")
     print(f"✅ Total reward: {total_reward:.4f}")
     print(f"✅ Final position: {env.agent_pos}")
 
@@ -273,9 +271,7 @@ def test_side_effects_declaration():
     
     # Check process decorators
     from src.processes.rl_snn_integration import (
-        calculate_emotions_snn,
-        execute_action_with_env,
-        reset_environment
+        calculate_emotions_snn
     )
     
     # Pure functions should have empty side_effects

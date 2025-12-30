@@ -86,7 +86,7 @@ def test_encode_state_to_spikes():
         assert neuron.potential > 0  # Should be injected
         assert np.linalg.norm(neuron.potential_vector) > 0
     
-    print(f"✅ Input neurons injected")
+    print("✅ Input neurons injected")
     print(f"✅ Neuron 0 potential: {snn_ctx.domain_ctx.neurons[0].potential:.4f}")
 
 
@@ -117,7 +117,7 @@ def test_modulate_attention():
     
     print(f"✅ Original threshold: {original_threshold:.4f}")
     print(f"✅ New threshold: {new_threshold:.4f}")
-    print(f"✅ Attention increased!")
+    print("✅ Attention increased!")
 
 
 def test_compute_intrinsic_reward():
@@ -147,7 +147,7 @@ def test_compute_intrinsic_reward():
     assert 0.0 <= rl_ctx.domain_ctx.intrinsic_reward <= 1.0
     
     print(f"✅ Intrinsic reward: {rl_ctx.domain_ctx.intrinsic_reward:.4f}")
-    print(f"✅ Novelty detected!")
+    print("✅ Novelty detected!")
 
 
 def test_integration():
@@ -185,7 +185,7 @@ def test_integration():
     assert rl_ctx.domain_ctx.snn_emotion_vector is not None
     assert 0.0 <= rl_ctx.domain_ctx.intrinsic_reward <= 1.0
     
-    print(f"✅ Full flow complete!")
+    print("✅ Full flow complete!")
     print(f"✅ Emotion vector shape: {rl_ctx.domain_ctx.snn_emotion_vector.shape}")
     print(f"✅ Intrinsic reward: {rl_ctx.domain_ctx.intrinsic_reward:.4f}")
 

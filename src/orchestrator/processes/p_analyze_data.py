@@ -31,7 +31,7 @@ def analyze_data(ctx: OrchestratorSystemContext):
             metrics = exp_def.aggregated_data
             
             # Extract key metrics
-            episodes = [m.get('episode', 0) for m in metrics]
+            [m.get('episode', 0) for m in metrics]
             avg_rewards = [m.get('avg_reward', 0.0) for m in metrics]
             best_rewards = [m.get('best_reward', 0.0) for m in metrics]
             
@@ -59,13 +59,13 @@ def analyze_data(ctx: OrchestratorSystemContext):
             # Social learning summary
             total_transfers = sum(social_transfers)
             total_synapses_transferred = sum(total_synapses)
-            summary_report_lines.append(f"\n  Social Learning:")
+            summary_report_lines.append("\n  Social Learning:")
             summary_report_lines.append(f"    Total Transfers: {total_transfers}")
             summary_report_lines.append(f"    Total Synapses: {total_synapses_transferred}")
             
             # Revolution summary
             total_revolutions = sum(revolutions)
-            summary_report_lines.append(f"\n  Revolution Protocol:")
+            summary_report_lines.append("\n  Revolution Protocol:")
             summary_report_lines.append(f"    Total Revolutions: {total_revolutions}")
             
             # Learning progress (last 10% of episodes)
@@ -74,13 +74,13 @@ def analyze_data(ctx: OrchestratorSystemContext):
                 final_phase_rewards = avg_rewards[-last_10_percent:]
                 final_phase_avg = np.mean(final_phase_rewards) if final_phase_rewards else 0.0
                 final_phase_success = np.mean(success_rates[-last_10_percent:]) if success_rates else 0.0
-                summary_report_lines.append(f"\n  Final Phase (last 10% episodes):")
+                summary_report_lines.append("\n  Final Phase (last 10% episodes):")
                 summary_report_lines.append(f"    Avg Reward: {final_phase_avg:.4f}")
                 summary_report_lines.append(f"    Success Rate: {final_phase_success*100:.2f}%")
             
             # Trend analysis (every 10% of episodes)
             chunk_size = max(1, total_episodes // 10)
-            summary_report_lines.append(f"\n  Learning Trend (every 10%):")
+            summary_report_lines.append("\n  Learning Trend (every 10%):")
             for i in range(0, total_episodes, chunk_size):
                 chunk_rewards = avg_rewards[i:i+chunk_size]
                 chunk_success = success_rates[i:i+chunk_size]

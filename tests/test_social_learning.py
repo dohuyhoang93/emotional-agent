@@ -4,12 +4,9 @@ Test Social Learning (Process Based)
 Test social learning process (Pure POP).
 """
 import sys
-import numpy as np
-import pytest
 
 sys.path.append('.')
 
-from src.core.context import GlobalContext, SystemContext
 from src.core.snn_context_theus import SNNGlobalContext, SNNSystemContext, SNNDomainContext, SynapseState
 from src.processes.snn_social_learning_theus import process_social_learning_protocol
 

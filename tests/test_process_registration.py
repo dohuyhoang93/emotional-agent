@@ -8,7 +8,6 @@ sys.path.append('.')
 
 from theus import TheusEngine
 from src.core.context import GlobalContext, DomainContext, SystemContext
-from src.core.snn_context_theus import SNNGlobalContext, create_snn_context_theus
 
 
 def test_process_registration():

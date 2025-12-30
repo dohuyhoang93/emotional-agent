@@ -1,5 +1,4 @@
 import json
-import os
 
 class MazeConfigBuilder:
     def __init__(self, grid_size=25, max_steps=500):

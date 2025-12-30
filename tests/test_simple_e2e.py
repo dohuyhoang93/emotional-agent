@@ -9,8 +9,6 @@ Date: 2025-12-25
 import sys
 sys.path.append('.')
 
-import torch
-import numpy as np
 from src.agents.rl_agent import RLAgent
 from src.core.context import GlobalContext
 from src.core.snn_context_theus import SNNGlobalContext
@@ -100,7 +98,7 @@ def test_simple_episode():
                 
         except Exception as e:
             print(f"\n  ❌ Error at step {step + 1}: {e}")
-            print(f"  This is expected if workflow processes not all registered")
+            print("  This is expected if workflow processes not all registered")
             break
     
     # Summary

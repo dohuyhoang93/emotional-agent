@@ -109,7 +109,7 @@ def run_diagnostic():
             
             # Check for spike
             if fire_rate > 0.10:
-                print(f"  ⚠️ SPIKE DETECTED!")
+                print("  ⚠️ SPIKE DETECTED!")
                 # Detailed inspection
                 firing_neurons = sum(1 for n in ctx.neurons if (step - n.last_fire_time) < 10)
                 print(f"  Firing neurons (last 10ms): {firing_neurons}")

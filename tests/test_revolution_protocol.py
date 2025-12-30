@@ -5,13 +5,9 @@ Test revolution protocol process (Pure POP).
 """
 import sys
 import numpy as np
-import pytest
-from unittest.mock import MagicMock
 
 sys.path.append('.')
 
-from src.core.context import GlobalContext, SystemContext
-from src.core.context import GlobalContext, SystemContext
 from src.core.snn_context_theus import SNNGlobalContext, SNNSystemContext, SNNDomainContext, SynapseState
 from src.processes.snn_advanced_features_theus import process_revolution_protocol
 

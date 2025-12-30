@@ -47,7 +47,7 @@ def test_trace_decay_rates():
         synapse.trace_slow *= snn_ctx.global_ctx.tau_trace_slow
     
     # Check decay rates
-    print(f"  After 100 steps:")
+    print("  After 100 steps:")
     print(f"    trace_fast: {synapse.trace_fast:.6f}")
     print(f"    trace_slow: {synapse.trace_slow:.6f}")
     
@@ -76,7 +76,7 @@ def test_delayed_reward_learning():
     
     # Check slow trace set
     synapse = snn_ctx.domain_ctx.synapses[0]
-    print(f"  t=0 (spike):")
+    print("  t=0 (spike):")
     print(f"    trace_slow: {synapse.trace_slow:.4f}")
     assert synapse.trace_slow > 0.5
     
@@ -88,7 +88,7 @@ def test_delayed_reward_learning():
     for _ in range(100):
         synapse.trace_slow *= snn_ctx.global_ctx.tau_trace_slow
     
-    print(f"  t=100 (reward arrives):")
+    print("  t=100 (reward arrives):")
     print(f"    trace_slow: {synapse.trace_slow:.4f}")
     assert synapse.trace_slow > 0.9  # Still high!
     
@@ -129,7 +129,7 @@ def test_dopamine_modulation():
     old_weight = synapse.weight
     process_stdp_3factor(snn_ctx, rl_ctx)
     
-    print(f"  Positive dopamine (TD-error=5.0):")
+    print("  Positive dopamine (TD-error=5.0):")
     print(f"    old_weight: {old_weight:.4f}")
     print(f"    new_weight: {synapse.weight:.4f}")
     print(f"    eligibility: {synapse.eligibility:.4f}")
@@ -146,7 +146,7 @@ def test_dopamine_modulation():
     rl_ctx.domain_ctx.td_error = -5.0  # Strong negative
     process_stdp_3factor(snn_ctx, rl_ctx)
     
-    print(f"  Negative dopamine (TD-error=-5.0):")
+    print("  Negative dopamine (TD-error=-5.0):")
     print(f"    old_weight: {old_weight:.4f}")
     print(f"    new_weight: {synapse.weight:.4f}")
     assert synapse.weight < old_weight  # Decreased
@@ -221,7 +221,7 @@ def test_3factor_vs_2factor():
     process_stdp_3factor(snn_3factor, rl_ctx)
     new_weight = snn_3factor.domain_ctx.synapses[0].weight
     
-    print(f"  3-Factor STDP:")
+    print("  3-Factor STDP:")
     print(f"    old_weight: {old_weight:.4f}")
     print(f"    new_weight: {new_weight:.4f}")
     print(f"    Δw: {new_weight - old_weight:.4f}")
@@ -261,7 +261,7 @@ def test_integration_workflow():
         if s.trace_slow > 0.01
     ]
     
-    print(f"  After 50 steps:")
+    print("  After 50 steps:")
     print(f"    Active synapses (slow trace > 0.01): {len(active_synapses)}")
     print(f"    Total synapses: {len(snn_ctx.domain_ctx.synapses)}")
     

@@ -1,5 +1,4 @@
 import json
-import sys
 
 # Load metrics
 with open('logs/snn_baseline_run_1_metrics.json', 'r') as f:

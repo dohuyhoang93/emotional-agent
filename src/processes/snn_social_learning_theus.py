@@ -8,10 +8,8 @@ Author: Do Huy Hoang
 Date: 2025-12-30
 """
 import copy
-import numpy as np
-from typing import List, Dict, Any
+from typing import List
 from theus.contracts import process
-from src.core.context import SystemContext
 from src.core.snn_context_theus import SNNSystemContext, SynapseState, SNNGlobalContext, SNNDomainContext
 
 @process(

@@ -100,7 +100,7 @@ def test_single_episode():
     try:
         metrics = coordinator.run_episode(env, adapter)
         
-        print(f"  ✅ Episode completed!")
+        print("  ✅ Episode completed!")
         print(f"  ✅ Episode: {metrics.get('episode', 0)}")
         print(f"  ✅ Avg reward: {metrics.get('avg_reward', 0):.4f}")
         print(f"  ✅ Agent rewards: {metrics.get('agent_rewards', [])}")

@@ -224,39 +224,39 @@ def run_comparison_test(num_neurons=100, num_steps=5000):
     max_integral_old = np.max(np.abs(integrals_2))
     max_integral_fixed = np.max(np.abs(integrals_3))
     
-    print(f"\n1. Integral Windup Check:")
+    print("\n1. Integral Windup Check:")
     print(f"   Old version: Max integral = {max_integral_old:.2f}")
     if max_integral_old > 10.0:
-        print(f"   ❌ WINDUP DETECTED!")
+        print("   ❌ WINDUP DETECTED!")
     else:
-        print(f"   ✅ Bounded")
+        print("   ✅ Bounded")
     
     print(f"   Fixed version: Max integral = {max_integral_fixed:.2f}")
     if max_integral_fixed <= 5.0:
-        print(f"   ✅ ANTI-WINDUP WORKING!")
+        print("   ✅ ANTI-WINDUP WORKING!")
     else:
-        print(f"   ⚠️ Integral exceeded limit")
+        print("   ⚠️ Integral exceeded limit")
     
     # Check 2: Oscillation
     std_old = np.std(fire_rates_2[3000:])
     std_fixed = np.std(fire_rates_3[3000:])
     std_baseline = np.std(fire_rates_1[3000:])
     
-    print(f"\n2. Oscillation Check (Std of fire rate, last 2000 steps):")
+    print("\n2. Oscillation Check (Std of fire rate, last 2000 steps):")
     print(f"   Baseline: {std_baseline:.4f}")
     print(f"   Old version: {std_old:.4f}")
     if std_old > 0.05:
-        print(f"   ❌ OSCILLATION DETECTED!")
+        print("   ❌ OSCILLATION DETECTED!")
     else:
-        print(f"   ✅ Stable")
+        print("   ✅ Stable")
     
     print(f"   Fixed version: {std_fixed:.4f}")
     if std_fixed < 0.02:
-        print(f"   ✅ STABLE!")
+        print("   ✅ STABLE!")
     elif std_fixed < std_old:
-        print(f"   ⚠️ Better than old, but not perfect")
+        print("   ⚠️ Better than old, but not perfect")
     else:
-        print(f"   ❌ Still oscillating")
+        print("   ❌ Still oscillating")
     
     # Check 3: Performance
     mean_fire_baseline = np.mean(fire_rates_1[3000:])
@@ -266,15 +266,15 @@ def run_comparison_test(num_neurons=100, num_steps=5000):
     error_baseline = abs(mean_fire_baseline - target)
     error_fixed = abs(mean_fire_fixed - target)
     
-    print(f"\n3. Performance Check (Mean fire rate vs target 0.02):")
+    print("\n3. Performance Check (Mean fire rate vs target 0.02):")
     print(f"   Baseline error: {error_baseline:.4f}")
     print(f"   Fixed error: {error_fixed:.4f}")
     if error_fixed < error_baseline:
-        print(f"   ✅ BETTER THAN BASELINE!")
+        print("   ✅ BETTER THAN BASELINE!")
     elif error_fixed < 0.005:
-        print(f"   ✅ GOOD ENOUGH!")
+        print("   ✅ GOOD ENOUGH!")
     else:
-        print(f"   ⚠️ Not better than baseline")
+        print("   ⚠️ Not better than baseline")
     
     print("\n" + "=" * 60)
     

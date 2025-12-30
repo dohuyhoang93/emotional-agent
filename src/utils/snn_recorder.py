@@ -23,9 +23,8 @@ class SNNRecorder:
         self.filepath = os.path.join(output_dir, f"recording_agent_{agent_id}.bin.gz")
         
         # Reset file
-        with gzip.open(self.filepath, 'wb') as f:
-            # Write Header if needed (e.g. version)
-            pass
+        with gzip.open(self.filepath, 'wb'):
+            pass  # Write Header if needed (e.g. version)
             
     def record_step(self, snn_ctx, episode, step):
         """

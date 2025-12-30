@@ -1,12 +1,9 @@
 import asyncio
 import json
 import os
-import time
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import socketio
-import uvicorn
-import argparse
 
 # Config
 DEFAULT_METRICS_PATH = "results/multi_agent_complex_maze_checkpoints/metrics.json"

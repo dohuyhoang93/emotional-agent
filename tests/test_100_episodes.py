@@ -7,9 +7,6 @@ Analyze learning với brain biopsy.
 Author: Do Huy Hoang
 Date: 2025-12-25
 """
-import json
-import os
-from datetime import datetime
 
 print("=" * 70)
 print("TEST 100 EPISODES - SENSOR SYSTEM + INTERMEDIATE REWARDS")

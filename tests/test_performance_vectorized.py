@@ -10,7 +10,7 @@ sys.path.append(os.getcwd())
 
 from src.core.snn_context_theus import create_snn_context_theus
 from src.processes.snn_core_theus import process_integrate, process_fire, process_tick
-from src.core.context import DomainContext, SystemContext # Mock wrapper
+from src.core.context import DomainContext # Mock wrapper
 
 class MockGlobalCtx:
     initial_threshold = 1.0

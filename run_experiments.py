@@ -104,7 +104,7 @@ def main(argv=None):
     
     # 4. Execute Workflow (Declarative Flux)
     try:
-        log(system_ctx, "info", f"▶️ Loading Orchestrator Workflow: workflows/orchestrator_flux.yaml")
+        log(system_ctx, "info", "▶️ Loading Orchestrator Workflow: workflows/orchestrator_flux.yaml")
         engine.execute_workflow("workflows/orchestrator_flux.yaml")
         
         # Check Final Report

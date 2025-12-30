@@ -4,8 +4,7 @@ SNN Social Learning: Viral Synapse Transfer
 Cơ chế học tập xã hội - trao đổi tri thức giữa các agent.
 """
 from src.core.snn_context import SNNContext, SynapseRecord
-import numpy as np
-from typing import List, Tuple
+from typing import List
 
 
 def extract_top_synapses(ctx: SNNContext, top_k: int = 10) -> List[SynapseRecord]:

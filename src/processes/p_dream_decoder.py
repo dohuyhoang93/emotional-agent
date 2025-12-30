@@ -8,7 +8,6 @@ Author: Do Huy Hoang
 Date: 2025-12-26
 """
 import numpy as np
-import torch
 from theus.contracts import process
 from src.core.context import SystemContext
 

@@ -11,7 +11,7 @@ import numpy as np
 from environment import GridWorld
 from src.adapters.environment_adapter import EnvironmentAdapter
 from src.core.context import SystemContext, DomainContext, GlobalContext
-from src.core.snn_context_theus import SNNSystemContext, SNNGlobalContext, SNNDomainContext, NeuronState, SynapseState
+from src.core.snn_context_theus import SNNSystemContext, SNNGlobalContext, SNNDomainContext, NeuronState
 from src.processes.p1_perception import perception
 from src.processes.snn_rl_bridge import encode_state_to_spikes
 

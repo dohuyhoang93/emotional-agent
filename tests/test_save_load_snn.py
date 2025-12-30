@@ -4,7 +4,6 @@ Test Save/Load SNN
 Test save và load trained SNN agents.
 """
 import os
-import json
 import numpy as np
 from src.core.snn_context_theus import SNNSystemContext, SNNGlobalContext, SNNDomainContext
 from src.utils.snn_persistence import save_snn_agent, load_snn_agent

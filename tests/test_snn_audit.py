@@ -9,11 +9,7 @@ Date: 2025-12-25
 import sys
 sys.path.append('.')
 
-import pytest
 from src.core.snn_context_theus import (
-    SNNGlobalContext,
-    SNNDomainContext,
-    SNNSystemContext,
     create_snn_context_theus
 )
 from src.processes.snn_core_theus import process_integrate, process_fire

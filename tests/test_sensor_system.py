@@ -83,7 +83,7 @@ def test_sensor_vector():
     
     # Lấy sensor vector
     vec_at_switch = env.get_sensor_vector(0)
-    print(f"   Agent tại (1, 1) - vị trí công tắc A")
+    print("   Agent tại (1, 1) - vị trí công tắc A")
     print(f"   Sensor vector: {vec_at_switch}")
     
     # Kiểm tra có cảm nhận công tắc không (kênh 2-9 nên có giá trị 1.0)

@@ -13,8 +13,7 @@ import numpy as np
 from src.core.snn_context_theus import create_snn_context_theus, SynapseState
 from src.core.context import GlobalContext, DomainContext, SystemContext
 from src.processes.snn_social_quarantine_theus import (
-    process_quarantine_validation,
-    process_inject_viral_with_quarantine
+    process_quarantine_validation
 )
 from src.processes.snn_advanced_features_theus import (
     process_hysteria_dampener,

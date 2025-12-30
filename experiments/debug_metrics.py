@@ -87,7 +87,7 @@ def run_debug():
     with open('results/metrics_debug.json', 'w') as f:
         json.dump(metrics_log, f, indent=2)
     
-    print(f"\nMetrics saved to results/metrics_debug.json")
+    print("\nMetrics saved to results/metrics_debug.json")
     print(f"Total steps: {len(metrics_log)}")
     
     # Check for spikes

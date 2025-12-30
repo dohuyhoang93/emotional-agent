@@ -4,7 +4,6 @@ Periodic Resync: Fix Drift from Lazy Leak
 Tính toán lại chính xác trạng thái mạng định kỳ để triệt tiêu sai số.
 """
 from src.core.snn_context import SNNContext
-import numpy as np
 
 
 def process_periodic_resync(ctx: SNNContext) -> SNNContext:

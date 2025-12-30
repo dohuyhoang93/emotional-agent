@@ -6,9 +6,7 @@ Social Quarantine: Safe viral synapse transfer với validation.
 Author: Do Huy Hoang
 Date: 2025-12-25
 """
-import numpy as np
 from theus.contracts import process
-from src.core.snn_context_theus import SNNSystemContext
 from src.core.context import SystemContext
 
 

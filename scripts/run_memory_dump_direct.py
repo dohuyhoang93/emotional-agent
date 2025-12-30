@@ -6,7 +6,7 @@ import json
 # Ensure path (Project Root)
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.orchestrator.context import ExperimentDefinition, OrchestratorDomainContext
+from src.orchestrator.context import ExperimentDefinition
 from src.orchestrator.processes.p_initialize_experiment import FSMExperimentRunner
 from src.utils.snn_persistence import save_snn_agent
 

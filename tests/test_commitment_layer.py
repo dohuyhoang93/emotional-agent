@@ -9,7 +9,6 @@ Date: 2025-12-25
 import sys
 sys.path.append('.')
 
-import numpy as np
 from src.core.snn_context_theus import (
     create_snn_context_theus,
     COMMIT_STATE_FLUID,
@@ -47,14 +46,14 @@ def test_state_transitions():
     
     synapse = snn_ctx.domain_ctx.synapses[0]
     assert synapse.commit_state == COMMIT_STATE_FLUID
-    print(f"  Initial state: FLUID")
+    print("  Initial state: FLUID")
     
     # Good predictions → SOLID
     for i in range(10):
         rl_ctx.domain_ctx.td_error = 0.05  # Low error
         process_commitment(snn_ctx, rl_ctx)
     
-    print(f"  After 10 good predictions:")
+    print("  After 10 good predictions:")
     print(f"    State: {synapse.commit_state} (SOLID={COMMIT_STATE_SOLID})")
     print(f"    Consecutive correct: {synapse.consecutive_correct}")
     assert synapse.commit_state == COMMIT_STATE_SOLID
@@ -64,7 +63,7 @@ def test_state_transitions():
         rl_ctx.domain_ctx.td_error = 1.0  # High error
         process_commitment(snn_ctx, rl_ctx)
     
-    print(f"  After 5 bad predictions:")
+    print("  After 5 bad predictions:")
     print(f"    State: {synapse.commit_state} (REVOKED={COMMIT_STATE_REVOKED})")
     print(f"    Consecutive wrong: {synapse.consecutive_wrong}")
     assert synapse.commit_state == COMMIT_STATE_REVOKED
@@ -107,9 +106,9 @@ def test_protected_learning():
     fluid_delta = abs(fluid_syn.weight - 0.5)
     solid_delta = abs(solid_syn.weight - 0.5)
     
-    print(f"  FLUID synapse:")
+    print("  FLUID synapse:")
     print(f"    Δw: {fluid_delta:.6f}")
-    print(f"  SOLID synapse:")
+    print("  SOLID synapse:")
     print(f"    Δw: {solid_delta:.6f}")
     print(f"  Ratio: {fluid_delta / (solid_delta + 1e-8):.2f}x")
     
@@ -242,7 +241,7 @@ def test_integration_workflow():
     pruned = snn_ctx.domain_ctx.metrics.get('pruned_count', 0)
     active = snn_ctx.domain_ctx.metrics.get('active_synapses', 0)
     
-    print(f"  After 100 steps:")
+    print("  After 100 steps:")
     print(f"    SOLID synapses: {solid}")
     print(f"    REVOKED synapses: {revoked}")
     print(f"    Pruned total: {pruned}")

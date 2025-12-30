@@ -56,7 +56,7 @@ def process_imagination_loop(ctx: SNNSystemContext):
     
     # Tự sinh spike (hallucination)
     # NOTE: Sử dụng prototype_vector làm "ký ức"
-    hallucinated_vector = seed_neuron.prototype_vector.copy()
+    seed_neuron.prototype_vector.copy()
     
     # Bơm vào spike queue (giả lập sensor input)
     next_time = domain.current_time + 1

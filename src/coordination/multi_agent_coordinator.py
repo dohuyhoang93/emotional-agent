@@ -10,10 +10,8 @@ import numpy as np
 from typing import List, Dict, Any
 from src.agents.rl_agent import RLAgent
 from theus import TheusEngine
-from theus.config import AuditRecipe
 import os
 import torch
-import numpy as np
 from src.core.context import GlobalContext, DomainContext, SystemContext
 from src.core.snn_context_theus import SNNGlobalContext, create_snn_context_theus
 from src.adapters.environment_adapter import EnvironmentAdapter

@@ -1,13 +1,11 @@
 
 import sys
 import time
-import numpy as np
 sys.path.append('.')
 
-from src.core.context import GlobalContext, SystemContext
-from src.core.snn_context_theus import SNNGlobalContext, create_snn_context_theus, SNNSystemContext, SNNDomainContext
+from src.core.context import GlobalContext
+from src.core.snn_context_theus import create_snn_context_theus
 from src.processes.snn_core_theus import process_integrate, process_fire, process_tick
-from theus.guards import ContextGuard
 
 def benchmark_snn():
     print("="*60)

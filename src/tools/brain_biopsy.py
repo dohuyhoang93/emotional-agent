@@ -3,8 +3,8 @@ Brain Biopsy Tool: Entity Inspector for ECS Debugging
 ======================================================
 Công cụ để "lắp ráp" view từ các mảng ECS phân tán.
 """
-from src.core.snn_context import SNNContext, NeuronRecord, SynapseRecord
-from typing import Dict, Any, List
+from src.core.snn_context import SNNContext
+from typing import Dict, Any
 import json
 
 

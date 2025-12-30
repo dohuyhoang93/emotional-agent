@@ -1,12 +1,12 @@
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
-from src.logger import log as system_log, log_error as system_log_error
+from src.logger import log as system_log
 from src.coordination.multi_agent_coordinator import MultiAgentCoordinator
 from src.adapters.environment_adapter import EnvironmentAdapter
 from environment import GridWorld as ComplexMazeEnvV2
-from src.utils.snn_persistence import save_snn_agent
 import os
 import json
+import traceback
 
 class ExperimentLogger:
     def __init__(self, output_dir):

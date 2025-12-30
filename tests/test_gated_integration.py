@@ -38,7 +38,7 @@ def test_network_creation():
     
     # Count parameters
     total_params = sum(p.numel() for p in model.parameters())
-    print(f"✅ Network created")
+    print("✅ Network created")
     print(f"✅ Total parameters: {total_params}")
 
 
@@ -64,7 +64,7 @@ def test_forward_pass():
     # Check output shape
     assert q_values.shape == (4,)
     
-    print(f"✅ Forward pass OK")
+    print("✅ Forward pass OK")
     print(f"✅ Q-values: {q_values}")
 
 
@@ -86,7 +86,7 @@ def test_batch_forward():
     # Check output shape
     assert q_values.shape == (batch_size, 4)
     
-    print(f"✅ Batch forward OK")
+    print("✅ Batch forward OK")
     print(f"✅ Output shape: {q_values.shape}")
 
 
@@ -110,7 +110,7 @@ def test_gate_values():
     # Check shape
     assert gate.shape == (64,)  # hidden_dim
     
-    print(f"✅ Gate values OK")
+    print("✅ Gate values OK")
     print(f"✅ Gate mean: {gate.mean():.4f}")
     print(f"✅ Gate std: {gate.std():.4f}")
 
@@ -137,7 +137,7 @@ def test_trainer():
     assert isinstance(loss, float)
     assert loss > 0
     
-    print(f"✅ Trainer OK")
+    print("✅ Trainer OK")
     print(f"✅ Loss: {loss:.4f}")
 
 
@@ -175,7 +175,7 @@ def test_training_loop():
     initial_loss = np.mean(losses[:10])
     final_loss = np.mean(losses[-10:])
     
-    print(f"\n✅ Training loop OK")
+    print("\n✅ Training loop OK")
     print(f"✅ Initial loss: {initial_loss:.4f}")
     print(f"✅ Final loss: {final_loss:.4f}")
     print(f"✅ Improvement: {(initial_loss - final_loss) / initial_loss * 100:.1f}%")
@@ -201,7 +201,7 @@ def test_prediction():
     assert q_values.shape == (4,)
     assert not q_values.requires_grad  # No gradient
     
-    print(f"✅ Prediction OK")
+    print("✅ Prediction OK")
     print(f"✅ Q-values: {q_values}")
 
 
@@ -224,10 +224,10 @@ def test_gate_interpretation():
     low_emotion = torch.zeros(16)
     gate_low = model.get_gate_values(obs, low_emotion)
     
-    print(f"✅ Gate interpretation OK")
+    print("✅ Gate interpretation OK")
     print(f"✅ Gate (high emotion) mean: {gate_high.mean():.4f}")
     print(f"✅ Gate (low emotion) mean: {gate_low.mean():.4f}")
-    print(f"✅ Gates are adaptive!")
+    print("✅ Gates are adaptive!")
 
 
 if __name__ == '__main__':

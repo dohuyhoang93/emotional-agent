@@ -11,12 +11,7 @@ import torch
 from typing import Dict, Any, Optional
 
 from theus.engine import TheusEngine
-from src.core.context import GlobalContext, DomainContext, SystemContext
-from src.core.snn_context_theus import (
-    create_snn_context_theus,
-    SNNGlobalContext,
-    SNNSystemContext
-)
+from src.core.context import SystemContext
 from src.models.gated_integration import GatedIntegrationNetwork
 from src.adapters.environment_adapter import EnvironmentAdapter
 from src.utils.snn_recorder import SNNRecorder
@@ -102,7 +97,6 @@ class RLAgent:
         # === AUDIT RECIPE LOADING (Activated by User) ===
         # We load specs/snn_audit_recipe.yaml manually here
         from theus.config import AuditRecipe
-        import yaml
         import os
         # Loading Audit Recipe (Phase 13)
         # Using self.agent_id since agent_id arg is removed

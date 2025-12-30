@@ -1,7 +1,6 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import os
-import numpy as np
 from typing import Dict
 
 def plot_mean_with_std(df: pd.DataFrame, x_col: str, y_col: str, title: str, y_label: str, output_path: str, window_size: int = 50):
@@ -85,7 +84,7 @@ def plot_all_experiment_results(experiments_data: Dict[str, pd.DataFrame], globa
 
         # Plot 2: Average Steps for Successful Episodes
         # Filter for successful episodes before plotting steps
-        df_successful = df_agg[df_agg['success'] == True]
+        df_successful = df_agg[df_agg['success'] is True]
         if not df_successful.empty:
             plot_mean_with_std(
                 df=df_successful,

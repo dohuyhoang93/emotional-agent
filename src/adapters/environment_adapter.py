@@ -1,4 +1,4 @@
-from typing import Dict, Any, Tuple
+from typing import Dict, Any
 from environment import GridWorld
 
 class EnvironmentAdapter:
@@ -26,7 +26,7 @@ class EnvironmentAdapter:
         # GridWorld V2 uses sensor vectors primarily for SNN.
         try:
              next_obs = self.env.get_sensor_vector(agent_id)
-        except:
+        except Exception:
              next_obs = self.env.get_observation(agent_id)
              
         done = self.env.is_done()

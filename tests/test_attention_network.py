@@ -4,7 +4,6 @@ sys.path.append(os.getcwd())
 
 import unittest
 import torch
-import torch.nn as nn
 from src.models.gated_integration import GatedIntegrationNetwork, GatedIntegrationTrainer
 
 class TestAttentionNetwork(unittest.TestCase):

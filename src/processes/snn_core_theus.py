@@ -10,10 +10,8 @@ import numpy as np
 from theus.contracts import process
 from src.core.context import SystemContext
 from src.core.snn_context_theus import (
-    SNNSystemContext, 
     ensure_tensors_initialized,
-    sync_from_tensors,
-    sync_to_tensors
+    sync_from_tensors
 )
 
 
@@ -198,7 +196,7 @@ def process_fire(ctx: SystemContext):
             p_vecs += delta_vecs
             
     # 6. Sync Back to Objects (Audit Compatibility)
-    if sync:
+    if sync:  # noqa: F821
         sync_from_tensors(snn_ctx)
 
 
@@ -210,7 +208,7 @@ def process_fire(ctx: SystemContext):
     outputs=['domain.snn_context'],
     side_effects=[]
 )
-def process_fire(ctx: SystemContext):
+def process_fire(ctx: SystemContext):  # noqa: F811
     """Quy trình bắn xung (Vectorized). Wraps _fire_impl."""
     _fire_impl(ctx, sync=True)
 

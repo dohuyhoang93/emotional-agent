@@ -6,7 +6,6 @@ Cơ chế tưởng tượng - SNN tự mô phỏng để học nhân quả.
 # from src.core.snn_context import SNNContext # LEGACY BROKEN
 from src.core.snn_context_theus import SNNSystemContext as SNNContext
 import numpy as np
-from typing import List, Tuple
 
 
 def process_imagination_loop(ctx: SNNContext) -> SNNContext:
@@ -33,7 +32,7 @@ def process_imagination_loop(ctx: SNNContext) -> SNNContext:
     
     # Tự sinh spike (hallucination)
     # NOTE: Sử dụng prototype_vector làm "ký ức"
-    hallucinated_vector = seed_neuron.prototype_vector.copy()
+    seed_neuron.prototype_vector.copy()
     
     # Bơm vào spike queue (giả lập sensor input)
     next_time = ctx.current_time + 1

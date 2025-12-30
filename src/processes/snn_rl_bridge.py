@@ -12,7 +12,6 @@ import numpy as np
 import torch
 from theus.contracts import process
 from src.core.context import SystemContext
-from src.core.snn_context_theus import SNNSystemContext
 
 
 # ============================================================================
@@ -272,12 +271,10 @@ def modulate_snn_attention(ctx: SystemContext):
     if action >= 4:
         # INHIBITORY MODE
         base_action = action - 4
-        is_inhibition = True
         modulation_factor = 1.2 # Harder to fire (Inhibit)
     else:
         # EXCITATORY MODE
         base_action = action
-        is_inhibition = False
         modulation_factor = 0.9 # Easier to fire (Excite)
 
     # Calculate Indices based on base_action

@@ -14,7 +14,7 @@ Date: 2025-12-25
 """
 import json
 import numpy as np
-from typing import Dict, Any, List, Tuple
+from typing import Dict, Any
 from src.core.snn_context_theus import SNNSystemContext, NeuronState, SynapseState
 
 
@@ -316,7 +316,7 @@ class BrainBiopsyTheus:
 
 def demo_basic_inspection():
     """Demo basic inspection."""
-    from src.core.snn_context_theus import SNNGlobalContext, SNNDomainContext, NeuronState, SynapseState
+    from src.core.snn_context_theus import SNNGlobalContext, SNNDomainContext
     
     print("=" * 60)
     print("DEMO: BASIC INSPECTION")

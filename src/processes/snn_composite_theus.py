@@ -12,7 +12,6 @@ from src.core.context import SystemContext
 from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
 
 # Import Internal Implementations
-from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
 
 # Import Internal Implementations
 from src.processes.snn_rl_bridge import _encode_state_to_spikes_impl, _encode_emotion_vector_impl

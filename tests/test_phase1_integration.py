@@ -10,7 +10,6 @@ import sys
 sys.path.append('.')
 
 import torch
-import numpy as np
 from src.agents.rl_agent import RLAgent
 from src.core.context import GlobalContext
 from src.core.snn_context_theus import SNNGlobalContext
@@ -77,7 +76,7 @@ def test_rl_agent_creation():
     assert agent.engine is not None
     assert len(agent.snn_ctx.domain_ctx.neurons) == 100
     
-    print(f"  ✅ Agent created")
+    print("  ✅ Agent created")
     print(f"  ✅ SNN neurons: {len(agent.snn_ctx.domain_ctx.neurons)}")
     print(f"  ✅ Gated network params: {sum(p.numel() for p in agent.gated_network.parameters())}")
     print("✅ RLAgent creation works!")
@@ -151,9 +150,9 @@ def test_agent_reset():
     assert agent.snn_ctx.domain_ctx.current_time == 0
     assert all(n.potential == 0.0 for n in agent.snn_ctx.domain_ctx.neurons)
     
-    print(f"  ✅ RL state reset")
-    print(f"  ✅ SNN state reset")
-    print(f"  ✅ Metrics reset")
+    print("  ✅ RL state reset")
+    print("  ✅ SNN state reset")
+    print("  ✅ Metrics reset")
     print("✅ Agent reset works!")
 
 

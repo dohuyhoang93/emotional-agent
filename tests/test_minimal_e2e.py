@@ -46,7 +46,7 @@ def main():
         global_ctx=global_ctx,
         snn_global_ctx=snn_global_ctx
     )
-    print(f"   ✅ Agent created")
+    print("   ✅ Agent created")
     
     # Create environment
     settings = {
@@ -73,10 +73,10 @@ def main():
     try:
         action = agent.step(adapter)
         print(f"   ✅ Action: {action}")
-        print(f"   ✅ Step completed!")
+        print("   ✅ Step completed!")
     except Exception as e:
         print(f"   ❌ Error: {e}")
-        print(f"   (Expected if workflow incomplete)")
+        print("   (Expected if workflow incomplete)")
     
     print("\n" + "=" * 60)
     print("Test complete!")

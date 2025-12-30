@@ -28,7 +28,7 @@ def process_integrate(ctx: SNNContext) -> SNNContext:
         for synapse in ctx.synapses:
             if synapse.pre_neuron_id == spike_neuron_id:
                 # Tính thời điểm xung đến neuron hậu synapse
-                arrival_time = ctx.current_time + synapse.delay
+                ctx.current_time + synapse.delay
                 post_neuron = ctx.neurons[synapse.post_neuron_id]
                 
                 # Cộng điện thế (tại thời điểm hiện tại, sẽ trễ sau)

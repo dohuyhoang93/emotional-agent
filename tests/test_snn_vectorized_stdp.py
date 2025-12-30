@@ -8,7 +8,7 @@ import os
 # Add project root to sys.path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-from src.core.snn_context_theus import create_snn_context_theus, ensure_tensors_initialized, sync_to_tensors, sync_from_tensors
+from src.core.snn_context_theus import create_snn_context_theus, ensure_tensors_initialized
 from src.processes.snn_learning_theus import _stdp_impl_vectorized
 
 # --- MOCK WRAPPER ---

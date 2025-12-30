@@ -1,10 +1,7 @@
 import pytest
-import numpy as np
-import copy
 from src.core.snn_context_theus import (
     create_snn_context_theus, 
     ensure_tensors_initialized,
-    sync_to_tensors,
     sync_from_tensors
 )
 

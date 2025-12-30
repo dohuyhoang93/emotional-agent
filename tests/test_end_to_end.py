@@ -74,7 +74,7 @@ def test_end_to_end():
     print("\n2. SETUP CONTEXTS:")
     rl_ctx = SystemContext(GlobalContext(), DomainContext())
     snn_ctx = create_test_snn()
-    print(f"   ✅ RL Context created")
+    print("   ✅ RL Context created")
     print(f"   ✅ SNN Context created ({len(snn_ctx.domain_ctx.neurons)} neurons, {len(snn_ctx.domain_ctx.synapses)} synapses)")
     
     # 3. Run 5 Episodes

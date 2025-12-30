@@ -1,0 +1,17 @@
+# Ruff Configuration for EmotionAgent
+# Exclude Theus framework to avoid breaking changes
+
+# Exclude directories
+exclude = [
+    "theus",           # Theus framework - do not modify
+    ".venv",
+    "__pycache__",
+    "*.egg-info",
+    ".git",
+]
+
+[lint]
+# Ignore style-only rules that don't affect logic
+ignore = [
+    "E701",  # Multiple statements on one line (colon) - style preference
+]

@@ -9,7 +9,6 @@ Date: 2025-12-25
 import sys
 sys.path.append('.')
 
-import pytest
 import numpy as np
 from src.core.snn_context_theus import (
     SNNGlobalContext,

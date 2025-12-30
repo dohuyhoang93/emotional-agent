@@ -44,7 +44,6 @@ def run_population_dreaming(ctx: OrchestratorSystemContext):
         pass
         
     # LOGIC:
-    from src.processes.snn_imagination_theus import process_imagination_loop, process_dream_learning
     # from src.processes.snn_core_theus import process_integrate... 
     # This is getting messy. Use TheusEngine properly.
     

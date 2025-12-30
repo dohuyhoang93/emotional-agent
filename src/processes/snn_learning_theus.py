@@ -8,7 +8,6 @@ Date: 2025-12-25
 """
 import numpy as np
 from theus.contracts import process
-from src.core.snn_context_theus import SNNSystemContext
 
 
 @process(

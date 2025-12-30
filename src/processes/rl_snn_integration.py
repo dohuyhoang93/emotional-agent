@@ -8,7 +8,6 @@ CRITICAL: Side-effects handling cho environment interaction.
 Author: Do Huy Hoang
 Date: 2025-12-25
 """
-import torch
 from theus.contracts import process
 from src.core.context import SystemContext
 

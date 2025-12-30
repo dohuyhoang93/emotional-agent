@@ -1,6 +1,4 @@
-import time
 from theus.contracts import process
-from src.orchestrator.context import OrchestratorSystemContext
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log, log_error
 from src.orchestrator.processes.p_save_checkpoint import save_periodic_checkpoint
@@ -73,9 +71,6 @@ def run_single_episode(ctx: OrchestratorSystemContext):
         # --- ENHANCE METRICS (Dashboard Phase 5) ---
         if runner.coordinator.agents:
             # 1. SNN Stats (Avg Firing Rate)
-            total_spikes = 0
-            total_neurons = 0
-            total_plasticity = 0
             
             for agent in runner.coordinator.agents:
                 # SNN Context

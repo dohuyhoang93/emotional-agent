@@ -1,6 +1,5 @@
 import json
 import os
-import sys
 
 def inspect_memory():
     # Find latest checkpoint
@@ -19,28 +18,28 @@ def inspect_memory():
 
     print("\n=== BRAIN DUMP: AGENT 0 ===")
     
-    print(f"\n[1] METADATA")
+    print("\n[1] METADATA")
     print(json.dumps(data['metadata'], indent=2))
     
-    print(f"\n[2] PROCEDURAL MEMORY (SNN Synapses)")
+    print("\n[2] PROCEDURAL MEMORY (SNN Synapses)")
     synapses = data['synapses']
     print(f"Total Synapses: {len(synapses)}")
     if synapses:
         print("Sample Synapse [0]:")
         print(json.dumps(synapses[0], indent=2))
     
-    print(f"\n[3] PROCEDURAL MEMORY (Q-Table)")
+    print("\n[3] PROCEDURAL MEMORY (Q-Table)")
     q_table = data.get('memory', {}).get('q_table', {})
     print(f"Known States: {len(q_table)}")
     # Print first few entries
     for k, v in list(q_table.items())[:3]:
         print(f"  State {k}: {v}")
 
-    print(f"\n[4] SEMANTIC MEMORY (Beliefs)")
+    print("\n[4] SEMANTIC MEMORY (Beliefs)")
     beliefs = data.get('memory', {}).get('beliefs', {})
     print(json.dumps(beliefs, indent=2))
     
-    print(f"\n[5] EPISODIC/SHORT-TERM (Recent Buffer)")
+    print("\n[5] EPISODIC/SHORT-TERM (Recent Buffer)")
     stm = data.get('memory', {}).get('short_term', [])
     for event in stm:
         print(f"  {event}")
