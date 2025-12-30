@@ -3,14 +3,14 @@
     "episode": 0,
     "metrics": {
       "episode": 1,
-      "avg_reward": 25.61766117052065,
+      "avg_reward": 25.907268217045964,
       "success_rate": 0.0,
       "agent_rewards": [
-        27.603667019837644,
-        16.22605303572547,
-        33.964521475901805,
-        27.95440479885933,
-        22.339659522279
+        28.598287281937807,
+        20.68443827211524,
+        34.42633991252215,
+        28.119861000152838,
+        17.707414618501783
       ],
       "agent_success": [
         false,
@@ -18,21 +18,24 @@
         false,
         false,
         false
-      ]
+      ],
+      "epsilon": 1.0,
+      "maturity": 0.0,
+      "avg_firing_rate": 0.011216116449117292
     }
   },
   {
     "episode": 1,
     "metrics": {
       "episode": 2,
-      "avg_reward": 15.763457456494326,
+      "avg_reward": 10.13198102772772,
       "success_rate": 0.0,
       "agent_rewards": [
-        33.80000012999995,
-        0.4563519197861903,
+        34.528522380307955,
+        -1.2473907486905975,
         -0.8458406706761944,
-        9.79767783242503,
-        35.609098070936646
+        8.942625597726513,
+        9.28198857997093
       ],
       "agent_success": [
         false,
@@ -40,21 +43,24 @@
         false,
         false,
         false
-      ]
+      ],
+      "epsilon": 1.0,
+      "maturity": 0.0,
+      "avg_firing_rate": 0.0043734891692517545
     }
   },
   {
     "episode": 2,
     "metrics": {
       "episode": 3,
-      "avg_reward": 30.193996592369132,
+      "avg_reward": 28.52000020999995,
       "success_rate": 0.0,
       "agent_rewards": [
         43.29999999999994,
         10.300000559999976,
-        24.069982391845855,
+        39.69999999999994,
         37.50000000999993,
-        35.79999999999995
+        11.800000479999975
       ],
       "agent_success": [
         false,
@@ -62,21 +68,24 @@
         false,
         false,
         false
-      ]
+      ],
+      "epsilon": 1.0,
+      "maturity": 0.0,
+      "avg_firing_rate": 0.0003271288979339916
     }
   },
   {
     "episode": 3,
     "metrics": {
       "episode": 4,
-      "avg_reward": 40.440000013999935,
+      "avg_reward": 38.140000059999934,
       "success_rate": 0.0,
       "agent_rewards": [
         43.10000006999994,
         38.89999999999994,
         48.79999999999993,
         35.19999999999994,
-        36.19999999999994
+        24.700000229999954
       ],
       "agent_success": [
         false,
@@ -84,7 +93,60 @@
         false,
         false,
         false
-      ]
+      ],
+      "epsilon": 1.0,
+      "maturity": 0.0,
+      "avg_firing_rate": 0.00021583257774035114
+    }
+  },
+  {
+    "episode": 4,
+    "metrics": {
+      "episode": 5,
+      "avg_reward": 40.24739110161691,
+      "success_rate": 0.0,
+      "agent_rewards": [
+        37.59999999999993,
+        43.33695542808486,
+        44.29999999999992,
+        37.29999999999995,
+        38.70000007999992
+      ],
+      "agent_success": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "epsilon": 1.0,
+      "maturity": 0.0,
+      "avg_firing_rate": 0.0007436651128151905
+    }
+  },
+  {
+    "episode": 4,
+    "metrics": {
+      "episode": 5,
+      "avg_reward": 40.24739110161691,
+      "success_rate": 0.0,
+      "agent_rewards": [
+        37.59999999999993,
+        43.33695542808486,
+        44.29999999999992,
+        37.29999999999995,
+        38.70000007999992
+      ],
+      "agent_success": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "epsilon": 1.0,
+      "maturity": 0.0,
+      "avg_firing_rate": 0.0007436651128151905
     }
   }
 ]

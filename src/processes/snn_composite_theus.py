@@ -70,8 +70,16 @@ def process_snn_cycle(ctx: SystemContext):
     
     # 2. CORE LOOP (Tensor Mode)
     # Sync Objects -> Tensors (Potentials, Thresholds, Weights)
+    # CRITICAL FIX: Explicit Sync required because _encode updated Objects
     ensure_tensors_initialized(ctx.domain_ctx.snn_context)
+    from src.core.snn_context_theus import sync_to_tensors
+    sync_to_tensors(ctx.domain_ctx.snn_context)
     
+    # DEBUG: Check tensors after sync
+    # t = ctx.domain_ctx.snn_context.domain_ctx.tensors
+    # if 'potentials' in t:
+    #      print(f"DEBUG SYNC: Max Pot: {np.max(t['potentials']):.2f}")
+
     # Integrate (Updates Potentials Tensor)
     _integrate_impl(ctx, sync=False)
     
@@ -96,5 +104,21 @@ def process_snn_cycle(ctx: SystemContext):
     # 4. READOUT & MAINTENANCE (Object Mode)
     _encode_emotion_vector_impl(ctx)
     
+    # --- METRIC COLLECTION (Dashboard Phase 5) ---
+    # Calculate Instantaneous Firing Rate
+    snn_domain = ctx.domain_ctx.snn_context.domain_ctx
+    if snn_domain.neurons:
+        # Check metrics populated by _fire_impl
+        instant_fr = snn_domain.metrics.get('fire_rate', 0.0)
+        
+        # Store in Agent Metrics (snn_domain.metrics)
+        # Exponential Moving Average for smoother chart
+        prev_fr = snn_domain.metrics.get('avg_firing_rate', 0.0)
+        new_fr = 0.9 * prev_fr + 0.1 * instant_fr
+        snn_domain.metrics['avg_firing_rate'] = new_fr
+        
+        # DEBUG: Print to console to verify activity
+        # print(f"DEBUG: SNN Firing Rate: {instant_fr*100:.2f}%, Avg: {new_fr:.4f}")
+
     # 5. TICK (Advance Time)
     _tick_impl(ctx)

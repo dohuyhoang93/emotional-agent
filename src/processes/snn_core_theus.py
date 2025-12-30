@@ -233,6 +233,9 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
     cur_time = snn_ctx.domain_ctx.current_time
     refractory = 5
     
+    # DEBUG: Tensor State
+    # print(f"DEBUG CORE: Max Pot: {np.max(pots):.2f}, Min Thresh: {np.min(thresh):.2f}")
+    
     # 2. Vectorized Condition Check
     # (P >= Thresh) & (Time - Last >= Refractory)
     can_fire = (pots >= thresh) & ((cur_time - last_fire) >= refractory)

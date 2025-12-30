@@ -57,10 +57,24 @@ def save_metrics_snapshot(ctx: OrchestratorSystemContext):
         except json.JSONDecodeError:
             existing_data = []
     
+    # Convert metrics to plain dict recursively to handle FrozenDict/FrozenList
+    def sanitize(obj):
+        if isinstance(obj, dict):
+            return {k: sanitize(v) for k, v in obj.items()}
+        elif hasattr(obj, 'items'): # Duck typing for FrozenDict
+            return {k: sanitize(v) for k, v in obj.items()}
+        elif isinstance(obj, (list, tuple)):
+            return [sanitize(v) for v in obj]
+        elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes)):
+             return [sanitize(v) for v in obj]
+        return obj
+    
+    clean_metrics = sanitize(domain.metrics)
+
     # Append
     existing_data.append({
         "episode": runner.current_episode_count - 1, # Last completed
-        "metrics": domain.metrics
+        "metrics": clean_metrics
     })
     
     # Write back

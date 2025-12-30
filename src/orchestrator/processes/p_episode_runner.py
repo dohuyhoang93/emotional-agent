@@ -70,8 +70,60 @@ def run_single_episode(ctx: OrchestratorSystemContext):
         metrics = runner.coordinator.run_episode(runner.env, runner.adapter)
         runner.perf_monitor.end_episode()
         
+        # --- ENHANCE METRICS (Dashboard Phase 5) ---
+        if runner.coordinator.agents:
+            # 1. SNN Stats (Avg Firing Rate)
+            total_spikes = 0
+            total_neurons = 0
+            total_plasticity = 0
+            
+            for agent in runner.coordinator.agents:
+                # SNN Context
+                snn_ctx = agent.snn_ctx
+                # Assuming 'spike_history' or similar exists. 
+                # Better: Use 'metrics' from agent if available, or peek context.
+                # SNN Domain Context has 'neurons' (list of Neuron objects?).
+                # Let's use a simpler heuristic if deep inspection is slow.
+                # Actually, agent.snn_ctx.domain_ctx.neurons is available.
+                
+                neurons = snn_ctx.domain_ctx.neurons
+                if neurons:
+                     # Calculate instantaneous firing rate (this step)
+                     # Or use accumulation from episode logic?
+                     # Let's rely on what 'run_episode' returns if possible.
+                     # If not, we have to iterate.
+                     
+                     # Check if agent has gathered SNN stats?
+                     pass
+                     
+            # 2. Maturity (Epsilon)
+            # Agent 0 representative
+            # Fix: RLAgent uses domain_ctx.current_exploration_rate
+            agent0 = runner.coordinator.agents[0]
+            epsilon = getattr(agent0.domain_ctx, 'current_exploration_rate', 0.0)
+            metrics['epsilon'] = epsilon
+            metrics['maturity'] = (1.0 - epsilon) * 100.0 # Scale 0-100 for gauge
+
+            # 3. SNN Firing Rate
+            # Fix: Read from SNN domain metrics (set by process_snn_cycle)
+            avg_fr = 0.0
+            count = 0
+            for agent in runner.coordinator.agents:
+                snn_metrics = agent.snn_ctx.domain_ctx.metrics
+                if 'avg_firing_rate' in snn_metrics:
+                     avg_fr += snn_metrics['avg_firing_rate']
+                count += 1
+            
+            if count > 0:
+                metrics['avg_firing_rate'] = avg_fr / count
+            else:
+                metrics['avg_firing_rate'] = 0.0
+
         # Log & Track
         runner.logger.log_episode(current_episode, metrics)
+        
+        # EXPOSE METRICS TO ORCHESTRATOR FOR DASHBOARD
+        domain.metrics = metrics
         runner.current_episode_count += 1
         
         # --- CHECK EVENTS ---

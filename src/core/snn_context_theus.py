@@ -42,7 +42,7 @@ class SNNGlobalContext(BaseGlobalContext):
     # === Neuron Parameters ===
     tau_decay: float = 0.9  # Leaky decay (90% retention per step)
     refractory_period: int = 5  # ms
-    initial_threshold: float = 1.0
+    initial_threshold: float = 0.6 # Lowered from 1.0 to increase activity
     threshold_min: float = 0.3
     threshold_max: float = 3.0
     

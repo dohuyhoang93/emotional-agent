@@ -43,7 +43,7 @@
                 "environment_config": {
                     "grid_size": 25,
                     "sleep_interval": 25,
-                    "sleep_duration": 100,
+                    "sleep_duration": 10,
                     "num_agents": 5,
                     "step_penalty": -0.01,
                     "wall_penalty": -0.1,

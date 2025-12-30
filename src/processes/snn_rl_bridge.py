@@ -145,6 +145,13 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
         # No SNN - skip
         return
     
+    # DEBUG: Inspect incoming observation
+    # print(f"DEBUG OBS TYPE: {type(obs)}")
+    # if isinstance(obs, np.ndarray):
+    #     print(f"DEBUG OBS VECTOR: {obs}")
+    # else:
+    #     print(f"DEBUG OBS RAW: {obs}")
+    
     # Observation ĐÃ LÀ vector 16-dim từ environment.get_sensor_vector()
     # KHÔNG CẦN encoding nữa!
     if isinstance(obs, np.ndarray):
@@ -171,6 +178,7 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
     
     # Inject vào input neurons (0-15)
     input_end = min(16, len(snn_ctx.domain_ctx.neurons))
+    # print(f"DEBUG ENCODE: Neurons: {len(snn_ctx.domain_ctx.neurons)}, Input End: {input_end}")
     
     for i in range(input_end):
         neuron = snn_ctx.domain_ctx.neurons[i]
@@ -179,7 +187,12 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
         # NOTE: Tăng từ 2.0 → 5.0 để neurons có thể bắn
         # Sensor values [0, 1], threshold = 1.0
         # Amplification 5.0 → potential [0, 5.0]
-        neuron.potential = sensor_vector[i] * 5.0
+        val = sensor_vector[i]
+        
+        # DEBUG: Print first non-zero input
+        # if val > 0: print(f"DEBUG INPUT: Neuron {i} got {val}")
+        
+        neuron.potential = val * 5.0
         
         # Full context cho vector matching
         neuron.potential_vector = sensor_vector
