@@ -27,7 +27,7 @@
                 "revolution_threshold": 0.5,
                 "revolution_window": 10,
                 "revolution_elite_ratio": 0.1,
-                "enable_recorder": true,
+                "enable_recorder": false,
                 "checkpoint_freq": 50,
                 "use_neural_darwinism": true,
                 "darwinism_interval": 100,

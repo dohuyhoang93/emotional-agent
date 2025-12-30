@@ -288,3 +288,30 @@ Logs saved to JSON
 System is now fully operational, clean, and documented.
 Ready for heavy-duty training.
 
+
+## 🐛 Bug Fixes & Optimization (Revolution Protocol)
+
+### Ngày: 2025-12-30
+
+**Sự cố:** Thí nghiệm bị treo và chạy cực chậm (1h/episode) tại episode 11.
+
+**Nguyên nhân:**
+1. **Critical Logic Bug:** Revolution Protocol so sánh `Reward` (giá trị thực ~30-50) với `Synapse Weight` (< 1.0) hoặc `Threshold` cố định, dẫn đến điều kiện kích hoạt LUÔN ĐÚNG.
+2. **Infinite Trigger:** Không có cơ chế Cooldown hoặc Reset History, khiến Revolution chạy liên tục mỗi episode sau khi vượt ngưỡng window.
+3. **Performance Bottleneck:** `enable_recorder: true` ghi video mỗi step cho 5 agents gây nghẽn I/O.
+
+**Giải pháp:**
+1. **Fix Logic Revolution:**
+   - Chuyển sang so sánh `Reward` vs `Dynamic Baseline`.
+   - Baseline tự động cập nhật theo reward của thế hệ Elite mới nhất.
+   - Thêm `cooldown` (chờ ít nhất `window` episodes trước khi trigger lần nữa).
+2. **Optimize Performance:**
+   - Vô hiệu hóa `recorder` trong `experiments.json`.
+   - Sửa logic trong cả 2 phiên bản: `p_perform_revolution.py` (Process) và `revolution_protocol.py` (OO).
+
+**Kết quả Verification:**
+- Unit Test (`tests/test_revolution_fix.py`) xác nhận logic mới hoạt động đúng:
+  - Chỉ trigger khi Reward > Baseline.
+  - Reset history sau trigger.
+  - Baseline tăng dần.
+- Thí nghiệm thực tế (`run_experiments.py`) đang chạy mượt mà, không còn treo.

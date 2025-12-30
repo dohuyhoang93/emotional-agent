@@ -41,35 +41,49 @@ class RevolutionProtocolManager:
         self.elite_ratio = elite_ratio
         
         # Revolution history
-        self.revolution_count = 0
-        self.revolution_history = []
-    
+        self.last_trigger_episode = -1000
+        self.dynamic_baseline = threshold # Start with initial threshold if > 1.0 (reward-based)
+
     def check_and_execute_revolution(self) -> bool:
         """
         Check if revolution should be triggered and execute if needed.
         
         Criteria:
-        - Average performance over window > threshold
-        - At least window episodes completed
+        - Average performance over window > dynamic_baseline
+        - Cooldown period respected (at least window episodes since last trigger)
         
         Returns:
             True if revolution was triggered
         """
         perf = self.coordinator.population_performance
+        current_ep = self.coordinator.episode_count
         
         if len(perf) < self.window:
+            # Auto-initialize baseline if not set correctly (e.g. if threshold was 0.5 but rewards 30+)
+            if len(perf) > 0 and self.dynamic_baseline < 1.0 and np.mean(perf) > 10.0:
+                 self.dynamic_baseline = np.mean(perf)
+            return False
+            
+        # Cooldown check
+        if (current_ep - self.last_trigger_episode) < self.window:
             return False
         
         # Check recent performance
         recent_avg = np.mean(perf[-self.window:])
         
-        if recent_avg > self.threshold:
-            self._execute_revolution()
+        # Auto-calib baseline if it's still the default fractional value but we have high rewards
+        if self.dynamic_baseline < 1.0 and recent_avg > 10.0:
+             self.dynamic_baseline = recent_avg
+             return False # Don't trigger on calibration step
+        
+        if recent_avg > self.dynamic_baseline:
+            self.last_trigger_episode = current_ep
+            self._execute_revolution(recent_avg)
             return True
         
         return False
     
-    def _execute_revolution(self):
+    def _execute_revolution(self, triggering_performance: float):
         """
         Execute revolution: Update ancestor.
         
@@ -78,6 +92,7 @@ class RevolutionProtocolManager:
         2. Extract their synapse weights
         3. Compute weighted average
         4. Update ancestor in all agents
+        5. Update Baseline
         """
         # Get elite agents
         rankings = self.coordinator.get_agent_rankings()
@@ -119,13 +134,18 @@ class RevolutionProtocolManager:
         # Update coordinator's shared ancestor
         self.coordinator.ancestor_weights = ancestor_weights
         
+        # Update Baseline for NEXT revolution
+        # Require improvement over what triggered this one
+        self.dynamic_baseline = triggering_performance
+        
         # Record revolution
         self.revolution_count += 1
         self.revolution_history.append({
             'episode': self.coordinator.episode_count,
             'elite_ids': elite_ids,
             'num_weights': len(ancestor_weights),
-            'avg_weight': float(np.mean(np.abs(list(ancestor_weights.values()))))
+            'avg_weight': float(np.mean(np.abs(list(ancestor_weights.values())))),
+            'new_baseline': self.dynamic_baseline
         })
     
     def get_revolution_stats(self) -> Dict[str, Any]:
@@ -133,12 +153,14 @@ class RevolutionProtocolManager:
         if not self.revolution_history:
             return {
                 'total_revolutions': 0,
-                'last_revolution': None
+                'last_revolution': None,
+                'current_baseline': self.dynamic_baseline
             }
         
         return {
             'total_revolutions': self.revolution_count,
             'last_revolution': self.revolution_history[-1],
+            'current_baseline': self.dynamic_baseline,
             'revolutions_per_100_episodes': (
                 self.revolution_count / self.coordinator.episode_count * 100
                 if self.coordinator.episode_count > 0 else 0

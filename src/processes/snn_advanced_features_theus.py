@@ -493,16 +493,27 @@ def process_revolution_protocol(
         }
         return
     
-    ancestor_perf = np.mean(list(domain.ancestor_weights.values()))
+    # 3. Trigger revolution
+    # FIX: Compare Reward vs Reward (Baseline), NOT Reward vs Weight
+    current_baseline = getattr(domain, 'ancestor_baseline_reward', 0.0)
     
-    # Count outperformers
+    # Auto-initialize baseline if first run
+    if current_baseline == 0.0:
+        # Use current population mean as the first baseline
+        # (Ignore ancestor_weights as they correspond to synaptic weights < 1.0, not reward)
+        if len(domain.population_performance) > 0:
+            current_baseline = np.mean(domain.population_performance)
+            domain.ancestor_baseline_reward = current_baseline
+        # If no performance data yet, we wait.
+        return
+
+    # Count outperformers against BASELINE
     outperform_count = sum(
         1 for p in domain.population_performance
-        if p > ancestor_perf
+        if p > current_baseline
     )
     outperform_ratio = outperform_count / len(domain.population_performance)
-    
-    # 3. Trigger revolution
+
     if outperform_ratio > global_ctx.revolution_threshold:
         domain.revolution_triggered = True
         
@@ -536,9 +547,23 @@ def process_revolution_protocol(
                 domain.ancestor_weights = new_ancestor
                 domain.metrics['revolution_count'] = \
                     domain.metrics.get('revolution_count', 0) + 1
-    
+            
+            # 7. FIX: Reset History & Update Baseline
+            # Clear performance history to prevent continuous triggering
+            domain.population_performance = [] 
+            
+            # Update baseline to the average of the ELITE that triggered this revolution
+            # This forces the next generation to beat the NEW standard
+            elite_perfs = [p for i, p in all_perfs[:elite_count]]
+            new_baseline = np.mean(elite_perfs)
+            domain.ancestor_baseline_reward = new_baseline
+            
+            # Log for debugging (via metrics since we can't print easily)
+            domain.metrics['revolution_new_baseline'] = new_baseline
+
     # Update metrics
     domain.metrics['outperform_ratio'] = outperform_ratio
+    domain.metrics['current_baseline'] = current_baseline
 
 # ============================================================================
 # Phase 12.5: Ancestor Assimilation (Theus V2)

@@ -248,6 +248,7 @@ class SNNDomainContext(BaseDomainContext):
     ancestor_weights: Dict[int, float] = field(default_factory=dict)
     population_performance: List[float] = field(default_factory=list)
     revolution_triggered: bool = False
+    ancestor_baseline_reward: float = 0.0 # Baseline for Revolution (Reward vs Reward)
     
     # === Optimization: Shadow Tensors (Phase 2) ===
     # Holds numpy arrays for vectorized computation:

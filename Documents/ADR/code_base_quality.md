@@ -68,5 +68,14 @@
   Dù có những điểm trên, cần nhấn mạnh rằng đây là các phê bình mang tính xây dựng, tập trung vào những thách thức tự nhiên của bất kỳ hệ thống quy mô lớn nào: hiệu năng, khảt năng bảo trì dài hạn, và sự cân bằng giữa chặt chẽ và linh
   hoạt.
 
-  Các quyết định thiết kế hiện tại (như đăng ký thủ công) có thể đã được đưa ra để đảm bảo sự rõ ràng và kiểm soát trong giai đoạn đầu. Tuy nhiên, để dự án phát triển và mở rộng hơn nữa, việc giải quyết các vấn đề về hiệu năng SNN và
-  tập trung hóa cấu hình là những bước đi quan trọng tiếp theo.
+  5. Sự không nhất quán về Kiến trúc và Trùng lặp (Redundancy)
+  
+   - Phân tích: Tồn tại sự trùng lặp code và logic giữa các lớp quản lý theo phong cách Hướng đối tượng (OO) truyền thống và các Quy trình (Process) theo chuẩn Theus.
+       - Điển hình là **Revolution Protocol**: Đang tồn tại song song `src.coordination.revolution_protocol.RevolutionProtocolManager` (OO, đang chạy thực tế) và `src.orchestrator.processes.p_perform_revolution.py` (Process, đúng chuẩn Theus nhưng chưa active).
+       - Logic tính toán trung bình trọng số và trigger nằm rải rác ở cả hai nơi, dẫn đến rủi ro "Fix một nơi, Lỗi nơi kia" (như bug logic vừa phát hiện).
+   - Phê bình:
+       - **Vi phạm Nguyên tắc DRY (Don't Repeat Yourself):** Logic nghiệp vụ bị sao chép.
+       - **Vi phạm Triết lý POP:** Hệ thống vẫn dựa dẫm vào các "Manager Class" lưu trạng thái (stateful) thay vì chuyển hoàn toàn sang quản lý trạng thái qua Context (Context-driven). Điều này làm giảm tính minh bạch và khả năng Audit của hệ thống Theus.
+   - Đề xuất:
+       - **Migration Strategy:** Cần lộ trình loại bỏ hoàn toàn các Manager Class (OO). Logic trong các class này nên được tách thành các hàm thuần túy (Pure Functions) và được gọi bởi các Process wrapper.
+       - **Trạng thái:** Toàn bộ trạng thái (như `revolution_history`, `ancestor_weights`) phải được lưu trữ rõ ràng trong `SNNDomainContext` hoặc `ProductionContext`, không ẩn giấu trong thuộc tính `self` của các instance.
