@@ -85,7 +85,10 @@ class MultiAgentCoordinator:
                 num_neurons=snn_global_ctx.num_neurons,
                 connectivity=snn_global_ctx.connectivity,
                 vector_dim=snn_global_ctx.vector_dim,
-                seed=snn_global_ctx.seed + i # Varied seed per agent? Or same? Usually varied.
+                seed=snn_global_ctx.seed + i,
+                initial_threshold=snn_global_ctx.initial_threshold,
+                tau_decay=snn_global_ctx.tau_decay,
+                threshold_min=snn_global_ctx.threshold_min
             )
             domain_ctx.snn_context = snn_ctx
             
@@ -142,6 +145,10 @@ class MultiAgentCoordinator:
         # Reset all agents
         for i, agent in enumerate(self.agents):
             agent.reset(obs_dict[i])
+            # Reset SNN Metrics Accumulators
+            if hasattr(agent, 'snn_ctx') and agent.snn_ctx:
+                 agent.snn_ctx.domain_ctx.metrics['accumulated_spikes'] = 0
+                 agent.snn_ctx.domain_ctx.metrics['accumulated_ticks'] = 0
         
         # Run episode
         step_count = 0

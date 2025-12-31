@@ -83,7 +83,8 @@ def process_snn_cycle(ctx: SystemContext):
     _integrate_impl(ctx, sync=False)
     
     # Lateral Inhibition (Updates Potentials Tensor)
-    _lateral_inhibition_vectorized(ctx)
+    if ctx.domain_ctx.snn_context.global_ctx.use_lateral_inhibition:
+        _lateral_inhibition_vectorized(ctx)
     
     # Fire (Updates Potentials Tensor, LastFire Tensor, FireCount Object, SpikeQueue Object[MUTATION])
     # Note: _fire_impl in tensor mode writes to spike_queue (Object) directly? 
@@ -108,13 +109,9 @@ def process_snn_cycle(ctx: SystemContext):
     snn_domain = ctx.domain_ctx.snn_context.domain_ctx
     if snn_domain.neurons:
         # Check metrics populated by _fire_impl
-        instant_fr = snn_domain.metrics.get('fire_rate', 0.0)
-        
         # Store in Agent Metrics (snn_domain.metrics)
-        # Exponential Moving Average for smoother chart
-        prev_fr = snn_domain.metrics.get('avg_firing_rate', 0.0)
-        new_fr = 0.9 * prev_fr + 0.1 * instant_fr
-        snn_domain.metrics['avg_firing_rate'] = new_fr
+        # Use values calculated in _fire_impl (Cumulative Average)
+        pass
         
         # DEBUG: Print to console to verify activity
         # print(f"DEBUG: SNN Firing Rate: {instant_fr*100:.2f}%, Avg: {new_fr:.4f}")

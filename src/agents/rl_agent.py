@@ -193,6 +193,7 @@ class RLAgent:
                 neuron.potential = 0.0
                 neuron.potential_vector = np.zeros(16)
                 neuron.fire_count = 0
+                neuron.last_fire_time = -1000  # Reset to ensure valid refractory check
             
             # Clear spike queue
             self.snn_ctx.domain_ctx.spike_queue.clear()

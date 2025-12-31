@@ -50,7 +50,7 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
     weights = t['weights']      # (N, N)
     protos = t['prototypes']    # (N, D)
     
-    tau_decay = 0.9
+    tau_decay = snn_ctx.global_ctx.tau_decay
     
     # 2. Vectorized Decay
     pots *= tau_decay
@@ -231,8 +231,9 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
     cur_time = snn_ctx.domain_ctx.current_time
     refractory = 5
     
-    # DEBUG: Tensor State
-    # print(f"DEBUG CORE: Max Pot: {np.max(pots):.2f}, Min Thresh: {np.min(thresh):.2f}")
+    # DEBUG: Tensor State - DISABLED for Production
+    # if cur_time % 100 == 0:
+    #      print(f"DEBUG CORE: Time={cur_time}, Max Pot: {np.max(pots):.4f}, Min Thresh: {np.min(thresh):.4f}, Spikes: {len(np.where((pots >= thresh) & ((cur_time - last_fire) >= refractory))[0])}")
     
     # 2. Vectorized Condition Check
     # (P >= Thresh) & (Time - Last >= Refractory)
@@ -287,9 +288,21 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
         sync_from_tensors(snn_ctx)
     
     # Metrics
+    # Metrics
     fire_rate = len(fired_indices) / len(pots) if len(pots) > 0 else 0.0
-    snn_ctx.domain_ctx.metrics['fire_rate'] = fire_rate
-    snn_ctx.domain_ctx.metrics['fired_count'] = len(fired_indices)
+    
+    metrics = snn_ctx.domain_ctx.metrics
+    metrics['fire_rate'] = fire_rate
+    metrics['fired_count'] = len(fired_indices)
+    
+    # Cumulative Update (Running Average)
+    metrics['accumulated_spikes'] = metrics.get('accumulated_spikes', 0) + len(fired_indices)
+    metrics['accumulated_ticks'] = metrics.get('accumulated_ticks', 0) + 1
+    
+    if metrics['accumulated_ticks'] > 0 and len(pots) > 0:
+        metrics['avg_firing_rate'] = metrics['accumulated_spikes'] / (metrics['accumulated_ticks'] * len(pots))
+    else:
+        metrics['avg_firing_rate'] = 0.0
     
 @process(
     inputs=['domain.snn_context'],

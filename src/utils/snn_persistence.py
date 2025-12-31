@@ -158,7 +158,7 @@ def save_all_agents(
     filepaths = []
     
     for agent_id, snn_ctx in enumerate(agents_snn_contexts):
-        filepath = save_snn_agent(snn_ctx, agent_id, output_dir)
+        filepath = save_snn_agent(snn_ctx, None, agent_id, output_dir)
         filepaths.append(filepath)
         print(f"Saved agent {agent_id} to {filepath}")
     

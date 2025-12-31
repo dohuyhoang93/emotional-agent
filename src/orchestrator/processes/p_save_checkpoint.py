@@ -35,7 +35,7 @@ def save_periodic_checkpoint(ctx: OrchestratorSystemContext):
         # Get SNN Contexts from all agents
         # Coordinator has `agents` dict {id: RLAgent}
         agents = runner.coordinator.agents
-        snn_contexts = [agent.snn_ctx for agent in agents.values()]
+        snn_contexts = [agent.snn_ctx for agent in agents]
         
         # Output Dir
         checkpoint_dir = os.path.join(runner.output_dir, f"checkpoint_ep_{current_episode}")

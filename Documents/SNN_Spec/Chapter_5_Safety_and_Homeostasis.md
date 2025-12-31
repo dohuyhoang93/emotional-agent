@@ -192,6 +192,17 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
 - `wta_k`: 10 (top-K winners)
 - `inhibition_strength`: 0.1 (penalty for losers)
 
+
+> [!IMPORTANT]
+> **Design Note: Feed-Forward Priority**
+> The Lateral Inhibition mechanism operates on the **Spike Queue** (delayed activity). 
+> However, **Sensory Input** is often injected directly into Potentials (Feed-Forward bypass).
+> 
+> **Consequence**: Fresh sensory inputs can "bypass" the inhibition check in the same timestep they arrive. 
+> This is a deliberate design choice to prioritize **Bottom-Up Perception** over **Internal Stability**. 
+> - Input Strength (e.g., 1.5) usually exceeds Inhibition Strength (e.g., 0.2).
+> - This ensures the SNN remains responsive to the environment even under heavy suppression.
+
 ---
 
 ## 5.4 Structural Optimization (Neural Darwinism)
