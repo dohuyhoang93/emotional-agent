@@ -119,6 +119,12 @@ class SNNGlobalContext(BaseGlobalContext):
     revolution_window: int = 1000
     top_elite_percent: float = 0.1  # Top 10%
     
+    # === Bridge Configuration (SNN <-> RL) ===
+    input_amplification_factor: float = 5.0 # Boost sensor [0,1] to potential
+    modulation_excitation: float = 0.9      # Threshold multiplier (Focus)
+    modulation_inhibition: float = 1.2      # Threshold multiplier (Ignore)
+    restoration_rate: float = 0.05          # Elastic return to baseline
+    
     # === Experiment Settings ===
     seed: int = 42
     output_path: str = "results/snn"

@@ -19,7 +19,7 @@ def perform_revolution_protocol(ctx: OrchestratorSystemContext):
     exp_def = domain.experiments[domain.active_experiment_idx]
     runner = getattr(exp_def, 'runner', None)
     
-    if runner and runner.revolution:
+    if runner and hasattr(runner, 'revolution') and runner.revolution:
         log(ctx, "info", "✊ Checking Revolution Protocol...")
         
         # Get Population Contexts

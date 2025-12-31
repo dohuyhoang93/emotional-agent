@@ -187,15 +187,15 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
         neuron = snn_ctx.domain_ctx.neurons[i]
         
         # Amplify để vượt threshold
-        # NOTE: Tăng từ 2.0 → 5.0 để neurons có thể bắn
+        # NOTE: Tăng từ 2.0 → 5.0 để neurons có thể bắn (Configurable)
         # Sensor values [0, 1], threshold = 1.0
-        # Amplification 5.0 → potential [0, 5.0]
+        amplification = snn_ctx.global_ctx.input_amplification_factor
         val = sensor_vector[i]
         
         # DEBUG: Print first non-zero input
         # if val > 0: print(f"DEBUG INPUT: Neuron {i} got {val}")
         
-        neuron.potential = val * 5.0
+        neuron.potential = val * amplification
         
         # Full context cho vector matching
         neuron.potential_vector = sensor_vector
@@ -278,11 +278,11 @@ def modulate_snn_attention(ctx: SystemContext):
     if action >= 4:
         # INHIBITORY MODE
         base_action = action - 4
-        modulation_factor = 1.2 # Harder to fire (Inhibit)
+        modulation_factor = snn_ctx.global_ctx.modulation_inhibition # Harder to fire (Inhibit)
     else:
         # EXCITATORY MODE
         base_action = action
-        modulation_factor = 0.9 # Easier to fire (Excite)
+        modulation_factor = snn_ctx.global_ctx.modulation_excitation # Easier to fire (Excite)
 
     # Calculate Indices based on base_action
     # Risk: If N=100, N//4 = 25. Indices 0-25, 25-50, 50-75, 75-100.
@@ -353,7 +353,7 @@ def restore_snn_attention(ctx: SystemContext):
     thresh = t['thresholds']
     
     baseline = snn_ctx.global_ctx.initial_threshold
-    restoration_rate = 0.05 # 5% return per step
+    restoration_rate = snn_ctx.global_ctx.restoration_rate # Elastic return to baseline
     
     # 2. Apply Restoration Force
     # Delta = (Target - Current) * Rate

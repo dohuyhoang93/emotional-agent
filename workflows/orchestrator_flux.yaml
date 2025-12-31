@@ -29,13 +29,28 @@ steps:
               condition: "domain.experiments[domain.active_experiment_idx].runner.current_episode_count > 0 and domain.experiments[domain.active_experiment_idx].runner.current_episode_count % 25 == 0"
               then:
                  - process: execute_social_learning_if_needed
-                 
+            
+            # Sleep Cycle (Every 25 eps, same phase as social)
+            - flux: if
+              condition: "domain.experiments[domain.active_experiment_idx].runner.current_episode_count > 0 and domain.experiments[domain.active_experiment_idx].runner.current_episode_count % 25 == 0"
+              then:
+                 - process: run_sleep_cycle_process
+
+            # Revolution Protocol (Every 10 eps)
+            - flux: if
+              # Check cooldown in Condition or Process? 
+              # Process 'perform_revolution_protocol' checks config 'revolution_manager' internally.
+              # So we can just call it periodically.
+              # Let's call every 10 steps to align with 'revolution_window'.
+              condition: "domain.experiments[domain.active_experiment_idx].runner.current_episode_count > 0 and domain.experiments[domain.active_experiment_idx].runner.current_episode_count % 10 == 0"
+              then:
+                 - process: perform_revolution_protocol
+
             # Periodic Checkpoint (Every 50 eps - logic inside process currently)
             - process: save_periodic_checkpoint
-            
+             
        # Advance to next Experiment
        - process: advance_experiment_index
-       
   - process: aggregate_results
   - process: plot_results
   - process: analyze_data

@@ -2,6 +2,7 @@ from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log, log_error
 from src.orchestrator.processes.p_save_checkpoint import save_periodic_checkpoint
+import numpy as np
 
 @process(
     inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level', 'domain.active_experiment_episode_idx', 'domain.metrics_history'],
@@ -126,8 +127,12 @@ def run_single_episode(ctx: OrchestratorSystemContext):
             for agent in runner.coordinator.agents:
                 snn_ctx = agent.snn_ctx
                 total_synapses += len(snn_ctx.domain_ctx.synapses)
-                # Spike Queue size (sum of all lists in dict)
-                total_spike_queue += sum(len(v) for v in snn_ctx.domain_ctx.spike_queue.values())
+                # Correction: Sum spikes in Vectorized Buffer if active, else Dictionary
+                if snn_ctx.domain_ctx.tensors.get('use_vectorized_queue', False):
+                     # Buffer is (Time, N) tensor
+                     total_spike_queue += np.count_nonzero(snn_ctx.domain_ctx.tensors['spike_buffer'])
+                else:
+                     total_spike_queue += sum(len(v) for v in snn_ctx.domain_ctx.spike_queue.values())
             
             metrics['debug_total_synapses'] = total_synapses
             metrics['debug_spike_queue_size'] = total_spike_queue
@@ -177,22 +182,9 @@ def run_single_episode(ctx: OrchestratorSystemContext):
         
         # --- CHECK EVENTS ---
         
-        
-        # Social Learning Check moved to p_run_simulations.py (Orchestration Layer)
-
-        # Sleep Cycle (Biological)
-        sleep_interval = runner.config.get('sleep_interval', 25)
-        sleep_duration = runner.config.get('sleep_duration', 100)
-        
-        if current_episode > 0 and current_episode % sleep_interval == 0:
-            from src.orchestrator.processes.p_sleep_cycle import run_sleep_cycle
-            run_sleep_cycle(runner.coordinator, duration=sleep_duration)
-
-
-        # Revolution (with cooldown via manager)
-        if runner.coordinator.revolution.check_and_execute_revolution():
-            log(ctx, "info", f"🔥 REVOLUTION TRIGGERED at Episode {current_episode}! Ancestor updated.")
-            # Manager handles all revolution logic including cooldown
+        # NOTE: Social Learning, Sleep Cycle, and Revolution Protocol 
+        # are now orchestrated by Flux Workflow (orchestrator_flux.yaml).
+        # Logic removed from here to ensure Pure POP.
         
         # Episode Done (Normal)
         if bus: 
