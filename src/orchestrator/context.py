@@ -23,6 +23,9 @@ class ExperimentDefinition:
     list_of_runs: List[ExperimentRun] = field(default_factory=list)
     aggregated_data: pd.DataFrame = field(default_factory=pd.DataFrame)
     log_level: str = "info"
+    
+    # Runtime State (Explicit persistence)
+    runner: Any = field(default=None, repr=False)
 
 @dataclass
 class OrchestratorGlobalContext(BaseGlobalContext):
@@ -47,6 +50,16 @@ class OrchestratorDomainContext(BaseDomainContext):
     # State
     experiments: List[ExperimentDefinition] = field(default_factory=list)
     active_experiment_idx: int = 0
+    active_experiment_episode_idx: int = 0  # Explicit POP State for Episode Count
+    
+    # Run Metrics (Exposed to Dashboard)
+    metrics: Dict[str, Any] = field(default_factory=dict)
+    
+    # Persistent Metrics History (POP Architecture)
+    metrics_history: List[Dict[str, Any]] = field(default_factory=list)
+    
+    # Persistent Metrics History (POP Architecture)
+    metrics_history: List[Dict[str, Any]] = field(default_factory=list)
     
     # Results
     analysis_summary: Dict[str, str] = field(default_factory=dict)

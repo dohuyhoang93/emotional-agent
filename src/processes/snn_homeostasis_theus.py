@@ -63,6 +63,23 @@ def process_homeostasis(ctx: SNNSystemContext):
         global_ctx.threshold_max,
         out=t['thresholds'] # Update in-place
     )
+
+    # === EMERGENCY RESCUE (SNN Death Spiral Protection) ===
+    # If firing rate is critically low (e.g. < 1e-5), the network is "dead".
+    # Standard homeostasis is too slow. We need a "defibrillator".
+    if current_fire_rate < 1e-5:
+        # 1. Hard Reset Thresholds to Min for ALL neurons
+        t['thresholds'].fill(global_ctx.threshold_min)
+        
+        # 2. Inject Massive Noise into Potentials (Kickstart)
+        # Add random value [0, threshold_min] to potentials
+        noise = np.random.uniform(0, global_ctx.threshold_min, size=t['thresholds'].shape)
+        t['potentials'] += noise
+        
+        # 3. Mark Metrics
+        domain.metrics['emergency_rescue_triggered'] = True
+        domain.metrics['rescue_noise_magnitude'] = float(np.mean(noise))
+        print(f"⚠️  [Homeostasis] EMERGENCY RESCUE TRIGGERED! Noise injected. Fire Rate: {current_fire_rate}")
     
     # 4. Sync back to objects (Risk #9 Mitigation)
     sync_from_tensors(ctx)

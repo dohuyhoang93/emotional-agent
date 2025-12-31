@@ -4,11 +4,11 @@
             "name": "Optimization_Sanity_Check",
             "description": "Quick verification of Vectorized SNN performance.",
             "runs": 1,
-            "episodes_per_run": 5,
+            "episodes_per_run": 1000,
             "parameters": {
                 "environment_config": {
                     "grid_size": 15,
-                    "num_agents": 1,
+                    "num_agents": 5,
                     "max_steps_per_episode": 100,
                     "walls": [
                         [

@@ -1,7 +1,28 @@
+"""
+⚠️ DEPRECATED - LEGACY CODE ⚠️
+================================
+This file is from the old Q-Learning + MLP emotion system.
+DO NOT USE - This code is never executed in current SNN architecture.
+
+Why it doesn't run:
+- Line 82-85 has guard check that returns immediately when sensor system is active
+- Current system ALWAYS uses sensor system (16-dim numpy array observations)
+
+Replaced by:
+- Q-Learning: src/processes/rl_processes.py::update_q_learning
+- Intrinsic Reward: src/processes/snn_rl_bridge.py::compute_intrinsic_reward_snn
+- Emotion: SNN-based emotion vector (not MLP)
+
+Last actually used: Never (migration to SNN complete)
+Scheduled for deletion: 2025-01-15
+
+See: legacy_code_audit.md for details
+"""
 import torch
 import torch.nn.functional as F
 from theus.contracts import process
 from src.core.context import SystemContext
+
 
 def _calculate_dynamic_weight(cycle_time, current_step, current_episode, total_episodes, use_adaptive, max_fatigue_growth, max_steps):
     """

@@ -15,6 +15,7 @@ import torch
 from src.core.context import GlobalContext, DomainContext, SystemContext
 from src.core.snn_context_theus import SNNGlobalContext, create_snn_context_theus
 from src.adapters.environment_adapter import EnvironmentAdapter
+from src.coordination.revolution_protocol import RevolutionProtocolManager
 
 
 class MultiAgentCoordinator:
@@ -114,6 +115,14 @@ class MultiAgentCoordinator:
         self.episode_count = 0
         
         self.ancestor_weights: np.ndarray = None # Deprecated, use snn_global_ctx.domain_ctx.ancestor_weights
+        
+        # Revolution Protocol Manager (with cooldown)
+        self.revolution = RevolutionProtocolManager(
+            coordinator=self,
+            threshold=getattr(global_ctx, 'revolution_threshold', 0.6),
+            window=getattr(global_ctx, 'revolution_window', 10),
+            elite_ratio=getattr(global_ctx, 'top_elite_percent', 0.1)
+        )
 
     
     def run_episode(self, env, env_adapter: EnvironmentAdapter):

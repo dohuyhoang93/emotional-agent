@@ -19,7 +19,7 @@ def advance_experiment_index(ctx: OrchestratorSystemContext):
     log(ctx, "info", f"⏩ Advanced to Experiment Index: {ctx.domain_ctx.active_experiment_idx}")
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'domain.metrics'],
+    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'domain.metrics', 'domain.active_experiment_episode_idx'],
     outputs=[],
     side_effects=['filesystem.write'],
     errors=[]
@@ -71,9 +71,19 @@ def save_metrics_snapshot(ctx: OrchestratorSystemContext):
     
     clean_metrics = sanitize(domain.metrics)
 
+    # Determine Episode Number (POP Style)
+    # active_experiment_episode_idx points to NEXT episode
+    current_ep_idx = domain.active_experiment_episode_idx - 1
+    
+    # Check for duplicates
+    existing_eps = [entry.get('episode') for entry in existing_data]
+    if current_ep_idx in existing_eps:
+        # log(ctx, "debug", f"Metrics for Ep {current_ep_idx} already saved. Skipping.")
+        return
+
     # Append
     existing_data.append({
-        "episode": runner.current_episode_count - 1, # Last completed
+        "episode": current_ep_idx,
         "metrics": clean_metrics
     })
     

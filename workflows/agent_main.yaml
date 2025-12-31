@@ -33,7 +33,7 @@ steps:
   
   # Execution & Learning
   - execute_action_with_env
-  - record_consequences
   - update_q_learning
+
   
   # Social Learning is handled by MultiAgentExperiment (Orchestrator level)

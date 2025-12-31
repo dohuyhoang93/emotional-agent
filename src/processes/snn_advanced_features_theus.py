@@ -316,34 +316,10 @@ def process_neural_darwinism(
     else:
         survivors = domain.synapses
     
-    # 3. Reproduction: Clone strong
-    if len(survivors) > 0:
-        import dataclasses
-        fitnesses = [s.fitness for s in survivors]
-        top_threshold = np.percentile(
-            fitnesses,
-            (1 - global_ctx.reproduction_rate) * 100
-        )
-        
-        to_reproduce = [s for s in survivors if s.fitness >= top_threshold]
-        
-        # Optimization: Calculate max_id ONCE
-        current_max_id = max(s.synapse_id for s in survivors) if survivors else 0
-        
-        offspring = []
-        for parent in to_reproduce:
-            child = dataclasses.replace(parent)
-            
-            current_max_id += 1
-            child.synapse_id = current_max_id
-            
-            child.generation = parent.generation + 1
-            child.weight += np.random.randn() * 0.01  # Mutation
-            child.weight = np.clip(child.weight, 0.0, 1.0)
-            child.commit_state = 0 # FLUID (Reset commitment)
-            offspring.append(child)
-        
-        domain.synapses = survivors + offspring
+    # 3. Reproduction: REMOVED (Violates SNN Spec & Causes Memory Explosion)
+    # Neural Darwinism = Selection (Pruning) + Diversity (Neuron Recycling)
+    # We do NOT clone synapses.
+    domain.synapses = survivors
     
     # === PART 2: NEURON RECYCLING (True Darwinism) ===
     

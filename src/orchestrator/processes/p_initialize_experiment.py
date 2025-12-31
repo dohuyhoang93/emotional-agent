@@ -1,29 +1,13 @@
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log as system_log
+from src.utils.logger import ExperimentLogger # Fix: Use centralized logger
 from src.coordination.multi_agent_coordinator import MultiAgentCoordinator
 from src.adapters.environment_adapter import EnvironmentAdapter
 from environment import GridWorld as ComplexMazeEnvV2
 import os
 import json
 import traceback
-
-class ExperimentLogger:
-    def __init__(self, output_dir):
-        self.output_dir = output_dir
-        self.metrics_file = os.path.join(output_dir, "metrics.json")
-        self.episode_data = []
-        
-    def log_episode(self, episode, metrics):
-        entry = {'episode': episode, 'metrics': metrics}
-        self.episode_data.append(entry)
-        # Append to file (or rewrite)
-        try:
-            with open(self.metrics_file, 'w') as f:
-                json.dump(self.episode_data, f, indent=2)
-        except Exception as e:
-            traceback.print_exc()
-            print(f"Error logging metrics: {e}")
 
 class FSMExperimentRunner:
     """
@@ -57,7 +41,7 @@ class FSMExperimentRunner:
         num_agents = env_config.get('num_agents', 1)
         max_steps = env_config.get('max_steps_per_episode', 100)
         
-# HACK: Create GlobalContext from config
+        # HACK: Create GlobalContext from config
         # GlobalContext fields: initial_needs, initial_emotions, etc.
         # config is exp_def.parameters (contains both Agent and SNN params usually mixed)
         global_ctx = GlobalContext()
@@ -93,7 +77,9 @@ class FSMExperimentRunner:
         self.coordinator = MultiAgentCoordinator(num_agents, global_ctx, snn_global_ctx)
         
         # 3. Setup Logger
-        self.logger = ExperimentLogger(output_dir)
+        # Use name from config or directory name
+        exp_name = os.path.basename(output_dir).replace("_checkpoints", "")
+        self.logger = ExperimentLogger(exp_name, output_dir)
         
         # 4. Performance Monitor (Mock for now or reuse legacy if portable)
         class PerfMonitor:

@@ -1,6 +1,27 @@
+"""
+⚠️ DEPRECATED - LEGACY CODE ⚠️
+================================
+This file is from the old Q-Learning system with dict-based observations.
+DO NOT USE - Not in current workflow.
+
+Replaced by:
+- src/processes/rl_snn_integration.py::execute_action_with_env
+
+Current workflow uses:
+- workflows/agent_main.yaml line 35: execute_action_with_env
+
+Only used by:
+- theus/tests/test_migration_bulk.py (also legacy test)
+
+Last actually used: Never (migration to sensor system complete)
+Scheduled for deletion: 2025-01-15
+
+See: legacy_code_scan.md for details
+"""
 from theus.contracts import process
 from src.core.context import SystemContext
 from src.adapters.environment_adapter import EnvironmentAdapter
+
 
 @process(
     inputs=[

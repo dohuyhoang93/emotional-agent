@@ -2,11 +2,10 @@ from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log, log_error
 from src.orchestrator.processes.p_save_checkpoint import save_periodic_checkpoint
-from src.processes.snn_advanced_features_theus import process_revolution_protocol
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level'],
-    outputs=['domain.metrics'],
+    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level', 'domain.active_experiment_episode_idx', 'domain.metrics_history'],
+    outputs=['domain.metrics', 'domain.experiments', 'domain.active_experiment_episode_idx', 'domain.metrics_history'],
     side_effects=['env.interaction'],
     errors=[]
 )
@@ -43,7 +42,8 @@ def run_single_episode(ctx: OrchestratorSystemContext):
         return
 
     # Run ONE Episode
-    current_episode = runner.current_episode_count
+    # POP Fix: Use context state instead of Runner object state
+    current_episode = domain.active_experiment_episode_idx
     total_episodes = exp_def.episodes_per_run # Or config value
     
     if current_episode >= total_episodes:
@@ -52,11 +52,16 @@ def run_single_episode(ctx: OrchestratorSystemContext):
         
         # Save results handled by runner or separate process?
         # Let's emit Signal
+        # Let's emit Signal
         domain.active_experiment_idx += 1
+        # POP Fix: Reset episode count for next experiment
+        domain.active_experiment_episode_idx = 0
+        
         if bus: bus.emit("EXPERIMENT_DONE")
         return
 
     # --- EXECUTE EPISODE ---
+    print(f"DEBUG: [p_episode_runner] Starting Episode {current_episode}")
     # log(ctx, "info", f"Running Episode {current_episode}...")
     
     # We call internal logic of runner, but refactored to be singular
@@ -109,17 +114,66 @@ def run_single_episode(ctx: OrchestratorSystemContext):
                      avg_fr += snn_metrics['avg_firing_rate']
                 count += 1
             
+
             if count > 0:
                 metrics['avg_firing_rate'] = avg_fr / count
             else:
                 metrics['avg_firing_rate'] = 0.0
 
+            # 4. DEBUG: Memory Leak Diagnosis (Synapse Count & Spike Queue)
+            total_synapses = 0
+            total_spike_queue = 0
+            for agent in runner.coordinator.agents:
+                snn_ctx = agent.snn_ctx
+                total_synapses += len(snn_ctx.domain_ctx.synapses)
+                # Spike Queue size (sum of all lists in dict)
+                total_spike_queue += sum(len(v) for v in snn_ctx.domain_ctx.spike_queue.values())
+            
+            metrics['debug_total_synapses'] = total_synapses
+            metrics['debug_spike_queue_size'] = total_spike_queue
+            
+            # Explicit GC to mitigate leaks
+            import gc
+            if current_episode % 25 == 0:
+                gc.collect()
+
         # Log & Track
-        runner.logger.log_episode(current_episode, metrics)
+        # Log & Track (POP Style: Use Domain Context)
+        import datetime
+        
+        # Check for duplicates in DOMAIN HISTORY
+        existing = [m['episode'] for m in domain.metrics_history]
+        if current_episode not in existing:
+             # FIX: Prevent 'metrics' from overwriting 'episode'
+             # We explicitly construct the dict to ensure 'episode' is correct
+             clean_metrics = metrics.copy()
+             if 'episode' in clean_metrics:
+                 del clean_metrics['episode'] # Remove conflicting key
+                 
+             metrics_entry = {
+                'episode': current_episode,
+                 'timestamp': datetime.datetime.now().isoformat(),
+                 'metrics': clean_metrics # Nest metrics to avoid namespace pollution
+             }
+             
+             # Also fix the argument passed to logger to match JSONL format check?
+             # The new logger expects (episode, metrics).
+             runner.logger.log_episode(current_episode, clean_metrics) 
+             
+             # Store in history (Legacy format might expect flat? Let's keep nested for safety)
+             # Actually p_aggregate expects 'metrics' key or flat?
+             # Let's align with Logger's JSONL format: {episode, timestamp, metrics: {...}}
+             domain.metrics_history.append(metrics_entry)
+        else:
+             print(f"DEBUG: Skipping duplicate episode {current_episode} in metrics history.")
         
         # EXPOSE METRICS TO ORCHESTRATOR FOR DASHBOARD
         domain.metrics = metrics
-        runner.current_episode_count += 1
+        
+        # Update State (POP Style)
+        domain.active_experiment_episode_idx += 1
+        # Sync back to runner (optional, for compatibility)
+        runner.current_episode_count = domain.active_experiment_episode_idx
         
         # --- CHECK EVENTS ---
         
@@ -135,33 +189,15 @@ def run_single_episode(ctx: OrchestratorSystemContext):
             run_sleep_cycle(runner.coordinator, duration=sleep_duration)
 
 
-        # Revolution
-        if runner.coordinator.agents:
-            # Prepare contexts
-            snn_global = runner.coordinator.agents[0].snn_ctx # Use first agent to access Global
-            pop_contexts = [a.snn_ctx for a in runner.coordinator.agents]
-            
-            # Execute Process
-            # Note: rl_ctx is optional now, passing None is fine as we don't collect reward here
-            process_revolution_protocol(snn_global, None, pop_contexts)
-            
-            # Check Result
-            if getattr(snn_global.domain_ctx, 'revolution_triggered', False):
-                 log(ctx, "info", f"🔥 REVOLUTION TRIGGERED at Episode {current_episode}! Ancestor updated.")
-                 
-                 # BROADCAST ANCESTOR WEIGHTS (Phase 1 Fix)
-                 new_ancestor = snn_global.domain_ctx.ancestor_weights
-                 if new_ancestor:
-                     for agent in runner.coordinator.agents:
-                         agent.snn_ctx.domain_ctx.ancestor_weights = new_ancestor
-                         
-                 # Reset trigger flag
-                 snn_global.domain_ctx.revolution_triggered = False 
-             # In Pure FSM, we might trigger 'TRIGGER_REVOLUTION' to pause, 
-             # but here we executed it synchronously inside the manager.
+        # Revolution (with cooldown via manager)
+        if runner.coordinator.revolution.check_and_execute_revolution():
+            log(ctx, "info", f"🔥 REVOLUTION TRIGGERED at Episode {current_episode}! Ancestor updated.")
+            # Manager handles all revolution logic including cooldown
         
         # Episode Done (Normal)
-        if bus: bus.emit("EPISODE_DONE")
+        if bus: 
+            print(f"DEBUG: [p_episode_runner] Emitting EPISODE_DONE for Episode {current_episode}")
+            bus.emit("EPISODE_DONE")
         
         # --- PERSISTENCE --- (Phase 15)
         # Checkpoint Saving
