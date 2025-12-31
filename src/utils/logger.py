@@ -92,8 +92,20 @@ class ExperimentLogger:
         
         # Append to JSONL file immediately
         try:
+            # Convert Frozen types to native Python types for JSON serialization
+            def to_serializable(obj):
+                """Recursively convert Frozen types to native Python types."""
+                if hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes)):
+                    if hasattr(obj, 'items'):  # Dict-like (FrozenDict)
+                        return {k: to_serializable(v) for k, v in obj.items()}
+                    else:  # List-like (FrozenList, tuple)
+                        return [to_serializable(item) for item in obj]
+                return obj
+            
+            serializable_entry = to_serializable(entry)
+            
             with open(self.metrics_file, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(entry) + '\n')
+                f.write(json.dumps(serializable_entry) + '\n')
         except Exception as e:
             self.logger.error(f"Failed to write metrics for Ep {episode}: {e}")
             

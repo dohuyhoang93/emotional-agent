@@ -5,7 +5,8 @@ import sys
 LOG_LEVELS = {
     "silent": 0,
     "info": 1,
-    "verbose": 2
+    "debug": 2,
+    "verbose": 3
 }
 
 def log(context, message_level: str, message: str):

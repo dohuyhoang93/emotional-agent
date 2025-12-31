@@ -179,8 +179,8 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
     # Inject vào input neurons (0-15)
     input_end = min(16, len(snn_ctx.domain_ctx.neurons))
     # DEBUG INPUT
-    if isinstance(sensor_vector, np.ndarray):
-        print(f"DEBUG BRIDGE: Max Input: {np.max(sensor_vector):.4f}, Norm: {np.linalg.norm(sensor_vector):.4f}")
+    # if isinstance(sensor_vector, np.ndarray):
+    #     print(f"DEBUG BRIDGE: Max Input: {np.max(sensor_vector):.4f}, Norm: {np.linalg.norm(sensor_vector):.4f}")
     # print(f"DEBUG ENCODE: Neurons: {len(snn_ctx.domain_ctx.neurons)}, Input End: {input_end}")
     
     for i in range(input_end):

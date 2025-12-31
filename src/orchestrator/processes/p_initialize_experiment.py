@@ -22,14 +22,13 @@ class FSMExperimentRunner:
         
         # 1. Setup Environment
         env_config = config.get('environment_config', {}) if 'environment_config' in config else config.get('environment', {})
-        print(f"DEBUG: FSMRunner env_config keys: {list(env_config.keys())}")
-        print(f"DEBUG: FSMRunner env_config num_agents: {env_config.get('num_agents')}")
+
         
         
         # GridWorld expects the PARENT config (containing 'environment_config' key)
         # self.config is the dict { ..., 'environment_config': {...} }
         self.env = ComplexMazeEnvV2(self.config) # GridWorld
-        print(f"DEBUG: GridWorld num_agents: {self.env.num_agents}")
+
         
         self.adapter = EnvironmentAdapter(self.env)
         

@@ -1,8 +1,117 @@
-14:02:15 - INFO - Experiment 'Optimization_Sanity_Check' started. Metrics: results\Optimization_Sanity_Check_checkpoints\metrics.jsonl
-14:02:17 - INFO - Episode   0: agents=5 R=-0.15
-14:02:18 - INFO - Episode   1: agents=5 R=-0.14
-14:02:19 - INFO - Episode   2: agents=5 R=0.56
-14:02:20 - INFO - Episode   3: agents=5 R=0.70
-14:02:22 - INFO - Episode   4: agents=5 R=0.26
-14:02:23 - INFO - Episode   5: agents=5 R=-0.13
-14:02:24 - INFO - Episode   6: agents=5 R=0.45
+15:37:07 - INFO - Experiment 'multi_agent_complex_maze' started. Metrics: results\multi_agent_complex_maze_checkpoints\metrics.jsonl
+15:37:17 - INFO - Episode   0: agents=5 R=26.50
+15:37:17 - ERROR - Failed to write metrics for Ep 0: Object of type FrozenList is not JSON serializable
+15:37:27 - INFO - Episode   1: agents=5 R=20.29
+15:37:27 - ERROR - Failed to write metrics for Ep 1: Object of type FrozenList is not JSON serializable
+15:37:37 - INFO - Episode   2: agents=5 R=27.00
+15:37:37 - ERROR - Failed to write metrics for Ep 2: Object of type FrozenList is not JSON serializable
+15:37:47 - INFO - Episode   3: agents=5 R=26.73
+15:37:47 - ERROR - Failed to write metrics for Ep 3: Object of type FrozenList is not JSON serializable
+15:37:59 - INFO - Episode   4: agents=5 R=24.46
+15:37:59 - ERROR - Failed to write metrics for Ep 4: Object of type FrozenList is not JSON serializable
+15:38:10 - INFO - Episode   5: agents=5 R=24.36
+15:38:10 - ERROR - Failed to write metrics for Ep 5: Object of type FrozenList is not JSON serializable
+15:38:20 - INFO - Episode   6: agents=5 R=21.60
+15:38:20 - ERROR - Failed to write metrics for Ep 6: Object of type FrozenList is not JSON serializable
+15:38:32 - INFO - Episode   7: agents=5 R=23.89
+15:38:32 - ERROR - Failed to write metrics for Ep 7: Object of type FrozenList is not JSON serializable
+15:38:42 - INFO - Episode   8: agents=5 R=27.99
+15:38:42 - ERROR - Failed to write metrics for Ep 8: Object of type FrozenList is not JSON serializable
+15:38:52 - INFO - Episode   9: agents=5 R=27.09
+15:38:52 - ERROR - Failed to write metrics for Ep 9: Object of type FrozenList is not JSON serializable
+15:39:04 - INFO - Episode  10: agents=5 R=26.60
+15:39:04 - ERROR - Failed to write metrics for Ep 10: Object of type FrozenList is not JSON serializable
+15:39:16 - INFO - Episode  11: agents=5 R=25.47
+15:39:16 - ERROR - Failed to write metrics for Ep 11: Object of type FrozenList is not JSON serializable
+15:39:26 - INFO - Episode  12: agents=5 R=23.35
+15:39:26 - ERROR - Failed to write metrics for Ep 12: Object of type FrozenList is not JSON serializable
+15:39:37 - INFO - Episode  13: agents=5 R=28.93
+15:39:37 - ERROR - Failed to write metrics for Ep 13: Object of type FrozenList is not JSON serializable
+15:39:47 - INFO - Episode  14: agents=5 R=25.27
+15:39:47 - ERROR - Failed to write metrics for Ep 14: Object of type FrozenList is not JSON serializable
+15:39:58 - INFO - Episode  15: agents=5 R=22.60
+15:39:58 - ERROR - Failed to write metrics for Ep 15: Object of type FrozenList is not JSON serializable
+15:40:08 - INFO - Episode  16: agents=5 R=25.49
+15:40:08 - ERROR - Failed to write metrics for Ep 16: Object of type FrozenList is not JSON serializable
+15:40:19 - INFO - Episode  17: agents=5 R=24.30
+15:40:19 - ERROR - Failed to write metrics for Ep 17: Object of type FrozenList is not JSON serializable
+15:40:32 - INFO - Episode  18: agents=5 R=28.68
+15:40:32 - ERROR - Failed to write metrics for Ep 18: Object of type FrozenList is not JSON serializable
+15:40:43 - INFO - Episode  19: agents=5 R=24.83
+15:40:43 - ERROR - Failed to write metrics for Ep 19: Object of type FrozenList is not JSON serializable
+15:40:54 - INFO - Episode  20: agents=5 R=23.57
+15:40:54 - ERROR - Failed to write metrics for Ep 20: Object of type FrozenList is not JSON serializable
+15:41:05 - INFO - Episode  21: agents=5 R=25.70
+15:41:05 - ERROR - Failed to write metrics for Ep 21: Object of type FrozenList is not JSON serializable
+15:41:15 - INFO - Episode  22: agents=5 R=28.62
+15:41:15 - ERROR - Failed to write metrics for Ep 22: Object of type FrozenList is not JSON serializable
+15:41:25 - INFO - Episode  23: agents=5 R=27.92
+15:41:25 - ERROR - Failed to write metrics for Ep 23: Object of type FrozenList is not JSON serializable
+15:41:36 - INFO - Episode  24: agents=5 R=29.37
+15:41:36 - ERROR - Failed to write metrics for Ep 24: Object of type FrozenList is not JSON serializable
+15:41:50 - INFO - Episode  25: agents=5 R=26.57
+15:41:50 - ERROR - Failed to write metrics for Ep 25: Object of type FrozenList is not JSON serializable
+15:42:01 - INFO - Episode  26: agents=5 R=25.50
+15:42:01 - ERROR - Failed to write metrics for Ep 26: Object of type FrozenList is not JSON serializable
+15:42:12 - INFO - Episode  27: agents=5 R=24.96
+15:42:12 - ERROR - Failed to write metrics for Ep 27: Object of type FrozenList is not JSON serializable
+15:42:23 - INFO - Episode  28: agents=5 R=24.68
+15:42:23 - ERROR - Failed to write metrics for Ep 28: Object of type FrozenList is not JSON serializable
+15:42:35 - INFO - Episode  29: agents=5 R=24.33
+15:42:35 - ERROR - Failed to write metrics for Ep 29: Object of type FrozenList is not JSON serializable
+15:42:45 - INFO - Episode  30: agents=5 R=27.77
+15:42:45 - ERROR - Failed to write metrics for Ep 30: Object of type FrozenList is not JSON serializable
+15:42:57 - INFO - Episode  31: agents=5 R=25.01
+15:42:57 - ERROR - Failed to write metrics for Ep 31: Object of type FrozenList is not JSON serializable
+15:43:08 - INFO - Episode  32: agents=5 R=27.86
+15:43:08 - ERROR - Failed to write metrics for Ep 32: Object of type FrozenList is not JSON serializable
+15:43:19 - INFO - Episode  33: agents=5 R=28.58
+15:43:19 - ERROR - Failed to write metrics for Ep 33: Object of type FrozenList is not JSON serializable
+15:43:29 - INFO - Episode  34: agents=5 R=22.84
+15:43:29 - ERROR - Failed to write metrics for Ep 34: Object of type FrozenList is not JSON serializable
+15:43:41 - INFO - Episode  35: agents=5 R=28.91
+15:43:41 - ERROR - Failed to write metrics for Ep 35: Object of type FrozenList is not JSON serializable
+15:43:52 - INFO - Episode  36: agents=5 R=25.77
+15:43:52 - ERROR - Failed to write metrics for Ep 36: Object of type FrozenList is not JSON serializable
+15:44:03 - INFO - Episode  37: agents=5 R=21.24
+15:44:03 - ERROR - Failed to write metrics for Ep 37: Object of type FrozenList is not JSON serializable
+15:44:14 - INFO - Episode  38: agents=5 R=25.80
+15:44:14 - ERROR - Failed to write metrics for Ep 38: Object of type FrozenList is not JSON serializable
+15:44:24 - INFO - Episode  39: agents=5 R=28.06
+15:44:24 - ERROR - Failed to write metrics for Ep 39: Object of type FrozenList is not JSON serializable
+15:44:34 - INFO - Episode  40: agents=5 R=27.54
+15:44:34 - ERROR - Failed to write metrics for Ep 40: Object of type FrozenList is not JSON serializable
+15:44:45 - INFO - Episode  41: agents=5 R=24.94
+15:44:45 - ERROR - Failed to write metrics for Ep 41: Object of type FrozenList is not JSON serializable
+15:44:57 - INFO - Episode  42: agents=5 R=27.19
+15:44:57 - ERROR - Failed to write metrics for Ep 42: Object of type FrozenList is not JSON serializable
+15:45:07 - INFO - Episode  43: agents=5 R=28.28
+15:45:07 - ERROR - Failed to write metrics for Ep 43: Object of type FrozenList is not JSON serializable
+15:45:19 - INFO - Episode  44: agents=5 R=28.49
+15:45:19 - ERROR - Failed to write metrics for Ep 44: Object of type FrozenList is not JSON serializable
+15:45:31 - INFO - Episode  45: agents=5 R=19.20
+15:45:31 - ERROR - Failed to write metrics for Ep 45: Object of type FrozenList is not JSON serializable
+15:45:43 - INFO - Episode  46: agents=5 R=28.95
+15:45:43 - ERROR - Failed to write metrics for Ep 46: Object of type FrozenList is not JSON serializable
+15:45:54 - INFO - Episode  47: agents=5 R=29.61
+15:45:54 - ERROR - Failed to write metrics for Ep 47: Object of type FrozenList is not JSON serializable
+15:46:04 - INFO - Episode  48: agents=5 R=28.15
+15:46:04 - ERROR - Failed to write metrics for Ep 48: Object of type FrozenList is not JSON serializable
+15:46:15 - INFO - Episode  49: agents=5 R=27.53
+15:46:15 - ERROR - Failed to write metrics for Ep 49: Object of type FrozenList is not JSON serializable
+15:46:30 - INFO - Episode  50: agents=5 R=23.73
+15:46:30 - ERROR - Failed to write metrics for Ep 50: Object of type FrozenList is not JSON serializable
+15:46:41 - INFO - Episode  51: agents=5 R=25.89
+15:46:41 - ERROR - Failed to write metrics for Ep 51: Object of type FrozenList is not JSON serializable
+15:46:52 - INFO - Episode  52: agents=5 R=27.25
+15:46:52 - ERROR - Failed to write metrics for Ep 52: Object of type FrozenList is not JSON serializable
+15:47:05 - INFO - Episode  53: agents=5 R=25.17
+15:47:05 - ERROR - Failed to write metrics for Ep 53: Object of type FrozenList is not JSON serializable
+15:47:16 - INFO - Episode  54: agents=5 R=21.13
+15:47:16 - ERROR - Failed to write metrics for Ep 54: Object of type FrozenList is not JSON serializable
+15:47:27 - INFO - Episode  55: agents=5 R=22.75
+15:47:27 - ERROR - Failed to write metrics for Ep 55: Object of type FrozenList is not JSON serializable
+15:47:38 - INFO - Episode  56: agents=5 R=20.93
+15:47:38 - ERROR - Failed to write metrics for Ep 56: Object of type FrozenList is not JSON serializable
+15:47:48 - INFO - Episode  57: agents=5 R=24.85
+15:47:48 - ERROR - Failed to write metrics for Ep 57: Object of type FrozenList is not JSON serializable

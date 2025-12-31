@@ -22,6 +22,9 @@ steps:
          condition: "domain.experiments[domain.active_experiment_idx].runner.current_episode_count < domain.experiments[domain.active_experiment_idx].episodes_per_run"
          do:
             - process: run_single_episode
+            - process: enrich_episode_metrics
+            - process: log_episode_metrics
+            - process: advance_episode_index
             - process: save_metrics_snapshot
             
             # Social Learning Trigger (Every 25 eps)

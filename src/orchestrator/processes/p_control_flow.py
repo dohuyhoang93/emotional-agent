@@ -26,72 +26,13 @@ def advance_experiment_index(ctx: OrchestratorSystemContext):
 )
 def save_metrics_snapshot(ctx: OrchestratorSystemContext):
     """
-    Saves current metrics to JSON checkpoint.
-    Replaces inline logic from p_run_simulations.
+    DEPRECATED: Saves current metrics to JSON checkpoint.
+    
+    NOTE: This process is now disabled. Metrics are logged via JSONL only (p_log_metrics.py).
+    The legacy metrics.json format is no longer maintained.
     """
-    domain = ctx.domain_ctx
-    if domain.active_experiment_idx >= len(domain.experiments):
-        return
-
-    exp_def = domain.experiments[domain.active_experiment_idx]
-    runner = getattr(exp_def, 'runner', None)
-    if not runner: return
-
-    # Check if we have metrics to save
-    if not hasattr(domain, 'metrics') or not domain.metrics:
-        return
-
-    # Determine file path
-    output_dir = domain.output_dir or "results"
-    exp_name = exp_def.name
-    checkpoint_dir = os.path.join(output_dir, f"{exp_name}_checkpoints")
-    os.makedirs(checkpoint_dir, exist_ok=True)
-    metrics_file = os.path.join(checkpoint_dir, "metrics.json")
-    
-    # Load existing
-    existing_data = []
-    if os.path.exists(metrics_file):
-        try:
-            with open(metrics_file, 'r', encoding='utf-8') as f:
-                existing_data = json.load(f)
-        except json.JSONDecodeError:
-            existing_data = []
-    
-    # Convert metrics to plain dict recursively to handle FrozenDict/FrozenList
-    def sanitize(obj):
-        if isinstance(obj, dict):
-            return {k: sanitize(v) for k, v in obj.items()}
-        elif hasattr(obj, 'items'): # Duck typing for FrozenDict
-            return {k: sanitize(v) for k, v in obj.items()}
-        elif isinstance(obj, (list, tuple)):
-            return [sanitize(v) for v in obj]
-        elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes)):
-             return [sanitize(v) for v in obj]
-        return obj
-    
-    clean_metrics = sanitize(domain.metrics)
-
-    # Determine Episode Number (POP Style)
-    # active_experiment_episode_idx points to NEXT episode
-    current_ep_idx = domain.active_experiment_episode_idx - 1
-    
-    # Check for duplicates
-    existing_eps = [entry.get('episode') for entry in existing_data]
-    if current_ep_idx in existing_eps:
-        # log(ctx, "debug", f"Metrics for Ep {current_ep_idx} already saved. Skipping.")
-        return
-
-    # Append
-    existing_data.append({
-        "episode": current_ep_idx,
-        "metrics": clean_metrics
-    })
-    
-    # Write back
-    with open(metrics_file, 'w', encoding='utf-8') as f:
-        json.dump(existing_data, f, indent=2)
-    
-    # log(ctx, "debug", f"Saved metrics snapshot for Ep {runner.current_episode_count}")
+    # Legacy JSON snapshot disabled - use metrics.jsonl instead
+    return
 
 @process(
     inputs=['domain.active_experiment_idx', 'domain.experiments', 'log_level'],
