@@ -24,9 +24,8 @@ steps:
             - process: run_single_episode
             - process: enrich_episode_metrics
             - process: log_episode_metrics
-            - process: advance_episode_index
-            - process: save_metrics_snapshot
             
+            # Event checks BEFORE advancing episode (so count is correct)
             # Social Learning Trigger (Every 25 eps)
             - flux: if
               condition: "domain.experiments[domain.active_experiment_idx].runner.current_episode_count > 0 and domain.experiments[domain.active_experiment_idx].runner.current_episode_count % 25 == 0"
@@ -51,6 +50,10 @@ steps:
 
             # Periodic Checkpoint (Every 50 eps - logic inside process currently)
             - process: save_periodic_checkpoint
+            
+            # NOW advance episode for next iteration
+            - process: advance_episode_index
+            - process: save_metrics_snapshot
              
        # Advance to next Experiment
        - process: advance_experiment_index
