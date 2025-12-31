@@ -24,3 +24,8 @@ def advance_episode_index(ctx: OrchestratorSystemContext):
     
     if runner:
         runner.current_episode_count = domain.active_experiment_episode_idx
+        
+        # Sync to SNN Global Context for Revolution cooldown
+        if hasattr(runner, 'coordinator') and runner.coordinator:
+            for agent in runner.coordinator.agents:
+                agent.snn_ctx.global_ctx.current_episode = domain.active_experiment_episode_idx

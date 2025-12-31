@@ -116,8 +116,9 @@ class SNNGlobalContext(BaseGlobalContext):
     # === Revolution Protocol (Phase 12) ===
     use_revolution_protocol: bool = False  # Multi-agent only
     revolution_threshold: float = 0.6  # 60% outperform
-    revolution_window: int = 1000
+    revolution_window: int = 100  # Check every 100 episodes, cooldown period
     top_elite_percent: float = 0.1  # Top 10%
+    current_episode: int = 0  # For cooldown tracking
     
     # === Bridge Configuration (SNN <-> RL) ===
     input_amplification_factor: float = 5.0 # Boost sensor [0,1] to potential
@@ -254,6 +255,7 @@ class SNNDomainContext(BaseDomainContext):
     ancestor_weights: Dict[int, float] = field(default_factory=dict)
     population_performance: List[float] = field(default_factory=list)
     revolution_triggered: bool = False
+    last_revolution_episode: int = -1000  # Cooldown tracker
     ancestor_baseline_reward: float = 0.0 # Baseline for Revolution (Reward vs Reward)
     
     # === Optimization: Shadow Tensors (Phase 2) ===

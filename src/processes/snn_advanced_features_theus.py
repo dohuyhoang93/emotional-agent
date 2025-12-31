@@ -405,15 +405,18 @@ def process_neural_darwinism(
         'domain_ctx.synapses',
         'domain_ctx.ancestor_weights',
         'domain_ctx.population_performance',
-        'domain_ctx.metrics', # Added
+        'domain_ctx.last_revolution_episode',
+        'domain_ctx.metrics',
         'rl_ctx.domain_ctx.last_reward',
         'global_ctx.revolution_threshold',
         'global_ctx.revolution_window',
-        'global_ctx.top_elite_percent'
+        'global_ctx.top_elite_percent',
+        'global_ctx.current_episode'  # For cooldown check
     ],
     outputs=[
         'domain_ctx.ancestor_weights',
         'domain_ctx.revolution_triggered',
+        'domain_ctx.last_revolution_episode',
         'domain_ctx.metrics'
     ],
     side_effects=[]
@@ -456,7 +459,14 @@ def process_revolution_protocol(
     if not domain.population_performance:
         return
     
-    # 2. Check revolution condition
+    # 2. COOLDOWN CHECK (Prevent rapid re-triggering)
+    current_episode = getattr(global_ctx, 'current_episode', 0)
+    if (current_episode - domain.last_revolution_episode) < global_ctx.revolution_window:
+        domain.metrics['revolution_skipped'] = 1
+        domain.metrics['revolution_cooldown_remaining'] = global_ctx.revolution_window - (current_episode - domain.last_revolution_episode)
+        return  # Still in cooldown period
+    
+    # 3. Check revolution condition
     if len(domain.population_performance) < global_ctx.revolution_window:
         return  # Not enough data
     
@@ -492,6 +502,7 @@ def process_revolution_protocol(
 
     if outperform_ratio > global_ctx.revolution_threshold:
         domain.revolution_triggered = True
+        domain.last_revolution_episode = current_episode  # Update cooldown timestamp
         
         # 4. Voting: Top 10% elite
         all_perfs = [
@@ -537,9 +548,19 @@ def process_revolution_protocol(
             # Log for debugging (via metrics since we can't print easily)
             domain.metrics['revolution_new_baseline'] = new_baseline
 
-    # Update metrics
-    domain.metrics['outperform_ratio'] = outperform_ratio
-    domain.metrics['current_baseline'] = current_baseline
+# Helper function for direct invocation (bypasses Theus decorator)
+def _revolution_impl(
+    snn_ctx: SNNSystemContext,
+    rl_ctx: SystemContext = None,
+    population_contexts: List[SNNSystemContext] = None
+):
+    """Direct implementation wrapper for revolution protocol."""
+    # Use __wrapped__ to access the original function before decoration
+    if hasattr(process_revolution_protocol, '__wrapped__'):
+        return process_revolution_protocol.__wrapped__(snn_ctx, rl_ctx, population_contexts)
+    else:
+        # Fallback: call directly (will fail but at least we tried)
+        return process_revolution_protocol(snn_ctx, rl_ctx, population_contexts)
 
 # ============================================================================
 # Phase 12.5: Ancestor Assimilation (Theus V2)
