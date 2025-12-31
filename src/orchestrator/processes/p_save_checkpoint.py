@@ -5,7 +5,7 @@ from src.utils.snn_persistence import save_all_agents
 from src.logger import log
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.output_dir'],
+    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'log_level'],
     outputs=[],
     side_effects=['filesystem.write', 'filesystem.mkdir'],
     errors=[]

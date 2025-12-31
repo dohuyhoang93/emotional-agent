@@ -4,7 +4,7 @@ from src.logger import log
 from src.processes.snn_advanced_features_theus import process_revolution_protocol
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus'],
+    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level'],
     outputs=[],
     side_effects=[],
     errors=[]
