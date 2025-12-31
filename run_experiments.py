@@ -65,8 +65,10 @@ def main(argv=None):
     from theus.config import ConfigFactory
     
     # Configure logging to file for Audit Review
+    # Configure logging to file for Audit Review
+    os.makedirs('logs', exist_ok=True)
     logging.basicConfig(
-        filename='audit.log',
+        filename=os.path.join('logs', 'audit.log'),
         filemode='w',
         format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
         level=logging.INFO

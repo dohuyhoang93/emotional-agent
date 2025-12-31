@@ -3,14 +3,14 @@
     "episode": 0,
     "metrics": {
       "episode": 1,
-      "avg_reward": 11.853362372921907,
+      "avg_reward": 12.325018480933775,
       "success_rate": 0.0,
       "agent_rewards": [
-        -3.013010013079192,
+        -0.2547294730198528,
         24.516655785913557,
         19.433928310136135,
         9.101983472660294,
-        9.227254308978743
+        8.827254308978745
       ],
       "agent_success": [
         false,
@@ -22,7 +22,7 @@
       "epsilon": 1.0,
       "maturity": 0.0,
       "avg_firing_rate": 0.009962375996349342,
-      "debug_total_synapses": 10378,
+      "debug_total_synapses": 9886,
       "debug_spike_queue_size": 0
     }
   },
@@ -30,14 +30,14 @@
     "episode": 1,
     "metrics": {
       "episode": 2,
-      "avg_reward": 15.67335142038002,
+      "avg_reward": 17.635105305456122,
       "success_rate": 0.0,
       "agent_rewards": [
-        18.85187075555068,
-        12.919385106151015,
-        17.018501516401034,
-        14.097504640766912,
-        15.479495083030459
+        22.899514073549458,
+        19.74396766843393,
+        25.93589206933764,
+        21.115553962153673,
+        -1.5194012461940951
       ],
       "agent_success": [
         false,
@@ -48,8 +48,8 @@
       ],
       "epsilon": 1.0,
       "maturity": 0.0,
-      "avg_firing_rate": 0.004078460437220809,
-      "debug_total_synapses": 10894,
+      "avg_firing_rate": 0.002670080455089476,
+      "debug_total_synapses": 9886,
       "debug_spike_queue_size": 0
     }
   },
@@ -57,14 +57,14 @@
     "episode": 2,
     "metrics": {
       "episode": 3,
-      "avg_reward": 29.92748764151068,
+      "avg_reward": 28.991825881261814,
       "success_rate": 0.0,
       "agent_rewards": [
-        23.789428890823004,
-        35.00000001999994,
-        28.79999999999996,
-        34.60000000999997,
-        27.448009286730517
+        16.84654150540956,
+        30.7864359706831,
+        36.149484458632884,
+        30.921439385023458,
+        30.255228086560056
       ],
       "agent_success": [
         false,
@@ -75,8 +75,8 @@
       ],
       "epsilon": 1.0,
       "maturity": 0.0,
-      "avg_firing_rate": 0.0016699043296145202,
-      "debug_total_synapses": 11435,
+      "avg_firing_rate": 0.0024929666372762076,
+      "debug_total_synapses": 9886,
       "debug_spike_queue_size": 0
     }
   },
@@ -84,14 +84,14 @@
     "episode": 3,
     "metrics": {
       "episode": 4,
-      "avg_reward": 32.08439676684334,
+      "avg_reward": 30.74000002999996,
       "success_rate": 0.0,
       "agent_rewards": [
-        31.899999999999956,
-        27.721983834216918,
-        33.199999999999946,
-        35.59999999999994,
-        31.99999999999995
+        33.599999999999945,
+        27.400000019999965,
+        30.700000009999954,
+        28.399999999999963,
+        33.600000119999955
       ],
       "agent_success": [
         false,
@@ -102,8 +102,8 @@
       ],
       "epsilon": 1.0,
       "maturity": 0.0,
-      "avg_firing_rate": 2.5888682551909703e-05,
-      "debug_total_synapses": 12005,
+      "avg_firing_rate": 0.0006048283358992662,
+      "debug_total_synapses": 9886,
       "debug_spike_queue_size": 0
     }
   },
@@ -111,14 +111,14 @@
     "episode": 4,
     "metrics": {
       "episode": 5,
-      "avg_reward": 31.946681768374827,
+      "avg_reward": 35.60000000399994,
       "success_rate": 0.0,
       "agent_rewards": [
-        22.199999999999996,
-        37.86333033966975,
-        35.770078502204484,
-        25.99999999999997,
-        37.899999999999935
+        33.99999999999994,
+        33.99999999999994,
+        37.59999999999995,
+        29.20000001999997,
+        43.19999999999991
       ],
       "agent_success": [
         false,
@@ -129,8 +129,8 @@
       ],
       "epsilon": 1.0,
       "maturity": 0.0,
-      "avg_firing_rate": 0.000670680687639624,
-      "debug_total_synapses": 12603,
+      "avg_firing_rate": 0.00018001606508668834,
+      "debug_total_synapses": 9886,
       "debug_spike_queue_size": 0
     }
   },
@@ -138,14 +138,14 @@
     "episode": 5,
     "metrics": {
       "episode": 6,
-      "avg_reward": 29.30000000399996,
+      "avg_reward": 27.960000007999962,
       "success_rate": 0.0,
       "agent_rewards": [
-        34.39999999999994,
-        31.199999999999953,
-        18.4,
-        30.399999999999956,
-        32.10000001999995
+        34.79999999999994,
+        23.30000001999998,
+        26.20000001999997,
+        27.899999999999967,
+        27.599999999999966
       ],
       "agent_success": [
         false,
@@ -156,8 +156,8 @@
       ],
       "epsilon": 1.0,
       "maturity": 0.0,
-      "avg_firing_rate": 0.0001800178142172706,
-      "debug_total_synapses": 13231,
+      "avg_firing_rate": 0.00036000478147851095,
+      "debug_total_synapses": 9886,
       "debug_spike_queue_size": 0
     }
   },
@@ -165,14 +165,14 @@
     "episode": 6,
     "metrics": {
       "episode": 7,
-      "avg_reward": 33.30000000799995,
+      "avg_reward": 34.681197487322585,
       "success_rate": 0.0,
       "agent_rewards": [
-        41.69999999999992,
-        23.19999999999998,
-        25.39999999999998,
-        32.800000039999944,
-        43.39999999999991
+        41.999999999999936,
+        19.20598742661318,
+        38.899999999999935,
+        36.500000009999944,
+        36.79999999999993
       ],
       "agent_success": [
         false,
@@ -183,8 +183,8 @@
       ],
       "epsilon": 1.0,
       "maturity": 0.0,
-      "avg_firing_rate": 0.0001458047815249703,
-      "debug_total_synapses": 13889,
+      "avg_firing_rate": 0.00024864022406683004,
+      "debug_total_synapses": 9886,
       "debug_spike_queue_size": 0
     }
   },
@@ -192,14 +192,14 @@
     "episode": 7,
     "metrics": {
       "episode": 8,
-      "avg_reward": 32.75999999999995,
+      "avg_reward": 30.27799820380185,
       "success_rate": 0.0,
       "agent_rewards": [
-        33.99999999999994,
-        30.999999999999964,
-        31.99999999999995,
-        28.399999999999963,
-        38.39999999999993
+        40.699999999999946,
+        27.489991019009384,
+        30.799999999999955,
+        15.600000000000009,
+        36.79999999999994
       ],
       "agent_success": [
         false,
@@ -210,8 +210,8 @@
       ],
       "epsilon": 1.0,
       "maturity": 0.0,
-      "avg_firing_rate": 3.87277896180229e-09,
-      "debug_total_synapses": 14581,
+      "avg_firing_rate": 9.151377405201498e-05,
+      "debug_total_synapses": 9886,
       "debug_spike_queue_size": 0
     }
   },
@@ -219,14 +219,14 @@
     "episode": 8,
     "metrics": {
       "episode": 9,
-      "avg_reward": 32.91999999999995,
+      "avg_reward": 33.27999999999995,
       "success_rate": 0.0,
       "agent_rewards": [
-        30.199999999999964,
+        35.19999999999994,
+        35.999999999999936,
+        21.999999999999986,
         33.199999999999946,
-        34.39999999999994,
-        34.199999999999946,
-        32.59999999999996
+        39.999999999999936
       ],
       "agent_success": [
         false,
@@ -237,8 +237,8 @@
       ],
       "epsilon": 1.0,
       "maturity": 0.0,
-      "avg_firing_rate": 1.0286642680788777e-13,
-      "debug_total_synapses": 15308,
+      "avg_firing_rate": 2.4307338563041303e-09,
+      "debug_total_synapses": 9886,
       "debug_spike_queue_size": 0
     }
   },
@@ -246,284 +246,14 @@
     "episode": 9,
     "metrics": {
       "episode": 10,
-      "avg_reward": 34.03999999999995,
+      "avg_reward": 32.470157134505705,
       "success_rate": 0.0,
       "agent_rewards": [
-        40.49999999999992,
-        27.999999999999964,
-        33.199999999999946,
-        38.19999999999994,
-        30.299999999999958
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 2.732276194585135e-18,
-      "debug_total_synapses": 16070,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 10,
-    "metrics": {
-      "episode": 11,
-      "avg_reward": 28.15999999999996,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        31.99999999999995,
-        31.59999999999995,
-        35.19999999999994,
-        23.19999999999998,
-        18.799999999999997
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 7.257307787543554e-23,
-      "debug_total_synapses": 16871,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 11,
-    "metrics": {
-      "episode": 12,
-      "avg_reward": 33.239999999999945,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        34.39999999999994,
         23.99999999999998,
-        38.39999999999993,
-        31.899999999999952,
-        37.499999999999936
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 1.927642469949397e-27,
-      "debug_total_synapses": 17711,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 12,
-    "metrics": {
-      "episode": 13,
-      "avg_reward": 32.16719020668595,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        27.700000029999963,
-        31.59999999999995,
-        23.13595100342998,
-        39.799999999999926,
-        38.59999999999994
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 0.00036394758000000006,
-      "debug_total_synapses": 18595,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 13,
-    "metrics": {
-      "episode": 14,
-      "avg_reward": 34.559999999999945,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        29.999999999999957,
-        35.999999999999936,
         34.39999999999994,
-        31.99999999999995,
-        40.39999999999994
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 9.66695684655218e-09,
-      "debug_total_synapses": 19524,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 14,
-    "metrics": {
-      "episode": 15,
-      "avg_reward": 26.61999999999997,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        26.299999999999976,
-        34.39999999999994,
-        19.599999999999994,
-        30.399999999999956,
-        22.399999999999984
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 2.567678968303678e-13,
-      "debug_total_synapses": 20497,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 15,
-    "metrics": {
-      "episode": 16,
-      "avg_reward": 32.01062577305309,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        33.599999999999945,
-        31.199999999999953,
-        32.25312886526566,
-        23.99999999999998,
-        38.99999999999993
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 0.00034200000000000685,
-      "debug_total_synapses": 21519,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 16,
-    "metrics": {
-      "episode": 17,
-      "avg_reward": 35.29999999999994,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        37.79999999999994,
-        40.09999999999993,
-        33.199999999999946,
-        32.39999999999995,
-        32.99999999999996
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 9.083998419555124e-09,
-      "debug_total_synapses": 22593,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 17,
-    "metrics": {
-      "episode": 18,
-      "avg_reward": 35.279999999999944,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        37.19999999999993,
-        35.59999999999995,
-        41.59999999999994,
-        29.999999999999957,
-        31.99999999999995
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 2.412837055160185e-13,
-      "debug_total_synapses": 23721,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 18,
-    "metrics": {
-      "episode": 19,
-      "avg_reward": 29.39999999999996,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        19.999999999999993,
-        29.099999999999962,
-        37.99999999999993,
-        31.499999999999957,
-        28.399999999999963
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 6.408832747286172e-18,
-      "debug_total_synapses": 24905,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 19,
-    "metrics": {
-      "episode": 20,
-      "avg_reward": 31.819999999999958,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        36.69999999999996,
-        37.999999999999936,
-        33.199999999999946,
         32.79999999999995,
-        18.4
+        35.49999999999994,
+        35.65078567252871
       ],
       "agent_success": [
         false,
@@ -534,142 +264,7 @@
       ],
       "epsilon": 1.0,
       "maturity": 0.0,
-      "avg_firing_rate": 1.702275630045016e-22,
-      "debug_total_synapses": 26148,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 20,
-    "metrics": {
-      "episode": 21,
-      "avg_reward": 35.51300918344391,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        43.09999999999996,
-        31.09999999999996,
-        35.03286241161876,
-        38.695690635110125,
-        29.636492870490788
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 0.0012000000000000001,
-      "debug_total_synapses": 27453,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 21,
-    "metrics": {
-      "episode": 22,
-      "avg_reward": 34.28000000199995,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        25.99999999999997,
-        35.89999999999994,
-        36.29999999999996,
-        36.70000000999995,
-        36.49999999999995
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 0.00020003187367866518,
-      "debug_total_synapses": 28823,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 22,
-    "metrics": {
-      "episode": 23,
-      "avg_reward": 29.619999999999965,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        23.499999999999986,
-        29.499999999999964,
-        41.29999999999993,
-        21.19999999999999,
-        32.59999999999995
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 5.313126387010553e-09,
-      "debug_total_synapses": 30262,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 23,
-    "metrics": {
-      "episode": 24,
-      "avg_reward": 32.799999999999955,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        38.999999999999936,
-        35.99999999999996,
-        30.299999999999958,
-        28.79999999999996,
-        29.89999999999996
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 5.441870971091709e-32,
-      "debug_total_synapses": 9886,
-      "debug_spike_queue_size": 0
-    }
-  },
-  {
-    "episode": 24,
-    "metrics": {
-      "episode": 25,
-      "avg_reward": 30.779999999999955,
-      "success_rate": 0.0,
-      "agent_rewards": [
-        29.999999999999957,
-        33.49999999999995,
-        34.79999999999994,
-        25.99999999999997,
-        29.59999999999996
-      ],
-      "agent_success": [
-        false,
-        false,
-        false,
-        false,
-        false
-      ],
-      "epsilon": 1.0,
-      "maturity": 0.0,
-      "avg_firing_rate": 1.4454370555795021e-36,
+      "avg_firing_rate": 0.0003458000000645637,
       "debug_total_synapses": 9886,
       "debug_spike_queue_size": 0
     }

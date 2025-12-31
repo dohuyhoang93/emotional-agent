@@ -94,7 +94,7 @@ def save_metrics_snapshot(ctx: OrchestratorSystemContext):
     # log(ctx, "debug", f"Saved metrics snapshot for Ep {runner.current_episode_count}")
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments'],
+    inputs=['domain.active_experiment_idx', 'domain.experiments', 'log_level'],
     outputs=['domain.metrics'],
     side_effects=['synapse.injection'],
     errors=[]
