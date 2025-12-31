@@ -1,6 +1,7 @@
 import RealtimeChart from "./components/RealtimeChart";
 import SuccessChart from "./components/SuccessChart";
 import NeuralMonitor from "./components/NeuralMonitor";
+import ExperimentInfo from "./components/ExperimentInfo";
 import { Activity, Brain, Trophy } from "lucide-react";
 
 export default function Home() {
@@ -16,9 +17,13 @@ export default function Home() {
             <p className="text-gray-400 text-sm">Real-time Neural Monitoring & Orchestration</p>
           </div>
         </div>
-        <div className="px-4 py-2 bg-gray-900 rounded-lg border border-gray-700 flex items-center gap-2">
-          <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-          <span className="text-green-400 text-sm font-bold">ONLINE</span>
+
+        <div className="flex flex-col items-end gap-2">
+          <div className="px-4 py-2 bg-gray-900 rounded-lg border border-gray-700 flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-green-400 text-sm font-bold">ONLINE</span>
+          </div>
+          <ExperimentInfo />
         </div>
       </header>
 
