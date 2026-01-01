@@ -8,11 +8,13 @@
             "log_level": "info",
             "parameters": {
                 "num_agents": 5,
-                "num_neurons": 50,
-                "vector_dim": 16,
-                "connectivity": 0.15,
                 "max_steps_per_episode": 300,
                 "total_episodes": 1000,
+                "snn_config": {
+                    "num_neurons": 50,
+                    "vector_dim": 16,
+                    "connectivity": 0.15
+                },
                 "initial_exploration": 1.0,
                 "exploration_decay": 0.995,
                 "intrinsic_reward_weight": 0.05,

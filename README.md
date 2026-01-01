@@ -110,7 +110,7 @@ You need to open **two separate terminals**:
 **Terminal 1: Backend (Data Server)**
 ```bash
 # Run from project root
-python -m uvicorn src.dashboard.server:socket_app --reload --host 0.0.0.0 --port 8000
+python -m uvicorn src.dashboard.server:socket_app --reload --host 0.0.0.0 --port 8001
 ```
 
 **Terminal 2: Frontend (Web UI)**

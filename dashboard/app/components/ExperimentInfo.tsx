@@ -11,7 +11,7 @@ import { FileCode, Database } from 'lucide-react';
 // Since RealtimeChart creates its own socket, we'll create one here too for simplicity.
 // In a production app, we should move socket to a Context.
 
-const socket = io('http://localhost:8000', {
+const socket = io('http://localhost:8001', {
   transports: ['websocket'],
   reconnectionAttempts: 5,
 });

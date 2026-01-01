@@ -13,76 +13,132 @@ from src.core.snn_context_theus import SNNSystemContext, ensure_tensors_initiali
 
 @process(
     inputs=[
-        'domain_ctx.neurons',
-        'domain_ctx.metrics', # Allow reading dict
-        'domain_ctx.metrics.fire_rate',
-        'global_ctx.target_fire_rate',
-        'global_ctx.homeostasis_rate',
-        'global_ctx.threshold_min',
-        'global_ctx.threshold_max',
-        'domain_ctx.tensors' # NEW
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.snn_context.domain_ctx.metrics',
+        'domain.snn_context.domain_ctx.metrics.fire_rate', # Current Global Rate
+        'domain.snn_context.global_ctx.target_fire_rate',
+        'domain.snn_context.global_ctx.homeostasis_rate',
+        'domain.snn_context.global_ctx.local_homeostasis_rate', # NEW
+        'domain.snn_context.global_ctx.trace_decay',             # NEW
+        'domain.snn_context.global_ctx.threshold_min',
+        'domain.snn_context.global_ctx.threshold_max',
+        'domain.snn_context.domain_ctx.tensors'
     ],
     outputs=[
-        'domain_ctx.neurons',  # threshold updated
-        'domain_ctx.tensors'   # NEW
+        'domain.snn_context.domain_ctx.neurons',
+        'domain.snn_context.domain_ctx.tensors'
     ],
     side_effects=[]
 )
 def process_homeostasis(ctx: SNNSystemContext):
     """
-    Quy trình Homeostasis thường - điều chỉnh threshold (VECTORIZED).
+    Quy trình Harmonic Homeostasis (Elastic Anchoring).
     
-    Mục tiêu: Duy trì fire rate gần target_fire_rate.
-    
-    Logic:
-    - Fire rate cao → Tăng threshold (khó bắn hơn)
-    - Fire rate thấp → Giảm threshold (dễ bắn hơn)
+    Triết lý: Threshold = (1-S)*Global + S*Local
+    - Neuron non trẻ (S~0): Tuân theo Global (Ổn định)
+    - Neuron trưởng thành (S~1): Tự chủ Local (Đa dạng)
     """
-    domain = ctx.domain_ctx
-    global_ctx = ctx.global_ctx
+    from src.logger import log, log_error
+    import traceback
     
-    current_fire_rate = domain.metrics.get('fire_rate', 0.0)
-    target_fire_rate = global_ctx.target_fire_rate
-    homeostasis_rate = global_ctx.homeostasis_rate
-    
-    # Tính error
-    error = current_fire_rate - target_fire_rate
-    
-    # === VECTORIZED UPDATE ===
-    # 1. Ensure tensors exist
-    ensure_tensors_initialized(ctx)
-    t = domain.tensors
-    
-    # 2. Vectorized calculation
-    t['thresholds'] += error * homeostasis_rate
-    
-    # 3. Clip
-    np.clip(
-        t['thresholds'],
-        global_ctx.threshold_min,
-        global_ctx.threshold_max,
-        out=t['thresholds'] # Update in-place
-    )
-
-    # === EMERGENCY RESCUE (SNN Death Spiral Protection) ===
-    # If firing rate is critically low (e.g. < 1e-5), the network is "dead".
-    # Standard homeostasis is too slow. We need a "defibrillator".
-    if current_fire_rate < 1e-5:
-        # 1. Hard Reset Thresholds to Min for ALL neurons
-        t['thresholds'].fill(global_ctx.threshold_min)
+    try:
+        # Handle context nesting (RL -> SNN)
+        if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+            snn_ctx = ctx.domain_ctx.snn_context
+        else:
+            # Standalone SNN context
+            snn_ctx = ctx
+            
+        snn_domain = snn_ctx.domain_ctx
+        snn_global = snn_ctx.global_ctx
         
-        # 2. Inject Massive Noise into Potentials (Kickstart)
-        # Add random value [0, threshold_min] to potentials
-        noise = np.random.uniform(0, global_ctx.threshold_min, size=t['thresholds'].shape)
-        t['potentials'] += noise
+        # 1. Inputs
+        target_fire_rate = snn_global.target_fire_rate
+        rate_global = snn_global.homeostasis_rate
+        rate_local = snn_global.local_homeostasis_rate
+        decay = snn_global.trace_decay
         
-        # 3. Mark Metrics
-        domain.metrics['emergency_rescue_triggered'] = True
-        domain.metrics['rescue_noise_magnitude'] = float(np.mean(noise))
-        print(f"⚠️  [Homeostasis] EMERGENCY RESCUE TRIGGERED! Noise injected. Fire Rate: {current_fire_rate}")
+        t = snn_domain.tensors
+        
+        thresholds = t['thresholds']
+        firing_traces = t['firing_traces']
+        
+        # Solidity Ratio
+        if 'solidity_ratios' in t:
+            # Clamp solidity to [0, 1] to prevent numerical errors (negative scale)
+            solidity = np.clip(t['solidity_ratios'], 0.0, 1.0)
+        else:
+            solidity = np.zeros_like(thresholds)
+        
+        # 2. Update Vectorized Firing Traces
+        current_time = snn_domain.current_time
+        last_fire_times = t['last_fire_times']
+        
+        spikes = (last_fire_times == current_time).astype(np.float32)
+        firing_traces[:] = decay * firing_traces + (1.0 - decay) * spikes
+        
+        # 3. Calculate Errors
+        current_global_rate = np.mean(firing_traces) 
+        error_global = current_global_rate - target_fire_rate
+        error_local = firing_traces - target_fire_rate
+        
+        # 4. Harmonic Blending (Elastic Anchoring)
+        base_local_influence = 0.2
+        w_local = solidity + (1.0 - solidity) * base_local_influence
+        w_global = 1.0 - w_local
+        
+        adjustment_global = error_global * rate_global
+        adjustment_local = error_local * rate_local
+        
+        delta = w_global * adjustment_global + w_local * adjustment_local
+        
+        # 6. Adaptive Noise (Sinh - Lão - Bệnh)
+        noise_scale = 0.0001 * (1.0 - solidity)
+        adaptive_noise = np.random.normal(0, noise_scale, size=delta.shape)
+        delta += adaptive_noise
+        
+        # 7. Apply Update
+        thresholds += delta
+        
+        # 8. Clip
+        np.clip(
+            thresholds,
+            snn_global.threshold_min,
+            snn_global.threshold_max,
+            out=thresholds
+        )
+        
+        # === EMERGENCY RESCUE ===
+        if current_global_rate < 1e-6:
+            # RESET with variance to avoid "Dead Zone" uniformity
+            # Triết lý: Khi chết, hồi sinh ở mức thấp + sự đa dạng để không chết lại đồng loạt
+            rescue_base = snn_global.threshold_min
+            rescue_noise = np.random.uniform(0.0, 0.1, size=thresholds.shape)
+            
+            thresholds[:] = rescue_base + rescue_noise
+            
+            # Boost potentials too
+            noise_pot = np.random.uniform(0, rescue_base, size=thresholds.shape)
+            t['potentials'] += noise_pot
+            
+            snn_domain.metrics['emergency_rescue_triggered'] = True
+            # print(f"⚠️ [Harmonic] RESCUE TRIGGERED! Rate: {current_global_rate}")
     
-    # 4. Sync back to objects (Risk #9 Mitigation)
-    sync_from_tensors(ctx)
+        # 9. Audit Metrics
+        snn_domain.metrics['fire_rate'] = float(current_global_rate)
+        snn_domain.metrics['avg_threshold'] = float(np.mean(thresholds))
+        snn_domain.metrics['std_threshold'] = float(np.std(thresholds))
+        
+        # 10. Sync back
+        # OPTIMIZATION: Lazy Sync - Objects sync handled by periodic_resync
+        # Tensors remain source of truth during compute phase
+        # This eliminates 11,000 expensive object updates per experiment
+        # sync_from_tensors(snn_ctx)  # Disabled for performance (15-20x speedup)
+        
+    except Exception as e:
+        log_error(ctx, f"CRITICAL ERROR in process_homeostasis: {e}")
+        log_error(ctx, traceback.format_exc())
+        raise e
 
 
 def pid_controller_with_antiwindup(

@@ -1,10 +1,20 @@
+"use client";
+
 import RealtimeChart from "./components/RealtimeChart";
 import SuccessChart from "./components/SuccessChart";
 import NeuralMonitor from "./components/NeuralMonitor";
 import ExperimentInfo from "./components/ExperimentInfo";
 import { Activity, Brain, Trophy } from "lucide-react";
+import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
+
+const socket = io('http://localhost:8001', {
+  transports: ['websocket'],
+  reconnectionAttempts: 5,
+});
 
 export default function Home() {
+
   return (
     <main className="min-h-screen bg-black text-white p-8 font-mono">
       <header className="flex justify-between items-center mb-8 border-b border-gray-800 pb-4">
@@ -58,10 +68,7 @@ export default function Home() {
               <span className="text-gray-500 block">Agent Count</span>
               <span className="text-purple-300 font-bold">5 Agents</span>
             </div>
-            <div className="p-3 bg-gray-950 rounded border border-gray-800">
-              <span className="text-gray-500 block">Max Episodes</span>
-              <span className="text-yellow-300 font-bold">1000</span>
-            </div>
+
           </div>
         </div>
       </div>

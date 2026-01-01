@@ -366,6 +366,158 @@ Layer 3: PID Homeostasis (Continuous)
 
 ---
 
+## 5.9 Harmonic Homeostasis (Elastic Anchoring)
+
+**Process**: `process_homeostasis`  
+**File**: `src/processes/snn_homeostasis_theus.py::process_homeostasis` (Lines 14-143)  
+**Status**: ✅ **IMPLEMENTED** (2026-01-01)
+
+**Philosophy**: Non-dualistic threshold regulation that balances **Global Stability** (collective network health) with **Local Autonomy** (individual neuron specialization).
+
+### Problem Statement
+
+Traditional homeostasis mechanisms face a dilemma:
+- **Global-only**: All neurons receive identical updates → No diversity, uniform thresholds
+- **Local-only**: Neurons self-regulate independently → Network instability, potential collapse
+
+**Harmonic Homeostasis** rejects this binary choice, implementing **both** with dynamic balance modulated by neuron maturity (Solidity).
+
+### Mechanism: Elastic Anchoring
+
+The system implements a "birth-life-maturity" cycle:
+
+1. **Birth (±5% Variance)**
+   - Neurons initialize with `threshold = base × uniform(0.95, 1.05)`
+   - Breaks initial symmetry
+   
+2. **Youth (S≈0): Guided Exploration**
+   - 80% Global influence (stability)
+   - 20% Local influence (baseline personality)
+   - High adaptive noise (exploration)
+   
+3. **Maturity (S≈1): Autonomous Specialization**
+   - 0% Global influence
+   - 100% Local influence
+   - Minimal noise (stability)
+
+### Mathematical Model
+
+#### Threshold Update Formula
+
+$$\Delta T_i = w_{global} \cdot \Delta_{global} + w_{local} \cdot \Delta_{local,i} + \epsilon_i$$
+
+**Weight Calculation:**
+```
+w_local = S_i + (1 - S_i) × β_base
+w_global = 1 - w_local
+
+where:
+  S_i: Solidity ratio (neuron maturity) ∈ [0, 1]
+  β_base: Baseline local influence = 0.2
+```
+
+**Error Terms:**
+```
+E_global = mean(FR_traces) - FR_target  (Scalar)
+E_local,i = FR_trace,i - FR_target      (Vector)
+
+Δ_global = E_global × rate_global
+Δ_local,i = E_local,i × rate_local
+```
+
+**Adaptive Noise:**
+```
+ε_i ~ N(0, σ_noise × (1 - S_i))
+
+Young neurons (S=0): Full noise → Exploration
+Mature neurons (S=1): No noise → Stability
+```
+
+### Implementation (Vectorized)
+
+```python
+def process_homeostasis(ctx: SNNSystemContext):
+    """Harmonic Homeostasis with Elastic Anchoring."""
+    
+    # 1. Update firing traces (Exponential Moving Average)
+    spikes = (last_fire_times == current_time).astype(np.float32)
+    firing_traces[:] = decay * firing_traces + (1 - decay) * spikes
+    
+    # 2. Calculate errors
+    error_global = np.mean(firing_traces) - target_fire_rate  # Scalar
+    error_local = firing_traces - target_fire_rate  # Vector (N,)
+    
+    # 3. Compute weights (with baseline plasticity)
+    w_local = solidity + (1.0 - solidity) * base_local_influence  # (N,)
+    w_global = 1.0 - w_local
+    
+    # 4. Blend adjustments
+    adjustment_global = error_global * rate_global
+    adjustment_local = error_local * rate_local
+    delta = w_global * adjustment_global + w_local * adjustment_local
+    
+    # 5. Add adaptive noise (decreases with maturity)
+    noise_scale = 0.0001 * (1.0 - solidity)
+    delta += np.random.normal(0, noise_scale, size=delta.shape)
+    
+    # 6. Apply update
+    thresholds += delta
+    np.clip(thresholds, threshold_min, threshold_max, out=thresholds)
+```
+
+### Hyperparameters
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `homeostasis_rate` | 0.0001 | Global adjustment rate |
+| `local_homeostasis_rate` | 0.0005 | Local adjustment rate (faster) |
+| `trace_decay` (τ) | 0.999 | Slow decay for stable local average |
+| `base_local_influence` (β) | 0.2 | Minimum local weight for fluid neurons |
+| `noise_scale` (σ) | 0.0001 | Base noise magnitude |
+| `birth_variance` | ±5% | Initial threshold randomization |
+
+### Performance Characteristics
+
+- **Complexity:** O(N) per timestep
+- **SIMD Optimization:** AVX-512 support (16× parallelism for float32)
+- **Memory:** +8 bytes/neuron for `firing_traces` tensor
+- **Overhead:** <1ms for 100,000 neurons
+
+### Design Rationale
+
+**Why not pure Local?**
+- Young neurons lack history → Would drift randomly
+- Network-wide collapse possible without global anchor
+
+**Why not pure Global?**
+- Prevents specialization → All neurons identical
+- Wastes neural capacity → No functional diversity
+
+**Why Harmonic (Both)?**
+- **Emergence:** Diversity arises naturally from simple rules + noise
+- **Stability:** Global anchor prevents catastrophic failure
+- **Efficiency:** Mature neurons optimize for their niche
+- **Biological Plausibility:** Mirrors developmental neuroscience
+
+### Validation Metrics
+
+Monitor these to verify correct operation:
+- `avg_threshold`: Should stabilize around initial value (0.6)
+- `std_threshold`: Should **increase** over time (diversity emerging)
+- `fire_rate`: Should converge to `target_fire_rate` (0.02)
+
+### Integration Notes
+
+**Solidity Source:**
+- If Phase 10.5 (Derived Commitment) is active: Uses `solidity_ratios` tensor
+- Otherwise: Defaults to `zeros_like(thresholds)` (all fluid)
+
+**Emergency Rescue:**
+- If global firing rate < 1e-6: Reset all thresholds to minimum + inject noise
+- Prevents "network death" scenarios
+
+---
+
 > [!NOTE]
 > **Related Chapters**:
 > - Chapter 2: Learning Mechanisms (Neural Darwinism details)

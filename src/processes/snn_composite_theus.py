@@ -94,7 +94,7 @@ def process_snn_cycle(ctx: SystemContext):
     
     _fire_impl(ctx, sync=False)
     
-    # Sync Tensors -> Objects (Potentials, Weights, LastFire)
+    # Sync Tensors -> Objects (Potentials, Weights, LastFire, Thresholds)
     sync_from_tensors(ctx.domain_ctx.snn_context)
     
     # 3. LEARNING (Object Mode - sees updated Fire state)

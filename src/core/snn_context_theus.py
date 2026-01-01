@@ -67,7 +67,10 @@ class SNNGlobalContext(BaseGlobalContext):
     
     # === Homeostasis Parameters ===
     target_fire_rate: float = 0.02  # 2%
+    target_fire_rate: float = 0.02  # 2%
     homeostasis_rate: float = 0.0001
+    local_homeostasis_rate: float = 0.0005 # Faster local adaptation
+    trace_decay: float = 0.999 # Slow decay for stable local average
     
     # === Meta-Homeostasis (PID) ===
     # === Meta-Homeostasis (PID) ===
@@ -334,7 +337,7 @@ def create_snn_context_theus(
         
         neuron = NeuronState(
             neuron_id=i,
-            threshold=global_ctx.initial_threshold,
+            threshold=global_ctx.initial_threshold * np.random.uniform(0.95, 1.05),  # Birth variance
             prototype_vector=prototype,
             vector_dim=global_ctx.vector_dim
         )
@@ -460,6 +463,10 @@ def ensure_tensors_initialized(ctx: SNNSystemContext):
     if 'spike_buffer' not in domain.tensors:
         domain.tensors['spike_buffer'] = np.zeros((buffer_size, N), dtype=np.int8)
         domain.tensors['use_vectorized_queue'] = True  # Flag to switch logic
+
+    # NEW (Harmonic Homeostasis): Firing Traces
+    if 'firing_traces' not in domain.tensors:
+         domain.tensors['firing_traces'] = np.zeros(N, dtype=np.float32)
 
     # NEW (Phase 10.5): Derived Neuron Commitment
     if 'solidity_ratios' not in domain.tensors:

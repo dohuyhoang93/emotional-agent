@@ -15,6 +15,11 @@ steps:
 
   # SNN Processing Pipeline (Composite Optimization)
   - process_snn_cycle
+  
+  # Fast Homeostasis (Every timestep)
+  # Note: Conditional execution (every 10 steps) was tested but made performance worse
+  # due to flux evaluation overhead. Keeping unconditional with lazy sync optimization.
+  - process_homeostasis
 
   # Advanced Features (Post-Cycle)
   - process_commitment
@@ -28,7 +33,7 @@ steps:
   
   - process_inject_viral_with_quarantine # Filter blacklisted sources (Sandbox Entrance)
   - process_quarantine_validation # Validate viral synapses (Sandbox Exit)
-  - process_meta_homeostasis_fixed # Advanced stability
+  - process_meta_homeostasis_fixed # Slow Homeostasis (PID - Episode level)
   - process_periodic_resync        # Maintenance
   
   # Execution & Learning
