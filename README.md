@@ -78,22 +78,45 @@ EmotionAgent/
 ### Prerequisites
 *   Python 3.10+
 *   Theus Framework (Included as submodule)
+*   Node.js v18+ (Required for Dashboard)
 
 ### Installation
 ```bash
 # 1. Install Dependencies
-pip install torch pandas matplotlib networkx numpy
+pip install torch pandas matplotlib networkx numpy pyyaml
 
 # 2. Install Theus Hook
 pip install -e theus
+
+# 3. Install dashboard backend
+pip install fastapi uvicorn python-socketio
+
+# 4. Install dashboard frontend
+cd dashboard
+npm install
 ```
 
 ### Running Experiments
-The complete simulation pipeline (Initialization -> Simulation -> Structual Evolution -> Reporting) is automated.
+The complete simulation pipeline (Initialization -> Simulation -> Structural Evolution -> Reporting) is automated.
 
 ```bash
 # Run the Standard Benchmark (Complex Maze V2)
 python run_experiments.py
+```
+
+### Running Dashboard (Real-time Monitoring)
+You need to open **two separate terminals**:
+
+**Terminal 1: Backend (Data Server)**
+```bash
+# Run from project root
+python -m uvicorn src.dashboard.server:socket_app --reload --host 0.0.0.0 --port 8000
+```
+
+**Terminal 2: Frontend (Web UI)**
+```bash
+cd dashboard
+npm run dev
 ```
 
 ### Analysis

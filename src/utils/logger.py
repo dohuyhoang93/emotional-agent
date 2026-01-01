@@ -11,6 +11,7 @@ import json
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
+import numpy as np
 
 
 class ExperimentLogger:
@@ -95,7 +96,11 @@ class ExperimentLogger:
             # Convert Frozen types to native Python types for JSON serialization
             def to_serializable(obj):
                 """Recursively convert Frozen types to native Python types."""
-                if hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes)):
+                if isinstance(obj, (np.integer, np.floating)):
+                    return obj.item()
+                elif isinstance(obj, np.ndarray):
+                    return obj.tolist()
+                elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes)):
                     if hasattr(obj, 'items'):  # Dict-like (FrozenDict)
                         return {k: to_serializable(v) for k, v in obj.items()}
                     else:  # List-like (FrozenList, tuple)
