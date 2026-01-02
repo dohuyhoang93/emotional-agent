@@ -222,26 +222,39 @@ def update_q_learning(ctx: SystemContext):
     Args:
         ctx: System context
     """
-    # Get state key
-    state = str(ctx.domain_ctx.current_observation)
+    # Previous state (before action)
+    prev_state = str(ctx.domain_ctx.previous_observation)
+    
+    # Current state (after action = next state)
+    next_state = str(ctx.domain_ctx.current_observation)
+    
     action = ctx.domain_ctx.last_action
     reward = ctx.domain_ctx.last_reward.get('total', 0.0)
     
+    # Skip if no previous state (first step of episode)
+    if ctx.domain_ctx.previous_observation is None:
+        ctx.domain_ctx.td_error = 0.0
+        return
+    
     # Initialize Q-values if needed
-    if state not in ctx.domain_ctx.q_table:
-        ctx.domain_ctx.q_table[state] = [0.0] * 4
+    if prev_state not in ctx.domain_ctx.q_table:
+        ctx.domain_ctx.q_table[prev_state] = [0.0] * 4
+    if next_state not in ctx.domain_ctx.q_table:
+        ctx.domain_ctx.q_table[next_state] = [0.0] * 4
     
-    # Simple Q-learning update (without next state for now)
-    current_q = ctx.domain_ctx.q_table[state][action]
+    # Q-learning update with next state (CORRECT)
+    current_q = ctx.domain_ctx.q_table[prev_state][action]
+    max_next_q = max(ctx.domain_ctx.q_table[next_state])
     
-    # TD-error (simplified - no next state)
-    td_error = reward - current_q
+    # Correct TD-error: reward + gamma * max(Q(s', a')) - Q(s, a)
+    gamma = 0.95
+    td_error = reward + gamma * max_next_q - current_q
     
     # Update Q-value
     alpha = 0.1
-    ctx.domain_ctx.q_table[state][action] += alpha * td_error
+    ctx.domain_ctx.q_table[prev_state][action] += alpha * td_error
     
-    # Store TD-error for SNN
+    # Store TD-error for SNN dopamine signal
     ctx.domain_ctx.td_error = td_error
     
     # === Train Gated Network (Deep RL) ===

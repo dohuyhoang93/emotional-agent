@@ -129,11 +129,11 @@ def process_homeostasis(ctx: SNNSystemContext):
         snn_domain.metrics['avg_threshold'] = float(np.mean(thresholds))
         snn_domain.metrics['std_threshold'] = float(np.std(thresholds))
         
-        # 10. Sync back
-        # OPTIMIZATION: Lazy Sync - Objects sync handled by periodic_resync
-        # Tensors remain source of truth during compute phase
-        # This eliminates 11,000 expensive object updates per experiment
-        # sync_from_tensors(snn_ctx)  # Disabled for performance (15-20x speedup)
+        # 10. Sync Back (CRITICAL FIX)
+        # Must sync tensors -> objects immediately, otherwise next cycle's 
+        # sync_to_tensors will overwrite these changes with stale object data!
+        from src.core.snn_context_theus import sync_from_tensors
+        sync_from_tensors(snn_ctx)
         
     except Exception as e:
         log_error(ctx, f"CRITICAL ERROR in process_homeostasis: {e}")
