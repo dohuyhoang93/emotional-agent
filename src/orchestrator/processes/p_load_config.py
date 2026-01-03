@@ -1,4 +1,4 @@
-import json
+﻿import json
 import os
 
 from theus.contracts import process
@@ -14,13 +14,20 @@ def recursive_update(d, u):
     return d
 
 @process(
-    inputs=['global.config_path', 'log_level', 'system.log_level', 'global.cli_log_level', 'global.settings_override', 'domain.output_dir', 'domain.experiments', 'domain.effective_log_level'],
-    outputs=[
-        'domain.raw_config',
-        'domain.output_dir',
-        'domain.effective_log_level',
-        'domain.experiments',
-        'domain.final_report'
+    inputs=['global', 
+        'global_ctx', 'domain_ctx',
+        'log_level', 'system.log_level',
+        'global_ctx.config_path', 'global.config_path',
+        'global_ctx.cli_log_level', 'global.cli_log_level',
+        'global_ctx.settings_override', 'global.settings_override'
+    ],
+    outputs=['domain', 
+        'domain_ctx',
+        'domain_ctx.raw_config', 'domain.raw_config',
+        'domain_ctx.output_dir', 'domain.output_dir',
+        'domain_ctx.effective_log_level', 'domain.effective_log_level',
+        'domain_ctx.experiments', 'domain.experiments',
+        'domain_ctx.final_report', 'domain.final_report'
     ],
     side_effects=['filesystem.read', 'filesystem.mkdir'],
     errors=['config_not_found']
@@ -89,3 +96,4 @@ def load_config(ctx: OrchestratorSystemContext):
         domain.experiments.append(exp_def)
     
     log(ctx, "info", f"  [Orchestration] Loaded {len(domain.experiments)} experiments.")
+

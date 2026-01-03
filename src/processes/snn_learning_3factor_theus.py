@@ -16,12 +16,12 @@ from src.core.context import SystemContext
 
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context', # Implicit dependency
         'domain.td_error',
         'domain.snn_context.domain_ctx.synapses' 
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.synapses'
     ],
     side_effects=[]

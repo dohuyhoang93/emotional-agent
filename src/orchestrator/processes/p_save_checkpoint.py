@@ -1,12 +1,12 @@
-import os
+﻿import os
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.utils.snn_persistence import save_all_agents
 from src.logger import log
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'log_level'],
-    outputs=[],
+    inputs=['domain', 'domain_ctx', 'domain_ctx.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'log_level'],
+    outputs=['domain_ctx', ],
     side_effects=['filesystem.write', 'filesystem.mkdir'],
     errors=[]
 )
@@ -43,3 +43,4 @@ def save_periodic_checkpoint(ctx: OrchestratorSystemContext):
         # Save
         save_all_agents(snn_contexts, checkpoint_dir)
         log(ctx, "info", f"  [Checkpoint] Saved to {checkpoint_dir}")
+

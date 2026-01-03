@@ -1,0 +1,12 @@
+C:\Users\dohuy\Downloads\emotional-agent\theus\.venv\Lib\site-packages\torch\_subclasses\functional_tensor.py:279: UserWarning: Failed to initialize NumPy: No module named 'numpy' (Triggered internally at C:\actions-runner\_work\pytorch\pytorch\pytorch\torch\csrc\utils\tensor_numpy.cpp:84.)
+  cpu = _conversion_method_template(device=torch.device("cpu"))
+Traceback (most recent call last):
+  File "C:\Users\dohuy\Downloads\emotional-agent\theus\tests\test_core_pop.py", line 84, in <module>
+    test_pop_arch()
+    ~~~~~~~~~~~~~^^
+  File "C:\Users\dohuy\Downloads\emotional-agent\theus\tests\test_core_pop.py", line 68, in test_pop_arch
+    engine = TheusEngine(system_ctx)
+  File "C:\Users\dohuy\Downloads\emotional-agent\theus\theus\engine.py", line 36, in __init__
+    super().__init__(system_ctx) # Init Rust Engine
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+TypeError: object.__init__() takes exactly one argument (the instance to initialize)

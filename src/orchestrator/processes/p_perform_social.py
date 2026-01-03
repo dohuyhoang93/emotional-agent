@@ -1,10 +1,10 @@
-from theus.contracts import process
+﻿from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level'],
-    outputs=[],
+    inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level'],
+    outputs=['domain_ctx', ],
     side_effects=[],
     errors=[]
 )
@@ -25,3 +25,4 @@ def perform_social_transfer(ctx: OrchestratorSystemContext):
         runner.logger.log_social_learning(stats)
     
     if bus: bus.emit("SOCIAL_DONE")
+

@@ -2,12 +2,12 @@ from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(
-    inputs=[
+    inputs=['domain', 'domain_ctx', 
         'domain_ctx.snn_context.domain_ctx.spike_queue',
         'domain.believed_switch_states',
         'domain_ctx.snn_context.domain_ctx.metrics'
     ],
-    outputs=[
+    outputs=['domain_ctx', 
         'domain_ctx.snn_context.domain_ctx.spike_queue',
         'domain_ctx.snn_context.domain_ctx.metrics'
     ],

@@ -2,8 +2,8 @@ from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.active_experiment_episode_idx'],
-    outputs=['domain.active_experiment_episode_idx'],
+    inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.active_experiment_episode_idx'],
+    outputs=['domain', 'domain_ctx', 'domain.active_experiment_episode_idx'],
     side_effects=[],
     errors=[]
 )

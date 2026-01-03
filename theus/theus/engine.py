@@ -15,14 +15,27 @@ logger = logging.getLogger("TheusEngine")
 
 from .interfaces import IEngine
 
-class TheusEngine(IEngine):
+try:
+    import theus_core
+    from theus_core import Engine as RustEngine
+except ImportError as e:
+    import warnings
+    print(f"DEBUG IMPORT ERROR: {e}")
+    warnings.warn("Theus Rust Core not found. Using Mock.", RuntimeWarning)
+    class RustEngine:
+        def __init__(self, ctx): pass
+        def execute_process(self, name): raise NotImplementedError("Rust Extension Missing. Please compile with `maturin develop`.")
+        def register_process(self, name, func): pass
+
+class TheusEngine(RustEngine, IEngine):
     """
-    Theus Kernel (formerly POPEngine).
+    Theus Kernel (Rust Accelerated).
     Manages Safety, Governance, and Orchestration for Process-Oriented Programming.
     """
     def __init__(self, system_ctx: BaseSystemContext, strict_mode: Optional[bool] = None, audit_recipe: Optional[AuditRecipe] = None):
+        # super().__init__(system_ctx) # Init Rust Engine handled by __new__
         self.ctx = system_ctx
-        self.process_registry: Dict[str, Callable] = {}
+        # self.process_registry: Dict[str, Callable] = {} # Rust manages this now
         self.workflow_cache: Dict[str, Any] = {} # Cache for parsed YAML workflows
         
         # Initialize Audit System (Industrial V2)
@@ -54,7 +67,8 @@ class TheusEngine(IEngine):
     def register_process(self, name: str, func: Callable):
         if not hasattr(func, '_pop_contract'):
             logger.warning(f"Process {name} does not have a contract decorator (@process). Safety checks disabled.")
-        self.process_registry[name] = func
+        # Delegate to Rust
+        super().register_process(name, func)
 
     def scan_and_register(self, package_path: str):
         """
@@ -94,80 +108,14 @@ class TheusEngine(IEngine):
     def get_process(self, name: str) -> Callable:
         return self.process_registry.get(name)
 
-    def execute_process(self, process_name: str, context: Any = None) -> Any:
-        """
-        Implementation of IEngine.execute_process.
-        """
-        # Engine is stateful (holds self.ctx).
-        return self.run_process(process_name)
+    def execute_process(self, process_name: str, **kwargs) -> Any:
+        # Implementation of IEngine.execute_process.
+        # Delegates to Rust Core.
+        return super().execute_process(process_name, **kwargs)
 
     def run_process(self, name: str, **kwargs):
-        """
-        Thực thi một process theo tên đăng ký.
-        """
-        if name not in self.process_registry:
-            raise KeyError(f"Process '{name}' not found in registry.")
-        
-        func = self.process_registry[name]
-        
-        # --- INPUT GATE (FDC/RMS Check) ---
-        # Industrial Audit V2: Check inputs (Phase 1)
-        try:
-            if self.auditor:
-                self.auditor.audit_input(name, self.ctx, input_args=kwargs)
-        except AuditInterlockError as e:
-            logger.critical(f"🛑 [INPUT GAGTE] Process '{name}' blocked by Audit Interlock: {e}")
-            raise # Stop immediately
-
-        # UNLOCK CONTEXT for Process execution
-        with self.lock_manager.unlock():
-            if hasattr(func, '_pop_contract'):
-                contract: ProcessContract = func._pop_contract
-                allowed_inputs = set(contract.inputs)
-                allowed_outputs = set(contract.outputs)
-                
-                tx = Transaction(self.ctx)
-                guarded_ctx = ContextGuard(
-                    self.ctx, 
-                    allowed_inputs, 
-                    allowed_outputs, 
-                    transaction=tx, 
-                    strict_mode=self.lock_manager.strict_mode,
-                    process_name=name # <--- Inject Process Name here
-                )
-                
-                try:
-                    result = func(guarded_ctx, **kwargs)
-
-                    # --- OUTPUT GATE (Quality Check) ---
-                    # MOVED: Check BEFORE Commit to allow safe Rollback (Shadow Audit).
-                    # We pass 'guarded_ctx' so Auditor sees the uncommitted mutations.
-                    if self.auditor:
-                        try:
-                            self.auditor.audit_output(name, guarded_ctx)
-                        except AuditInterlockError as e:
-                            logger.critical(f"🛑 [OUTPUT GATE] Process '{name}' blocked: {e}")
-                            raise # Will trigger Rollback in outer block
-
-                    # Everything OK -> Commit
-                    tx.commit()
-
-                    return result
-                    
-                except Exception as e:
-                    tx.rollback()
-                    # Pop Audit Exceptions should just propagate (after rollback)
-                    if isinstance(e, (ContractViolationError, AuditInterlockError, AuditBlockError)):
-                         raise e
-                    
-                    error_name = type(e).__name__
-                    if error_name not in contract.errors:
-                        raise ContractViolationError(
-                            f"Undeclared Error Violation: Process '{name}' raised '{error_name}'."
-                        ) from e
-                    raise e
-            else:
-                return func(self.ctx, **kwargs)
+        # Alias for execute_process to support old calls or internal calls
+        return self.execute_process(name, **kwargs)
 
     def execute_workflow(self, workflow_path: str, **kwargs):
         """

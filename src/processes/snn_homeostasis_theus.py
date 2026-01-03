@@ -12,7 +12,7 @@ from src.core.snn_context_theus import SNNSystemContext, ensure_tensors_initiali
 
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.metrics',
         'domain.snn_context.domain_ctx.metrics.fire_rate', # Current Global Rate
@@ -24,7 +24,7 @@ from src.core.snn_context_theus import SNNSystemContext, ensure_tensors_initiali
         'domain.snn_context.global_ctx.threshold_max',
         'domain.snn_context.domain_ctx.tensors'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.tensors'
     ],
@@ -185,7 +185,7 @@ def pid_controller_with_antiwindup(
 
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.metrics',
         'domain.snn_context.domain_ctx.pid_state',
@@ -200,7 +200,7 @@ def pid_controller_with_antiwindup(
         'domain.snn_context.global_ctx.threshold_max',
         'domain.snn_context.domain_ctx.tensors' # NEW
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.pid_state',
         'domain.snn_context.domain_ctx.metrics',

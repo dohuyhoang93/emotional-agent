@@ -1,8 +1,8 @@
-from theus.contracts import process
+﻿from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(
-    inputs=[
+    inputs=['global_ctx', 'global', 'domain_ctx', 'domain', 
         'domain.short_term_memory', 
         'global.switch_locations', 
         'domain.believed_switch_states', 
@@ -10,7 +10,7 @@ from src.core.context import SystemContext
         'domain.last_reward',
         'global.learning_rate'
     ], 
-    outputs=[
+    outputs=['domain', 'global_ctx', 'domain_ctx', 
         'domain.believed_switch_states', 
         'domain.q_table'
     ],
@@ -66,3 +66,4 @@ def update_belief(ctx: SystemContext):
             domain.q_table[current_composite] = {a: 0.0 for a in ['up', 'down', 'left', 'right']}
         
         domain.q_table[current_composite][action] += global_cfg.learning_rate * penalty
+

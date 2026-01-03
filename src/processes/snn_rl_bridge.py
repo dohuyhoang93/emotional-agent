@@ -20,8 +20,8 @@ from src.core.snn_context_theus import sync_to_tensors
 # ============================================================================
 
 @process(
-    inputs=['domain.snn_context'],
-    outputs=[
+    inputs=['domain_ctx', 'domain', 'domain.snn_context'],
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_emotion_vector',
         'domain.previous_snn_emotion_vector'
     ],
@@ -126,8 +126,8 @@ def _encode_emotion_vector_impl(ctx: SystemContext):
 # ============================================================================
 
 @process(
-    inputs=['domain.current_observation', 'domain.snn_context'],
-    outputs=['domain.snn_context'],
+    inputs=['domain_ctx', 'domain', 'domain.current_observation', 'domain.snn_context'],
+    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
     side_effects=[]
 )
 def encode_state_to_spikes(ctx: SystemContext):
@@ -209,8 +209,8 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
 # ============================================================================
 
 @process(
-    inputs=['domain.last_action', 'domain.snn_context'],
-    outputs=['domain.snn_context'],
+    inputs=['domain_ctx', 'domain', 'domain.last_action', 'domain.snn_context'],
+    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
     side_effects=[]
 )
 def modulate_snn_attention(ctx: SystemContext):
@@ -327,8 +327,8 @@ def modulate_snn_attention(ctx: SystemContext):
 
 
 @process(
-    inputs=['domain.snn_context'],
-    outputs=['domain.snn_context'],
+    inputs=['domain_ctx', 'domain', 'domain.snn_context'],
+    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
     side_effects=[]
 )
 def restore_snn_attention(ctx: SystemContext):
@@ -373,8 +373,8 @@ def restore_snn_attention(ctx: SystemContext):
 # ============================================================================
 
 @process(
-    inputs=['domain.snn_context'],
-    outputs=['domain.intrinsic_reward'],
+    inputs=['domain_ctx', 'domain', 'domain.snn_context'],
+    outputs=['domain', 'domain_ctx', 'domain.intrinsic_reward'],
     side_effects=[]
 )
 def compute_intrinsic_reward_snn(ctx: SystemContext):

@@ -12,13 +12,13 @@ from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.td_error',
         'domain.snn_context', 
         'domain.intrinsic_reward',
         'domain.last_action'
     ],
-    outputs=['domain.snn_context'],
+    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
     side_effects=[]
 )
 def monitor_safety_triggers(ctx: SystemContext):
@@ -73,3 +73,4 @@ def monitor_safety_triggers(ctx: SystemContext):
         safety['veto_active'] = True
     else:
         safety['veto_active'] = False
+

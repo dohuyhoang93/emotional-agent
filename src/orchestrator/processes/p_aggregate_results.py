@@ -5,8 +5,8 @@ from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log, log_error
 
 @process(
-    inputs=['domain.experiments', 'log_level', 'domain.output_dir'],
-    outputs=['domain.experiments'],
+    inputs=['domain_ctx', 'domain', 'domain.experiments', 'log_level', 'domain.output_dir'],
+    outputs=['domain', 'domain_ctx', 'domain.experiments'],
     side_effects=['filesystem.read', 'filesystem.write'],
     errors=['json.JSONDecodeError']
 )

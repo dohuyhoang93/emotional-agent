@@ -115,8 +115,8 @@ class FSMExperimentRunner:
         return metrics
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'domain.output_dir', 'log_level'],
-    outputs=['domain.experiments'],
+    inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'domain.output_dir', 'log_level'],
+    outputs=['domain', 'domain_ctx', 'domain.experiments'],
     side_effects=['memory.allocate'],
     errors=[]
 )

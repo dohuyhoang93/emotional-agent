@@ -1,11 +1,11 @@
-import os
+﻿import os
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log
 
 @process(
-    inputs=['domain.final_report', 'domain.output_dir', 'log_level'],
-    outputs=[],
+    inputs=['domain_ctx', 'domain', 'domain.final_report', 'domain.output_dir', 'log_level'],
+    outputs=['domain_ctx', ],
     side_effects=['filesystem.write'],
     errors=[]
 )
@@ -21,3 +21,4 @@ def save_summary(ctx: OrchestratorSystemContext):
         f.write(domain.final_report)
     
     log(ctx, "info", f"  [Orchestration] Final summary report saved to: {summary_file_path}")
+

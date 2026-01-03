@@ -18,7 +18,7 @@ from typing import List
 # ============================================================================
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.metrics', 
@@ -28,7 +28,7 @@ from typing import List
         'domain.snn_context.global_ctx.dampening_factor',
         'domain.snn_context.global_ctx.recovery_rate'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.emotion_saturation_level',
         'domain.snn_context.domain_ctx.dampening_active',
@@ -100,7 +100,7 @@ def _hysteria_impl(ctx: SystemContext):
 # ============================================================================
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.spike_queue',
@@ -109,7 +109,7 @@ def _hysteria_impl(ctx: SystemContext):
         'domain.snn_context.global_ctx.inhibition_strength',
         'domain.snn_context.global_ctx.wta_k'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.metrics'
     ],
@@ -246,16 +246,17 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
 # ============================================================================
 
 @process(
-    inputs=[
+    inputs=['domain', 
         'domain.snn_context',
         'domain.td_error',
         'domain.snn_context.domain_ctx.synapses',
-        'domain.snn_context.domain_ctx.neurons', # Added for recycling
+        'domain_ctx',
+        'domain_ctx.snn_context',
+        'domain.snn_context.domain_ctx',
         'domain.snn_context.domain_ctx.metrics',
-        'domain.snn_context.domain_ctx.current_time',
-        'domain.snn_context.global_ctx.darwinism_interval'
+        'domain.snn_context.global_ctx'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.synapses',
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.metrics'
@@ -401,7 +402,7 @@ def process_neural_darwinism(
 # ============================================================================
 
 @process(
-    inputs=[
+    inputs=['global_ctx', 'domain_ctx', 
         'domain_ctx.synapses',
         'domain_ctx.ancestor_weights',
         'domain_ctx.population_performance',
@@ -413,7 +414,7 @@ def process_neural_darwinism(
         'global_ctx.top_elite_percent',
         'global_ctx.current_episode'  # For cooldown check
     ],
-    outputs=[
+    outputs=['domain_ctx', 
         'domain_ctx.ancestor_weights',
         'domain_ctx.revolution_triggered',
         'domain_ctx.last_revolution_episode',
@@ -567,7 +568,7 @@ def _revolution_impl(
 # ============================================================================
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context',
         'domain.snn_context.domain_ctx.synapses',
         'domain.snn_context.domain_ctx.ancestor_weights',
@@ -575,7 +576,7 @@ def _revolution_impl(
         'domain.snn_context.global_ctx.assimilation_rate', # New param
         'domain.snn_context.global_ctx.diversity_noise'    # New param
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.synapses',
         'domain.snn_context.domain_ctx.metrics'
     ],

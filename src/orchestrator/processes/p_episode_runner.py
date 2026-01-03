@@ -5,8 +5,8 @@ from src.orchestrator.processes.p_save_checkpoint import save_periodic_checkpoin
 import numpy as np
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level', 'domain.active_experiment_episode_idx', 'domain.metrics_history'],
-    outputs=['domain.metrics', 'domain.experiments', 'domain.active_experiment_episode_idx', 'domain.metrics_history'],
+    inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level', 'domain.active_experiment_episode_idx', 'domain.metrics_history'],
+    outputs=['domain', 'domain_ctx', 'domain.metrics', 'domain.experiments', 'domain.active_experiment_episode_idx', 'domain.metrics_history'],
     side_effects=['env.interaction'],
     errors=[]
 )

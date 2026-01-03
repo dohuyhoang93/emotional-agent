@@ -11,13 +11,15 @@ from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(
-    inputs=[
-        'domain.snn_context',
+    inputs=['domain', 
+        'domain_ctx',
+        'domain_ctx.snn_context',
+        'domain_ctx.dream_queue',
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.current_time',
         'domain.snn_context.global_ctx.dream_noise_level'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.neurons', # Potentials updated
         'domain.snn_context.domain_ctx.metrics'
     ],

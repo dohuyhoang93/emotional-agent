@@ -7,8 +7,9 @@ Author: Do Huy Hoang
 Date: 2025-12-25
 """
 import numpy as np
+import torch
 from dataclasses import dataclass, field
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 from theus.context import BaseGlobalContext, BaseDomainContext, BaseSystemContext
 
 
@@ -235,7 +236,11 @@ class SNNDomainContext(BaseDomainContext):
         'learning_rate': {'error_integral': 0.0, 'error_prev': 0.0}
     })
     
-    # === Metrics (Ephemeral - per timestep) ===
+    # ===== Emotion Vectors (SNN-RL Bridge) =====
+    snn_emotion_vector: Optional[torch.Tensor] = None  # Current emotion from SNN
+    previous_snn_emotion_vector: Optional[torch.Tensor] = None  # Previous emotion (t-1)
+    
+    # ===== Metrics & Monitoring =====
     metrics: Dict[str, float] = field(default_factory=dict)
     
     # === Imagination State ===

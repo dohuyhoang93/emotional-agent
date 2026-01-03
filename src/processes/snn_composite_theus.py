@@ -21,7 +21,7 @@ from src.processes.snn_learning_3factor_theus import _stdp_3factor_impl
 from src.processes.snn_advanced_features_theus import _hysteria_impl, _lateral_inhibition_vectorized
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context',
         'domain.current_observation',
         'domain.td_error',
@@ -37,7 +37,7 @@ from src.processes.snn_advanced_features_theus import _hysteria_impl, _lateral_i
         # Global params
         'domain.snn_context.global_ctx'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context',
         'domain.snn_emotion_vector',
         'domain.previous_snn_emotion_vector',

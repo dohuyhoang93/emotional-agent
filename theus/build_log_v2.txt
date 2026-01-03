@@ -1,0 +1,144 @@
+   Compiling theus_core v0.1.0 (C:\Users\dohuy\Downloads\emotional-agent\theus)
+warning: unused import: `pyo3::types::PyAny`
+ --> src\delta.rs:2:5
+  |
+2 | use pyo3::types::PyAny;
+  |     ^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `error`
+ --> src\audit.rs:3:17
+  |
+3 | use log::{warn, error};
+  |                 ^^^^^
+
+warning: unused imports: `PyList` and `PyString`
+ --> src\audit.rs:5:27
+  |
+5 | use pyo3::types::{PyDict, PyString, PyList, PyAny};
+  |                           ^^^^^^^^  ^^^^^^
+
+warning: unused imports: `Arc` and `Mutex`
+ --> src\engine.rs:3:17
+  |
+3 | use std::sync::{Arc, Mutex};
+  |                 ^^^  ^^^^^
+
+warning: unused import: `crate::guards::ContextGuard`
+ --> src\engine.rs:5:5
+  |
+5 | use crate::guards::ContextGuard;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `pyo3::types::PyAny`
+ --> src\guards.rs:3:5
+  |
+3 | use pyo3::types::PyAny;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `DeltaEntry`
+ --> src\guards.rs:4:33
+  |
+4 | use crate::delta::{Transaction, DeltaEntry};
+  |                                 ^^^^^^^^^^
+
+warning: use of deprecated constant `delta::Transaction::__pymethod_log__::SIGNATURE`: this function has implicit defaults for the trailing `Option<T>` arguments 
+         = note: these implicit defaults are being phased out 
+         = help: add `#[pyo3(signature = (path, op, value=None, old_value=None, target=None, key=None))]` to this function to silence this warning and keep the current behavior
+  --> src\delta.rs:29:19
+   |
+29 |     pub(crate) fn log(
+   |                   ^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+error[E0277]: the trait bound `pyo3::Py<PyAny>: Clone` is not satisfied
+ --> src\delta.rs:8:5
+  |
+4 | #[derive(Debug, Clone)]
+  |                 ----- in this derive macro expansion
+...
+8 |     pub value: Option<PyObject>,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `pyo3::Py<PyAny>`
+  |
+  = note: required for `std::option::Option<pyo3::Py<PyAny>>` to implement `Clone`
+  = note: this error originates in the derive macro `Clone` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `pyo3::Py<PyAny>: Clone` is not satisfied
+ --> src\delta.rs:9:5
+  |
+4 | #[derive(Debug, Clone)]
+  |                 ----- in this derive macro expansion
+...
+9 |     pub old_value: Option<PyObject>,
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `pyo3::Py<PyAny>`
+  |
+  = note: required for `std::option::Option<pyo3::Py<PyAny>>` to implement `Clone`
+  = note: this error originates in the derive macro `Clone` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `pyo3::Py<PyAny>: Clone` is not satisfied
+  --> src\delta.rs:10:5
+   |
+4  | #[derive(Debug, Clone)]
+   |                 ----- in this derive macro expansion
+...
+10 |     pub target: Option<PyObject>,
+   |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `pyo3::Py<PyAny>`
+   |
+   = note: required for `std::option::Option<pyo3::Py<PyAny>>` to implement `Clone`
+   = note: this error originates in the derive macro `Clone` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `pyo3::Py<PyAny>: Clone` is not satisfied
+  --> src\guards.rs:10:5
+   |
+8  | #[derive(Clone)]
+   |          ----- in this derive macro expansion
+9  | pub struct ContextGuard {
+10 |     target: PyObject,
+   |     ^^^^^^^^^^^^^^^^ the trait `Clone` is not implemented for `pyo3::Py<PyAny>`
+   |
+   = note: this error originates in the derive macro `Clone` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+  --> src\guards.rs:80:13
+   |
+80 |         })?.into_py(py))
+   |             ^^^^^^^
+
+error[E0599]: no method named `clone` found for struct `pyo3::Py` in the current scope
+    --> src\guards.rs:106:28
+     |
+106  |                 Some(value.clone()),
+     |                            ^^^^^
+     |
+help: there is a method `clone_ref` with a similar name, but with different arguments
+    --> C:\Users\dohuy\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\pyo3-0.23.5\src\instance.rs:1364:5
+     |
+1364 |     pub fn clone_ref(&self, _py: Python<'_>) -> Py<T> {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+error[E0599]: no method named `clone` found for struct `pyo3::Py` in the current scope
+    --> src\guards.rs:108:34
+     |
+108  |                 Some(self.target.clone()),
+     |                                  ^^^^^
+     |
+help: there is a method `clone_ref` with a similar name, but with different arguments
+    --> C:\Users\dohuy\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\pyo3-0.23.5\src\instance.rs:1364:5
+     |
+1364 |     pub fn clone_ref(&self, _py: Python<'_>) -> Py<T> {
+     |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused variable: `py`
+  --> src\audit.rs:65:32
+   |
+65 |     fn resolve_path<'a>(&self, py: Python<'a>, ctx: &Bound<'a, PyAny>, path: &str, extra_data: Option<&Bound<'a, PyDict>>) -> PyResult<Op...
+   |                                ^^ help: if this is intentional, prefix it with an underscore: `_py`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+Some errors have detailed explanations: E0277, E0599.
+For more information about an error, try `rustc --explain E0277`.
+warning: `theus_core` (lib) generated 10 warnings
+error: could not compile `theus_core` (lib) due to 6 previous errors; 10 warnings emitted

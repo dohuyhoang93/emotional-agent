@@ -1,0 +1,82 @@
+   Compiling pyo3-build-config v0.23.5
+   Compiling pyo3-macros-backend v0.23.5
+   Compiling pyo3-ffi v0.23.5
+   Compiling pyo3 v0.23.5
+   Compiling pyo3-macros v0.23.5
+   Compiling theus_core v0.1.0 (C:\Users\dohuy\Downloads\emotional-agent\theus)
+warning: unused import: `pyo3::types::PyAny`
+ --> src\delta.rs:2:5
+  |
+2 | use pyo3::types::PyAny;
+  |     ^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `error`
+ --> src\audit.rs:3:17
+  |
+3 | use log::{warn, error};
+  |                 ^^^^^
+
+warning: unused imports: `PyList` and `PyString`
+ --> src\audit.rs:5:27
+  |
+5 | use pyo3::types::{PyDict, PyString, PyList, PyAny};
+  |                           ^^^^^^^^  ^^^^^^
+
+warning: unused imports: `Arc` and `Mutex`
+ --> src\engine.rs:3:17
+  |
+3 | use std::sync::{Arc, Mutex};
+  |                 ^^^  ^^^^^
+
+warning: unused import: `pyo3::types::PyAny`
+ --> src\guards.rs:3:5
+  |
+3 | use pyo3::types::PyAny;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Arc` and `Mutex`
+ --> src\guards.rs:5:17
+  |
+5 | use std::sync::{Arc, Mutex};
+  |                 ^^^  ^^^^^
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+   --> src\guards.rs:106:13
+    |
+106 |         })?.into_py(py))
+    |             ^^^^^^^
+    |
+    = note: `#[warn(deprecated)]` on by default
+
+error[E0599]: no method named `log` found for struct `PyRefMut<'_, Transaction>` in the current scope
+   --> src\guards.rs:128:20
+    |
+128 |               tx_ref.log(
+    |  _____________-------^^^-
+    | |                    |
+    | |                    field, not a method
+129 | |                 full_path.clone(),
+130 | |                 "SET".to_string(),
+131 | |                 Some(value.clone_ref(py)),
+...   |
+134 | |                 Some(name.clone())
+135 | |             );
+    | |_____________- help: remove the arguments
+    |
+    = help: items from traits can only be used if the trait is implemented and in scope
+    = note: the following trait defines an item `log`, perhaps you need to implement it:
+            candidate #1: `Log`
+
+warning: unused variable: `py`
+  --> src\audit.rs:65:32
+   |
+65 |     fn resolve_path<'a>(&self, py: Python<'a>, ctx: &Bound<'a, PyAny>, path: &str, extra_data: Option<&Bound<'a, PyDict>>) -> PyResult<Op...
+   |                                ^^ help: if this is intentional, prefix it with an underscore: `_py`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+For more information about this error, try `rustc --explain E0599`.
+warning: `theus_core` (lib) generated 8 warnings
+error: could not compile `theus_core` (lib) due to 1 previous error; 8 warnings emitted

@@ -1,15 +1,15 @@
-from theus.contracts import process
+﻿from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(
-    inputs=[
+    inputs=['global_ctx', 'global', 'domain_ctx', 'domain', 
         'global.exploration_decay',
         'global.emotional_boost_factor',
         'global.min_exploration',
         'domain.E_vector',
         'domain.base_exploration_rate'
     ],
-    outputs=[
+    outputs=['domain', 'global_ctx', 'domain_ctx', 
         'domain.current_exploration_rate',
         'domain.base_exploration_rate'
     ],
@@ -43,3 +43,4 @@ def adjust_exploration(ctx: SystemContext):
     final_rate = min(1.0, final_rate)
     
     domain.current_exploration_rate = final_rate
+

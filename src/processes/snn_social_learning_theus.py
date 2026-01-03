@@ -13,11 +13,11 @@ from theus.contracts import process
 from src.core.snn_context_theus import SNNSystemContext, SynapseState, SNNGlobalContext, SNNDomainContext
 
 @process(
-    inputs=[
+    inputs=['global_ctx', 'domain_ctx', 
         'global_ctx.social_learning_enabled',
         'domain_ctx.population_performance' 
     ],
-    outputs=[
+    outputs=['domain_ctx', 
         'domain_ctx.metrics'
     ],
     side_effects=['synapse.injection']

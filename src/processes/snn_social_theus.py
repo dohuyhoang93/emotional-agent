@@ -11,11 +11,11 @@ from src.core.snn_context_theus import SNNSystemContext
 
 
 @process(
-    inputs=[
+    inputs=['global_ctx', 'domain_ctx', 
         'domain_ctx.synapses',
         'global_ctx.viral_top_k'
     ],
-    outputs=[
+    outputs=['domain_ctx', 
         'domain_ctx.metrics'
     ],
     side_effects=[]  # Pure function - chỉ đọc synapses
@@ -52,11 +52,11 @@ def process_extract_top_synapses(ctx: SNNSystemContext):
 
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 
         'domain_ctx.synapses',
         'domain_ctx.viral_synapses_received'
     ],
-    outputs=[
+    outputs=['domain_ctx', 
         'domain_ctx.shadow_synapses',
         'domain_ctx.viral_synapses_received',
         'domain_ctx.metrics'
@@ -85,13 +85,13 @@ def process_inject_viral_synapses(ctx: SNNSystemContext):
 
 
 @process(
-    inputs=[
+    inputs=['global_ctx', 'domain_ctx', 
         'domain_ctx.synapses',
         'domain_ctx.shadow_synapses',
         'domain_ctx.metrics', # Added for reading
         'global_ctx.shadow_confidence_threshold'
     ],
-    outputs=[
+    outputs=['domain_ctx', 
         'domain_ctx.synapses',
         'domain_ctx.shadow_synapses',
         'domain_ctx.metrics'

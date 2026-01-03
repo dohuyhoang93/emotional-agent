@@ -4,8 +4,8 @@ from src.logger import log
 import datetime
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.metrics', 'domain.metrics_history', 'domain.active_experiment_episode_idx'],
-    outputs=['domain.metrics_history'],
+    inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.metrics', 'domain.metrics_history', 'domain.active_experiment_episode_idx'],
+    outputs=['domain', 'domain_ctx', 'domain.metrics_history'],
     side_effects=['io.write'],
     errors=[]
 )

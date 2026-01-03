@@ -1,4 +1,4 @@
-"""
+﻿"""
 ⚠️ DEPRECATED - LEGACY CODE ⚠️
 ================================
 This file is from the old Q-Learning + MLP emotion system.
@@ -65,7 +65,7 @@ def _calculate_dynamic_weight(cycle_time, current_step, current_episode, total_e
         return MAX_CURIOSITY_WEIGHT - ((cycle_time - MIN_CYCLE_TIME) * (MAX_CURIOSITY_WEIGHT - MIN_CURIOSITY_WEIGHT) / (MAX_CYCLE_TIME - MIN_CYCLE_TIME))
 
 @process(
-    inputs=[
+    inputs=['global_ctx', 'global', 'domain_ctx', 'domain', 
         'domain.previous_observation', 'domain.current_observation', 'domain.selected_action', 'domain.last_reward',
         'domain.q_table', 'domain.believed_switch_states', 'domain.short_term_memory',
         'domain.E_vector', 'domain.emotion_optimizer', 'domain.emotion_model', 'domain.td_error',
@@ -74,7 +74,7 @@ def _calculate_dynamic_weight(cycle_time, current_step, current_episode, total_e
         'global.total_episodes', 'global.use_adaptive_fatigue', 'global.fatigue_growth_rate', 'global.max_steps',
         'global.intrinsic_reward_weight', 'global.short_term_memory_limit'
     ],
-    outputs=[
+    outputs=['domain', 'global_ctx', 'domain_ctx', 
         'domain.q_table', 'domain.td_error', 'domain.last_reward', 'domain.short_term_memory', 'domain.E_vector'
         # E_vector is updated via optimizer step (technically pure output? No, side effect on torch graph, but we say it outputs updated state)
     ],
@@ -188,3 +188,4 @@ def record_consequences(ctx: SystemContext):
     domain.short_term_memory.append(log_entry)
     if len(domain.short_term_memory) > global_cfg.short_term_memory_limit:
         domain.short_term_memory.pop(0)
+

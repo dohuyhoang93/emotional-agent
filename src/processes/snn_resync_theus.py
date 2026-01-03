@@ -12,7 +12,7 @@ from src.core.snn_context_theus import SNNSystemContext
 
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.current_time',
         'domain.snn_context.domain_ctx.metrics',
@@ -20,7 +20,7 @@ from src.core.snn_context_theus import SNNSystemContext
         'domain.snn_context.global_ctx.threshold_min',
         'domain.snn_context.global_ctx.threshold_max'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.metrics'
     ],

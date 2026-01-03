@@ -6,8 +6,8 @@ import json
 from src.processes.snn_social_learning_theus import process_social_learning_protocol
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'log_level'],
-    outputs=['domain.active_experiment_idx'],
+    inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'log_level'],
+    outputs=['domain', 'domain_ctx', 'domain.active_experiment_idx'],
     side_effects=[],
     errors=[]
 )
@@ -19,7 +19,7 @@ def advance_experiment_index(ctx: OrchestratorSystemContext):
     log(ctx, "info", f"⏩ Advanced to Experiment Index: {ctx.domain_ctx.active_experiment_idx}")
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'domain.metrics', 'domain.active_experiment_episode_idx'],
+    inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'domain.metrics', 'domain.active_experiment_episode_idx'],
     outputs=[],
     side_effects=['filesystem.write'],
     errors=[]
@@ -35,8 +35,8 @@ def save_metrics_snapshot(ctx: OrchestratorSystemContext):
     return
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'log_level'],
-    outputs=['domain.metrics'],
+    inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'log_level'],
+    outputs=['domain', 'domain_ctx', 'domain.metrics'],
     side_effects=['synapse.injection'],
     errors=[]
 )

@@ -11,7 +11,7 @@ from src.core.context import SystemContext
 
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context',
         'domain.snn_context.domain_ctx.shadow_synapses',
         'domain.snn_context.domain_ctx.current_time',
@@ -20,7 +20,7 @@ from src.core.context import SystemContext
         'domain.td_error',
         'domain.last_reward'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.shadow_synapses',
         'domain.snn_context.domain_ctx.synapses',
         'domain.snn_context.domain_ctx.blacklisted_sources',
@@ -139,13 +139,13 @@ def process_quarantine_validation(
 
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context',
         'domain.snn_context.domain_ctx.shadow_synapses',
         'domain.snn_context.domain_ctx.blacklisted_sources',
         'domain.snn_context.domain_ctx.metrics'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.shadow_synapses',
         'domain.snn_context.domain_ctx.metrics'
     ],

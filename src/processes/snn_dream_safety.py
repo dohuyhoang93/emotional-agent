@@ -10,13 +10,13 @@ from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context',
         'domain.snn_context.domain_ctx.metrics',
         'domain.snn_context.domain_ctx.neurons',
         'domain.td_error'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.td_error',
         'domain.snn_context.domain_ctx.metrics'
     ],

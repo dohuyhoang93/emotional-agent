@@ -12,12 +12,12 @@ from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 
         'domain_ctx.metrics',          # Read dream_state_x, y
         'domain_ctx.believed_switch_states', # World Model
         'domain_ctx.td_error'          # Write synthetic reward here
     ],
-    outputs=[
+    outputs=['domain_ctx', 
         'domain_ctx.td_error',
         'domain_ctx.metrics'
     ],

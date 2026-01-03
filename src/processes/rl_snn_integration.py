@@ -17,12 +17,12 @@ from src.core.context import SystemContext
 
 
 @process(
-    inputs=[
+    inputs=['global_ctx', 'global', 'domain_ctx', 'domain', 
         'domain.last_reward',
         'domain.intrinsic_reward',
         'global.intrinsic_reward_weight'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.last_reward'  # Combined reward
     ],
     side_effects=[]  # Pure function
@@ -57,11 +57,11 @@ def combine_rewards(ctx: SystemContext):
 # ============================================================================
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.selected_action',
         'domain.metrics'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.current_observation',
         'domain.last_reward',
         'domain.metrics'
@@ -107,7 +107,7 @@ def execute_action_with_env(ctx: SystemContext, env_adapter=None, agent_id=0):
 
 @process(
     inputs=[],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.current_observation'
     ],
     side_effects=['env_adapter.reset']  # ← KHAI BÁO RÕ RÀNG!

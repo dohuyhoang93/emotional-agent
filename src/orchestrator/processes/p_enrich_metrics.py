@@ -3,8 +3,8 @@ from src.orchestrator.context import OrchestratorSystemContext
 import numpy as np
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'domain.metrics'],
-    outputs=['domain.metrics'],
+    inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.metrics'],
+    outputs=['domain', 'domain_ctx', 'domain.metrics'],
     side_effects=[],
     errors=[]
 )

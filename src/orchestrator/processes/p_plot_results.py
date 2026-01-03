@@ -1,12 +1,12 @@
-import matplotlib.pyplot as plt
+﻿import matplotlib.pyplot as plt
 import os
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log
 
 @process(
-    inputs=['domain.experiments', 'domain.output_dir', 'log_level'],
-    outputs=[],
+    inputs=['domain_ctx', 'domain', 'domain.experiments', 'domain.output_dir', 'log_level'],
+    outputs=['domain_ctx', ],
     side_effects=['filesystem.write'],
     errors=[]
 )
@@ -131,3 +131,4 @@ def plot_results(ctx: OrchestratorSystemContext):
             log(ctx, "info", f"  [Plotting] Error generating plots for '{exp_def.name}': {e}")
     
     log(ctx, "info", f"  [Orchestration] Plots saved to {plots_dir}")
+

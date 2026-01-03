@@ -1,0 +1,82 @@
+   Compiling pyo3-build-config v0.23.5
+   Compiling pyo3-ffi v0.23.5
+   Compiling pyo3-macros-backend v0.23.5
+   Compiling pyo3 v0.23.5
+   Compiling pyo3-macros v0.23.5
+   Compiling theus_core v0.1.0 (C:\Users\dohuy\Downloads\emotional-agent\theus)
+warning: unused import: `pyo3::types::PyAny`
+ --> src\delta.rs:2:5
+  |
+2 | use pyo3::types::PyAny;
+  |     ^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `error`
+ --> src\audit.rs:3:17
+  |
+3 | use log::{warn, error};
+  |                 ^^^^^
+
+warning: unused imports: `PyList` and `PyString`
+ --> src\audit.rs:5:27
+  |
+5 | use pyo3::types::{PyDict, PyString, PyList, PyAny};
+  |                           ^^^^^^^^  ^^^^^^
+
+warning: unused imports: `Arc` and `Mutex`
+ --> src\engine.rs:3:17
+  |
+3 | use std::sync::{Arc, Mutex};
+  |                 ^^^  ^^^^^
+
+warning: unused import: `pyo3::types::PyAny`
+ --> src\guards.rs:3:5
+  |
+3 | use pyo3::types::PyAny;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated constant `delta::Transaction::__pymethod_log__::SIGNATURE`: this function has implicit defaults for the trailing `Option<T>` arguments 
+         = note: these implicit defaults are being phased out 
+         = help: add `#[pyo3(signature = (path, op, value=None, old_value=None, target=None, key=None))]` to this function to silence this warning and keep the current behavior
+  --> src\delta.rs:26:19
+   |
+26 |     pub(crate) fn log(
+   |                   ^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+error[E0308]: mismatched types
+  --> src\engine.rs:58:13
+   |
+54 |         let guard_struct = ContextGuard::new_internal(
+   |                            -------------------------- arguments to this function are incorrect
+...
+58 |             tx.clone_ref(py)
+   |             ^^^^^^^^^^^^^^^^ expected `Arc<Mutex<Transaction>>`, found `Py<Transaction>`
+   |
+   = note: expected struct `Arc<Mutex<Transaction>>`
+              found struct `pyo3::Py<Transaction>`
+note: associated function defined here
+  --> src\guards.rs:17:12
+   |
+17 |     pub fn new_internal(target: PyObject, inputs: Vec<String>, outputs: Vec<String>, tx: Arc<Mutex<Transaction>>) -> Self {
+   |            ^^^^^^^^^^^^                                                              ---------------------------
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+  --> src\guards.rs:77:13
+   |
+77 |         })?.into_py(py))
+   |             ^^^^^^^
+
+warning: unused variable: `py`
+  --> src\audit.rs:65:32
+   |
+65 |     fn resolve_path<'a>(&self, py: Python<'a>, ctx: &Bound<'a, PyAny>, path: &str, extra_data: Option<&Bound<'a, PyDict>>) -> PyResult<Op...
+   |                                ^^ help: if this is intentional, prefix it with an underscore: `_py`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+For more information about this error, try `rustc --explain E0308`.
+warning: `theus_core` (lib) generated 8 warnings
+error: could not compile `theus_core` (lib) due to 1 previous error; 8 warnings emitted

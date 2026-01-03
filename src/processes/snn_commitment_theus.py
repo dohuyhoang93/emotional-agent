@@ -18,12 +18,12 @@ from src.core.context import SystemContext
 
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context',
         'domain.snn_context.domain_ctx.metrics', # Added
         'domain.td_error'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.snn_context.domain_ctx.synapses',
         'domain.snn_context.domain_ctx.metrics'
     ],
@@ -157,11 +157,11 @@ def process_commitment(
 
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 
         'domain_ctx.synapses',
         'domain_ctx.metrics' # Added
     ],
-    outputs=['domain_ctx.synapses', 'domain_ctx.metrics'],
+    outputs=['domain_ctx', 'domain_ctx.synapses', 'domain_ctx.metrics'],
     side_effects=[]  # Pure function
 )
 def process_pruning(ctx: SNNSystemContext):

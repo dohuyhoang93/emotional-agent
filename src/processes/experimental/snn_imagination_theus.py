@@ -12,14 +12,14 @@ from src.core.snn_context_theus import SNNSystemContext
 
 
 @process(
-    inputs=[
+    inputs=['global_ctx', 'domain_ctx', 
         'domain_ctx.neurons',
         'domain_ctx.current_time',
         'domain_ctx.last_imagination_time',
         'domain_ctx.metrics', # Added for full access
         'global_ctx.imagination_interval'
     ],
-    outputs=[
+    outputs=['domain_ctx', 
         'domain_ctx.spike_queue',
         'domain_ctx.last_imagination_time',
         'domain_ctx.metrics'
@@ -70,14 +70,14 @@ def process_imagination_loop(ctx: SNNSystemContext):
 
 
 @process(
-    inputs=[
+    inputs=['global_ctx', 'domain_ctx', 
         'domain_ctx.neurons',
         'domain_ctx.metrics.fire_rate',
         'global_ctx.nightmare_threshold',
         'global_ctx.threshold_min',
         'global_ctx.threshold_max'
     ],
-    outputs=[
+    outputs=['domain_ctx', 
         'domain_ctx.neurons',  # threshold adjusted
         'domain_ctx.nightmare_count',
         'domain_ctx.fantasy_count',
@@ -129,3 +129,4 @@ def process_dream_learning(ctx: SNNSystemContext):
         
         domain.metrics['nightmare_triggered'] = 0
         domain.metrics['dream_type'] = 'boredom'
+

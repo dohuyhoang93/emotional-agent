@@ -1,4 +1,4 @@
-from typing import List
+﻿from typing import List
 import numpy as np
 from theus.contracts import process
 from src.core.context import SystemContext, DomainContext
@@ -21,11 +21,11 @@ def _is_stagnated(domain: DomainContext, stagnation_threshold: int = 50) -> bool
     return False
 
 @process(
-    inputs=[
+    inputs=['global_ctx', 'global', 'domain_ctx', 'domain', 
         'domain.q_table', 'domain.long_term_memory', 'domain.current_episode',
         'global.assimilation_rate'
     ],
-    outputs=[
+    outputs=['domain', 'global_ctx', 'domain_ctx', 
         'domain.q_table'
     ],
     side_effects=[],
@@ -110,3 +110,4 @@ def social_learning(ctx: SystemContext, neighbors: List[SystemContext], agent_id
                     
                     if domain.q_table[state].get(act, 0.0) > MISTAKE_THRESHOLD:
                         domain.q_table[state][act] = PUNISHMENT
+

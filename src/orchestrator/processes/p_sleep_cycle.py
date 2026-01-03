@@ -1,4 +1,4 @@
-"""
+﻿"""
 Sleep Cycle Manager
 ===================
 Orchestrates the Biological Sleep phase for all agents.
@@ -11,8 +11,8 @@ from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log
 
 @process(
-    inputs=['domain.active_experiment_idx', 'domain.experiments', 'log_level'],
-    outputs=[],
+    inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'log_level'],
+    outputs=['domain_ctx', ],
     side_effects=['agents.sleep'],
     errors=[]
 )
@@ -54,3 +54,4 @@ def run_sleep_cycle_process(ctx: OrchestratorSystemContext):
             agent.wake_up()
             
     log(ctx, "info", "🌅 WAKING UP! Sleep cycle complete.")
+

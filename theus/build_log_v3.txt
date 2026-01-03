@@ -1,0 +1,110 @@
+   Compiling theus_core v0.1.0 (C:\Users\dohuy\Downloads\emotional-agent\theus)
+warning: unused import: `pyo3::types::PyAny`
+ --> src\delta.rs:2:5
+  |
+2 | use pyo3::types::PyAny;
+  |     ^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` on by default
+
+warning: unused import: `error`
+ --> src\audit.rs:3:17
+  |
+3 | use log::{warn, error};
+  |                 ^^^^^
+
+warning: unused imports: `PyList` and `PyString`
+ --> src\audit.rs:5:27
+  |
+5 | use pyo3::types::{PyDict, PyString, PyList, PyAny};
+  |                           ^^^^^^^^  ^^^^^^
+
+warning: unused imports: `Arc` and `Mutex`
+ --> src\engine.rs:3:17
+  |
+3 | use std::sync::{Arc, Mutex};
+  |                 ^^^  ^^^^^
+
+warning: unused import: `crate::guards::ContextGuard`
+ --> src\engine.rs:5:5
+  |
+5 | use crate::guards::ContextGuard;
+  |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+warning: unused import: `pyo3::types::PyAny`
+ --> src\guards.rs:3:5
+  |
+3 | use pyo3::types::PyAny;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: use of deprecated constant `delta::Transaction::__pymethod_log__::SIGNATURE`: this function has implicit defaults for the trailing `Option<T>` arguments 
+         = note: these implicit defaults are being phased out 
+         = help: add `#[pyo3(signature = (path, op, value=None, old_value=None, target=None, key=None))]` to this function to silence this warning and keep the current behavior
+  --> src\delta.rs:26:19
+   |
+26 |     pub(crate) fn log(
+   |                   ^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+  --> src\guards.rs:77:13
+   |
+77 |         })?.into_py(py))
+   |             ^^^^^^^
+
+warning: unused variable: `py`
+  --> src\audit.rs:65:32
+   |
+65 |     fn resolve_path<'a>(&self, py: Python<'a>, ctx: &Bound<'a, PyAny>, path: &str, extra_data: Option<&Bound<'a, PyDict>>) -> PyResult<Op...
+   |                                ^^ help: if this is intentional, prefix it with an underscore: `_py`
+   |
+   = note: `#[warn(unused_variables)]` on by default
+
+warning: field `0` is never read
+  --> src\audit.rs:21:15
+   |
+21 |     Interlock(String),
+   |     --------- ^^^^^^
+   |     |
+   |     field in this variant
+   |
+   = note: `AuditError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+   = note: `#[warn(dead_code)]` on by default
+help: consider changing the field to be of unit type to suppress this warning while preserving the field numbering, or remove the field
+   |
+21 |     Interlock(()),
+   |               ~~
+
+warning: field `0` is never read
+  --> src\audit.rs:22:11
+   |
+22 |     Block(String),
+   |     ----- ^^^^^^
+   |     |
+   |     field in this variant
+   |
+   = note: `AuditError` has a derived impl for the trait `Debug`, but this is intentionally ignored during dead code analysis
+help: consider changing the field to be of unit type to suppress this warning while preserving the field numbering, or remove the field
+   |
+22 |     Block(()),
+   |           ~~
+
+warning: associated function `new` is never used
+  --> src\audit.rs:30:12
+   |
+29 | impl AuditTracker {
+   | ----------------- associated function in this implementation
+30 |     pub fn new() -> Self {
+   |            ^^^
+
+warning: associated function `new` is never used
+  --> src\audit.rs:56:12
+   |
+55 | impl AuditPolicy {
+   | ---------------- associated function in this implementation
+56 |     pub fn new() -> Self {
+   |            ^^^
+
+warning: `theus_core` (lib) generated 13 warnings (run `cargo fix --lib -p theus_core` to apply 6 suggestions)
+    Finished `release` profile [optimized] target(s) in 1.82s

@@ -3,14 +3,14 @@ from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.N_vector', 
         'domain.believed_switch_states', 
         'domain.short_term_memory',
         'domain.current_observation',
         'domain.emotion_model'
     ], 
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.E_vector'
     ],
     side_effects=[],

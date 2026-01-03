@@ -12,13 +12,13 @@ from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.snn_context',
         'domain.snn_context.domain_ctx.spike_queue',
         'domain.snn_context.domain_ctx.neurons',
         'domain.metrics'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.metrics' # Writes 'dream_state_x', 'dream_state_y'
     ],
     side_effects=[]

@@ -11,8 +11,8 @@ from theus.contracts import process
 
 
 @process(
-    inputs=['domain.snn_context'],
-    outputs=['domain.snn_context'],
+    inputs=['domain_ctx', 'domain', 'domain.snn_context'],
+    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
     side_effects=[]
 )
 def process_clustering(ctx):
@@ -101,8 +101,8 @@ def _clustering_impl_vectorized(ctx):
 
 
 @process(
-    inputs=['domain.snn_context'],
-    outputs=['domain.snn_context'],
+    inputs=['domain_ctx', 'domain', 'domain.snn_context'],
+    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
     side_effects=[]
 )
 def process_stdp(ctx):

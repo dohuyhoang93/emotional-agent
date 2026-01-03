@@ -124,14 +124,14 @@ def observation_to_state_key(obs: Dict[str, Any]) -> str:
 
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.current_observation',
         'domain.snn_emotion_vector',
         'domain.q_table',
         'domain.current_exploration_rate',
         'domain.gated_network'
     ],
-    outputs=['domain.last_action', 'domain.last_q_values'],
+    outputs=['domain', 'domain_ctx', 'domain.last_action', 'domain.last_q_values'],
     side_effects=[]
 )
 def select_action_gated(ctx: SystemContext):
@@ -194,7 +194,7 @@ def select_action_gated(ctx: SystemContext):
 
 
 @process(
-    inputs=[
+    inputs=['domain_ctx', 'domain', 
         'domain.q_table',
         'domain.last_reward',
         'domain.current_observation',
@@ -205,7 +205,7 @@ def select_action_gated(ctx: SystemContext):
         'domain.previous_snn_emotion_vector',
         'domain.snn_emotion_vector'
     ],
-    outputs=[
+    outputs=['domain', 'domain_ctx', 
         'domain.q_table',
         'domain.td_error'
     ],
