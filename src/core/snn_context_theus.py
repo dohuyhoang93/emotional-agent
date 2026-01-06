@@ -87,6 +87,7 @@ class SNNGlobalContext(BaseGlobalContext):
     use_imagination: bool = True
     imagination_interval: int = 500  # ms
     nightmare_threshold: float = 0.05  # Fire rate threshold
+    dream_noise_level: float = 0.1 # Noise level during dream
     
     # === Social Learning ===
     use_social_learning: bool = False  # Multi-agent only
@@ -398,8 +399,12 @@ def ensure_tensors_initialized(ctx: SNNSystemContext):
     # Initialize if missing or size mismatch
     if 'potentials' not in domain.tensors or len(domain.tensors['potentials']) != N:
         # Potentials & Thresholds
-        domain.tensors['potentials'] = np.array([n.potential for n in neurons], dtype=np.float32)
-        domain.tensors['thresholds'] = np.array([n.threshold for n in neurons], dtype=np.float32)
+        def _sf(x):
+            try: return float(x)
+            except: return 0.0
+            
+        domain.tensors['potentials'] = np.array([_sf(n.potential) for n in neurons], dtype=np.float32)
+        domain.tensors['thresholds'] = np.array([_sf(n.threshold) for n in neurons], dtype=np.float32)
         
         # Last Fire Times (for Refractory)
         domain.tensors['last_fire_times'] = np.array([n.last_fire_time for n in neurons], dtype=np.int32)

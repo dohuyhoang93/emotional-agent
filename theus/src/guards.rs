@@ -6,6 +6,7 @@ use std::sync::{Arc, Mutex};
 
 #[pyclass]
 pub struct ContextGuard {
+    #[pyo3(get, name = "_target")]
     target: PyObject,
     allowed_inputs: Vec<String>,
     allowed_outputs: Vec<String>,
@@ -69,7 +70,7 @@ impl ContextGuard {
 
         if type_name == "list" {
              let tx_bound = self.tx.bind(py);
-             let shadow = tx_bound.call_method1("get_shadow", (&val,))?; 
+             let shadow = tx_bound.call_method1("get_shadow", (&val, &full_path))?; 
              let structures = PyModule::import(py, "theus.structures")?;
              
              // Check if this path is allowed to be written
@@ -82,7 +83,7 @@ impl ContextGuard {
 
         if type_name == "dict" {
              let tx_bound = self.tx.bind(py);
-             let shadow = tx_bound.call_method1("get_shadow", (&val,))?; 
+             let shadow = tx_bound.call_method1("get_shadow", (&val, &full_path))?; 
              let structures = PyModule::import(py, "theus.structures")?;
              
              let can_write = self.check_permissions(&full_path, true).is_ok();
@@ -96,7 +97,7 @@ impl ContextGuard {
         // CRITICAL: We must wrap the SHADOW to ensure method calls (unwrapped callables)
         // operate on isolated state (Snapshot Isolation).
         let tx_bound = self.tx.bind(py);
-        let shadow = tx_bound.call_method1("get_shadow", (&val,))?; 
+        let shadow = tx_bound.call_method1("get_shadow", (&val, &full_path))?; 
 
         Ok(Py::new(py, ContextGuard {
             target: shadow.unbind(),
@@ -152,9 +153,14 @@ impl ContextGuard {
 
         let old_val = self.target.bind(py).getattr(name.as_str()).ok().map(|v| v.unbind());
 
-        // Unwrap Tracked Objects (Zombie Prevention)
+        // Unwrap Tracked Objects & Nested Guards (Zombie Prevention & Isolation)
         let mut value = value;
-        if let Ok(shadow) = value.bind(py).getattr("_data") {
+        // Priority 1: ContextGuard (_target)
+        if let Ok(inner) = value.bind(py).getattr("_target") {
+             value = inner.unbind();
+        } 
+        // Priority 2: TrackedList/Dict (_data) - fallback if not a Guard
+        else if let Ok(shadow) = value.bind(py).getattr("_data") {
              value = shadow.unbind();
         }
         
@@ -253,7 +259,9 @@ impl ContextGuard {
         
         // Unwrap Value
         let mut value_to_set = value.clone_ref(py);
-        if let Ok(shadow) = value.bind(py).getattr("_data") {
+        if let Ok(inner) = value.bind(py).getattr("_target") {
+             value_to_set = inner.unbind();
+        } else if let Ok(shadow) = value.bind(py).getattr("_data") {
              value_to_set = shadow.unbind();
         }
         

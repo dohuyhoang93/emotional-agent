@@ -1,0 +1,1094 @@
+2026-01-06 17:57:53,503 - TheusEngine - INFO - 🔎 Scanning for processes in: src/orchestrator/processes
+2026-01-06 17:57:53,504 - TheusEngine - INFO -    + Found Process: advance_episode_index
+2026-01-06 17:57:53,505 - TheusEngine - INFO -    + Found Process: aggregate_results
+2026-01-06 17:57:53,506 - TheusEngine - INFO -    + Found Process: analyze_data
+2026-01-06 17:57:56,638 - TheusEngine - INFO -    + Found Process: advance_experiment_index
+2026-01-06 17:57:56,638 - TheusEngine - INFO -    + Found Process: execute_social_learning_if_needed
+2026-01-06 17:57:56,638 - TheusEngine - INFO -    + Found Process: process_social_learning_protocol
+2026-01-06 17:57:56,638 - TheusEngine - INFO -    + Found Process: save_metrics_snapshot
+2026-01-06 17:57:56,639 - TheusEngine - INFO -    + Found Process: enrich_episode_metrics
+2026-01-06 17:57:56,672 - TheusEngine - INFO -    + Found Process: run_single_episode
+2026-01-06 17:57:56,672 - TheusEngine - INFO -    + Found Process: save_periodic_checkpoint
+2026-01-06 17:57:56,693 - TheusEngine - INFO -    + Found Process: initialize_active_experiment
+2026-01-06 17:57:56,694 - TheusEngine - INFO -    + Found Process: load_config
+2026-01-06 17:57:56,695 - TheusEngine - INFO -    + Found Process: log_episode_metrics
+2026-01-06 17:57:56,697 - TheusEngine - INFO -    + Found Process: perform_revolution_protocol
+2026-01-06 17:57:56,699 - TheusEngine - INFO -    + Found Process: perform_social_transfer
+2026-01-06 17:57:57,242 - TheusEngine - INFO -    + Found Process: plot_results
+2026-01-06 17:57:57,244 - TheusEngine - INFO -    + Found Process: run_population_dreaming
+2026-01-06 17:57:57,245 - TheusEngine - INFO -    + Found Process: save_periodic_checkpoint
+2026-01-06 17:57:57,246 - TheusEngine - INFO -    + Found Process: save_summary
+2026-01-06 17:57:57,247 - TheusEngine - INFO -    + Found Process: run_sleep_cycle_process
+2026-01-06 17:57:57,247 - TheusEngine - INFO - 🔎 Scanning for processes in: src/processes
+2026-01-06 17:57:57,248 - TheusEngine - INFO -    + Found Process: perception
+2026-01-06 17:57:57,250 - TheusEngine - INFO -    + Found Process: execute_action
+2026-01-06 17:57:57,251 - TheusEngine - INFO -    + Found Process: record_consequences
+2026-01-06 17:57:57,252 - TheusEngine - INFO -    + Found Process: process_decode_dream
+2026-01-06 17:57:57,253 - TheusEngine - INFO -    + Found Process: select_action_gated
+2026-01-06 17:57:57,253 - TheusEngine - INFO -    + Found Process: update_q_learning
+2026-01-06 17:57:57,254 - TheusEngine - INFO -    + Found Process: combine_rewards
+2026-01-06 17:57:57,254 - TheusEngine - INFO -    + Found Process: execute_action_with_env
+2026-01-06 17:57:57,254 - TheusEngine - INFO -    + Found Process: reset_environment
+2026-01-06 17:57:57,255 - TheusEngine - INFO -    + Found Process: process_assimilate_ancestor
+2026-01-06 17:57:57,255 - TheusEngine - INFO -    + Found Process: process_hysteria_dampener
+2026-01-06 17:57:57,255 - TheusEngine - INFO -    + Found Process: process_lateral_inhibition
+2026-01-06 17:57:57,255 - TheusEngine - INFO -    + Found Process: process_neural_darwinism
+2026-01-06 17:57:57,256 - TheusEngine - INFO -    + Found Process: process_revolution_protocol
+2026-01-06 17:57:57,256 - TheusEngine - INFO -    + Found Process: process_commitment
+2026-01-06 17:57:57,257 - TheusEngine - INFO -    + Found Process: process_pruning
+2026-01-06 17:57:57,262 - TheusEngine - INFO -    + Found Process: process_snn_cycle
+2026-01-06 17:57:57,263 - TheusEngine - INFO -    + Found Process: process_fire
+2026-01-06 17:57:57,263 - TheusEngine - INFO -    + Found Process: process_integrate
+2026-01-06 17:57:57,263 - TheusEngine - INFO -    + Found Process: process_tick
+2026-01-06 17:57:57,264 - TheusEngine - INFO -    + Found Process: process_inject_dream_stimulus
+2026-01-06 17:57:57,265 - TheusEngine - INFO -    + Found Process: process_dream_coherence_reward
+2026-01-06 17:57:57,267 - TheusEngine - INFO -    + Found Process: process_homeostasis
+2026-01-06 17:57:57,267 - TheusEngine - INFO -    + Found Process: process_meta_homeostasis_fixed
+2026-01-06 17:57:57,269 - TheusEngine - INFO -    + Found Process: process_stdp_3factor
+2026-01-06 17:57:57,270 - TheusEngine - INFO -    + Found Process: process_clustering
+2026-01-06 17:57:57,270 - TheusEngine - INFO -    + Found Process: process_stdp
+2026-01-06 17:57:57,271 - TheusEngine - INFO -    + Found Process: process_periodic_resync
+2026-01-06 17:57:57,272 - TheusEngine - INFO -    + Found Process: compute_intrinsic_reward_snn
+2026-01-06 17:57:57,272 - TheusEngine - INFO -    + Found Process: encode_emotion_vector
+2026-01-06 17:57:57,272 - TheusEngine - INFO -    + Found Process: encode_state_to_spikes
+2026-01-06 17:57:57,272 - TheusEngine - INFO -    + Found Process: modulate_snn_attention
+2026-01-06 17:57:57,272 - TheusEngine - INFO -    + Found Process: restore_snn_attention
+2026-01-06 17:57:57,273 - TheusEngine - INFO -    + Found Process: process_social_learning_protocol
+2026-01-06 17:57:57,274 - TheusEngine - INFO -    + Found Process: process_inject_viral_with_quarantine
+2026-01-06 17:57:57,274 - TheusEngine - INFO -    + Found Process: process_quarantine_validation
+2026-01-06 17:57:57,275 - TheusEngine - INFO -    + Found Process: process_extract_top_synapses
+2026-01-06 17:57:57,275 - TheusEngine - INFO -    + Found Process: process_inject_viral_synapses
+2026-01-06 17:57:57,275 - TheusEngine - INFO -    + Found Process: process_sandbox_evaluation
+2026-01-06 17:57:57,277 - TheusEngine - INFO -    + Found Process: process_dream_sanity_check
+2026-01-06 17:57:57,277 - TheusEngine - INFO -    + Found Process: process_validate_and_reward
+2026-01-06 17:57:57,278 - TheusEngine - INFO -    + Found Process: process_dream_learning
+2026-01-06 17:57:57,278 - TheusEngine - INFO -    + Found Process: process_imagination_loop
+2026-01-06 17:57:57,279 - TheusEngine - INFO -    + Found Process: monitor_safety_triggers
+2026-01-06 17:57:57,285 - TheusEngine - INFO - Loaded and cached workflow: workflows/orchestrator_flux.yaml
+2026-01-06 17:57:57,285 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/orchestrator_flux.yaml (6 steps)
+2026-01-06 17:57:57,305 - TheusEngine - INFO - 🔎 Scanning for processes in: C:\Users\dohoang\projects\EmotionAgent\src\processes
+2026-01-06 17:57:57,307 - TheusEngine - INFO -    + Found Process: perception
+2026-01-06 17:57:57,308 - TheusEngine - INFO -    + Found Process: execute_action
+2026-01-06 17:57:57,310 - TheusEngine - INFO -    + Found Process: record_consequences
+2026-01-06 17:57:57,310 - TheusEngine - INFO -    + Found Process: process_decode_dream
+2026-01-06 17:57:57,311 - TheusEngine - INFO -    + Found Process: select_action_gated
+2026-01-06 17:57:57,312 - TheusEngine - INFO -    + Found Process: update_q_learning
+2026-01-06 17:57:57,312 - TheusEngine - INFO -    + Found Process: combine_rewards
+2026-01-06 17:57:57,313 - TheusEngine - INFO -    + Found Process: execute_action_with_env
+2026-01-06 17:57:57,313 - TheusEngine - INFO -    + Found Process: reset_environment
+2026-01-06 17:57:57,314 - TheusEngine - INFO -    + Found Process: process_assimilate_ancestor
+2026-01-06 17:57:57,314 - TheusEngine - INFO -    + Found Process: process_hysteria_dampener
+2026-01-06 17:57:57,314 - TheusEngine - INFO -    + Found Process: process_lateral_inhibition
+2026-01-06 17:57:57,314 - TheusEngine - INFO -    + Found Process: process_neural_darwinism
+2026-01-06 17:57:57,314 - TheusEngine - INFO -    + Found Process: process_revolution_protocol
+2026-01-06 17:57:57,315 - TheusEngine - INFO -    + Found Process: process_commitment
+2026-01-06 17:57:57,315 - TheusEngine - INFO -    + Found Process: process_pruning
+2026-01-06 17:57:57,317 - TheusEngine - INFO -    + Found Process: process_snn_cycle
+2026-01-06 17:57:57,318 - TheusEngine - INFO -    + Found Process: process_fire
+2026-01-06 17:57:57,319 - TheusEngine - INFO -    + Found Process: process_integrate
+2026-01-06 17:57:57,319 - TheusEngine - INFO -    + Found Process: process_tick
+2026-01-06 17:57:57,320 - TheusEngine - INFO -    + Found Process: process_inject_dream_stimulus
+2026-01-06 17:57:57,321 - TheusEngine - INFO -    + Found Process: process_dream_coherence_reward
+2026-01-06 17:57:57,322 - TheusEngine - INFO -    + Found Process: process_homeostasis
+2026-01-06 17:57:57,322 - TheusEngine - INFO -    + Found Process: process_meta_homeostasis_fixed
+2026-01-06 17:57:57,324 - TheusEngine - INFO -    + Found Process: process_stdp_3factor
+2026-01-06 17:57:57,325 - TheusEngine - INFO -    + Found Process: process_clustering
+2026-01-06 17:57:57,325 - TheusEngine - INFO -    + Found Process: process_stdp
+2026-01-06 17:57:57,326 - TheusEngine - INFO -    + Found Process: process_periodic_resync
+2026-01-06 17:57:57,327 - TheusEngine - INFO -    + Found Process: compute_intrinsic_reward_snn
+2026-01-06 17:57:57,327 - TheusEngine - INFO -    + Found Process: encode_emotion_vector
+2026-01-06 17:57:57,327 - TheusEngine - INFO -    + Found Process: encode_state_to_spikes
+2026-01-06 17:57:57,327 - TheusEngine - INFO -    + Found Process: modulate_snn_attention
+2026-01-06 17:57:57,327 - TheusEngine - INFO -    + Found Process: restore_snn_attention
+2026-01-06 17:57:57,328 - TheusEngine - INFO -    + Found Process: process_social_learning_protocol
+2026-01-06 17:57:57,329 - TheusEngine - INFO -    + Found Process: process_inject_viral_with_quarantine
+2026-01-06 17:57:57,329 - TheusEngine - INFO -    + Found Process: process_quarantine_validation
+2026-01-06 17:57:57,330 - TheusEngine - INFO -    + Found Process: process_extract_top_synapses
+2026-01-06 17:57:57,330 - TheusEngine - INFO -    + Found Process: process_inject_viral_synapses
+2026-01-06 17:57:57,330 - TheusEngine - INFO -    + Found Process: process_sandbox_evaluation
+2026-01-06 17:57:57,332 - TheusEngine - INFO -    + Found Process: process_dream_sanity_check
+2026-01-06 17:57:57,334 - TheusEngine - INFO -    + Found Process: process_validate_and_reward
+2026-01-06 17:57:57,335 - TheusEngine - INFO -    + Found Process: process_dream_learning
+2026-01-06 17:57:57,335 - TheusEngine - INFO -    + Found Process: process_imagination_loop
+2026-01-06 17:57:57,336 - TheusEngine - INFO -    + Found Process: monitor_safety_triggers
+2026-01-06 17:57:59,443 - TheusEngine - INFO - 🔎 Scanning for processes in: C:\Users\dohoang\projects\EmotionAgent\src\processes
+2026-01-06 17:57:59,445 - TheusEngine - INFO -    + Found Process: perception
+2026-01-06 17:57:59,446 - TheusEngine - INFO -    + Found Process: execute_action
+2026-01-06 17:57:59,447 - TheusEngine - INFO -    + Found Process: record_consequences
+2026-01-06 17:57:59,448 - TheusEngine - INFO -    + Found Process: process_decode_dream
+2026-01-06 17:57:59,450 - TheusEngine - INFO -    + Found Process: select_action_gated
+2026-01-06 17:57:59,450 - TheusEngine - INFO -    + Found Process: update_q_learning
+2026-01-06 17:57:59,451 - TheusEngine - INFO -    + Found Process: combine_rewards
+2026-01-06 17:57:59,451 - TheusEngine - INFO -    + Found Process: execute_action_with_env
+2026-01-06 17:57:59,451 - TheusEngine - INFO -    + Found Process: reset_environment
+2026-01-06 17:57:59,452 - TheusEngine - INFO -    + Found Process: process_assimilate_ancestor
+2026-01-06 17:57:59,453 - TheusEngine - INFO -    + Found Process: process_hysteria_dampener
+2026-01-06 17:57:59,453 - TheusEngine - INFO -    + Found Process: process_lateral_inhibition
+2026-01-06 17:57:59,453 - TheusEngine - INFO -    + Found Process: process_neural_darwinism
+2026-01-06 17:57:59,453 - TheusEngine - INFO -    + Found Process: process_revolution_protocol
+2026-01-06 17:57:59,454 - TheusEngine - INFO -    + Found Process: process_commitment
+2026-01-06 17:57:59,454 - TheusEngine - INFO -    + Found Process: process_pruning
+2026-01-06 17:57:59,455 - TheusEngine - INFO -    + Found Process: process_snn_cycle
+2026-01-06 17:57:59,456 - TheusEngine - INFO -    + Found Process: process_fire
+2026-01-06 17:57:59,456 - TheusEngine - INFO -    + Found Process: process_integrate
+2026-01-06 17:57:59,456 - TheusEngine - INFO -    + Found Process: process_tick
+2026-01-06 17:57:59,457 - TheusEngine - INFO -    + Found Process: process_inject_dream_stimulus
+2026-01-06 17:57:59,458 - TheusEngine - INFO -    + Found Process: process_dream_coherence_reward
+2026-01-06 17:57:59,459 - TheusEngine - INFO -    + Found Process: process_homeostasis
+2026-01-06 17:57:59,459 - TheusEngine - INFO -    + Found Process: process_meta_homeostasis_fixed
+2026-01-06 17:57:59,461 - TheusEngine - INFO -    + Found Process: process_stdp_3factor
+2026-01-06 17:57:59,462 - TheusEngine - INFO -    + Found Process: process_clustering
+2026-01-06 17:57:59,462 - TheusEngine - INFO -    + Found Process: process_stdp
+2026-01-06 17:57:59,463 - TheusEngine - INFO -    + Found Process: process_periodic_resync
+2026-01-06 17:57:59,464 - TheusEngine - INFO -    + Found Process: compute_intrinsic_reward_snn
+2026-01-06 17:57:59,464 - TheusEngine - INFO -    + Found Process: encode_emotion_vector
+2026-01-06 17:57:59,464 - TheusEngine - INFO -    + Found Process: encode_state_to_spikes
+2026-01-06 17:57:59,464 - TheusEngine - INFO -    + Found Process: modulate_snn_attention
+2026-01-06 17:57:59,464 - TheusEngine - INFO -    + Found Process: restore_snn_attention
+2026-01-06 17:57:59,465 - TheusEngine - INFO -    + Found Process: process_social_learning_protocol
+2026-01-06 17:57:59,466 - TheusEngine - INFO -    + Found Process: process_inject_viral_with_quarantine
+2026-01-06 17:57:59,467 - TheusEngine - INFO -    + Found Process: process_quarantine_validation
+2026-01-06 17:57:59,468 - TheusEngine - INFO -    + Found Process: process_extract_top_synapses
+2026-01-06 17:57:59,468 - TheusEngine - INFO -    + Found Process: process_inject_viral_synapses
+2026-01-06 17:57:59,468 - TheusEngine - INFO -    + Found Process: process_sandbox_evaluation
+2026-01-06 17:57:59,470 - TheusEngine - INFO -    + Found Process: process_dream_sanity_check
+2026-01-06 17:57:59,470 - TheusEngine - INFO -    + Found Process: process_validate_and_reward
+2026-01-06 17:57:59,471 - TheusEngine - INFO -    + Found Process: process_dream_learning
+2026-01-06 17:57:59,471 - TheusEngine - INFO -    + Found Process: process_imagination_loop
+2026-01-06 17:57:59,472 - TheusEngine - INFO -    + Found Process: monitor_safety_triggers
+2026-01-06 17:57:59,489 - TheusEngine - INFO - 🔎 Scanning for processes in: C:\Users\dohoang\projects\EmotionAgent\src\processes
+2026-01-06 17:57:59,491 - TheusEngine - INFO -    + Found Process: perception
+2026-01-06 17:57:59,492 - TheusEngine - INFO -    + Found Process: execute_action
+2026-01-06 17:57:59,493 - TheusEngine - INFO -    + Found Process: record_consequences
+2026-01-06 17:57:59,494 - TheusEngine - INFO -    + Found Process: process_decode_dream
+2026-01-06 17:57:59,495 - TheusEngine - INFO -    + Found Process: select_action_gated
+2026-01-06 17:57:59,495 - TheusEngine - INFO -    + Found Process: update_q_learning
+2026-01-06 17:57:59,496 - TheusEngine - INFO -    + Found Process: combine_rewards
+2026-01-06 17:57:59,496 - TheusEngine - INFO -    + Found Process: execute_action_with_env
+2026-01-06 17:57:59,496 - TheusEngine - INFO -    + Found Process: reset_environment
+2026-01-06 17:57:59,497 - TheusEngine - INFO -    + Found Process: process_assimilate_ancestor
+2026-01-06 17:57:59,497 - TheusEngine - INFO -    + Found Process: process_hysteria_dampener
+2026-01-06 17:57:59,497 - TheusEngine - INFO -    + Found Process: process_lateral_inhibition
+2026-01-06 17:57:59,497 - TheusEngine - INFO -    + Found Process: process_neural_darwinism
+2026-01-06 17:57:59,497 - TheusEngine - INFO -    + Found Process: process_revolution_protocol
+2026-01-06 17:57:59,498 - TheusEngine - INFO -    + Found Process: process_commitment
+2026-01-06 17:57:59,499 - TheusEngine - INFO -    + Found Process: process_pruning
+2026-01-06 17:57:59,500 - TheusEngine - INFO -    + Found Process: process_snn_cycle
+2026-01-06 17:57:59,501 - TheusEngine - INFO -    + Found Process: process_fire
+2026-01-06 17:57:59,501 - TheusEngine - INFO -    + Found Process: process_integrate
+2026-01-06 17:57:59,501 - TheusEngine - INFO -    + Found Process: process_tick
+2026-01-06 17:57:59,502 - TheusEngine - INFO -    + Found Process: process_inject_dream_stimulus
+2026-01-06 17:57:59,503 - TheusEngine - INFO -    + Found Process: process_dream_coherence_reward
+2026-01-06 17:57:59,504 - TheusEngine - INFO -    + Found Process: process_homeostasis
+2026-01-06 17:57:59,504 - TheusEngine - INFO -    + Found Process: process_meta_homeostasis_fixed
+2026-01-06 17:57:59,506 - TheusEngine - INFO -    + Found Process: process_stdp_3factor
+2026-01-06 17:57:59,507 - TheusEngine - INFO -    + Found Process: process_clustering
+2026-01-06 17:57:59,507 - TheusEngine - INFO -    + Found Process: process_stdp
+2026-01-06 17:57:59,508 - TheusEngine - INFO -    + Found Process: process_periodic_resync
+2026-01-06 17:57:59,509 - TheusEngine - INFO -    + Found Process: compute_intrinsic_reward_snn
+2026-01-06 17:57:59,509 - TheusEngine - INFO -    + Found Process: encode_emotion_vector
+2026-01-06 17:57:59,509 - TheusEngine - INFO -    + Found Process: encode_state_to_spikes
+2026-01-06 17:57:59,509 - TheusEngine - INFO -    + Found Process: modulate_snn_attention
+2026-01-06 17:57:59,509 - TheusEngine - INFO -    + Found Process: restore_snn_attention
+2026-01-06 17:57:59,510 - TheusEngine - INFO -    + Found Process: process_social_learning_protocol
+2026-01-06 17:57:59,511 - TheusEngine - INFO -    + Found Process: process_inject_viral_with_quarantine
+2026-01-06 17:57:59,511 - TheusEngine - INFO -    + Found Process: process_quarantine_validation
+2026-01-06 17:57:59,512 - TheusEngine - INFO -    + Found Process: process_extract_top_synapses
+2026-01-06 17:57:59,512 - TheusEngine - INFO -    + Found Process: process_inject_viral_synapses
+2026-01-06 17:57:59,512 - TheusEngine - INFO -    + Found Process: process_sandbox_evaluation
+2026-01-06 17:57:59,513 - TheusEngine - INFO -    + Found Process: process_dream_sanity_check
+2026-01-06 17:57:59,515 - TheusEngine - INFO -    + Found Process: process_validate_and_reward
+2026-01-06 17:57:59,516 - TheusEngine - INFO -    + Found Process: process_dream_learning
+2026-01-06 17:57:59,516 - TheusEngine - INFO -    + Found Process: process_imagination_loop
+2026-01-06 17:57:59,517 - TheusEngine - INFO -    + Found Process: monitor_safety_triggers
+2026-01-06 17:57:59,533 - TheusEngine - INFO - 🔎 Scanning for processes in: C:\Users\dohoang\projects\EmotionAgent\src\processes
+2026-01-06 17:57:59,535 - TheusEngine - INFO -    + Found Process: perception
+2026-01-06 17:57:59,536 - TheusEngine - INFO -    + Found Process: execute_action
+2026-01-06 17:57:59,537 - TheusEngine - INFO -    + Found Process: record_consequences
+2026-01-06 17:57:59,537 - TheusEngine - INFO -    + Found Process: process_decode_dream
+2026-01-06 17:57:59,539 - TheusEngine - INFO -    + Found Process: select_action_gated
+2026-01-06 17:57:59,539 - TheusEngine - INFO -    + Found Process: update_q_learning
+2026-01-06 17:57:59,540 - TheusEngine - INFO -    + Found Process: combine_rewards
+2026-01-06 17:57:59,540 - TheusEngine - INFO -    + Found Process: execute_action_with_env
+2026-01-06 17:57:59,540 - TheusEngine - INFO -    + Found Process: reset_environment
+2026-01-06 17:57:59,541 - TheusEngine - INFO -    + Found Process: process_assimilate_ancestor
+2026-01-06 17:57:59,541 - TheusEngine - INFO -    + Found Process: process_hysteria_dampener
+2026-01-06 17:57:59,541 - TheusEngine - INFO -    + Found Process: process_lateral_inhibition
+2026-01-06 17:57:59,541 - TheusEngine - INFO -    + Found Process: process_neural_darwinism
+2026-01-06 17:57:59,541 - TheusEngine - INFO -    + Found Process: process_revolution_protocol
+2026-01-06 17:57:59,542 - TheusEngine - INFO -    + Found Process: process_commitment
+2026-01-06 17:57:59,542 - TheusEngine - INFO -    + Found Process: process_pruning
+2026-01-06 17:57:59,543 - TheusEngine - INFO -    + Found Process: process_snn_cycle
+2026-01-06 17:57:59,545 - TheusEngine - INFO -    + Found Process: process_fire
+2026-01-06 17:57:59,545 - TheusEngine - INFO -    + Found Process: process_integrate
+2026-01-06 17:57:59,545 - TheusEngine - INFO -    + Found Process: process_tick
+2026-01-06 17:57:59,546 - TheusEngine - INFO -    + Found Process: process_inject_dream_stimulus
+2026-01-06 17:57:59,547 - TheusEngine - INFO -    + Found Process: process_dream_coherence_reward
+2026-01-06 17:57:59,548 - TheusEngine - INFO -    + Found Process: process_homeostasis
+2026-01-06 17:57:59,548 - TheusEngine - INFO -    + Found Process: process_meta_homeostasis_fixed
+2026-01-06 17:57:59,550 - TheusEngine - INFO -    + Found Process: process_stdp_3factor
+2026-01-06 17:57:59,552 - TheusEngine - INFO -    + Found Process: process_clustering
+2026-01-06 17:57:59,552 - TheusEngine - INFO -    + Found Process: process_stdp
+2026-01-06 17:57:59,553 - TheusEngine - INFO -    + Found Process: process_periodic_resync
+2026-01-06 17:57:59,554 - TheusEngine - INFO -    + Found Process: compute_intrinsic_reward_snn
+2026-01-06 17:57:59,554 - TheusEngine - INFO -    + Found Process: encode_emotion_vector
+2026-01-06 17:57:59,554 - TheusEngine - INFO -    + Found Process: encode_state_to_spikes
+2026-01-06 17:57:59,554 - TheusEngine - INFO -    + Found Process: modulate_snn_attention
+2026-01-06 17:57:59,554 - TheusEngine - INFO -    + Found Process: restore_snn_attention
+2026-01-06 17:57:59,555 - TheusEngine - INFO -    + Found Process: process_social_learning_protocol
+2026-01-06 17:57:59,556 - TheusEngine - INFO -    + Found Process: process_inject_viral_with_quarantine
+2026-01-06 17:57:59,556 - TheusEngine - INFO -    + Found Process: process_quarantine_validation
+2026-01-06 17:57:59,557 - TheusEngine - INFO -    + Found Process: process_extract_top_synapses
+2026-01-06 17:57:59,557 - TheusEngine - INFO -    + Found Process: process_inject_viral_synapses
+2026-01-06 17:57:59,557 - TheusEngine - INFO -    + Found Process: process_sandbox_evaluation
+2026-01-06 17:57:59,558 - TheusEngine - INFO -    + Found Process: process_dream_sanity_check
+2026-01-06 17:57:59,559 - TheusEngine - INFO -    + Found Process: process_validate_and_reward
+2026-01-06 17:57:59,560 - TheusEngine - INFO -    + Found Process: process_dream_learning
+2026-01-06 17:57:59,560 - TheusEngine - INFO -    + Found Process: process_imagination_loop
+2026-01-06 17:57:59,560 - TheusEngine - INFO -    + Found Process: monitor_safety_triggers
+2026-01-06 17:57:59,577 - TheusEngine - INFO - 🔎 Scanning for processes in: C:\Users\dohoang\projects\EmotionAgent\src\processes
+2026-01-06 17:57:59,578 - TheusEngine - INFO -    + Found Process: perception
+2026-01-06 17:57:59,579 - TheusEngine - INFO -    + Found Process: execute_action
+2026-01-06 17:57:59,580 - TheusEngine - INFO -    + Found Process: record_consequences
+2026-01-06 17:57:59,582 - TheusEngine - INFO -    + Found Process: process_decode_dream
+2026-01-06 17:57:59,583 - TheusEngine - INFO -    + Found Process: select_action_gated
+2026-01-06 17:57:59,583 - TheusEngine - INFO -    + Found Process: update_q_learning
+2026-01-06 17:57:59,584 - TheusEngine - INFO -    + Found Process: combine_rewards
+2026-01-06 17:57:59,584 - TheusEngine - INFO -    + Found Process: execute_action_with_env
+2026-01-06 17:57:59,584 - TheusEngine - INFO -    + Found Process: reset_environment
+2026-01-06 17:57:59,586 - TheusEngine - INFO -    + Found Process: process_assimilate_ancestor
+2026-01-06 17:57:59,586 - TheusEngine - INFO -    + Found Process: process_hysteria_dampener
+2026-01-06 17:57:59,586 - TheusEngine - INFO -    + Found Process: process_lateral_inhibition
+2026-01-06 17:57:59,586 - TheusEngine - INFO -    + Found Process: process_neural_darwinism
+2026-01-06 17:57:59,586 - TheusEngine - INFO -    + Found Process: process_revolution_protocol
+2026-01-06 17:57:59,587 - TheusEngine - INFO -    + Found Process: process_commitment
+2026-01-06 17:57:59,587 - TheusEngine - INFO -    + Found Process: process_pruning
+2026-01-06 17:57:59,588 - TheusEngine - INFO -    + Found Process: process_snn_cycle
+2026-01-06 17:57:59,589 - TheusEngine - INFO -    + Found Process: process_fire
+2026-01-06 17:57:59,589 - TheusEngine - INFO -    + Found Process: process_integrate
+2026-01-06 17:57:59,589 - TheusEngine - INFO -    + Found Process: process_tick
+2026-01-06 17:57:59,590 - TheusEngine - INFO -    + Found Process: process_inject_dream_stimulus
+2026-01-06 17:57:59,591 - TheusEngine - INFO -    + Found Process: process_dream_coherence_reward
+2026-01-06 17:57:59,592 - TheusEngine - INFO -    + Found Process: process_homeostasis
+2026-01-06 17:57:59,592 - TheusEngine - INFO -    + Found Process: process_meta_homeostasis_fixed
+2026-01-06 17:57:59,594 - TheusEngine - INFO -    + Found Process: process_stdp_3factor
+2026-01-06 17:57:59,595 - TheusEngine - INFO -    + Found Process: process_clustering
+2026-01-06 17:57:59,595 - TheusEngine - INFO -    + Found Process: process_stdp
+2026-01-06 17:57:59,596 - TheusEngine - INFO -    + Found Process: process_periodic_resync
+2026-01-06 17:57:59,597 - TheusEngine - INFO -    + Found Process: compute_intrinsic_reward_snn
+2026-01-06 17:57:59,597 - TheusEngine - INFO -    + Found Process: encode_emotion_vector
+2026-01-06 17:57:59,597 - TheusEngine - INFO -    + Found Process: encode_state_to_spikes
+2026-01-06 17:57:59,597 - TheusEngine - INFO -    + Found Process: modulate_snn_attention
+2026-01-06 17:57:59,597 - TheusEngine - INFO -    + Found Process: restore_snn_attention
+2026-01-06 17:57:59,598 - TheusEngine - INFO -    + Found Process: process_social_learning_protocol
+2026-01-06 17:57:59,599 - TheusEngine - INFO -    + Found Process: process_inject_viral_with_quarantine
+2026-01-06 17:57:59,599 - TheusEngine - INFO -    + Found Process: process_quarantine_validation
+2026-01-06 17:57:59,601 - TheusEngine - INFO -    + Found Process: process_extract_top_synapses
+2026-01-06 17:57:59,601 - TheusEngine - INFO -    + Found Process: process_inject_viral_synapses
+2026-01-06 17:57:59,601 - TheusEngine - INFO -    + Found Process: process_sandbox_evaluation
+2026-01-06 17:57:59,602 - TheusEngine - INFO -    + Found Process: process_dream_sanity_check
+2026-01-06 17:57:59,603 - TheusEngine - INFO -    + Found Process: process_validate_and_reward
+2026-01-06 17:57:59,604 - TheusEngine - INFO -    + Found Process: process_dream_learning
+2026-01-06 17:57:59,604 - TheusEngine - INFO -    + Found Process: process_imagination_loop
+2026-01-06 17:57:59,605 - TheusEngine - INFO -    + Found Process: monitor_safety_triggers
+2026-01-06 17:57:59,608 - Optimization_Sanity_Check - INFO - Experiment 'Optimization_Sanity_Check' started. Metrics: results\Optimization_Sanity_Check_checkpoints\metrics.jsonl
+2026-01-06 17:57:59,611 - TheusEngine - INFO - Loaded and cached workflow: workflows/agent_main.yaml
+2026-01-06 17:57:59,611 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:57:59,695 - TheusEngine - INFO - Loaded and cached workflow: workflows/agent_main.yaml
+2026-01-06 17:57:59,696 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:57:59,774 - TheusEngine - INFO - Loaded and cached workflow: workflows/agent_main.yaml
+2026-01-06 17:57:59,774 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:57:59,855 - TheusEngine - INFO - Loaded and cached workflow: workflows/agent_main.yaml
+2026-01-06 17:57:59,855 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:57:59,935 - TheusEngine - INFO - Loaded and cached workflow: workflows/agent_main.yaml
+2026-01-06 17:57:59,935 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,015 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,065 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,122 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,162 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,203 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,253 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,305 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,345 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,452 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,494 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,535 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,575 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,614 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,655 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,695 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,736 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,777 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,825 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,865 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,906 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,947 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:00,988 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,032 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,085 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,164 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,260 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,318 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,374 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,425 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,475 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,528 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,588 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,648 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,696 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,745 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,788 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,828 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,870 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,911 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,951 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:01,993 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,040 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,079 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,120 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,160 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,202 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,244 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,288 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,329 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,372 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,414 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,458 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,502 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,544 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,589 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,631 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,674 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,718 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,760 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,805 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,847 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,890 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,935 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:02,977 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,021 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,063 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,106 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,149 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,191 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,236 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,278 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,322 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,363 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,406 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,452 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,578 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,659 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,711 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,758 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,805 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,847 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,891 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,937 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:03,979 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,031 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,074 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,120 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,161 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,203 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,245 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,289 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,331 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,372 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,415 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,459 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,505 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,550 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,592 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,636 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,680 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,724 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,767 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,808 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,852 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,895 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,938 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:04,980 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,026 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,076 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,122 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,164 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,207 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,306 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,351 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,394 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,437 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,480 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,523 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,565 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,607 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,652 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,693 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,735 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,777 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,819 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,860 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,905 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,946 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:05,989 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,030 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,073 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,116 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,159 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,203 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,272 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,318 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,362 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,411 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,487 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,530 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,572 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,614 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,656 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,702 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,744 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,789 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,893 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,940 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:06,988 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,034 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,078 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,122 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,163 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,208 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,254 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,298 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,341 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,386 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,428 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,475 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,519 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,562 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,605 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,647 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,690 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,738 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,781 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,822 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,863 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,910 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,954 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:07,996 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,039 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,080 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,123 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,165 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,208 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,252 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,293 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,337 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,380 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,423 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,464 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,506 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,548 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,591 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,635 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,675 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,719 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,762 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,805 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,848 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,889 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,931 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:08,974 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,017 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,060 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,103 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,145 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,188 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,231 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,275 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,317 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,359 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,404 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,445 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,489 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,530 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,572 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,614 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,658 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,702 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,755 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,798 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,841 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,886 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,929 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:09,972 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,014 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,056 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,102 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,146 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,188 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,230 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,272 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,314 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,358 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,397 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,441 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,487 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,528 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,573 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,614 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,655 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,698 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,741 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,786 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,826 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,868 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,912 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,956 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:10,997 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,038 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,080 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,122 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,164 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,208 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,252 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,293 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,337 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,379 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,422 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,462 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,504 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,547 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,590 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,631 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,673 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,717 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,759 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,803 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,845 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,888 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,929 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:11,973 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,014 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,060 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,102 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,143 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,187 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,228 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,271 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,313 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,356 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,398 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,441 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,485 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,526 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,569 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,611 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,653 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,696 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,738 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,841 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,887 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,930 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:12,973 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,013 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,056 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,099 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,141 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,185 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,225 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,269 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,312 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,355 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,397 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,439 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,480 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,523 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,565 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,607 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,651 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,692 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,737 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,779 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,823 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,863 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,906 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,947 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:13,990 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,037 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,079 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,124 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,169 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,211 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,254 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,295 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,338 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,380 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,423 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,470 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,511 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,554 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,596 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,639 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,681 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,723 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,767 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,810 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,853 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,895 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,938 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:14,979 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,021 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,064 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,107 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,151 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,192 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,236 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,278 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,323 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,363 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,407 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,449 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,491 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,536 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,577 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,676 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,722 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,764 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,807 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,851 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,893 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,938 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:15,979 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,022 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,064 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,105 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,147 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,190 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,238 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,290 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,338 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,381 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,428 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,474 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,519 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,561 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,606 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,647 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,691 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,735 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,777 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,821 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,863 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,906 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,947 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:16,991 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,036 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,080 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,123 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,165 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,206 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,247 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,291 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,337 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,378 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,422 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,463 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,507 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,552 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,593 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,635 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,678 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,722 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,764 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,806 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,847 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,890 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,935 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:17,977 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,020 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,061 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,105 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,146 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,190 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,236 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,309 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,355 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,397 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,444 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,487 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,528 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,572 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,614 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,657 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,697 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,739 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,781 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,824 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,868 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,908 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,953 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:18,995 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,038 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,080 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,122 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,163 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,206 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,249 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,291 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,333 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,374 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,419 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,460 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,504 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,546 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,589 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,630 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,672 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,715 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,757 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,803 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,844 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,886 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,927 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:19,971 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,012 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,054 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,096 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,139 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,180 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,224 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,269 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,311 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,356 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,401 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,444 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,488 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,530 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,573 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,613 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,656 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,698 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,741 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,785 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,826 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,868 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,911 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:20,955 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,043 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,088 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,129 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,173 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,217 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,259 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,303 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,347 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,392 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,438 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,486 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,528 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,570 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,612 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,654 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,696 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,737 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,781 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,826 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,870 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:21,974 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,083 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,185 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,287 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,488 - Optimization_Sanity_Check - INFO - Episode   0: agents=5 R=17.33
+2026-01-06 17:58:22,490 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,526 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,561 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,601 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,640 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,676 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,723 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,764 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,808 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,851 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,893 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,937 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:22,978 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,021 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,062 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,107 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,151 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,193 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,278 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,324 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,367 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,409 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,452 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,493 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,537 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,579 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,625 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,674 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,723 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,770 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,828 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,875 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,925 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:23,971 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,014 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,056 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,100 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,143 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,189 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,243 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,288 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,337 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,381 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,425 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,475 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,524 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,571 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,620 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,663 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,706 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,748 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,792 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,837 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,879 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,924 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:24,968 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,012 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,056 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,101 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,144 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,189 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,230 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,273 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,314 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,357 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,398 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,442 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,487 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,539 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,591 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,641 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,688 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,729 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,772 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,814 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,859 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,904 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,946 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:25,989 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,032 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,075 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,119 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,160 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,204 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,251 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,293 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,337 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,379 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,421 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,463 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,508 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,553 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,594 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,638 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,680 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,722 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,764 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,851 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,898 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,941 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:26,985 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,032 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,077 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,119 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,162 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,205 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,249 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,290 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,334 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,376 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,421 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,464 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,506 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,547 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,590 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,634 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,677 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,720 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,762 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,804 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,849 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,892 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,934 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:27,980 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,026 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,069 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,114 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,159 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,203 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,248 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,293 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,337 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,380 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,424 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,467 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,510 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,554 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,595 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,639 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,680 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,722 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,764 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,807 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,851 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,894 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,939 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:28,986 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,027 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,074 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,119 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,162 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,208 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,289 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,365 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,468 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,512 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,599 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,692 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,735 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,777 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,821 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,864 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,908 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,952 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:29,995 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,038 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,080 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,123 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,164 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,210 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,252 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,296 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,340 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,381 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,426 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,474 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,528 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,581 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,628 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,678 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,727 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,774 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,821 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,864 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,911 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:30,957 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,002 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,044 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,088 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,137 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,180 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,223 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,267 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,313 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,359 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,411 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,471 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,525 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,648 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,712 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,774 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,843 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,908 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:31,960 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,008 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,073 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,121 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,163 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,207 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,252 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,293 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,337 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,379 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,423 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,465 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,508 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,553 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,595 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,640 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,685 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,726 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,772 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,813 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,857 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,907 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:32,955 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,002 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,047 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,090 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,132 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,175 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,219 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,260 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,303 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,345 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,388 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,430 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,472 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,513 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,556 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,599 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,641 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,685 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,729 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,776 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,820 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,863 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,912 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:33,956 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,000 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,041 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,086 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,127 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,169 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,211 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,255 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,297 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,339 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,381 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,424 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,468 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,513 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,555 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,601 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,647 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,689 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,731 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,773 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,818 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,861 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,906 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,950 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:34,992 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,036 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,080 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,123 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,171 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,219 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,268 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,319 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,363 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,410 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,456 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,501 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,545 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,591 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,637 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,678 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,722 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,767 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,810 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,858 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,906 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)
+2026-01-06 17:58:35,961 - TheusEngine - INFO - ▶️ Starting Workflow: workflows/agent_main.yaml (18 steps)

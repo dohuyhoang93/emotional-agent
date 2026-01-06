@@ -18,14 +18,14 @@ from src.core.context import SystemContext
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context',
-        'domain.snn_context.domain_ctx.metrics', # Added
-        'domain.td_error'
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context',
+        'domain_ctx.snn_context.domain_ctx.metrics', # Added
+        'domain_ctx.td_error'
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.snn_context.domain_ctx.synapses',
-        'domain.snn_context.domain_ctx.metrics'
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.synapses',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
@@ -45,11 +45,15 @@ def process_commitment(
     global_ctx = snn_ctx.global_ctx
     domain = snn_ctx.domain_ctx
     
-    THRESHOLD_SOLIDIFY = global_ctx.commitment_threshold
-    THRESHOLD_REVOKE = global_ctx.revoke_threshold
-    ERROR_THRESHOLD = global_ctx.prediction_error_threshold
+    THRESHOLD_SOLIDIFY = int(global_ctx.commitment_threshold)
+    THRESHOLD_REVOKE = int(global_ctx.revoke_threshold)
+    ERROR_THRESHOLD = float(global_ctx.prediction_error_threshold)
     
-    error = abs(rl_ctx.domain_ctx.td_error)
+    try:
+        error = abs(float(rl_ctx.domain_ctx.td_error))
+    except Exception as e:
+        # print(f"DEBUG: process_commitment td_error type: {type(rl_ctx.domain_ctx.td_error)}")
+        error = 0.0
     
     # === VECTORIZED UPDATE ===
     from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors

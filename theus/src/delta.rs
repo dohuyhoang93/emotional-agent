@@ -57,16 +57,40 @@ impl Transaction {
         self.log_internal(path, op, value, old_value, target, key);
     }
     
-    fn get_shadow(&mut self, py: Python, original: PyObject) -> PyResult<PyObject> {
+    #[pyo3(signature = (original, path=None))]
+    fn get_shadow(&mut self, py: Python, original: PyObject, path: Option<String>) -> PyResult<PyObject> {
         let id = original.bind(py).as_ptr() as usize;
         
         if let Some((_, shadow)) = self.shadow_cache.get(&id) {
              return Ok(shadow.clone_ref(py));
         }
         
-        // Create Shadow
+        // HEAVY Zone Check: Skip copy for heavy_ prefixed objects
+        // NOTE: This is explicit, not silent - user must declare heavy_ prefix
+        if let Some(ref p) = path {
+            let leaf = p.split('.').last().unwrap_or(p);
+            if leaf.starts_with("heavy_") {
+                // Log explicitly that we're skipping copy for HEAVY zone
+                eprintln!("[Theus] HEAVY zone: skipping shadow copy for '{}'", p);
+                self.shadow_cache.insert(id, (original.clone_ref(py), original.clone_ref(py)));
+                return Ok(original);
+            }
+        }
+        
+        // Create Shadow with fallback for non-copyable types
         let copy_mod = PyModule::import(py, "copy")?;
-        let shadow = copy_mod.call_method1("copy", (&original,))?.unbind();
+        let shadow = match copy_mod.call_method1("copy", (&original,)) {
+            Ok(s) => s.unbind(),
+            Err(e) => {
+                // NOTE: Log warning when fallback happens - behavior should not be silent
+                let type_name = original.bind(py).get_type().name().ok().map(|n| n.to_string()).unwrap_or_else(|| "unknown".to_string());
+                let path_str = path.as_deref().unwrap_or("unknown");
+                eprintln!("[Theus] WARNING: Cannot copy '{}' (type: {}): {}. Using reference instead.", 
+                         path_str, type_name, e);
+                self.shadow_cache.insert(id, (original.clone_ref(py), original.clone_ref(py)));
+                return Ok(original);
+            }
+        };
         
         // Disable Legacy Lock Manager on Shadow to prevent double-locking
         // This allows ContextGuard to manage writes freely on the shadow.

@@ -35,7 +35,10 @@ def monitor_safety_triggers(ctx: SystemContext):
     
     # === 1. Bottom-Up Override (Emergency Brake) ===
     # Trigger: High negative prediction error (Pain) or extreme surprise
-    td_error = ctx.domain_ctx.td_error
+    try:
+        td_error = float(ctx.domain_ctx.td_error)
+    except:
+        td_error = 0.0
     
     # Thresholds (Should be in GlobalContext, hardcoded for now)
     PAIN_THRESHOLD = 2.0  # High error
@@ -62,11 +65,18 @@ def monitor_safety_triggers(ctx: SystemContext):
         
     # Update tracker
     if current_action is not None:
-        safety['last_action'] = int(current_action)
+        try:
+            safety['last_action'] = int(current_action)
+        except:
+             pass
         
     # === 3. Curiosity Veto ===
     # Trigger: High novelty (intrinsic reward)
-    intrinsic = ctx.domain_ctx.intrinsic_reward
+    try:
+        intrinsic = float(ctx.domain_ctx.intrinsic_reward)
+    except:
+        intrinsic = 0.0
+        
     VETO_THRESHOLD = 0.8  # Very novel
     
     if intrinsic > VETO_THRESHOLD:

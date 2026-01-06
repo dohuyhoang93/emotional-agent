@@ -12,17 +12,17 @@ from src.core.snn_context_theus import SNNSystemContext
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.snn_context.domain_ctx.current_time',
-        'domain.snn_context.domain_ctx.metrics',
-        'domain.snn_context.global_ctx.tau_decay',
-        'domain.snn_context.global_ctx.threshold_min',
-        'domain.snn_context.global_ctx.threshold_max'
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.snn_context.domain_ctx.current_time',
+        'domain_ctx.snn_context.domain_ctx.metrics',
+        'domain_ctx.snn_context.global_ctx.tau_decay',
+        'domain_ctx.snn_context.global_ctx.threshold_min',
+        'domain_ctx.snn_context.global_ctx.threshold_max'
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.snn_context.domain_ctx.metrics'
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]  # Pure function
 )
@@ -41,7 +41,8 @@ def process_periodic_resync(ctx: SNNSystemContext):
         global_ctx = ctx.global_ctx
     
     # Chỉ chạy mỗi 1000 steps
-    if domain.current_time % 1000 != 0:
+    # Cast to int for safety
+    if int(domain.current_time) % 1000 != 0:
         return
     
     resync_count = 0
@@ -68,8 +69,8 @@ def process_periodic_resync(ctx: SNNSystemContext):
         # Clamp threshold
         neuron.threshold = np.clip(
             neuron.threshold,
-            global_ctx.threshold_min,
-            global_ctx.threshold_max
+            float(global_ctx.threshold_min),
+            float(global_ctx.threshold_max)
         )
     
     # Update metrics

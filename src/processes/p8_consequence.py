@@ -65,17 +65,17 @@ def _calculate_dynamic_weight(cycle_time, current_step, current_episode, total_e
         return MAX_CURIOSITY_WEIGHT - ((cycle_time - MIN_CYCLE_TIME) * (MAX_CURIOSITY_WEIGHT - MIN_CURIOSITY_WEIGHT) / (MAX_CYCLE_TIME - MIN_CYCLE_TIME))
 
 @process(
-    inputs=['global_ctx', 'global', 'domain_ctx', 'domain', 
-        'domain.previous_observation', 'domain.current_observation', 'domain.selected_action', 'domain.last_reward',
-        'domain.q_table', 'domain.believed_switch_states', 'domain.short_term_memory',
-        'domain.E_vector', 'domain.emotion_optimizer', 'domain.emotion_model', 'domain.td_error',
-        'global.learning_rate', 'global.discount_factor', 'global.use_dynamic_curiosity',
-        'domain.last_cycle_time', 'domain.current_episode', 'domain.current_step',
-        'global.total_episodes', 'global.use_adaptive_fatigue', 'global.fatigue_growth_rate', 'global.max_steps',
-        'global.intrinsic_reward_weight', 'global.short_term_memory_limit'
+    inputs=['global_ctx', 'domain_ctx', 
+        'domain_ctx.previous_observation', 'domain_ctx.current_observation', 'domain_ctx.selected_action', 'domain_ctx.last_reward',
+        'domain_ctx.q_table', 'domain_ctx.believed_switch_states', 'domain_ctx.short_term_memory',
+        'domain_ctx.E_vector', 'domain_ctx.emotion_optimizer', 'domain_ctx.emotion_model', 'domain_ctx.td_error',
+        'global_ctx.learning_rate', 'global_ctx.discount_factor', 'global_ctx.use_dynamic_curiosity',
+        'domain_ctx.last_cycle_time', 'domain_ctx.current_episode', 'domain_ctx.current_step',
+        'global_ctx.total_episodes', 'global_ctx.use_adaptive_fatigue', 'global_ctx.fatigue_growth_rate', 'global_ctx.max_steps',
+        'global_ctx.intrinsic_reward_weight', 'global_ctx.short_term_memory_limit'
     ],
-    outputs=['domain', 'global_ctx', 'domain_ctx', 
-        'domain.q_table', 'domain.td_error', 'domain.last_reward', 'domain.short_term_memory', 'domain.E_vector'
+    outputs=['global_ctx', 'domain_ctx', 
+        'domain_ctx.q_table', 'domain_ctx.td_error', 'domain_ctx.last_reward', 'domain_ctx.short_term_memory', 'domain_ctx.E_vector'
         # E_vector is updated via optimizer step (technically pure output? No, side effect on torch graph, but we say it outputs updated state)
     ],
     side_effects=[],

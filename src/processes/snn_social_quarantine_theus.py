@@ -11,20 +11,20 @@ from src.core.context import SystemContext
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context',
-        'domain.snn_context.domain_ctx.shadow_synapses',
-        'domain.snn_context.domain_ctx.current_time',
-        'domain.snn_context.domain_ctx.blacklisted_sources',
-        'domain.snn_context.domain_ctx.metrics',
-        'domain.td_error',
-        'domain.last_reward'
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context',
+        'domain_ctx.snn_context.domain_ctx.shadow_synapses',
+        'domain_ctx.snn_context.domain_ctx.current_time',
+        'domain_ctx.snn_context.domain_ctx.blacklisted_sources',
+        'domain_ctx.snn_context.domain_ctx.metrics',
+        'domain_ctx.td_error',
+        'domain_ctx.last_reward'
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.snn_context.domain_ctx.shadow_synapses',
-        'domain.snn_context.domain_ctx.synapses',
-        'domain.snn_context.domain_ctx.blacklisted_sources',
-        'domain.snn_context.domain_ctx.metrics'
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.shadow_synapses',
+        'domain_ctx.snn_context.domain_ctx.synapses',
+        'domain_ctx.snn_context.domain_ctx.blacklisted_sources',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
@@ -43,8 +43,19 @@ def process_quarantine_validation(
     global_ctx = snn_ctx.global_ctx
     
     # Get reward signal (Target)
-    reward = rl_ctx.domain_ctx.last_reward.get('total', 0.0)
-    native_error = abs(rl_ctx.domain_ctx.td_error) # |Target - Native|
+    # Get reward signal (Target) - handle dict or scalar
+    raw_reward = rl_ctx.domain_ctx.last_reward
+    if isinstance(raw_reward, dict):
+        reward = raw_reward.get('total', 0.0)
+    else:
+        try:
+            reward = float(raw_reward)
+        except:
+            reward = 0.0
+    try:
+        native_error = abs(float(rl_ctx.domain_ctx.td_error)) # |Target - Native|
+    except:
+        native_error = 0.0
     
     # Shadow Logic: Counterfactual Evaluation
     # Did the shadow synapse predict better?
@@ -56,7 +67,10 @@ def process_quarantine_validation(
     #    (Assumes simple signed error model)
     
     # Let's use TD Error directly (Target - Prediction)
-    raw_error = rl_ctx.domain_ctx.td_error 
+    try:
+        raw_error = float(rl_ctx.domain_ctx.td_error)
+    except:
+        raw_error = 0.0 
     
     # Init counters
     blacklisted = 0
@@ -104,12 +118,23 @@ def process_quarantine_validation(
     to_reject = []
     
     for synapse in domain.shadow_synapses:
-        if synapse.quarantine_time >= global_ctx.quarantine_duration:
+        # Safe cast config
+        try:
+            q_duration = int(global_ctx.quarantine_duration)
+        except:
+            q_duration = 50
+
+        if synapse.quarantine_time >= q_duration:
+            try:
+                val_threshold = float(global_ctx.validation_threshold)
+            except:
+                val_threshold = 0.1
+
             if synapse.is_blacklisted:
                 # Blacklisted → Reject
                 to_reject.append(synapse)
                 rejected += 1
-            elif synapse.validation_score >= global_ctx.validation_threshold:
+            elif synapse.validation_score >= val_threshold:
                 # Validated → Promote
                 to_promote.append(synapse)
                 promoted += 1
@@ -139,15 +164,15 @@ def process_quarantine_validation(
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context',
-        'domain.snn_context.domain_ctx.shadow_synapses',
-        'domain.snn_context.domain_ctx.blacklisted_sources',
-        'domain.snn_context.domain_ctx.metrics'
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context',
+        'domain_ctx.snn_context.domain_ctx.shadow_synapses',
+        'domain_ctx.snn_context.domain_ctx.blacklisted_sources',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.snn_context.domain_ctx.shadow_synapses',
-        'domain.snn_context.domain_ctx.metrics'
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.shadow_synapses',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )

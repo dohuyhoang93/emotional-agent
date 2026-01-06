@@ -1,0 +1,24 @@
+--- STARTING DEBUG SCRIPT ---
+1. Creating SNN Context...
+   Context Created.
+2. Initializing Engine (Strict Mode)...
+   Engine Initialized.
+
+--- TEST 1: Python ContextGuard Behavior ---
+   Created Manual Python Guard for global_ctx. Target: SNNGlobalContext(num_neurons=100, connectivity=0.15, vector_dim=16, tau_decay=0.9, refractory_period=5, initial_threshold=0.6, threshold_min=0.3, threshold_max=3.0, learning_rate=0.01, clustering_rate=0.001, tau_trace=0.9, weight_decay=0.9999, use_synaptic_tagging=True, tau_trace_fast=0.9, tau_trace_slow=0.9998, dopamine_learning_rate=0.01, use_commitment_layer=True, commitment_threshold=10, revoke_threshold=5, prediction_error_threshold=0.1, solid_learning_rate_factor=0.1, target_fire_rate=0.02, homeostasis_rate=0.0001, local_homeostasis_rate=0.0005, trace_decay=0.999, use_meta_homeostasis=True, pid_kp=0.001, pid_ki=0.0001, pid_kd=0.0005, pid_max_integral=5.0, pid_max_output=0.01, pid_scale_factor=0.0001, use_imagination=True, imagination_interval=500, nightmare_threshold=0.05, use_social_learning=False, viral_top_k=5, shadow_confidence_threshold=0.2, use_social_quarantine=True, quarantine_duration=100, validation_threshold=0.7, max_influence_percent=0.1, use_hysteria_dampener=True, saturation_threshold=0.9, dampening_factor=0.5, recovery_rate=0.01, use_lateral_inhibition=True, inhibition_strength=0.2, wta_k=5, use_neural_darwinism=True, selection_pressure=0.1, reproduction_rate=0.05, fitness_decay=0.99, darwinism_interval=100, use_revolution_protocol=False, revolution_threshold=0.6, revolution_window=100, top_elite_percent=0.1, current_episode=0, input_amplification_factor=5.0, modulation_excitation=0.9, modulation_inhibition=1.2, restoration_rate=0.05, seed=42, output_path='results/snn')
+   ctx.connectivity type: <class 'float'>
+   ctx.connectivity value: 0.15
+   val > 0.0: True
+   float(val): 0.15
+
+--- CHECK: Rust Core IS available ---
+   theus_core: <module 'theus_core' from 'C:\\Users\\dohoang\\AppData\\Roaming\\Python\\Python312\\site-packages\\theus_core\\__init__.py'>
+
+3. Executing Process via Engine...
+
+--- INSIDE DEBUG PROCESS ---
+   Inside Process: ctx.global_ctx.connectivity type: <class 'float'>
+   Inside Process: dir(val): ['__abs__', '__add__', '__bool__', '__ceil__', '__class__', '__delattr__', '__dir__', '__divmod__', '__doc__', '__eq__', '__float__', '__floor__', '__floordiv__', '__format__', '__ge__', '__getattribute__', '__getformat__', '__getnewargs__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__int__', '__le__', '__lt__', '__mod__', '__mul__', '__ne__', '__neg__', '__new__', '__pos__', '__pow__', '__radd__', '__rdivmod__', '__reduce__', '__reduce_ex__', '__repr__', '__rfloordiv__', '__rmod__', '__rmul__', '__round__', '__rpow__', '__rsub__', '__rtruediv__', '__setattr__', '__sizeof__', '__str__', '__sub__', '__subclasshook__', '__truediv__', '__trunc__', 'as_integer_ratio', 'conjugate', 'fromhex', 'hex', 'imag', 'is_integer', 'real']
+   Inside Process: val > 0: True
+   Inside Process: float(val): 0.15
+--- FINISHED DEBUG SCRIPT ---

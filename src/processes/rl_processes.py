@@ -82,7 +82,10 @@ def observation_to_tensor(obs: Dict[str, Any]) -> torch.Tensor:
     
     # For now, simple features: [x, y, step_count, normalized_x, normalized_y]
     # TODO: Add goal position, switch states when available
-    step_count = obs.get('step_count', 0)
+    if isinstance(obs, dict):
+        step_count = obs.get('step_count', 0)
+    else:
+        step_count = 0
     
     features = [
         float(x),
@@ -124,14 +127,14 @@ def observation_to_state_key(obs: Dict[str, Any]) -> str:
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.current_observation',
-        'domain.snn_emotion_vector',
-        'domain.q_table',
-        'domain.current_exploration_rate',
-        'domain.gated_network'
+    inputs=['domain_ctx', 
+        'domain_ctx.current_observation',
+        'domain_ctx.snn_emotion_vector',
+        'domain_ctx.q_table',
+        'domain_ctx.current_exploration_rate',
+        'domain_ctx.gated_network'
     ],
-    outputs=['domain', 'domain_ctx', 'domain.last_action', 'domain.last_q_values'],
+    outputs=['domain_ctx', 'domain_ctx.last_action', 'domain_ctx.last_q_values'],
     side_effects=[]
 )
 def select_action_gated(ctx: SystemContext):
@@ -161,7 +164,20 @@ def select_action_gated(ctx: SystemContext):
         return
     
     # Emotion-modulated exploration
-    emotion_magnitude = float(torch.norm(emotion).item())
+    try:
+        if hasattr(emotion, '_target_obj'): # Is ContextGuard?
+            emo_tensor = emotion._target_obj
+        else:
+            emo_tensor = emotion
+            
+        if isinstance(emo_tensor, (list, tuple)):
+            emo_tensor = torch.tensor(emo_tensor, dtype=torch.float32)
+            
+        emotion_magnitude = float(torch.norm(emo_tensor).item())
+    except Exception as e:
+        # print(f"DEBUG: emotion_magnitude error: {e}")
+        emotion_magnitude = 0.0
+
     adjusted_exploration = ctx.domain_ctx.current_exploration_rate * (1.0 + 0.5 * emotion_magnitude)
     adjusted_exploration = min(adjusted_exploration, 1.0)
     
@@ -194,20 +210,20 @@ def select_action_gated(ctx: SystemContext):
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.q_table',
-        'domain.last_reward',
-        'domain.current_observation',
-        'domain.last_action',
-        'domain.gated_network',
-        'domain.gated_optimizer',
-        'domain.previous_observation',
-        'domain.previous_snn_emotion_vector',
-        'domain.snn_emotion_vector'
+    inputs=['domain_ctx', 
+        'domain_ctx.q_table',
+        'domain_ctx.last_reward',
+        'domain_ctx.current_observation',
+        'domain_ctx.last_action',
+        'domain_ctx.gated_network',
+        'domain_ctx.gated_optimizer',
+        'domain_ctx.previous_observation',
+        'domain_ctx.previous_snn_emotion_vector',
+        'domain_ctx.snn_emotion_vector'
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.q_table',
-        'domain.td_error'
+    outputs=['domain_ctx', 
+        'domain_ctx.q_table',
+        'domain_ctx.td_error'
     ],
     side_effects=[]
 )
@@ -229,7 +245,15 @@ def update_q_learning(ctx: SystemContext):
     next_state = str(ctx.domain_ctx.current_observation)
     
     action = ctx.domain_ctx.last_action
-    reward = ctx.domain_ctx.last_reward.get('total', 0.0)
+    # Handle dict or scalar reward
+    raw_reward = ctx.domain_ctx.last_reward
+    if isinstance(raw_reward, dict):
+        reward = raw_reward.get('total', 0.0)
+    else:
+        try:
+            reward = float(raw_reward)
+        except:
+            reward = 0.0
     
     # Skip if no previous state (first step of episode)
     if ctx.domain_ctx.previous_observation is None:

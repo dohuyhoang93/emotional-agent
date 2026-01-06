@@ -4,8 +4,8 @@ from src.adapters.environment_adapter import EnvironmentAdapter
 import numpy as np
 
 @process(
-    inputs=['domain_ctx', 'domain', 'domain.current_observation'], 
-    outputs=['domain', 'domain_ctx', 'domain.current_observation', 'domain.previous_observation'],
+    inputs=['domain_ctx', 'domain_ctx.current_observation'], 
+    outputs=['domain_ctx', 'domain_ctx.current_observation', 'domain_ctx.previous_observation'],
     side_effects=['env_adapter.get_sensor_vector']  # Updated
 )
 def perception(ctx: SystemContext, env_adapter: EnvironmentAdapter, agent_id: int):

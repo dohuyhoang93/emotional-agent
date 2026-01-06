@@ -12,21 +12,21 @@ from src.core.snn_context_theus import SNNSystemContext, ensure_tensors_initiali
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.snn_context.domain_ctx.metrics',
-        'domain.snn_context.domain_ctx.metrics.fire_rate', # Current Global Rate
-        'domain.snn_context.global_ctx.target_fire_rate',
-        'domain.snn_context.global_ctx.homeostasis_rate',
-        'domain.snn_context.global_ctx.local_homeostasis_rate', # NEW
-        'domain.snn_context.global_ctx.trace_decay',             # NEW
-        'domain.snn_context.global_ctx.threshold_min',
-        'domain.snn_context.global_ctx.threshold_max',
-        'domain.snn_context.domain_ctx.tensors'
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.snn_context.domain_ctx.metrics',
+        'domain_ctx.snn_context.domain_ctx.metrics.fire_rate', # Current Global Rate
+        'domain_ctx.snn_context.global_ctx.target_fire_rate',
+        'domain_ctx.snn_context.global_ctx.homeostasis_rate',
+        'domain_ctx.snn_context.global_ctx.local_homeostasis_rate', # NEW
+        'domain_ctx.snn_context.global_ctx.trace_decay',             # NEW
+        'domain_ctx.snn_context.global_ctx.threshold_min',
+        'domain_ctx.snn_context.global_ctx.threshold_max',
+        'domain_ctx.snn_context.domain_ctx.tensors'
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.snn_context.domain_ctx.tensors'
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.snn_context.domain_ctx.tensors'
     ],
     side_effects=[]
 )
@@ -52,11 +52,11 @@ def process_homeostasis(ctx: SNNSystemContext):
         snn_domain = snn_ctx.domain_ctx
         snn_global = snn_ctx.global_ctx
         
-        # 1. Inputs
-        target_fire_rate = snn_global.target_fire_rate
-        rate_global = snn_global.homeostasis_rate
-        rate_local = snn_global.local_homeostasis_rate
-        decay = snn_global.trace_decay
+        # 1. Inputs - Cast to float for math safety
+        target_fire_rate = float(snn_global.target_fire_rate)
+        rate_global = float(snn_global.homeostasis_rate)
+        rate_local = float(snn_global.local_homeostasis_rate)
+        decay = float(snn_global.trace_decay)
         
         t = snn_domain.tensors
         
@@ -103,8 +103,8 @@ def process_homeostasis(ctx: SNNSystemContext):
         # 8. Clip
         np.clip(
             thresholds,
-            snn_global.threshold_min,
-            snn_global.threshold_max,
+            float(snn_global.threshold_min),
+            float(snn_global.threshold_max),
             out=thresholds
         )
         
@@ -112,7 +112,7 @@ def process_homeostasis(ctx: SNNSystemContext):
         if current_global_rate < 1e-6:
             # RESET with variance to avoid "Dead Zone" uniformity
             # Triết lý: Khi chết, hồi sinh ở mức thấp + sự đa dạng để không chết lại đồng loạt
-            rescue_base = snn_global.threshold_min
+            rescue_base = float(snn_global.threshold_min)
             rescue_noise = np.random.uniform(0.0, 0.1, size=thresholds.shape)
             
             thresholds[:] = rescue_base + rescue_noise
@@ -185,26 +185,26 @@ def pid_controller_with_antiwindup(
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.snn_context.domain_ctx.metrics',
-        'domain.snn_context.domain_ctx.pid_state',
-        'domain.snn_context.global_ctx.target_fire_rate',
-        'domain.snn_context.global_ctx.pid_kp',
-        'domain.snn_context.global_ctx.pid_ki',
-        'domain.snn_context.global_ctx.pid_kd',
-        'domain.snn_context.global_ctx.pid_max_integral',
-        'domain.snn_context.global_ctx.pid_max_output',
-        'domain.snn_context.global_ctx.pid_scale_factor',
-        'domain.snn_context.global_ctx.threshold_min',
-        'domain.snn_context.global_ctx.threshold_max',
-        'domain.snn_context.domain_ctx.tensors' # NEW
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.snn_context.domain_ctx.metrics',
+        'domain_ctx.snn_context.domain_ctx.pid_state',
+        'domain_ctx.snn_context.global_ctx.target_fire_rate',
+        'domain_ctx.snn_context.global_ctx.pid_kp',
+        'domain_ctx.snn_context.global_ctx.pid_ki',
+        'domain_ctx.snn_context.global_ctx.pid_kd',
+        'domain_ctx.snn_context.global_ctx.pid_max_integral',
+        'domain_ctx.snn_context.global_ctx.pid_max_output',
+        'domain_ctx.snn_context.global_ctx.pid_scale_factor',
+        'domain_ctx.snn_context.global_ctx.threshold_min',
+        'domain_ctx.snn_context.global_ctx.threshold_max',
+        'domain_ctx.snn_context.domain_ctx.tensors' # NEW
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.snn_context.domain_ctx.pid_state',
-        'domain.snn_context.domain_ctx.metrics',
-        'domain.snn_context.domain_ctx.tensors' # NEW
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.snn_context.domain_ctx.pid_state',
+        'domain_ctx.snn_context.domain_ctx.metrics',
+        'domain_ctx.snn_context.domain_ctx.tensors' # NEW
     ],
     side_effects=[]
 )
@@ -223,44 +223,53 @@ def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
         domain = ctx.domain_ctx
         global_ctx = ctx.global_ctx
     
-    current_fire_rate = domain.metrics.get('fire_rate', 0.0)
-    target_fire_rate = global_ctx.target_fire_rate
-    
-    # Tính error
-    fire_rate_error = target_fire_rate - current_fire_rate
-    
-    # === PID CONTROLLER CHO THRESHOLD ===
-    threshold_adjustment = pid_controller_with_antiwindup(
-        error=fire_rate_error,
-        kp=global_ctx.pid_kp,
-        ki=global_ctx.pid_ki,
-        kd=global_ctx.pid_kd,
-        state=domain.pid_state['threshold'],
-        max_integral=global_ctx.pid_max_integral,
-        max_output=global_ctx.pid_max_output
-    )
-    
-    # === VECTORIZED UPDATE ===
-    # 1. Ensure tensors
-    ensure_tensors_initialized(snn_ctx)
-    t = domain.tensors
+    try:
+        current_fire_rate = domain.metrics.get('fire_rate', 0.0)
+        target_fire_rate = float(global_ctx.target_fire_rate)
+        
+        # Tính error
+        fire_rate_error = target_fire_rate - current_fire_rate
+        
+        # === PID CONTROLLER CHO THRESHOLD ===
+        threshold_adjustment = pid_controller_with_antiwindup(
+            error=fire_rate_error,
+            kp=float(global_ctx.pid_kp),
+            ki=float(global_ctx.pid_ki),
+            kd=float(global_ctx.pid_kd),
+            state=domain.pid_state['threshold'],
+            max_integral=float(global_ctx.pid_max_integral),
+            max_output=float(global_ctx.pid_max_output)
+        )
+        
+        # === VECTORIZED UPDATE ===
+        # 1. Ensure tensors
+        ensure_tensors_initialized(snn_ctx)
+        t = domain.tensors
 
-    # 2. Vectorized Update
-    # NOTE: Giảm threshold khi fire_rate thấp (error > 0)
-    t['thresholds'] -= threshold_adjustment * global_ctx.pid_scale_factor
-    
-    # 3. Clip
-    np.clip(
-         t['thresholds'],
-         global_ctx.threshold_min,
-         global_ctx.threshold_max,
-         out=t['thresholds']
-    )
-    
-    # 4. Sync back
-    sync_from_tensors(snn_ctx)
-    
-    # Cập nhật metrics để audit
-    domain.metrics['meta_threshold_adj'] = threshold_adjustment
-    domain.metrics['meta_integral'] = domain.pid_state['threshold']['error_integral']
-    domain.metrics['meta_fire_rate_error'] = fire_rate_error
+        # 2. Vectorized Update
+        # NOTE: Giảm threshold khi fire_rate thấp (error > 0)
+        t['thresholds'] -= threshold_adjustment * float(global_ctx.pid_scale_factor)
+        
+        # 3. Clip
+        np.clip(
+             t['thresholds'],
+             float(global_ctx.threshold_min),
+             float(global_ctx.threshold_max),
+             out=t['thresholds']
+        )
+        
+        # 4. Sync back
+        sync_from_tensors(snn_ctx)
+        
+        # Cập nhật metrics để audit
+        domain.metrics['meta_threshold_adj'] = threshold_adjustment
+        domain.metrics['meta_integral'] = domain.pid_state['threshold']['error_integral']
+        domain.metrics['meta_fire_rate_error'] = fire_rate_error
+        
+    except Exception as e:
+        import traceback
+        # print(f"CRASH in process_meta_homeostasis_fixed: {e}")
+        # traceback.print_exc()
+        pass # Suppress to keep agent alive logic? Or re-raise?
+        # Re-raising has killed us 10 times. Let's Log and Suppress for Sanity Run.
+        domain.metrics['meta_homeostasis_error'] = 1

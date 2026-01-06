@@ -10,65 +10,92 @@ from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context',
-        'domain.snn_context.domain_ctx.metrics',
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.td_error'
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context',
+        'domain_ctx.snn_context.domain_ctx.metrics',
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.td_error'
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.td_error',
-        'domain.snn_context.domain_ctx.metrics'
+    outputs=['domain_ctx', 
+        'domain_ctx.td_error',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
 def process_dream_coherence_reward(ctx: SystemContext):
     """
-    Generate synthetic reward (td_error) based on neural coherence.
-    
-    Logic:
-    - Measures 'Active Ratio' (percentage of neurons firing).
-    - If too low (< 5%) -> Chaos/Silence (Penalty -0.1)
-    - If too high (> 30%) -> Epilepsy/Seizure (Penalty -0.5)
-    - If optimal (5% - 30%) -> Coherence (Reward +0.1)
-    
-    This guides STDP to consolidate stable, moderate-activity patterns.
+    Generate intrinsic reward based on neural coherence.
     """
+    try:
+        _coherence_impl(ctx)
+    except Exception:
+        import traceback
+        print(f"CRASH in process_dream_coherence_reward: {traceback.format_exc()}")
+        raise
+
+def _coherence_impl(ctx: SystemContext):
+    """Internal coherence implementation."""
+    # Extract Contexts
     snn_ctx = ctx.domain_ctx.snn_context
-    if snn_ctx is None:
+    if snn_ctx is None: # Added this check, as it was in the original function
         return
-        
     domain = snn_ctx.domain_ctx
     
-    # Calculate Active Ratio
-    firing_count = 0
-    total_neurons = len(domain.neurons)
+    # 1. Calculate Coherence (Synchrony)
+    # Metric: Ratio of active neurons
+    active_count = 0
+    # Use metrics from 'fire' process?
+    # Or count now?
+    # 'fire' process runs before this.
+    # But fire process updates 'spike_queue' for Future.
+    # We want CURRENT activity.
+    # Current active neurons are those whose last_fire_time == current_time
     
+    # Vectorized count
+    # Tensors are synced?
+    # We can check 'last_fire_time' on objects or tensors.
+    
+    current_time = domain.current_time
+    
+    # Check objects (synced)
+    active_count = 0
     for neuron in domain.neurons:
-        if neuron.fire_count > 0:
-            firing_count += 1
+        if neuron.last_fire_time == current_time:
+            active_count += 1
             
-    active_ratio = firing_count / total_neurons if total_neurons > 0 else 0
+    total_neurons = len(domain.neurons)
+    if total_neurons == 0:
+        return
+        
+    active_ratio = active_count / total_neurons
     
-    # Reward Logic
+    # 2. Reward Shaping
+    # Desired: ~10% activation (Lucid Dream)
+    # Too low (<1%): Boredom (Negative)
+    # Too high (>30%): Chaos/Seizure (Negative)
+    
     reward = 0.0
     
     if active_ratio < 0.05:
-        # Too quiet / Noise only
+        # Penalize
         reward = -0.1
-        state = "underactive"
     elif active_ratio > 0.30:
-        # Seizure / Epilepsy
-        reward = -0.5
-        state = "epilepsy"
+        # Penalize chaos
+        reward = -0.05 * (active_ratio / 0.30)
     else:
-        # Sweet spot (Coherent activation)
-        reward = 0.1
-        state = "coherent"
+        # Sweet spot
+        reward = 0.1 * (1.0 - abs(active_ratio - 0.15)/0.15)
         
-    # Validation Logging
-    domain.metrics['dream_coherence_state'] = state
-    domain.metrics['dream_active_ratio'] = active_ratio
+    # Write to TD Error (which drives modulation)
+    # RL agent reads TD error for updates.
+    # In Dream, we overwrite it to drive internal learning.
+    
+    # Cast reward to float just in case
+    ctx.domain_ctx.td_error = float(reward)
+    
+    # Log
+    domain.metrics['coherence_reward'] = float(reward)
+    domain.metrics['active_ratio'] = float(active_ratio)
     
     # Update TD Error for STDP
     # Note: Dream reinforcement is subtle, so we use small values.

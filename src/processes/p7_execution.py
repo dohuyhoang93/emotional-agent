@@ -24,15 +24,15 @@ from src.adapters.environment_adapter import EnvironmentAdapter
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.selected_action',
-        'domain.current_observation',
-        'domain.last_reward'
+    inputs=['domain_ctx', 
+        'domain_ctx.selected_action',
+        'domain_ctx.current_observation',
+        'domain_ctx.last_reward'
     ], 
-    outputs=['domain', 'domain_ctx', 
-        'domain.current_observation',
-        'domain.previous_observation',
-        'domain.last_reward'
+    outputs=['domain_ctx', 
+        'domain_ctx.current_observation',
+        'domain_ctx.previous_observation',
+        'domain_ctx.last_reward'
     ],
     side_effects=[
         'env_adapter.perform_action',

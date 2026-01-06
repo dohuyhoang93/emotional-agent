@@ -1,0 +1,15 @@
+--- STARTING NESTED DEBUG SCRIPT ---
+   SNN Context Created.
+   Orchestrator Context Created & SNN Injected.
+   Initializing Engine (Strict Mode)...
+
+   Executing Nested Process...
+
+--- INSIDE DEBUG NESTED PROCESS ---
+   d = ctx.domain_ctx type: <class 'builtins.ContextGuard'>
+   s = d.snn_context type: <class 'builtins.ContextGuard'>
+   g = s.global_ctx type: <class 'builtins.ContextGuard'>
+   val = g.connectivity type: <class 'float'>
+   val repr: 0.15
+   float(val): 0.15
+--- FINISHED ---

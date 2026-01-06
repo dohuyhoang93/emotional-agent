@@ -16,16 +16,20 @@ from src.core.snn_context_theus import (
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 'domain.snn_context'],
-    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
+    inputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=['domain_ctx', 'domain_ctx.snn_context'],
     side_effects=[]
 )
 def process_integrate(ctx: SystemContext):
     """
-    Quy trình tích phân điện thế (Vectorized).
-    Wraps _integrate_impl.
+    Step 1: Integration (Decay + Sum Inputs).
     """
-    _integrate_impl(ctx, sync=True)
+    try:
+        _integrate_impl(ctx)
+    except Exception:
+        import traceback
+        print(f"CRASH in process_integrate: {traceback.format_exc()}")
+        raise
 
 
 def _integrate_impl(ctx: SystemContext, sync: bool = True):
@@ -50,14 +54,20 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
     weights = t['weights']      # (N, N)
     protos = t['prototypes']    # (N, D)
     
-    tau_decay = snn_ctx.global_ctx.tau_decay
+    try:
+        tau_decay = float(snn_ctx.global_ctx.tau_decay)
+    except (TypeError, AttributeError):
+        tau_decay = 0.9
     
     # 2. Vectorized Decay
     pots *= tau_decay
     p_vecs *= tau_decay
     
     # 3. Handle Spikes (Vectorized Buffer)
-    current_time = snn_ctx.domain_ctx.current_time
+    try:
+        current_time = int(snn_ctx.domain_ctx.current_time)
+    except (TypeError, AttributeError):
+        current_time = 0
     
     use_vectorized = t.get('use_vectorized_queue', False)
     
@@ -118,11 +128,11 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context',
-        'domain.snn_context.domain_ctx.metrics'
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
-    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
+    outputs=['domain_ctx', 'domain_ctx.snn_context'],
     side_effects=[]
 )
 def process_fire(ctx: SystemContext):
@@ -201,16 +211,21 @@ def process_fire(ctx: SystemContext):
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context',
-        'domain.snn_context.domain_ctx.metrics'
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
-    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
+    outputs=['domain_ctx', 'domain_ctx.snn_context'],
     side_effects=[]
 )
 def process_fire(ctx: SystemContext):  # noqa: F811
     """Quy trình bắn xung (Vectorized). Wraps _fire_impl."""
-    _fire_impl(ctx, sync=True)
+    try:
+        _fire_impl(ctx, sync=True)
+    except Exception:
+        import traceback
+        print(f"CRASH in process_fire: {traceback.format_exc()}")
+        raise
 
 def _fire_impl(ctx: SystemContext, sync: bool = True):
     """Internal fire implementation."""
@@ -228,7 +243,10 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
     last_fire = t['last_fire_times']
     p_vecs = t['potential_vectors']
     
-    cur_time = snn_ctx.domain_ctx.current_time
+    try:
+        cur_time = int(snn_ctx.domain_ctx.current_time)
+    except (TypeError, AttributeError):
+        cur_time = 0
     refractory = 5
     
     # DEBUG: Tensor State - DISABLED for Production
@@ -305,8 +323,8 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
         metrics['avg_firing_rate'] = 0.0
     
 @process(
-    inputs=['domain_ctx', 'domain', 'domain.snn_context'],
-    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
+    inputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=['domain_ctx', 'domain_ctx.snn_context'],
     side_effects=[]
 )
 def process_tick(ctx: SystemContext):
@@ -320,5 +338,7 @@ def _tick_impl(ctx: SystemContext):
     if snn_ctx is None:
         return
     
-    snn_ctx.domain_ctx.current_time += 1
+    # Safe increment
+    now = int(snn_ctx.domain_ctx.current_time)
+    snn_ctx.domain_ctx.current_time = now + 1
 

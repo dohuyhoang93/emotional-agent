@@ -20,10 +20,10 @@ from src.core.snn_context_theus import sync_to_tensors
 # ============================================================================
 
 @process(
-    inputs=['domain_ctx', 'domain', 'domain.snn_context'],
-    outputs=['domain', 'domain_ctx', 
-        'domain.snn_emotion_vector',
-        'domain.previous_snn_emotion_vector'
+    inputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_emotion_vector',
+        'domain_ctx.previous_snn_emotion_vector'
     ],
     side_effects=[]
 )
@@ -126,8 +126,8 @@ def _encode_emotion_vector_impl(ctx: SystemContext):
 # ============================================================================
 
 @process(
-    inputs=['domain_ctx', 'domain', 'domain.current_observation', 'domain.snn_context'],
-    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
+    inputs=['domain_ctx', 'domain_ctx.current_observation', 'domain_ctx.snn_context'],
+    outputs=['domain_ctx', 'domain_ctx.snn_context'],
     side_effects=[]
 )
 def encode_state_to_spikes(ctx: SystemContext):
@@ -189,7 +189,7 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
         # Amplify để vượt threshold
         # NOTE: Tăng từ 2.0 → 5.0 để neurons có thể bắn (Configurable)
         # Sensor values [0, 1], threshold = 1.0
-        amplification = snn_ctx.global_ctx.input_amplification_factor
+        amplification = float(snn_ctx.global_ctx.input_amplification_factor)
         val = sensor_vector[i]
         
         # DEBUG: Print first non-zero input
@@ -209,8 +209,8 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
 # ============================================================================
 
 @process(
-    inputs=['domain_ctx', 'domain', 'domain.last_action', 'domain.snn_context'],
-    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
+    inputs=['domain_ctx', 'domain_ctx.last_action', 'domain_ctx.snn_context'],
+    outputs=['domain_ctx', 'domain_ctx.snn_context'],
     side_effects=[]
 )
 def modulate_snn_attention(ctx: SystemContext):
@@ -278,11 +278,11 @@ def modulate_snn_attention(ctx: SystemContext):
     if action >= 4:
         # INHIBITORY MODE
         base_action = action - 4
-        modulation_factor = snn_ctx.global_ctx.modulation_inhibition # Harder to fire (Inhibit)
+        modulation_factor = float(snn_ctx.global_ctx.modulation_inhibition) # Harder to fire (Inhibit)
     else:
         # EXCITATORY MODE
         base_action = action
-        modulation_factor = snn_ctx.global_ctx.modulation_excitation # Easier to fire (Excite)
+        modulation_factor = float(snn_ctx.global_ctx.modulation_excitation) # Easier to fire (Excite)
 
     # Calculate Indices based on base_action
     # Risk: If N=100, N//4 = 25. Indices 0-25, 25-50, 50-75, 75-100.
@@ -327,8 +327,8 @@ def modulate_snn_attention(ctx: SystemContext):
 
 
 @process(
-    inputs=['domain_ctx', 'domain', 'domain.snn_context'],
-    outputs=['domain', 'domain_ctx', 'domain.snn_context'],
+    inputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=['domain_ctx', 'domain_ctx.snn_context'],
     side_effects=[]
 )
 def restore_snn_attention(ctx: SystemContext):
@@ -352,8 +352,8 @@ def restore_snn_attention(ctx: SystemContext):
     t = snn_ctx.domain_ctx.tensors
     thresh = t['thresholds']
     
-    baseline = snn_ctx.global_ctx.initial_threshold
-    restoration_rate = snn_ctx.global_ctx.restoration_rate # Elastic return to baseline
+    baseline = float(snn_ctx.global_ctx.initial_threshold)
+    restoration_rate = float(snn_ctx.global_ctx.restoration_rate) # Elastic return to baseline
     
     # 2. Apply Restoration Force
     # Delta = (Target - Current) * Rate
@@ -373,8 +373,8 @@ def restore_snn_attention(ctx: SystemContext):
 # ============================================================================
 
 @process(
-    inputs=['domain_ctx', 'domain', 'domain.snn_context'],
-    outputs=['domain', 'domain_ctx', 'domain.intrinsic_reward'],
+    inputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=['domain_ctx', 'domain_ctx.intrinsic_reward'],
     side_effects=[]
 )
 def compute_intrinsic_reward_snn(ctx: SystemContext):

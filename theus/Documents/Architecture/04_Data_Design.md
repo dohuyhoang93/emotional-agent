@@ -58,6 +58,9 @@ Zone giúp Engine phân loại rác và tài sản:
 | **DATA** | (None) | Business State | **Yes** | `user_id`, `cart_items` |
 | **SIGNAL** | `sig_`, `cmd_` | Transient Event | **No** (Reset sau mỗi Step) | `sig_stop_machine`, `cmd_send_email` |
 | **META** | `meta_` | Diagnostic Info | **No** (Optional Persist) | `meta_execution_time`, `meta_last_trace` |
+| **HEAVY** | `heavy_` | Large/External Objects | **No** (Log-only, Audit via introspection) | `heavy_model_weights`, `heavy_tensor` |
+
+> **Note:** HEAVY zone dành cho các đối tượng không thể/không nên copy như Tensor, Model weights. Transaction sẽ không tạo shadow cho HEAVY objects, chỉ log mutations. Audit vẫn có thể kiểm tra qua introspection methods (`.mean()`, `.shape()`) được khai báo trong spec.
 
 ---
 

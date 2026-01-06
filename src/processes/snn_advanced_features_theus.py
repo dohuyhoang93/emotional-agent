@@ -18,21 +18,21 @@ from typing import List
 # ============================================================================
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context', 
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.snn_context.domain_ctx.metrics', 
-        'domain.snn_context.domain_ctx.emotion_saturation_level',
-        'domain.snn_context.domain_ctx.dampening_active',
-        'domain.snn_context.global_ctx.saturation_threshold',
-        'domain.snn_context.global_ctx.dampening_factor',
-        'domain.snn_context.global_ctx.recovery_rate'
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context', 
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.snn_context.domain_ctx.metrics', 
+        'domain_ctx.snn_context.domain_ctx.emotion_saturation_level',
+        'domain_ctx.snn_context.domain_ctx.dampening_active',
+        'domain_ctx.snn_context.global_ctx.saturation_threshold',
+        'domain_ctx.snn_context.global_ctx.dampening_factor',
+        'domain_ctx.snn_context.global_ctx.recovery_rate'
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.snn_context.domain_ctx.emotion_saturation_level',
-        'domain.snn_context.domain_ctx.dampening_active',
-        'domain.snn_context.domain_ctx.metrics'
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.snn_context.domain_ctx.emotion_saturation_level',
+        'domain_ctx.snn_context.domain_ctx.dampening_active',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
@@ -40,7 +40,12 @@ def process_hysteria_dampener(ctx: SystemContext):
     """
     Prevent runaway emotions (saturation). Wraps _hysteria_impl.
     """
-    _hysteria_impl(ctx)
+    try:
+        _hysteria_impl(ctx)
+    except Exception:
+        import traceback
+        print(f"CRASH in process_hysteria_dampener: {traceback.format_exc()}")
+        raise
 
 def _hysteria_impl(ctx: SystemContext):
     """Internal Hysteria implementation (Object-based)."""
@@ -49,18 +54,34 @@ def _hysteria_impl(ctx: SystemContext):
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
     
-    fire_rate = domain.metrics.get('fire_rate', 0.0)
     
+    fire_rate = domain.metrics.get('fire_rate', 0.0)
+    try:
+        current_level = float(domain.emotion_saturation_level)
+    except:
+        current_level = 0.0
+    
+    # Direct access (validated as float)
+    try:
+        sat_threshold = float(global_ctx.saturation_threshold)
+        rec_rate = float(global_ctx.recovery_rate)
+        damp_factor = float(global_ctx.dampening_factor)
+    except (TypeError, AttributeError):
+        # Fallback for ContextGuard issues
+        sat_threshold = 0.9
+        rec_rate = 0.01
+        damp_factor = 0.5
+
     # Detect saturation
-    if fire_rate > global_ctx.saturation_threshold:
+    if fire_rate > sat_threshold:
         domain.dampening_active = True
-        domain.emotion_saturation_level += 0.1
+        current_level += 0.1
     else:
         # Recovery
-        domain.emotion_saturation_level -= global_ctx.recovery_rate
+        current_level -= rec_rate
     
     domain.emotion_saturation_level = np.clip(
-        domain.emotion_saturation_level, 0.0, 1.0
+        current_level, 0.0, 1.0
     )
     
     # Apply dampening
@@ -73,7 +94,7 @@ def _hysteria_impl(ctx: SystemContext):
         t = domain.tensors
         
         # Vector Update: Multiply all thresholds
-        t['thresholds'] *= (1 + global_ctx.dampening_factor)
+        t['thresholds'] *= (1 + damp_factor)
         
         # Clip
         np.clip(
@@ -100,29 +121,35 @@ def _hysteria_impl(ctx: SystemContext):
 # ============================================================================
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context', 
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.snn_context.domain_ctx.spike_queue',
-        'domain.snn_context.domain_ctx.current_time',
-        'domain.snn_context.domain_ctx.metrics',
-        'domain.snn_context.global_ctx.inhibition_strength',
-        'domain.snn_context.global_ctx.wta_k'
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context', 
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.snn_context.domain_ctx.spike_queue',
+        'domain_ctx.snn_context.domain_ctx.current_time',
+        'domain_ctx.snn_context.domain_ctx.metrics',
+        'domain_ctx.snn_context.global_ctx.inhibition_strength',
+        'domain_ctx.snn_context.global_ctx.wta_k'
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.snn_context.domain_ctx.metrics'
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
 def process_lateral_inhibition(ctx: SystemContext):
     """
-    Winner-Take-All competition cho sparse coding. Wraps _lateral_inhibition_vectorized.
     """
-    from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
-    ensure_tensors_initialized(ctx.domain_ctx.snn_context)
-    _lateral_inhibition_vectorized(ctx)
-    sync_from_tensors(ctx.domain_ctx.snn_context)
+    """
+    """
+    try:
+        from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
+        ensure_tensors_initialized(ctx.domain_ctx.snn_context)
+        _lateral_inhibition_vectorized(ctx)
+        sync_from_tensors(ctx.domain_ctx.snn_context)
+    except Exception:
+        import traceback
+        print(f"CRASH in process_lateral_inhibition: {traceback.format_exc()}")
+        raise
 
 def _lateral_inhibition_vectorized(ctx: SystemContext):
     """Internal Vectorized Lateral Inhibition."""
@@ -145,7 +172,15 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
     if not current_spikes:
         return
     
-    if len(current_spikes) <= global_ctx.wta_k:
+    # Cast for safety
+    try:
+        wta_k = int(global_ctx.wta_k)
+        inhib_str = float(global_ctx.inhibition_strength)
+    except:
+        wta_k = 5
+        inhib_str = 0.5
+
+    if len(current_spikes) <= wta_k:
         # Not enough spikes to inhibit
         domain.metrics['wta_winners'] = len(current_spikes)
         domain.metrics['wta_losers'] = 0
@@ -164,7 +199,7 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
     
     # 3. Identify losers (in the subset)
     # The first K are winners. The rest are losers.
-    loser_local_indices = sorted_local_indices[global_ctx.wta_k:]
+    loser_local_indices = sorted_local_indices[wta_k:]
     loser_global_indices = spike_indices[loser_local_indices]
     
     # 4. Inhibit Losers
@@ -172,7 +207,7 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
     # Note: We need to increase 'inhibition_received' on objects? 
     # Tensors dont support 'inhibition_received'.
     # We simplify logic: Just subtract potential in Tensor.
-    pots[loser_global_indices] -= global_ctx.inhibition_strength
+    pots[loser_global_indices] -= inhib_str
     pots[loser_global_indices] = np.maximum(pots[loser_global_indices], 0.0)
     
     # 5. Remove Losers from Spike Queue?
@@ -246,20 +281,18 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
 # ============================================================================
 
 @process(
-    inputs=['domain', 
-        'domain.snn_context',
-        'domain.td_error',
-        'domain.snn_context.domain_ctx.synapses',
-        'domain_ctx',
+    inputs=['domain_ctx', 
         'domain_ctx.snn_context',
-        'domain.snn_context.domain_ctx',
-        'domain.snn_context.domain_ctx.metrics',
-        'domain.snn_context.global_ctx'
+        'domain_ctx.td_error',
+        'domain_ctx.snn_context.domain_ctx.synapses',
+        'domain_ctx.snn_context.domain_ctx',
+        'domain_ctx.snn_context.domain_ctx.metrics',
+        'domain_ctx.snn_context.global_ctx'
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.snn_context.domain_ctx.synapses',
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.snn_context.domain_ctx.metrics'
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.synapses',
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
@@ -286,8 +319,18 @@ def process_neural_darwinism(
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
     
+    # Safe Cast
+    try:
+        darwinism_interval = int(global_ctx.darwinism_interval)
+        fitness_decay = float(global_ctx.fitness_decay)
+        selection_pressure = float(global_ctx.selection_pressure)
+    except:
+        darwinism_interval = 1000
+        fitness_decay = 0.999
+        selection_pressure = 0.1
+
     # Check interval
-    if domain.current_time % global_ctx.darwinism_interval != 0:
+    if domain.current_time % darwinism_interval != 0:
         return
     
     error = abs(rl_ctx.domain_ctx.td_error)
@@ -301,13 +344,13 @@ def process_neural_darwinism(
         else:
             synapse.fitness -= 0.05
         
-        synapse.fitness *= global_ctx.fitness_decay
+        synapse.fitness *= fitness_decay
         synapse.fitness = np.clip(synapse.fitness, 0.0, 1.0)
     
     # 2. Selection: Remove weak
     if len(domain.synapses) > 100:  # Keep minimum population
         fitnesses = [s.fitness for s in domain.synapses]
-        threshold = np.percentile(fitnesses, global_ctx.selection_pressure * 100)
+        threshold = np.percentile(fitnesses, selection_pressure * 100)
         
         # FIX: Protect SOLID synapses from culling
         survivors = [
@@ -461,14 +504,24 @@ def process_revolution_protocol(
         return
     
     # 2. COOLDOWN CHECK (Prevent rapid re-triggering)
-    current_episode = getattr(global_ctx, 'current_episode', 0)
-    if (current_episode - domain.last_revolution_episode) < global_ctx.revolution_window:
+    # Safe Cast
+    try:
+        current_episode = int(getattr(global_ctx, 'current_episode', 0))
+        rev_window = int(global_ctx.revolution_window)
+        rev_threshold = float(global_ctx.revolution_threshold)
+        top_elite = float(global_ctx.top_elite_percent)
+    except:
+        rev_window = 100
+        rev_threshold = 0.6
+        top_elite = 0.1
+
+    if (current_episode - domain.last_revolution_episode) < rev_window:
         domain.metrics['revolution_skipped'] = 1
         domain.metrics['revolution_cooldown_remaining'] = global_ctx.revolution_window - (current_episode - domain.last_revolution_episode)
         return  # Still in cooldown period
     
     # 3. Check revolution condition
-    if len(domain.population_performance) < global_ctx.revolution_window:
+    if len(domain.population_performance) < rev_window:
         return  # Not enough data
     
     # Compute ancestor performance
@@ -501,7 +554,7 @@ def process_revolution_protocol(
     )
     outperform_ratio = outperform_count / len(domain.population_performance)
 
-    if outperform_ratio > global_ctx.revolution_threshold:
+    if outperform_ratio > rev_threshold:
         domain.revolution_triggered = True
         domain.last_revolution_episode = current_episode  # Update cooldown timestamp
         
@@ -514,7 +567,7 @@ def process_revolution_protocol(
         
         if all_perfs:
             all_perfs.sort(key=lambda x: x[1], reverse=True)
-            elite_count = max(1, int(len(all_perfs) * global_ctx.top_elite_percent))
+            elite_count = max(1, int(len(all_perfs) * top_elite))
             elite_indices = [idx for idx, _ in all_perfs[:elite_count]]
             
             # 5. Compute new ancestor
@@ -568,17 +621,17 @@ def _revolution_impl(
 # ============================================================================
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context',
-        'domain.snn_context.domain_ctx.synapses',
-        'domain.snn_context.domain_ctx.ancestor_weights',
-        'domain.snn_context.domain_ctx.metrics',
-        'domain.snn_context.global_ctx.assimilation_rate', # New param
-        'domain.snn_context.global_ctx.diversity_noise'    # New param
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context',
+        'domain_ctx.snn_context.domain_ctx.synapses',
+        'domain_ctx.snn_context.domain_ctx.ancestor_weights',
+        'domain_ctx.snn_context.domain_ctx.metrics',
+        'domain_ctx.snn_context.global_ctx.assimilation_rate', # New param
+        'domain_ctx.snn_context.global_ctx.diversity_noise'    # New param
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.snn_context.domain_ctx.synapses',
-        'domain.snn_context.domain_ctx.metrics'
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.synapses',
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
@@ -605,8 +658,13 @@ def process_assimilate_ancestor(ctx: SystemContext):
         return
         
     # Default params if not in config
-    alpha = getattr(global_ctx, 'assimilation_rate', 0.05)
-    noise_std = getattr(global_ctx, 'diversity_noise', 0.02)
+    # Safe Cast
+    try:
+        alpha = float(getattr(global_ctx, 'assimilation_rate', 0.05))
+        noise_std = float(getattr(global_ctx, 'diversity_noise', 0.02))
+    except:
+        alpha = 0.05
+        noise_std = 0.02
     
     assimilated_count = 0
     

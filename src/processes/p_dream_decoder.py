@@ -12,35 +12,40 @@ from theus.contracts import process
 from src.core.context import SystemContext
 
 @process(
-    inputs=['domain_ctx', 'domain', 
-        'domain.snn_context',
-        'domain.snn_context.domain_ctx.spike_queue',
-        'domain.snn_context.domain_ctx.neurons',
-        'domain.metrics'
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context',
+        'domain_ctx.snn_context.domain_ctx.spike_queue',
+        'domain_ctx.snn_context.domain_ctx.neurons',
+        'domain_ctx.metrics'
     ],
-    outputs=['domain', 'domain_ctx', 
-        'domain.metrics' # Writes 'dream_state_x', 'dream_state_y'
+    outputs=['domain_ctx', 
+        'domain_ctx.snn_context.domain_ctx.metrics'
     ],
     side_effects=[]
 )
 def process_decode_dream(ctx: SystemContext):
     """
     Giải mã giấc mơ: Spike Queue -> Physical State (x, y).
-    
-    Logic:
-    - Lấy các neuron đang bắn (Active Neurons) trong mơ.
-    - Lấy prototype vector của chúng.
-    - Dùng vector này để suy ngược ra tọa độ (x, y).
-      (Dựa trên heuristic của encode_state_to_spikes: x%8, y%8).
-    
-    NOTE: Đây là 'Inverse Model' sơ khai.
     """
+    try:
+        _decode_impl(ctx)
+    except Exception:
+        import traceback
+        print(f"CRASH in process_decode_dream: {traceback.format_exc()}")
+        raise
+
+def _decode_impl(ctx: SystemContext):
     domain = ctx.domain_ctx
     snn_ctx = domain.snn_context
     if snn_ctx is None: return
 
     snn_domain = snn_ctx.domain_ctx
-    current_time = snn_domain.current_time
+    
+    # Cast current_time to int for safety
+    try:
+        current_time = int(snn_domain.current_time)
+    except:
+        current_time = 0
     
     # Get active spikes
     spikes = snn_domain.spike_queue.get(current_time, [])
@@ -59,19 +64,10 @@ def process_decode_dream(ctx: SystemContext):
     # Mean vector representing the dream state
     dream_vector = np.mean(active_prototypes, axis=0) # 16-dim
     
-    # --- DECODING HEURISTIC ---
-    # Encode logic was:
-    # pattern[x % 8] = 1.0
-    # pattern[8 + (y % 8)] = 1.0
-    
-    # Inverse logic: Find max index in first 8 and last 8
-    # x_part = dream_vector[0:8]
-    # y_part = dream_vector[8:16]
-    
     # Simple Argmax Decoding
     x_dim = np.argmax(dream_vector[0:8])
     y_dim = np.argmax(dream_vector[8:16])
     
-    # Store decoded state in metrics for Validator to see
+    # Store decoded state in metrics (explicit cast)
     snn_domain.metrics['dream_state_x'] = int(x_dim)
     snn_domain.metrics['dream_state_y'] = int(y_dim)
