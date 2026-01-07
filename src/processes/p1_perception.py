@@ -3,6 +3,8 @@ from src.core.context import SystemContext
 from src.adapters.environment_adapter import EnvironmentAdapter
 import numpy as np
 
+
+
 @process(
     inputs=['domain_ctx', 'domain_ctx.current_observation'], 
     outputs=['domain_ctx', 'domain_ctx.current_observation', 'domain_ctx.previous_observation'],
@@ -19,6 +21,8 @@ def perception(ctx: SystemContext, env_adapter: EnvironmentAdapter, agent_id: in
     ctx.domain_ctx.previous_observation = ctx.domain_ctx.current_observation
     
     # 2. Lấy observation mới qua Adapter
+    agent_id = int(agent_id) # Force cast to int to fix KeyError '0' if it's string
+    
     # Try sensor vector first (new system), fallback to dict (legacy)
     try:
         raw_obs = env_adapter.get_sensor_vector(agent_id)

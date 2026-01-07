@@ -1,0 +1,255 @@
+    Checking theus_core v0.1.0 (C:\Users\dohoang\projects\EmotionAgent\theus)
+warning: unused import: `pyo3::types::PyAny`
+ --> src\delta.rs:2:5
+  |
+2 | use pyo3::types::PyAny;
+  |     ^^^^^^^^^^^^^^^^^^
+  |
+  = note: `#[warn(unused_imports)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused import: `error`
+ --> src\audit.rs:3:17
+  |
+3 | use log::{warn, error};
+  |                 ^^^^^
+
+warning: unused imports: `PyList` and `PyString`
+ --> src\audit.rs:5:27
+  |
+5 | use pyo3::types::{PyDict, PyString, PyList, PyAny};
+  |                           ^^^^^^^^  ^^^^^^
+
+warning: unused imports: `Arc` and `Mutex`
+ --> src\engine.rs:3:17
+  |
+3 | use std::sync::{Arc, Mutex};
+  |                 ^^^  ^^^^^
+
+warning: unused import: `pyo3::types::PyAny`
+ --> src\guards.rs:3:5
+  |
+3 | use pyo3::types::PyAny;
+  |     ^^^^^^^^^^^^^^^^^^
+
+warning: unused imports: `Arc` and `Mutex`
+ --> src\guards.rs:5:17
+  |
+5 | use std::sync::{Arc, Mutex};
+  |                 ^^^  ^^^^^
+
+warning: unused import: `PyAny`
+ --> src\structures.rs:2:35
+  |
+2 | use pyo3::types::{PyList, PyDict, PyAny};
+  |                                   ^^^^^
+
+warning: use of deprecated constant `structures::TrackedList::__pymethod_pop__::SIGNATURE`: this function has implicit defaults for the trailing `Option<T>` arguments 
+         = note: these implicit defaults are being phased out 
+         = help: add `#[pyo3(signature = (index=None))]` to this function to silence this warning and keep the current behavior
+  --> src\structures.rs:89:8
+   |
+89 |     fn pop(&self, py: Python, index: Option<isize>) -> PyResult<PyObject> {
+   |        ^^^
+   |
+   = note: `#[warn(deprecated)]` on by default
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+   --> src\guards.rs:109:13
+    |
+109 |         })?.into_py(py))
+    |             ^^^^^^^
+
+error[E0308]: mismatched types
+   --> src\structures.rs:20:47
+    |
+ 20 |         let val = self.data.bind(py).get_item(index)?.unbind();
+    |                                      -------- ^^^^^ expected `usize`, found `isize`
+    |                                      |
+    |                                      arguments to this method are incorrect
+    |
+note: method defined here
+   --> C:\Users\dohoang\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\pyo3-0.23.5\src\types\list.rs:175:8
+    |
+175 |     fn get_item(&self, index: usize) -> PyResult<Bound<'py, PyAny>>;
+    |        ^^^^^^^^
+help: you can convert an `isize` to a `usize` and panic if the converted value doesn't fit
+    |
+ 20 |         let val = self.data.bind(py).get_item(index.try_into().unwrap())?.unbind();
+    |                                                    ++++++++++++++++++++
+
+error[E0308]: mismatched types
+   --> src\structures.rs:31:46
+    |
+ 31 |                  self.data.bind(py).set_item(index, shadow.clone_ref(py))?;
+    |                                     -------- ^^^^^ expected `usize`, found `isize`
+    |                                     |
+    |                                     arguments to this method are incorrect
+    |
+note: method defined here
+   --> C:\Users\dohoang\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\pyo3-0.23.5\src\types\list.rs:196:8
+    |
+196 |     fn set_item<I>(&self, index: usize, item: I) -> PyResult<()>
+    |        ^^^^^^^^
+help: you can convert an `isize` to a `usize` and panic if the converted value doesn't fit
+    |
+ 31 |                  self.data.bind(py).set_item(index.try_into().unwrap(), shadow.clone_ref(py))?;
+    |                                                   ++++++++++++++++++++
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+  --> src\structures.rs:44:50
+   |
+44 |                  return Ok(Py::new(py, tracked)?.into_py(py));
+   |                                                  ^^^^^^^
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+  --> src\structures.rs:52:50
+   |
+52 |                  return Ok(Py::new(py, tracked)?.into_py(py));
+   |                                                  ^^^^^^^
+
+error[E0308]: mismatched types
+   --> src\structures.rs:60:51
+    |
+ 60 |         let old_val = self.data.bind(py).get_item(index)?.unbind();
+    |                                          -------- ^^^^^ expected `usize`, found `isize`
+    |                                          |
+    |                                          arguments to this method are incorrect
+    |
+note: method defined here
+   --> C:\Users\dohoang\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\pyo3-0.23.5\src\types\list.rs:175:8
+    |
+175 |     fn get_item(&self, index: usize) -> PyResult<Bound<'py, PyAny>>;
+    |        ^^^^^^^^
+help: you can convert an `isize` to a `usize` and panic if the converted value doesn't fit
+    |
+ 60 |         let old_val = self.data.bind(py).get_item(index.try_into().unwrap())?.unbind();
+    |                                                        ++++++++++++++++++++
+
+error[E0308]: mismatched types
+   --> src\structures.rs:61:37
+    |
+ 61 |         self.data.bind(py).set_item(index, value.clone_ref(py))?;
+    |                            -------- ^^^^^ expected `usize`, found `isize`
+    |                            |
+    |                            arguments to this method are incorrect
+    |
+note: method defined here
+   --> C:\Users\dohoang\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\pyo3-0.23.5\src\types\list.rs:196:8
+    |
+196 |     fn set_item<I>(&self, index: usize, item: I) -> PyResult<()>
+    |        ^^^^^^^^
+help: you can convert an `isize` to a `usize` and panic if the converted value doesn't fit
+    |
+ 61 |         self.data.bind(py).set_item(index.try_into().unwrap(), value.clone_ref(py))?;
+    |                                          ++++++++++++++++++++
+
+error[E0277]: the `?` operator can only be applied to values that implement `Try`
+   --> src\structures.rs:129:20
+    |
+129 |         let iter = self.data.bind(py).iter()?;
+    |                    ^^^^^^^^^^^^^^^^^^^^^^^^^^ the `?` operator cannot be applied to type `BoundListIterator<'_>`
+    |
+    = help: the trait `Try` is not implemented for `BoundListIterator<'_>`
+
+error[E0599]: no method named `unbind` found for enum `std::option::Option<T>` in the current scope
+   --> src\structures.rs:154:24
+    |
+154 |             Ok(v) => v.unbind(),
+    |                        ^^^^^^ method not found in `std::option::Option<pyo3::Bound<'_, PyAny>>`
+    |
+note: the method `unbind` exists on the type `pyo3::Bound<'_, PyAny>`
+   --> C:\Users\dohoang\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\pyo3-0.23.5\src\instance.rs:595:5
+    |
+595 |     pub fn unbind(self) -> Py<T> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Option::expect` to unwrap the `pyo3::Bound<'_, PyAny>` value, panicking if the value is an `Option::None`
+    |
+154 |             Ok(v) => v.expect("REASON").unbind(),
+    |                       +++++++++++++++++
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+   --> src\structures.rs:183:50
+    |
+183 |                  return Ok(Py::new(py, tracked)?.into_py(py));
+    |                                                  ^^^^^^^
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+   --> src\structures.rs:191:50
+    |
+191 |                  return Ok(Py::new(py, tracked)?.into_py(py));
+    |                                                  ^^^^^^^
+
+error[E0599]: no method named `unbind` found for enum `std::option::Option<T>` in the current scope
+   --> src\structures.rs:198:72
+    |
+198 |         let old_val = self.data.bind(py).get_item(&key).ok().map(|v| v.unbind());
+    |                                                                        ^^^^^^ method not found in `std::option::Option<pyo3::Bound<'_, PyAny>>`
+    |
+note: the method `unbind` exists on the type `pyo3::Bound<'_, PyAny>`
+   --> C:\Users\dohoang\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\pyo3-0.23.5\src\instance.rs:595:5
+    |
+595 |     pub fn unbind(self) -> Py<T> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Option::expect` to unwrap the `pyo3::Bound<'_, PyAny>` value, panicking if the value is an `Option::None`
+    |
+198 |         let old_val = self.data.bind(py).get_item(&key).ok().map(|v| v.expect("REASON").unbind());
+    |                                                                       +++++++++++++++++
+
+error[E0599]: no method named `unbind` found for enum `std::option::Option<T>` in the current scope
+   --> src\structures.rs:222:24
+    |
+222 |             Ok(v) => v.unbind(),
+    |                        ^^^^^^ method not found in `std::option::Option<pyo3::Bound<'_, PyAny>>`
+    |
+note: the method `unbind` exists on the type `pyo3::Bound<'_, PyAny>`
+   --> C:\Users\dohoang\.cargo\registry\src\index.crates.io-1949cf8c6b5b557f\pyo3-0.23.5\src\instance.rs:595:5
+    |
+595 |     pub fn unbind(self) -> Py<T> {
+    |     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+help: consider using `Option::expect` to unwrap the `pyo3::Bound<'_, PyAny>` value, panicking if the value is an `Option::None`
+    |
+222 |             Ok(v) => v.expect("REASON").unbind(),
+    |                       +++++++++++++++++
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+   --> src\structures.rs:261:39
+    |
+261 |         Ok(self.data.bind(py).items().into_py(py))
+    |                                       ^^^^^^^
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+   --> src\structures.rs:265:38
+    |
+265 |         Ok(self.data.bind(py).keys().into_py(py))
+    |                                      ^^^^^^^
+
+warning: use of deprecated method `pyo3::IntoPy::into_py`: `IntoPy` is going to be replaced by `IntoPyObject`. See the migration guide (https://pyo3.rs/v0.23.0/migration) for more information.
+   --> src\structures.rs:269:40
+    |
+269 |         Ok(self.data.bind(py).values().into_py(py))
+    |                                        ^^^^^^^
+
+warning: unused variable: `py`
+  --> src\audit.rs:99:19
+   |
+99 |     fn parse_rule(py: Python, rule_obj: &Bound<'_, PyAny>) -> PyResult<RuleSpec> {
+   |                   ^^ help: if this is intentional, prefix it with an underscore: `_py`
+   |
+   = note: `#[warn(unused_variables)]` (part of `#[warn(unused)]`) on by default
+
+warning: unused variable: `py`
+   --> src\audit.rs:144:32
+    |
+144 |     fn resolve_path<'a>(&self, py: Python<'a>, ctx: &Bound<'a, PyAny>, path: &str, extra_data: Option<&Bound<'a, PyDict>>) -> PyResult<Op...
+    |                                ^^ help: if this is intentional, prefix it with an underscore: `_py`
+
+warning: unused variable: `strict_mode`
+  --> src\engine.rs:36:39
+   |
+36 |     fn new(py: Python, ctx: PyObject, strict_mode: Option<bool>, audit_recipe: Option<PyObject>) -> Self {
+   |                                       ^^^^^^^^^^^ help: if this is intentional, prefix it with an underscore: `_strict_mode`
+
+Some errors have detailed explanations: E0277, E0308, E0599.
+For more information about an error, try `rustc --explain E0277`.
+warning: `theus_core` (lib) generated 19 warnings
+error: could not compile `theus_core` (lib) due to 8 previous errors; 19 warnings emitted

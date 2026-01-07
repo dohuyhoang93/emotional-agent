@@ -1,8 +1,8 @@
 use pyo3::prelude::*;
 use pyo3::exceptions::PyPermissionError;
-use pyo3::types::PyAny;
+use pyo3::types::{PyAny, PyList, PyDict};
 use crate::delta::Transaction;
-use std::sync::{Arc, Mutex};
+use crate::structures::{TrackedList, TrackedDict, FrozenList, FrozenDict};
 
 #[pyclass]
 pub struct ContextGuard {
@@ -62,45 +62,47 @@ impl ContextGuard {
              return Ok(val);
         }
 
-        // Return callables (methods/functions) unwrapped to allow invocation
-        // Note: This bypasses tracking for side-effects inside the method, but needed for compatibility.
         if val_bound.is_callable() {
              return Ok(val);
         }
 
         if type_name == "list" {
              let tx_bound = self.tx.bind(py);
-             let shadow = tx_bound.call_method1("get_shadow", (&val, &full_path))?; 
-             let structures = PyModule::import(py, "theus.structures")?;
+             let shadow = tx_bound.borrow_mut().get_shadow(py, val.clone_ref(py), Some(full_path.clone()))?; 
              
-             // Check if this path is allowed to be written
              let can_write = self.check_permissions(&full_path, true).is_ok();
-             let cls_name = if can_write { "TrackedList" } else { "FrozenList" };
-             
-             let cls = structures.getattr(cls_name)?;
-             return Ok(cls.call1((shadow, self.tx.clone_ref(py), full_path))?.unbind());
+             let shadow_list = shadow.bind(py).downcast::<PyList>()?.clone().unbind();
+
+             if can_write {
+                 let tracked = TrackedList::new(shadow_list, self.tx.clone_ref(py), full_path);
+                 return Ok(Py::new(py, tracked)?.into_py(py));
+             } else {
+                 let frozen = FrozenList::new(shadow_list);
+                 return Ok(Py::new(py, frozen)?.into_py(py));
+             }
         }
 
         if type_name == "dict" {
              let tx_bound = self.tx.bind(py);
-             let shadow = tx_bound.call_method1("get_shadow", (&val, &full_path))?; 
-             let structures = PyModule::import(py, "theus.structures")?;
+             let shadow = tx_bound.borrow_mut().get_shadow(py, val.clone_ref(py), Some(full_path.clone()))?; 
              
              let can_write = self.check_permissions(&full_path, true).is_ok();
-             let cls_name = if can_write { "TrackedDict" } else { "FrozenDict" };
+             let shadow_dict = shadow.bind(py).downcast::<PyDict>()?.clone().unbind();
 
-             let cls = structures.getattr(cls_name)?;
-             return Ok(cls.call1((shadow, self.tx.clone_ref(py), full_path))?.unbind());
+             if can_write {
+                 let tracked = TrackedDict::new(shadow_dict, self.tx.clone_ref(py), full_path);
+                 return Ok(Py::new(py, tracked)?.into_py(py));
+             } else {
+                 let frozen = FrozenDict::new(shadow_dict);
+                 return Ok(Py::new(py, frozen)?.into_py(py));
+             }
         }
         
-        // Wrap everything else (Tuple, Object, Dataclass) in a new ContextGuard
-        // CRITICAL: We must wrap the SHADOW to ensure method calls (unwrapped callables)
-        // operate on isolated state (Snapshot Isolation).
         let tx_bound = self.tx.bind(py);
-        let shadow = tx_bound.call_method1("get_shadow", (&val, &full_path))?; 
+        let shadow = tx_bound.borrow_mut().get_shadow(py, val.clone_ref(py), Some(full_path.clone()))?; 
 
         Ok(Py::new(py, ContextGuard {
-            target: shadow.unbind(),
+            target: shadow,
             allowed_inputs: self.allowed_inputs.clone(),
             allowed_outputs: self.allowed_outputs.clone(),
             path_prefix: full_path,
@@ -153,13 +155,11 @@ impl ContextGuard {
 
         let old_val = self.target.bind(py).getattr(name.as_str()).ok().map(|v| v.unbind());
 
-        // Unwrap Tracked Objects & Nested Guards (Zombie Prevention & Isolation)
+        // Unwrap Tracked Objects & Nested Guards
         let mut value = value;
-        // Priority 1: ContextGuard (_target)
         if let Ok(inner) = value.bind(py).getattr("_target") {
              value = inner.unbind();
         } 
-        // Priority 2: TrackedList/Dict (_data) - fallback if not a Guard
         else if let Ok(shadow) = value.bind(py).getattr("_data") {
              value = shadow.unbind();
         }
@@ -183,11 +183,9 @@ impl ContextGuard {
     fn __getitem__(&self, py: Python, key: PyObject) -> PyResult<PyObject> {
         let target = self.target.bind(py);
         
-        // 1. Try native get_item (for Sequence/Mapping)
         if let Ok(val_bound) = target.get_item(&key) {
             let val = val_bound.unbind();
             
-            // Format Path: if integer, use brackets [k]. If string, use dot .k
             let full_path = if let Ok(idx) = key.extract::<isize>(py) {
                 format!("{}[{}]", self.path_prefix, idx)
             } else {
@@ -203,51 +201,20 @@ impl ContextGuard {
             return self.apply_guard(py, val, full_path);
         }
 
-        // 2. Fallback: If not subscriptable, assumes attribute access via dict syntax
         if let Ok(key_str) = key.extract::<String>(py) {
              return self.__getattr__(py, key_str);
         }
         
-        // Return original error
         target.get_item(&key).map(|v| v.unbind())
     }
 
     fn __setitem__(&self, py: Python, key: PyObject, value: PyObject) -> PyResult<()> {
-        // Logic for setitem (mostly dicts, lists)
-        // Check if target supports set_item
-        // If not, try setattr for string keys
-        
-        // This is tricky because ContextGuard wrapping a generic object usually shouldn't support setitem unless it's a dict.
-        // But for consistency with __getitem__, we try to support both.
-        
         let target = self.target.bind(py);
         
-        // We can't easily "try" set_item without mutating.
-        // Check type?
-        let type_name = target.get_type().name()?.to_string();
-        
-        if ["list", "dict", "TrackedList", "TrackedDict"].contains(&type_name.as_str()) {
-             // For Tracked types, we shouldn't even be here? (ContextGuard wraps regular types)
-             // But if we wrap a list/dict, we should delegate.
-             // Wait, if we wrap a list, we return a TrackedList via apply_guard?
-             // YES. So ContextGuard should mostly NEVER wrap a list/dict directly due to __getattr__ logic.
-             // EXCEPT if it was created manually in engine.rs on a root context that IS a list?
-             // But valid contexts are dataclasses.
-             // SO ContextGuard usually wraps Objects/Dataclasses or Tuples.
-             // Tuples are immutable -> setitem fails.
-             // Objects -> setitem fails? Except via setattr.
-        }
-        
-        // For Generic Objects: map ['key'] = val to .key = val
         if let Ok(key_str) = key.extract::<String>(py) {
              return self.__setattr__(py, key_str, value);
         }
 
-        // Default set item (will likely fail for objects, succeed for dicts if we wrapped one)
-        // But we need to LOG it and CHECK permissions.
-        // Assuming we wrapped a real dict (legacy case?) or custom object.
-        
-        // Path construction
         let full_path = if let Ok(idx) = key.extract::<isize>(py) {
             format!("{}[{}]", self.path_prefix, idx)
         } else {
@@ -257,7 +224,6 @@ impl ContextGuard {
 
         self.check_permissions(&full_path, true)?;
         
-        // Unwrap Value
         let mut value_to_set = value.clone_ref(py);
         if let Ok(inner) = value.bind(py).getattr("_target") {
              value_to_set = inner.unbind();
@@ -265,14 +231,13 @@ impl ContextGuard {
              value_to_set = shadow.unbind();
         }
         
-        // We do NOT have easy "old_value" here for set_item without extra cost (get_item)
         let old_val = target.get_item(&key).ok().map(|v| v.unbind());
         
         {
             let mut tx_ref = self.tx.bind(py).borrow_mut();
             tx_ref.log_internal(
                 full_path.clone(),
-                "SET_ITEM".to_string(), // Distinct op?
+                "SET_ITEM".to_string(), 
                 Some(value_to_set.clone_ref(py)),
                 old_val,
                 Some(self.target.clone_ref(py)),
@@ -282,5 +247,14 @@ impl ContextGuard {
 
         target.set_item(key, value_to_set)?;
         Ok(())
+    }
+
+    fn __contains__(&self, py: Python, key: PyObject) -> PyResult<bool> {
+        self.target.bind(py).contains(key)
+    }
+
+    fn __iter__(&self, py: Python) -> PyResult<PyObject> {
+        let iter = self.target.bind(py).call_method0("__iter__")?;
+        Ok(iter.unbind())
     }
 }

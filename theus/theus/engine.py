@@ -31,6 +31,9 @@ class TheusEngine(RustEngine, IEngine):
     """
     Theus Kernel (Rust Accelerated).
     Manages Safety, Governance, and Orchestration for Process-Oriented Programming.
+    
+    .. deprecated:: 0.2.0
+       Core logic moved to Rust. This class is now a thin wrapper around `theus_core.Engine`.
     """
     def __init__(self, system_ctx: BaseSystemContext, strict_mode: Optional[bool] = None, audit_recipe: Optional[AuditRecipe] = None):
         # super().__init__(system_ctx) # Init Rust Engine handled by __new__
@@ -132,11 +135,10 @@ class TheusEngine(RustEngine, IEngine):
         steps = workflow_def.get('steps', [])
         logger.info(f"▶️ Starting Workflow: {workflow_path} ({len(steps)} steps)")
 
-        # Reset Flux Counters per run
-        self._flux_ops_count = 0
-
-        for step in steps:
-            self._execute_step(step, **kwargs)
+        # Delegate to Rust Flux Engine
+        # Rust handles recursion, control flow, and safety limits
+        logger.info(f"🔄 [THEUS-RUST-BRIDGE] Delegating execution of {len(steps)} steps to internal Rust Engine 🦀")
+        super().execute_workflow(steps, **kwargs)
         
         return self.ctx
 

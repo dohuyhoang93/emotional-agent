@@ -58,7 +58,7 @@ impl Transaction {
     }
     
     #[pyo3(signature = (original, path=None))]
-    fn get_shadow(&mut self, py: Python, original: PyObject, path: Option<String>) -> PyResult<PyObject> {
+    pub fn get_shadow(&mut self, py: Python, original: PyObject, path: Option<String>) -> PyResult<PyObject> {
         let id = original.bind(py).as_ptr() as usize;
         
         if let Some((_, shadow)) = self.shadow_cache.get(&id) {
@@ -69,7 +69,7 @@ impl Transaction {
         // NOTE: This is explicit, not silent - user must declare heavy_ prefix
         if let Some(ref p) = path {
             let leaf = p.split('.').last().unwrap_or(p);
-            if leaf.starts_with("heavy_") {
+            if crate::zones::resolve_zone(leaf) == crate::zones::ContextZone::Heavy {
                 // Log explicitly that we're skipping copy for HEAVY zone
                 eprintln!("[Theus] HEAVY zone: skipping shadow copy for '{}'", p);
                 self.shadow_cache.insert(id, (original.clone_ref(py), original.clone_ref(py)));
@@ -107,7 +107,7 @@ impl Transaction {
         Ok(shadow)
     }
     
-    fn commit(&mut self, py: Python) -> PyResult<()> {
+    pub fn commit(&mut self, py: Python) -> PyResult<()> {
         for (_, (original, shadow)) in self.shadow_cache.iter() {
             // If original IS shadow (re-shadow case), skip
             if original.bind(py).as_ptr() == shadow.bind(py).as_ptr() {
@@ -139,7 +139,7 @@ impl Transaction {
         Ok(())
     }
 
-    fn rollback(&mut self, py: Python) -> PyResult<()> {
+    pub fn rollback(&mut self, py: Python) -> PyResult<()> {
         for entry in self.log.iter().rev() {
              if let (Some(target), Some(key), Some(old)) = (&entry.target, &entry.key, &entry.old_value) {
                  if entry.op == "SET" {
