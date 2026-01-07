@@ -1,0 +1,20 @@
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 91, in _stdp_3factor_impl
+    float(global_ctx.solid_learning_rate_factor)
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 91, in _stdp_3factor_impl
+    float(global_ctx.solid_learning_rate_factor)
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
