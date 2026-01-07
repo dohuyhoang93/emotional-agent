@@ -1,9 +1,0 @@
-ERROR in p_init:
-Traceback (most recent call last):
-  File "C:\Users\dohoang\projects\EmotionAgent\theus\theus\contracts.py", line 38, in wrapper
-    return func(system_ctx, *args, **filtered_kwargs)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\dohoang\projects\EmotionAgent\theus\demo\src\processes\chain.py", line 14, in p_init
-    ctx.domain_ctx.status = "READY"
-    ^^^^^^^^^^^^^^
-PermissionError: Illegal Read: 'domain_ctx'

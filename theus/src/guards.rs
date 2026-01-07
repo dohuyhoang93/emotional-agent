@@ -3,6 +3,7 @@ use pyo3::exceptions::PyPermissionError;
 use pyo3::types::{PyList, PyDict};
 use crate::delta::Transaction;
 use crate::structures::{TrackedList, TrackedDict, FrozenList, FrozenDict};
+use crate::zones::{resolve_zone, ContextZone};
 
 #[pyclass]
 pub struct ContextGuard {
@@ -177,7 +178,10 @@ impl ContextGuard {
              value = shadow.unbind();
         }
         
-        {
+        let zone = resolve_zone(&name);
+        
+        // HEAVY Zone Optimization: Skip Transaction Logging for heavy data (Tensors, Blobs)
+        if zone != ContextZone::Heavy {
             let mut tx_ref = self.tx.bind(py).borrow_mut();
             tx_ref.log_internal(
                 full_path.clone(),
@@ -246,7 +250,14 @@ impl ContextGuard {
         
         let old_val = target.get_item(&key).ok().map(|v| v.unbind());
         
-        {
+        let zone = if let Ok(key_str) = key.extract::<String>(py) {
+             resolve_zone(&key_str)
+        } else {
+             ContextZone::Data // Integer index -> default Data 
+        };
+
+        // HEAVY Zone Optimization
+        if zone != ContextZone::Heavy {
             let mut tx_ref = self.tx.bind(py).borrow_mut();
             tx_ref.log_internal(
                 full_path.clone(),

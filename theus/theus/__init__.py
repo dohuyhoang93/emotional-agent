@@ -3,4 +3,4 @@ from .contracts import process, ContractViolationError
 from .context import BaseSystemContext, BaseGlobalContext, BaseDomainContext
 from .locks import LockViolationError
 
-__version__ = "2.1.2"
+__version__ = "2.2.0"
