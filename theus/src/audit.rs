@@ -1,8 +1,8 @@
 use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
-use log::{warn, error};
+use log::warn;
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyString, PyList, PyAny};
+use pyo3::types::PyAny;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RuleSpec {
@@ -96,7 +96,7 @@ impl AuditPolicy {
         Ok(policy)
     }
 
-    fn parse_rule(py: Python, rule_obj: &Bound<'_, PyAny>) -> PyResult<RuleSpec> {
+    fn parse_rule(_py: Python, rule_obj: &Bound<'_, PyAny>) -> PyResult<RuleSpec> {
         let target_field = rule_obj.getattr("target_field")?.extract::<String>()?;
         let condition = rule_obj.getattr("condition")?.extract::<String>()?;
         let level = rule_obj.getattr("level")?.extract::<String>()?;
@@ -141,27 +141,24 @@ impl AuditPolicy {
     }
     
     // Use Bound<'py, PyAny>
-    fn resolve_path<'a>(&self, py: Python<'a>, ctx: &Bound<'a, PyAny>, path: &str, extra_data: Option<&Bound<'a, PyDict>>) -> PyResult<Option<Bound<'a, PyAny>>> {
+    fn resolve_path<'a>(&self, _py: Python<'a>, ctx: &Bound<'a, PyAny>, path: &str, extra_data: Option<&Bound<'a, PyAny>>) -> PyResult<Option<Bound<'a, PyAny>>> {
         if let Some(data) = extra_data {
-            if let Ok(Some(val)) = data.get_item(path) {
+            if let Ok(val) = data.get_item(path) {
                  return Ok(Some(val));
             }
         }
 
         let mut current = ctx.clone();
         for part in path.split('.') {
-            if part.ends_with("()") {
-                let method_name = &part[..part.len()-2];
+            if let Some(method_name) = part.strip_suffix("()") {
                 let obj = current.getattr(method_name)?;
                 current = obj.call0()?;
+            } else if let Ok(attr) = current.getattr(part) {
+                current = attr;
+            } else if let Ok(item) = current.get_item(part) {
+                 current = item;
             } else {
-                if let Ok(attr) = current.getattr(part) {
-                    current = attr;
-                } else if let Ok(item) = current.get_item(part) {
-                     current = item;
-                } else {
-                     return Ok(None); 
-                }
+                 return Ok(None); 
             }
         }
         Ok(Some(current))
@@ -214,7 +211,7 @@ impl AuditPolicy {
         true
     }
 
-    pub fn evaluate<'a>(&mut self, py: Python<'a>, process_name: &str, stage: &str, ctx: &Bound<'a, PyAny>, extra_data: Option<&Bound<'a, PyDict>>) -> Result<(), AuditError> {
+    pub fn evaluate<'a>(&mut self, py: Python<'a>, process_name: &str, stage: &str, ctx: &Bound<'a, PyAny>, extra_data: Option<&Bound<'a, PyAny>>) -> Result<(), AuditError> {
         let rules = if stage == "input" {
             self.input_rules.get(process_name).cloned()
         } else {
@@ -250,11 +247,9 @@ impl AuditPolicy {
                      } else if count >= rule.min_threshold {
                         warn!("[EARLY WARNING] Rule '{}' violated on '{}'. Count: {}", rule.condition, rule.target_field, count);
                      }
-                } else {
-                     if rule.reset_on_success { 
-                        let key = format!("{}:{}:{}", process_name, rule.target_field, rule.condition);
-                        self.tracker.reset(&key);
-                     }
+                } else if rule.reset_on_success { 
+                    let key = format!("{}:{}:{}", process_name, rule.target_field, rule.condition);
+                    self.tracker.reset(&key);
                 }
             }
         }

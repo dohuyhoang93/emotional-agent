@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 use pyo3::exceptions::PyPermissionError;
-use pyo3::types::{PyAny, PyList, PyDict};
+use pyo3::types::{PyList, PyDict};
 use crate::delta::Transaction;
 use crate::structures::{TrackedList, TrackedDict, FrozenList, FrozenDict};
 
@@ -13,18 +13,32 @@ pub struct ContextGuard {
     path_prefix: String,
     tx: Py<Transaction>, 
     is_admin: bool,
+    strict_mode: bool,
 }
 
 impl ContextGuard {
-    pub fn new_internal(target: PyObject, inputs: Vec<String>, outputs: Vec<String>, tx: Py<Transaction>, is_admin: bool) -> Self {
-         ContextGuard {
+    pub fn new_internal(target: PyObject, inputs: Vec<String>, outputs: Vec<String>, tx: Py<Transaction>, is_admin: bool, strict_mode: bool) -> PyResult<Self> {
+         // Strict Mode: Check for Forbidden Input Zones
+         if strict_mode {
+             for inp in &inputs {
+                 let root = inp.split('.').next().unwrap_or(inp);
+                 if ["SIG", "CMD", "META"].contains(&root.to_uppercase().as_str()) {
+                     return Err(PyPermissionError::new_err(
+                         format!("SECURITY VIOLATION: Using Control Plane '{}' as input is forbidden in Strict Mode.", root)
+                     ));
+                 }
+             }
+         }
+
+         Ok(ContextGuard {
             target,
             allowed_inputs: inputs,
             allowed_outputs: outputs,
             path_prefix: "".to_string(),
             tx,
             is_admin,
-        }
+            strict_mode,
+        })
     }
 
     fn check_permissions(&self, full_path: &str, is_write: bool) -> PyResult<()> {
@@ -108,6 +122,7 @@ impl ContextGuard {
             path_prefix: full_path,
             tx: self.tx.clone_ref(py),
             is_admin: self.is_admin,
+            strict_mode: self.strict_mode,
         })?.into_py(py))
     }
 }
@@ -115,19 +130,17 @@ impl ContextGuard {
 #[pymethods]
 impl ContextGuard {
     #[new]
-    fn new_py(py: Python, target: PyObject, inputs: Vec<String>, outputs: Vec<String>) -> PyResult<Self> {
-        let tx = Py::new(py, Transaction::new())?;
-        Ok(ContextGuard {
-            target,
-            allowed_inputs: inputs,
-            allowed_outputs: outputs,
-            path_prefix: "".to_string(),
-            tx,
-            is_admin: false,
-        })
+    #[pyo3(signature = (target, inputs, outputs, tx, is_admin=false, strict_mode=false))]
+    fn new(target: PyObject, inputs: Vec<String>, outputs: Vec<String>, tx: Py<Transaction>, is_admin: bool, strict_mode: bool) -> PyResult<Self> {
+        Self::new_internal(target, inputs, outputs, tx, is_admin, strict_mode)
     }
 
     fn __getattr__(&self, py: Python, name: String) -> PyResult<PyObject> {
+        // Private access block in Strict Mode
+        if self.strict_mode && name.starts_with('_') {
+             return Err(PyPermissionError::new_err(format!("Access to private attribute '{}' denied in Strict Mode", name)));
+        }
+
         if name.starts_with("_") {
              return self.target.bind(py).getattr(name.as_str())?.extract();
         }

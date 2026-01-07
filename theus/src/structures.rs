@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyList, PyDict, PyAny};
+use pyo3::types::{PyList, PyDict};
 use crate::delta::Transaction;
 
 #[pyclass]
@@ -377,7 +377,7 @@ impl FrozenList {
     }
     
     fn __str__(&self, py: Python) -> PyResult<String> {
-         Ok(format!("FrozenList({})", self.data.bind(py).to_string()))
+         Ok(format!("FrozenList({})", self.data.bind(py)))
     }
 
     fn __contains__(&self, py: Python, item: PyObject) -> PyResult<bool> {
@@ -456,6 +456,6 @@ impl FrozenDict {
 
 
     fn __str__(&self, py: Python) -> PyResult<String> {
-         Ok(format!("FrozenDict({})", self.data.bind(py).to_string()))
+         Ok(format!("FrozenDict({})", self.data.bind(py)))
     }
 }

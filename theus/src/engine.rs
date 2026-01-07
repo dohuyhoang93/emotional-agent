@@ -12,6 +12,7 @@ pub struct Engine {
     ctx: PyObject, 
     // process_registry: HashMap<String, PyObject>, // Moved to global registry
     audit_policy: Option<AuditPolicy>,
+    strict_mode: bool,
 }
 
 impl Engine {
@@ -36,6 +37,7 @@ impl Engine {
     #[new]
     #[pyo3(signature = (ctx, strict_mode=None, audit_recipe=None))]
     fn new(py: Python, ctx: PyObject, strict_mode: Option<bool>, audit_recipe: Option<PyObject>) -> Self {
+        let is_strict = strict_mode.unwrap_or(false);
         let mut policy = None;
         if let Some(recipe) = audit_recipe {
              if let Ok(p) = AuditPolicy::from_python(py, recipe) {
@@ -49,6 +51,7 @@ impl Engine {
             ctx,
             // process_registry: HashMap::new(),
             audit_policy: policy,
+            strict_mode: is_strict,
         }
     }
     
@@ -87,8 +90,9 @@ impl Engine {
             inputs, 
             outputs, 
             tx.clone_ref(py),
-            false // Process Guard is NOT admin
-        );
+            false, // Process Guard is NOT admin
+            self.strict_mode,
+        )?;
         let guard = Py::new(py, guard_struct)?;
         
         let args = (guard,);
@@ -130,8 +134,9 @@ impl Engine {
                 vec![], // inputs ignored in admin
                 vec![], // outputs ignored in admin
                 tx.clone_ref(py),
-                true // IS ADMIN
-            );
+                true, // IS ADMIN
+                self.strict_mode,
+            )?;
             let audit_guard = Py::new(py, audit_guard_struct)?;
 
             if let Err(e) = policy.evaluate(py, &process_name, "output", audit_guard.bind(py), None) {
@@ -183,12 +188,10 @@ impl Engine {
                                  self.execute_flux_step(py, s.unbind(), kwargs)?;
                              }
                          }
-                     } else {
-                         if let Some(steps) = dict.get_item("else")? {
-                             let steps_list = steps.downcast::<pyo3::types::PyList>()?;
-                             for s in steps_list.iter() {
-                                 self.execute_flux_step(py, s.unbind(), kwargs)?;
-                             }
+                     } else if let Some(steps) = dict.get_item("else")? {
+                         let steps_list = steps.downcast::<pyo3::types::PyList>()?;
+                         for s in steps_list.iter() {
+                             self.execute_flux_step(py, s.unbind(), kwargs)?;
                          }
                      }
                  }

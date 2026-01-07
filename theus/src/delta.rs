@@ -1,5 +1,5 @@
 use pyo3::prelude::*;
-use pyo3::types::PyAny;
+
 
 #[derive(Debug)]
 pub struct DeltaEntry {
@@ -30,6 +30,12 @@ impl Transaction {
         self.log.push(DeltaEntry {
             path, op, value, old_value, target, key 
         });
+    }
+}
+
+impl Default for Transaction {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
@@ -68,7 +74,7 @@ impl Transaction {
         // HEAVY Zone Check: Skip copy for heavy_ prefixed objects
         // NOTE: This is explicit, not silent - user must declare heavy_ prefix
         if let Some(ref p) = path {
-            let leaf = p.split('.').last().unwrap_or(p);
+            let leaf = p.split('.').next_back().unwrap_or(p);
             if crate::zones::resolve_zone(leaf) == crate::zones::ContextZone::Heavy {
                 // Log explicitly that we're skipping copy for HEAVY zone
                 eprintln!("[Theus] HEAVY zone: skipping shadow copy for '{}'", p);

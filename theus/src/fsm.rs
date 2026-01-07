@@ -82,7 +82,7 @@ impl StateMachine {
             if let Ok(s) = act.extract::<String>() {
                 return Ok(vec![s]);
             } else if let Ok(l) = act.downcast::<PyList>() {
-                return Ok(l.extract::<Vec<String>>()?);
+                return l.extract::<Vec<String>>();
             }
         }
 
