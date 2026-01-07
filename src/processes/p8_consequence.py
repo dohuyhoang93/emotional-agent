@@ -67,7 +67,7 @@ def _calculate_dynamic_weight(cycle_time, current_step, current_episode, total_e
 @process(
     inputs=['global_ctx', 'domain_ctx', 
         'domain_ctx.previous_observation', 'domain_ctx.current_observation', 'domain_ctx.selected_action', 'domain_ctx.last_reward',
-        'domain_ctx.q_table', 'domain_ctx.believed_switch_states', 'domain_ctx.short_term_memory',
+        'domain_ctx.heavy_q_table', 'domain_ctx.believed_switch_states', 'domain_ctx.short_term_memory',
         'domain_ctx.E_vector', 'domain_ctx.emotion_optimizer', 'domain_ctx.emotion_model', 'domain_ctx.td_error',
         'global_ctx.learning_rate', 'global_ctx.discount_factor', 'global_ctx.use_dynamic_curiosity',
         'domain_ctx.last_cycle_time', 'domain_ctx.current_episode', 'domain_ctx.current_step',
@@ -75,7 +75,7 @@ def _calculate_dynamic_weight(cycle_time, current_step, current_episode, total_e
         'global_ctx.intrinsic_reward_weight', 'global_ctx.short_term_memory_limit'
     ],
     outputs=['global_ctx', 'domain_ctx', 
-        'domain_ctx.q_table', 'domain_ctx.td_error', 'domain_ctx.last_reward', 'domain_ctx.short_term_memory', 'domain_ctx.E_vector'
+        'domain_ctx.heavy_q_table', 'domain_ctx.td_error', 'domain_ctx.last_reward', 'domain_ctx.short_term_memory', 'domain_ctx.E_vector'
         # E_vector is updated via optimizer step (technically pure output? No, side effect on torch graph, but we say it outputs updated state)
     ],
     side_effects=[],
@@ -119,13 +119,13 @@ def record_consequences(ctx: SystemContext):
     
     # Init Q-Table entry if new
     actions = ['up', 'down', 'left', 'right']
-    if next_state not in domain.q_table:
-        domain.q_table[next_state] = {act: 0.0 for act in actions}
-    if state not in domain.q_table:
-        domain.q_table[state] = {act: 0.0 for act in actions} # Should exist but just in case
+    if next_state not in domain.heavy_q_table:
+        domain.heavy_q_table[next_state] = {act: 0.0 for act in actions}
+    if state not in domain.heavy_q_table:
+        domain.heavy_q_table[state] = {act: 0.0 for act in actions} # Should exist but just in case
         
-    old_q_value = domain.q_table[state].get(action, 0.0)
-    next_max_q = max(domain.q_table[next_state].values())
+    old_q_value = domain.heavy_q_table[state].get(action, 0.0)
+    next_max_q = max(domain.heavy_q_table[next_state].values())
     
     extrinsic_td_error = reward_extrinsic + global_cfg.discount_factor * next_max_q - old_q_value
     
@@ -153,7 +153,7 @@ def record_consequences(ctx: SystemContext):
     final_td_error = total_reward + global_cfg.discount_factor * next_max_q - old_q_value
     new_q_value = old_q_value + global_cfg.learning_rate * final_td_error
     
-    domain.q_table[state][action] = new_q_value
+    domain.heavy_q_table[state][action] = new_q_value
     domain.td_error = final_td_error
     
     # 5. Train Emotion Model (MLP)

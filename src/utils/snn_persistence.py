@@ -52,7 +52,7 @@ def save_snn_agent(
     # Save RL Memory
     if rl_ctx:
         domain = rl_ctx.domain_ctx
-        state['memory']['q_table'] = domain.q_table
+        state['memory']['q_table'] = domain.heavy_q_table
         state['memory']['beliefs'] = domain.believed_switch_states
         # Save short term (simplified)
         state['memory']['short_term'] = [str(x) for x in domain.short_term_memory][-10:] # Last 10

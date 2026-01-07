@@ -130,7 +130,7 @@ def observation_to_state_key(obs: Dict[str, Any]) -> str:
     inputs=['domain_ctx', 
         'domain_ctx.current_observation',
         'domain_ctx.snn_emotion_vector',
-        'domain_ctx.q_table',
+        'domain_ctx.heavy_q_table',
         'domain_ctx.current_exploration_rate',
         'domain_ctx.gated_network'
     ],
@@ -156,7 +156,7 @@ def select_action_gated(ctx: SystemContext):
             action = np.random.randint(0, 4)
         else:
             state_key = str(obs)
-            q_values = ctx.domain_ctx.q_table.get(state_key, [0.0] * 4)
+            q_values = ctx.domain_ctx.heavy_q_table.get(state_key, [0.0] * 4)
             action = int(np.argmax(q_values))
         
         ctx.domain_ctx.last_action = action
@@ -197,7 +197,7 @@ def select_action_gated(ctx: SystemContext):
     else:
         # Tabular Path
         state_key = str(obs)
-        q_values_list = ctx.domain_ctx.q_table.get(state_key, [0.0] * 4)
+        q_values_list = ctx.domain_ctx.heavy_q_table.get(state_key, [0.0] * 4)
 
     # Epsilon-greedy
     if np.random.rand() < adjusted_exploration:
@@ -211,7 +211,7 @@ def select_action_gated(ctx: SystemContext):
 
 @process(
     inputs=['domain_ctx', 
-        'domain_ctx.q_table',
+        'domain_ctx.heavy_q_table',
         'domain_ctx.last_reward',
         'domain_ctx.current_observation',
         'domain_ctx.last_action',
@@ -222,7 +222,7 @@ def select_action_gated(ctx: SystemContext):
         'domain_ctx.snn_emotion_vector'
     ],
     outputs=['domain_ctx', 
-        'domain_ctx.q_table',
+        'domain_ctx.heavy_q_table',
         'domain_ctx.td_error'
     ],
     side_effects=[]
@@ -261,14 +261,14 @@ def update_q_learning(ctx: SystemContext):
         return
     
     # Initialize Q-values if needed
-    if prev_state not in ctx.domain_ctx.q_table:
-        ctx.domain_ctx.q_table[prev_state] = [0.0] * 4
-    if next_state not in ctx.domain_ctx.q_table:
-        ctx.domain_ctx.q_table[next_state] = [0.0] * 4
+    if prev_state not in ctx.domain_ctx.heavy_q_table:
+        ctx.domain_ctx.heavy_q_table[prev_state] = [0.0] * 4
+    if next_state not in ctx.domain_ctx.heavy_q_table:
+        ctx.domain_ctx.heavy_q_table[next_state] = [0.0] * 4
     
     # Q-learning update with next state (CORRECT)
-    current_q = ctx.domain_ctx.q_table[prev_state][action]
-    max_next_q = max(ctx.domain_ctx.q_table[next_state])
+    current_q = ctx.domain_ctx.heavy_q_table[prev_state][action]
+    max_next_q = max(ctx.domain_ctx.heavy_q_table[next_state])
     
     # Correct TD-error: reward + gamma * max(Q(s', a')) - Q(s, a)
     gamma = 0.95
@@ -276,7 +276,7 @@ def update_q_learning(ctx: SystemContext):
     
     # Update Q-value
     alpha = 0.1
-    ctx.domain_ctx.q_table[prev_state][action] += alpha * td_error
+    ctx.domain_ctx.heavy_q_table[prev_state][action] += alpha * td_error
     
     # Store TD-error for SNN dopamine signal
     ctx.domain_ctx.td_error = td_error

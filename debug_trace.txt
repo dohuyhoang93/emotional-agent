@@ -18,3 +18,175 @@ Traceback (most recent call last):
   File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 91, in _stdp_3factor_impl
     float(global_ctx.solid_learning_rate_factor)
 TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 91, in _stdp_3factor_impl
+    float(global_ctx.solid_learning_rate_factor)
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 91, in _stdp_3factor_impl
+    float(global_ctx.solid_learning_rate_factor)
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 75, in process_snn_cycle
+    sync_to_tensors(ctx.domain_ctx.snn_context)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\core\snn_context_theus.py", line 514, in sync_to_tensors
+    domain.tensors['potential_vectors'] = np.array([n.potential_vector for n in neurons], dtype=np.float32)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'potential_vectors'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 91, in _stdp_3factor_impl
+    float(global_ctx.solid_learning_rate_factor)
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 68, in process_snn_cycle
+    _encode_state_to_spikes_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_rl_bridge.py", line 180, in _encode_state_to_spikes_impl
+    input_end = min(16, len(snn_ctx.domain_ctx.neurons))
+                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object of type 'builtins.ContextGuard' has no len()
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 90, in _stdp_3factor_impl
+    float(global_ctx.dopamine_learning_rate) *
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 91, in _stdp_3factor_impl
+    float(global_ctx.solid_learning_rate_factor)
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 90, in _stdp_3factor_impl
+    float(global_ctx.dopamine_learning_rate) *
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 91, in _stdp_3factor_impl
+    float(global_ctx.solid_learning_rate_factor)
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 95, in process_snn_cycle
+    _fire_impl(ctx, sync=False)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_core_theus.py", line 238, in _fire_impl
+    ensure_tensors_initialized(snn_ctx) # Idempotent safety
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\core\snn_context_theus.py", line 486, in ensure_tensors_initialized
+    sync_to_tensors(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\core\snn_context_theus.py", line 494, in sync_to_tensors
+    N = len(neurons)
+        ^^^^^^^^^^^^
+TypeError: object of type 'builtins.ContextGuard' has no len()
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 90, in _stdp_3factor_impl
+    float(global_ctx.dopamine_learning_rate) *
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 91, in _stdp_3factor_impl
+    float(global_ctx.solid_learning_rate_factor)
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 91, in _stdp_3factor_impl
+    float(global_ctx.solid_learning_rate_factor)
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in select_action_gated:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\rl_processes.py", line 181, in select_action_gated
+    adjusted_exploration = ctx.domain_ctx.current_exploration_rate * (1.0 + 0.5 * emotion_magnitude)
+                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+TypeError: unsupported operand type(s) for *: 'builtins.ContextGuard' and 'float'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 90, in _stdp_3factor_impl
+    float(global_ctx.dopamine_learning_rate) *
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 90, in _stdp_3factor_impl
+    float(global_ctx.dopamine_learning_rate) *
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'

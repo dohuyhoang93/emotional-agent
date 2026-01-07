@@ -83,7 +83,7 @@ class DomainContext(BaseDomainContext):
     believed_switch_states: Dict[str, bool] = field(default_factory=dict)
     
     # --- Knowledge (Memory & Models) ---
-    q_table: Dict[str, List[float]] = field(default_factory=dict)
+    heavy_q_table: Dict[str, List[float]] = field(default_factory=dict)
     short_term_memory: List[Any] = field(default_factory=list)
     long_term_memory: Dict[str, Any] = field(default_factory=dict)
     
