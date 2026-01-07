@@ -20,7 +20,7 @@ from theus.context import BaseSystemContext
 
 # 1. Define Domain (Business Logic)
 @dataclass
-class WarehouseDomain:
+class WarehouseDomain(BaseDomainContext):
     # --- DATA ZONE (Assets) ---
     items: list = field(default_factory=list)
     total_value: int = 0
@@ -31,15 +31,17 @@ class WarehouseDomain:
 
 # 2. Define Global (Configuration)
 @dataclass
-class WarehouseConfig:
+class WarehouseConfig(BaseGlobalContext):
     max_capacity: int = 1000
     warehouse_name: str = "Main Warehouse"
 
 # 3. Attach to System Context
 @dataclass
 class WarehouseContext(BaseSystemContext):
-    domain: WarehouseDomain = field(default_factory=WarehouseDomain)
-    # Global is already available in BaseSystemContext, we'll assign WarehouseConfig instance later
+    # BaseSystemContext requires 'domain_ctx' and 'global_ctx'
+    # We enforce type hinting for clarity
+    domain_ctx: WarehouseDomain = field(default_factory=WarehouseDomain)
+    global_ctx: WarehouseConfig = field(default_factory=WarehouseConfig)
 ```
 
 ## 3. Why is Zoning Important?
