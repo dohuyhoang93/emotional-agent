@@ -81,6 +81,13 @@ impl ContextGuard {
              return Ok(val);
         }
 
+        // PERFORMANCE FIX: Skip shadow copy when strict_mode=False
+        // This bypasses Transaction entirely for non-strict workflows
+        // Return raw value directly - no ContextGuard wrapping needed
+        if !self.strict_mode {
+            return Ok(val);
+        }
+
         if type_name == "list" {
              let tx_bound = self.tx.bind(py);
              let shadow = tx_bound.borrow_mut().get_shadow(py, val.clone_ref(py), Some(full_path.clone()))?; 
