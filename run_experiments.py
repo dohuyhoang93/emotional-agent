@@ -35,7 +35,7 @@ def main(argv=None):
         '--settings-override',
         type=str,
         default=None,
-        help='JSON string to override experiment parameters globally.'
+        help='JSON string to override experiment parameters globally (and max_episodes).'
     )
     parser.add_argument(
         '--headless',
