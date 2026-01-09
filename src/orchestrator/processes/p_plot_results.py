@@ -1,4 +1,5 @@
 ﻿import matplotlib.pyplot as plt
+import pandas as pd
 import os
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
@@ -12,18 +13,20 @@ from src.logger import log
 )
 def plot_results(ctx: OrchestratorSystemContext):
     """
-    Process: Generate plots for multi-agent experiments.
-    
-    NOTE: Updated to handle JSON metrics and multi-agent specific plots.
+    Process: Generate plots for multi-agent experiments (Aesthetic Upgrade).
     """
-    log(ctx, "info", "  [Orchestration] Plotting aggregated results...")
+    log(ctx, "info", "  [Orchestration] Plotting aggregated results (Enhanced)...")
     domain = ctx.domain_ctx
     
     plots_dir = os.path.join(domain.output_dir, "plots")
     os.makedirs(plots_dir, exist_ok=True)
     
-    log(ctx, "info", "  [Plotting] Generating aggregated plots...")
-    
+    # Set Style
+    try:
+        plt.style.use('seaborn-v0_8-darkgrid')
+    except:
+        plt.style.use('ggplot')
+
     for exp_def in domain.experiments:
         if not exp_def.aggregated_data:
             log(ctx, "info", f"  [Plotting] No data for experiment '{exp_def.name}', skipping plots.")
@@ -32,103 +35,129 @@ def plot_results(ctx: OrchestratorSystemContext):
         try:
             metrics = exp_def.aggregated_data
             
-            # Extract data
-            episodes = [m.get('episode', 0) for m in metrics]
-            avg_rewards = [m.get('avg_reward', 0.0) for m in metrics]
-            best_rewards = [m.get('best_reward', 0.0) for m in metrics]
-            social_transfers = [m.get('social_learning_transfers', 0) for m in metrics]
-            revolutions = [m.get('revolutions', 0) for m in metrics]
+            # Helper to safely extract lists
+            def get_series(key, default=0.0):
+                return [m.get(key, default) for m in metrics]
+
+            episodes = [m.get('episode', i) for i, m in enumerate(metrics)]
             
-            # Plot 1: Reward curves
-            plt.figure(figsize=(12, 6))
-            plt.plot(episodes, avg_rewards, label='Avg Reward', alpha=0.7)
-            plt.plot(episodes, best_rewards, label='Best Reward', alpha=0.7)
-            plt.xlabel('Episode')
-            plt.ylabel('Reward')
-            plt.title(f'Learning Curve - {exp_def.name}')
-            plt.legend()
-            plt.grid(True, alpha=0.3)
-            plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_rewards.png'), dpi=150, bbox_inches='tight')
+            # Create DataFrame for easy smoothing
+            df = pd.DataFrame(metrics)
+            # Ensure episode col exists
+            if 'episode' not in df.columns:
+                df['episode'] = episodes
+            
+            # Define window for smoothing (5% of total episodes or min 10)
+            window = max(10, int(len(df) * 0.05))
+            
+            # --- Plot 1: Reward Curves (Raw + Smooth) ---
+            avg_rewards = df['avg_reward'] if 'avg_reward' in df else pd.Series([0]*len(df))
+            best_rewards = df['best_reward'] if 'best_reward' in df else pd.Series([0]*len(df))
+            
+            plt.figure(figsize=(14, 7))
+            
+            # Avg Reward: Raw (Faint) + Smooth (Bold)
+            plt.plot(episodes, avg_rewards, alpha=0.15, color='tab:blue', label='_nolegend_')
+            plt.plot(episodes, avg_rewards.rolling(window=window).mean(), color='tab:blue', linewidth=2.5, label=f'Avg Reward (MA-{window})')
+            
+            # Best Reward: Smooth Only (Raw is too spiky usually, or just step-like)
+            # Actually Best Reward is usually cumulative max? If it's per episode max, verify.
+            # Assuming per-episode max.
+            plt.plot(episodes, best_rewards.rolling(window=window).mean(), color='tab:orange', linewidth=2, linestyle='--', label=f'Best Reward (MA-{window})')
+            
+            plt.xlabel('Episode', fontsize=12)
+            plt.ylabel('Reward', fontsize=12)
+            plt.title(f'Learning Curve: {exp_def.name}', fontsize=14, fontweight='bold')
+            plt.legend(frameon=True, fancybox=True, framealpha=0.9)
+            plt.tight_layout()
+            plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_rewards.png'), dpi=200)
             plt.close()
             
-            # Plot 2: Social learning activity
-            if any(social_transfers):
-                plt.figure(figsize=(12, 6))
-                plt.bar(episodes, social_transfers, alpha=0.7, color='green')
-                plt.xlabel('Episode')
-                plt.ylabel('Social Learning Transfers')
-                plt.title(f'Social Learning Activity - {exp_def.name}')
-                plt.grid(True, alpha=0.3)
-                plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_social_learning.png'), dpi=150, bbox_inches='tight')
-                plt.close()
+            # --- Plot 2: Social & Revolution (Combined Event Plot) ---
+            social = df.get('social_learning_transfers', pd.Series([0]*len(df)))
+            revolution = df.get('revolutions', pd.Series([0]*len(df)))
             
-            # Plot 3: Revolution events
-            if any(revolutions):
-                plt.figure(figsize=(12, 6))
-                plt.bar(episodes, revolutions, alpha=0.7, color='red')
+            if social.sum() > 0 or revolution.sum() > 0:
+                plt.figure(figsize=(14, 6))
+                if social.sum() > 0:
+                    plt.bar(episodes, social, alpha=0.6, color='tab:green', label='Social Transfers')
+                if revolution.sum() > 0:
+                    # Plot revolutions on secondary axis or just overlay if scale matches?
+                    # Revolutions are rare events (0 or 1). Bar chart is fine.
+                    # Make them stand out.
+                    rev_indices = [i for i, x in enumerate(revolution) if x > 0]
+                    if rev_indices:
+                         for rev_idx in rev_indices:
+                             plt.axvline(x=episodes[rev_idx], color='tab:red', linestyle=':', alpha=0.8, ymin=0, ymax=1)
+                         # Add dummy handle
+                         plt.plot([], [], color='tab:red', linestyle=':', label='Revolution Event')
+
                 plt.xlabel('Episode')
-                plt.ylabel('Revolutions')
-                plt.title(f'Revolution Protocol Activity - {exp_def.name}')
-                plt.grid(True, alpha=0.3)
-                plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_revolutions.png'), dpi=150, bbox_inches='tight')
+                plt.ylabel('Count')
+                plt.title(f'Social Dynamics: {exp_def.name}', fontsize=14)
+                plt.legend()
+                plt.tight_layout()
+                plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_social_dynamics.png'), dpi=200)
                 plt.close()
 
-            # --- NEW PLOTS (SNN & Composition) ---
-
-            # Extra Metrics Extraction Helper
-            def get_metric(m, keys, default=0.0):
-                for k in keys:
-                    # Check top level
-                    if k in m: return m[k]
-                    # Check nested 'snn' or 'rl'
-                    if 'snn' in m and isinstance(m['snn'], dict) and k in m['snn']: return m['snn'][k]
-                    if 'rl' in m and isinstance(m['rl'], dict) and k in m['rl']: return m['rl'][k]
-                return default
-
-            fire_rates = [get_metric(m, ['fire_rate', 'avg_fire_rate']) for m in metrics]
-            synapse_counts = [get_metric(m, ['active_synapses', 'avg_active_synapses', 'synapse_count']) for m in metrics]
+            # --- Plot 3: SNN Physiology ---
+            # Helper to extract deep keys if not in top level flat dict (though p_aggregate flattened it)
+            # p_aggregate flattened 'metrics' dict.
+            # But keys might be 'fire_rate' or 'snn.fire_rate' depending on upstream.
+            # Safety checks using pandas logic or list comp.
             
-            intrinsic = [get_metric(m, ['intrinsic_reward_total', 'avg_intrinsic_reward']) for m in metrics]
-            extrinsic = [get_metric(m, ['extrinsic_reward_total', 'avg_extrinsic_reward']) for m in metrics]
-
-            # Plot 4: SNN Physiology (Dual Axis)
-            if any(fire_rates) or any(synapse_counts):
-                fig, ax1 = plt.subplots(figsize=(12, 6))
+            # Try to find columns
+            fire_cols = [c for c in df.columns if 'fire_rate' in c]
+            syn_cols = [c for c in df.columns if 'synapse' in c and 'count' in c or 'active_synapses' in c]
+            
+            if fire_cols and syn_cols:
+                fr = df[fire_cols[0]]
+                syn = df[syn_cols[0]]
                 
-                color = 'tab:orange'
+                fig, ax1 = plt.subplots(figsize=(14, 7))
+                
+                # Fire Rate
+                color = 'tab:purple'
                 ax1.set_xlabel('Episode')
-                ax1.set_ylabel('Fire Rate (%)', color=color)
-                ax1.plot(episodes, fire_rates, color=color, label='Fire Rate')
+                ax1.set_ylabel('Avg Fire Rate (%)', color=color, fontweight='bold')
+                ax1.plot(episodes, fr.rolling(window=window).mean(), color=color, linewidth=2)
                 ax1.tick_params(axis='y', labelcolor=color)
                 
-                ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-                color = 'tab:blue'
-                ax2.set_ylabel('Active Synapses', color=color)
-                ax2.plot(episodes, synapse_counts, color=color, linestyle='--', label='Synapses')
+                # Synapses
+                ax2 = ax1.twinx()
+                color = 'tab:cyan'
+                ax2.set_ylabel('Active Synapses', color=color, fontweight='bold')
+                ax2.plot(episodes, syn, color=color, linewidth=2, linestyle='--', alpha=0.8)
                 ax2.tick_params(axis='y', labelcolor=color)
                 
-                plt.title(f'SNN Physiology - {exp_def.name}')
-                fig.tight_layout()
-                plt.grid(True, alpha=0.3)
-                plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_snn_physiology.png'), dpi=150, bbox_inches='tight')
+                plt.title(f'SNN Composition: {exp_def.name}', fontsize=14)
+                plt.tight_layout()
+                plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_snn_physiology.png'), dpi=200)
                 plt.close()
 
-            # Plot 5: Reward Composition (Stacked)
-            if any(intrinsic) or any(extrinsic):
-                plt.figure(figsize=(12, 6))
-                plt.stackplot(episodes, extrinsic, intrinsic, labels=['Extrinsic', 'Intrinsic'], alpha=0.6, colors=['tab:green', 'tab:purple'])
-                plt.xlabel('Episode')
-                plt.ylabel('Cumulative Reward')
-                plt.title(f'Reward Composition (Motivation) - {exp_def.name}')
-                plt.legend(loc='upper left')
-                plt.grid(True, alpha=0.3)
-                plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_reward_composition.png'), dpi=150, bbox_inches='tight')
-                plt.close()
-            
-            log(ctx, "info", f"  [Plotting] Plots saved for experiment '{exp_def.name}'")
+            # --- Plot 4: Success Rate (if available) ---
+            if 'success_rate' in df.columns:
+                 plt.figure(figsize=(14, 6))
+                 sr = df['success_rate']
+                 plt.plot(episodes, sr, alpha=0.2, color='tab:green')
+                 plt.plot(episodes, sr.rolling(window=window).mean(), color='tab:green', linewidth=2.5, label=f'Success Rate (MA-{window})')
+                 plt.fill_between(episodes, 0, sr.rolling(window=window).mean(), color='tab:green', alpha=0.1)
+                 
+                 plt.ylim(0, 1.05)
+                 plt.xlabel('Episode')
+                 plt.ylabel('Success Rate')
+                 plt.title(f'Performance Stability: {exp_def.name}', fontsize=14)
+                 plt.legend()
+                 plt.tight_layout()
+                 plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_success_rate.png'), dpi=200)
+                 plt.close()
+
+            log(ctx, "info", f"  [Plotting] Plots saved for '{exp_def.name}'")
             
         except Exception as e:
             log(ctx, "info", f"  [Plotting] Error generating plots for '{exp_def.name}': {e}")
-    
-    log(ctx, "info", f"  [Orchestration] Plots saved to {plots_dir}")
+            import traceback
+            traceback.print_exc()
+
+    log(ctx, "info", f"  [Orchestration] Aesthetics plots saved to {plots_dir}")
 
