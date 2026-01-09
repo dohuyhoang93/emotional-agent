@@ -25,11 +25,14 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install pytest ruff
-        # Install Theus Framework from PyPI Official
+        # Install CPU-only Torch (Lighter for CI)
+        pip install torch --index-url https://download.pytorch.org/whl/cpu
+        # Install other deps
+        pip install numpy matplotlib pyyaml
+        # Install Theus
         pip install theus
-        
+        # Requirements (fallback)
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        pip install torch numpy matplotlib pyyaml
 
     - name: Lint with Ruff
       run: |
