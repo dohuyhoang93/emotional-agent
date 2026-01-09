@@ -17,7 +17,7 @@ from src.orchestrator.context import (
 from src.logger import log, log_error
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description="DeepSearch Agent - Orchestration Layer (POP)")
+    parser = argparse.ArgumentParser(description="EmotionAgent - Orchestration Layer (POP)")
     parser.add_argument(
         '--config',
         type=str,
@@ -74,6 +74,9 @@ def main(argv=None):
         level=logging.INFO
     )
     
+    # Suppress TheusEngine noise in Audit Log (High frequency workflow execution)
+    logging.getLogger("TheusEngine").setLevel(logging.WARNING)
+    
     # Load Audit Recipe
     audit_recipe = None
     if os.path.exists("specs/snn_audit_recipe.yaml"):
@@ -84,11 +87,10 @@ def main(argv=None):
             log_error(global_ctx, f"Failed to load Audit Recipe: {e}")
 
     # 2. Initialize Engine
-    # Note: Orchestrator might arguably NOT use strict mode if it just does IO, 
-    # but for V2 compliance we enable it.
+    # NOTE: strict_mode=False to bypass shadow copying and prevent Memory Leak (conditional init active)
     engine = TheusEngine(
         system_ctx, 
-        strict_mode=True,
+        strict_mode=False,
         audit_recipe=audit_recipe # Inject Recipe
     )
     
@@ -100,9 +102,7 @@ def main(argv=None):
     # Fixed underlying ImportErrors and improved Engine logging
     # engine.scan_and_register should now work or report errors.
 
-    log(system_ctx, "info", "--- STARTING ORCHESTRATION WORKFLOW (POP) ---")
-    
-    log(system_ctx, "info", "--- STARTING ORCHESTRATION WORKFLOW (POP) ---")
+    log(system_ctx, "info", "--- STARTING ORCHESTRATION WORKFLOW ---")
     
     # 4. Execute Workflow (Declarative Flux)
     try:

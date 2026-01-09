@@ -12,7 +12,7 @@ import numpy as np
 import torch
 from theus.contracts import process
 from src.core.context import SystemContext
-from src.core.snn_context_theus import sync_to_tensors
+from src.core.snn_context_theus import sync_to_heavy_tensors
 
 
 # ============================================================================
@@ -22,8 +22,8 @@ from src.core.snn_context_theus import sync_to_tensors
 @process(
     inputs=['domain_ctx', 'domain_ctx.snn_context'],
     outputs=['domain_ctx', 
-        'domain_ctx.snn_emotion_vector',
-        'domain_ctx.previous_snn_emotion_vector'
+        'domain_ctx.heavy_snn_emotion_vector',
+        'domain_ctx.heavy_previous_snn_emotion_vector'
     ],
     side_effects=[]
 )
@@ -60,9 +60,9 @@ def _encode_emotion_vector_impl(ctx: SystemContext):
     
     if isinstance(obs, np.ndarray) and obs.shape == (16,):
         query_vector = obs
-    elif snn_ctx.domain_ctx.snn_emotion_vector is not None:
+    elif snn_ctx.domain_ctx.heavy_snn_emotion_vector is not None:
          # Fallback: Use previous emotion state as context if obs not available
-        query_vector = snn_ctx.domain_ctx.snn_emotion_vector.numpy()
+        query_vector = snn_ctx.domain_ctx.heavy_snn_emotion_vector.numpy()
         
     # 2. Collect Keys/Values from Active Neurons
     active_vectors = []
@@ -111,14 +111,15 @@ def _encode_emotion_vector_impl(ctx: SystemContext):
         emotion_vector = emotion_vector / norm
     
     # Shift current to previous (for RL learning)
-    if ctx.domain_ctx.snn_emotion_vector is not None:
-        ctx.domain_ctx.previous_snn_emotion_vector = ctx.domain_ctx.snn_emotion_vector.clone()
+    if ctx.domain_ctx.heavy_snn_emotion_vector is not None:
+        # Use detach().clone() to ensure we don't carry over graph history
+        ctx.domain_ctx.heavy_previous_snn_emotion_vector = ctx.domain_ctx.heavy_snn_emotion_vector.detach().clone()
     
     # Convert to tensor
-    ctx.domain_ctx.snn_emotion_vector = torch.tensor(
+    ctx.domain_ctx.heavy_snn_emotion_vector = torch.tensor(
         emotion_vector,
         dtype=torch.float32
-    )
+    ).detach()
 
 
 # ============================================================================
@@ -201,7 +202,7 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
         neuron.potential_vector = sensor_vector
 
     # Sync to Tensors (CRITICAL FIX: Bridge -> Core)
-    sync_to_tensors(snn_ctx)
+    sync_to_heavy_tensors(snn_ctx)
 
 
 # ============================================================================
@@ -222,7 +223,7 @@ def modulate_snn_attention(ctx: SystemContext):
     Args:
         ctx: System context
     """
-    from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
+    from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
     
     snn_ctx = ctx.domain_ctx.snn_context
     if snn_ctx is None:
@@ -251,8 +252,8 @@ def modulate_snn_attention(ctx: SystemContext):
         return
         
     # 1. Ensure Tensors (Critical for Sync)
-    ensure_tensors_initialized(snn_ctx)
-    t = snn_ctx.domain_ctx.tensors
+    ensure_heavy_tensors_initialized(snn_ctx)
+    t = snn_ctx.domain_ctx.heavy_tensors
     thresh = t['thresholds']
     N = len(thresh)
     
@@ -323,7 +324,7 @@ def modulate_snn_attention(ctx: SystemContext):
     
     # 4. Sync Back (Optional here if next step is Tensor-based SNN Cycle, 
     # but safe to sync for audit)
-    sync_from_tensors(snn_ctx)
+    sync_from_heavy_tensors(snn_ctx)
 
 
 @process(
@@ -341,15 +342,15 @@ def restore_snn_attention(ctx: SystemContext):
     Args:
         ctx: System context
     """
-    from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
+    from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
     
     snn_ctx = ctx.domain_ctx.snn_context
     if snn_ctx is None:
         return
         
     # 1. Ensure Tensors
-    ensure_tensors_initialized(snn_ctx)
-    t = snn_ctx.domain_ctx.tensors
+    ensure_heavy_tensors_initialized(snn_ctx)
+    t = snn_ctx.domain_ctx.heavy_tensors
     thresh = t['thresholds']
     
     baseline = float(snn_ctx.global_ctx.initial_threshold)
@@ -365,7 +366,7 @@ def restore_snn_attention(ctx: SystemContext):
     np.clip(thresh, snn_ctx.global_ctx.threshold_min, snn_ctx.global_ctx.threshold_max, out=thresh)
     
     # 4. Sync Back
-    sync_from_tensors(snn_ctx)
+    sync_from_heavy_tensors(snn_ctx)
 
 
 # ============================================================================

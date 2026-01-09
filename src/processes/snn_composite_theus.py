@@ -9,7 +9,7 @@ Date: 2025-12-27
 """
 from theus.contracts import process
 from src.core.context import SystemContext
-from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
+from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
 
 # Import Internal Implementations
 
@@ -39,8 +39,8 @@ from src.processes.snn_advanced_features_theus import _hysteria_impl, _lateral_i
     ],
     outputs=['domain', 'domain_ctx', 
         'domain.snn_context',
-        'domain.snn_emotion_vector',
-        'domain.previous_snn_emotion_vector',
+        'domain.heavy_snn_emotion_vector',
+        'domain.heavy_previous_snn_emotion_vector',
         'domain.snn_context.domain_ctx.neurons',
         'domain.snn_context.domain_ctx.synapses',
         'domain.snn_context.domain_ctx.metrics',
@@ -70,9 +70,9 @@ def process_snn_cycle(ctx: SystemContext):
     # 2. CORE LOOP (Tensor Mode)
     # Sync Objects -> Tensors (Potentials, Thresholds, Weights)
     # CRITICAL FIX: Explicit Sync required because _encode updated Objects
-    ensure_tensors_initialized(ctx.domain_ctx.snn_context)
-    from src.core.snn_context_theus import sync_to_tensors
-    sync_to_tensors(ctx.domain_ctx.snn_context)
+    ensure_heavy_tensors_initialized(ctx.domain_ctx.snn_context)
+    from src.core.snn_context_theus import sync_to_heavy_tensors
+    sync_to_heavy_tensors(ctx.domain_ctx.snn_context)
     
     # DEBUG: Check tensors after sync
     # t = ctx.domain_ctx.snn_context.domain_ctx.tensors
@@ -95,7 +95,7 @@ def process_snn_cycle(ctx: SystemContext):
     _fire_impl(ctx, sync=False)
     
     # Sync Tensors -> Objects (Potentials, Weights, LastFire, Thresholds)
-    sync_from_tensors(ctx.domain_ctx.snn_context)
+    sync_from_heavy_tensors(ctx.domain_ctx.snn_context)
     
     # 3. LEARNING (Object Mode - sees updated Fire state)
     _clustering_impl(ctx)

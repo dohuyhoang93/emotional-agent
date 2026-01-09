@@ -190,3 +190,553 @@ Traceback (most recent call last):
     float(global_ctx.dopamine_learning_rate) *
     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in read_only_hack:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\check_tutorial_ch345.py", line 53, in read_only_hack
+    ctx.domain_ctx.items.append("Hacked")
+TypeError: 'FrozenList' object is immutable
+ERROR in fail_fast_hack:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\check_tutorial_ch345.py", line 60, in fail_fast_hack
+    ctx.domain_ctx.total_value = 555 # Should fail
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+PermissionError: Illegal Write: 'domain_ctx.total_value'
+ERROR in signal_sabotage:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\check_features_legacy.py", line 39, in signal_sabotage
+    raise RuntimeError("Intentional Crash")
+RuntimeError: Intentional Crash
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 154, in process_commitment
+    fluid_count = np.sum(commit_states == COMMIT_STATE_FLUID)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 154, in process_commitment
+    fluid_count = np.sum(commit_states == COMMIT_STATE_FLUID)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 154, in process_commitment
+    fluid_count = np.sum(commit_states == COMMIT_STATE_FLUID)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in restore_snn_attention:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_rl_bridge.py", line 351, in restore_snn_attention
+  File "C:\Users\dohoang\projects\EmotionAgent\src\core\snn_context_theus.py", line 486, in ensure_tensors_initialized
+    sync_to_tensors(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\core\snn_context_theus.py", line 513, in sync_to_tensors
+    domain.tensors['prototypes'] = np.array([n.prototype_vector for n in neurons], dtype=np.float32)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 6.25 KiB for an array with shape (100, 16) and data type float32
+ERROR in process_commitment:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_commitment_theus.py", line 105, in process_commitment
+    incoming_solid_count = np.sum(is_solid, axis=0)
+                           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 2466, in sum
+    return _wrapreduction(
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\numpy\_core\fromnumeric.py", line 86, in _wrapreduction
+    return ufunc.reduce(obj, axis, dtype, out, **passkwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 83, in process_snn_cycle
+    _integrate_impl(ctx, sync=False)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_core_theus.py", line 48, in _integrate_impl
+  File "C:\Users\dohoang\projects\EmotionAgent\src\core\snn_context_theus.py", line 486, in ensure_tensors_initialized
+    sync_to_tensors(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\core\snn_context_theus.py", line 513, in sync_to_tensors
+    domain.tensors['prototypes'] = np.array([n.prototype_vector for n in neurons], dtype=np.float32)
+                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 6.25 KiB for an array with shape (100, 16) and data type float32
+ERROR in enrich_episode_metrics:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src/orchestrator/processes\p_enrich_metrics.py", line 54, in enrich_episode_metrics
+    if snn_domain.tensors.get('use_vectorized_queue', False):
+       ^^^^^^^^^^^^^^^^^^
+AttributeError: 'SNNDomainContext' object has no attribute 'tensors'
+ERROR in enrich_episode_metrics:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src/orchestrator/processes\p_enrich_metrics.py", line 54, in enrich_episode_metrics
+    if snn_domain.tensors.get('use_vectorized_queue', False):
+       ^^^^^^^^^^^^^^^^^^
+AttributeError: 'SNNDomainContext' object has no attribute 'tensors'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 90, in _stdp_3factor_impl
+    float(global_ctx.dopamine_learning_rate) *
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 91, in _stdp_3factor_impl
+    float(global_ctx.solid_learning_rate_factor)
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in load_config:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src/orchestrator/processes\p_load_config.py", line 98, in load_config
+    log(ctx, "info", f"  [Orchestration] Loaded {len(domain.experiments)} experiments.")
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: object of type 'builtins.ContextGuard' has no len()
+ERROR in run_sleep_cycle_process:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src/orchestrator/processes\p_sleep_cycle.py", line 49, in run_sleep_cycle_process
+    agent.dream_step(t)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\agents\rl_agent.py", line 180, in dream_step
+    self.engine.execute_workflow("workflows/agent_dream.yaml")
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 141, in execute_workflow
+    super().execute_workflow(steps, **kwargs)
+theus.contracts.ContractViolationError: Undeclared Error Violation: Caught KeyboardInterrupt: KeyboardInterrupt: 
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 441, in process_neural_darwinism
+    domain.synapses.sort(key=lambda s: abs(s.weight), reverse=True)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedList' object has no attribute 'sort'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 441, in process_neural_darwinism
+    domain.synapses.sort(key=lambda s: abs(s.weight), reverse=True)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedList' object has no attribute 'sort'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 441, in process_neural_darwinism
+    domain.synapses.sort(key=lambda s: abs(s.weight), reverse=True)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedList' object has no attribute 'sort'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 441, in process_neural_darwinism
+    domain.synapses.sort(key=lambda s: abs(s.weight), reverse=True)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedList' object has no attribute 'sort'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 441, in process_neural_darwinism
+    domain.synapses.sort(key=lambda s: abs(s.weight), reverse=True)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedList' object has no attribute 'sort'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 441, in process_neural_darwinism
+    domain.synapses.sort(key=lambda s: abs(s.weight), reverse=True)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedList' object has no attribute 'sort'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 441, in process_neural_darwinism
+    domain.synapses.sort(key=lambda s: abs(s.weight), reverse=True)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedList' object has no attribute 'sort'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 441, in process_neural_darwinism
+    domain.synapses.sort(key=lambda s: abs(s.weight), reverse=True)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedList' object has no attribute 'sort'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 441, in process_neural_darwinism
+    domain.synapses.sort(key=lambda s: abs(s.weight), reverse=True)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedList' object has no attribute 'sort'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 441, in process_neural_darwinism
+    domain.synapses.sort(key=lambda s: abs(s.weight), reverse=True)
+    ^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedList' object has no attribute 'sort'
+ERROR in process_stdp_3factor:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 34, in process_stdp_3factor
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 90, in _stdp_3factor_impl
+    float(global_ctx.dopamine_learning_rate) *
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in run_sleep_cycle_process:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src/orchestrator/processes\p_sleep_cycle.py", line 49, in run_sleep_cycle_process
+    agent.dream_step(t)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\agents\rl_agent.py", line 180, in dream_step
+    self.engine.execute_workflow("workflows/agent_dream.yaml")
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 141, in execute_workflow
+    super().execute_workflow(steps, **kwargs)
+theus.contracts.ContractViolationError: Undeclared Error Violation: Caught TypeError: TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 90, in _stdp_3factor_impl
+    float(global_ctx.dopamine_learning_rate) *
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'

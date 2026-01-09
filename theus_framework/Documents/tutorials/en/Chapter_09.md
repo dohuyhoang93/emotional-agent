@@ -1,8 +1,7 @@
-# Chapter 9: Severity Levels - The Hierarchy of Punishment
-
-In Theus v2, Level is not just a log label. It defines exactly **WHAT ACTION** the Engine will take.
+# Chapter 9: Audit Levels & Thresholds
 
 ## 1. Action Hierarchy Table
+Level defines **WHAT ACTION** the Engine will take when a rule is violated.
 
 | Level | Name | Exception | Engine Action | Meaning |
 | :--- | :--- | :--- | :--- | :--- |
@@ -10,16 +9,26 @@ In Theus v2, Level is not just a log label. It defines exactly **WHAT ACTION** t
 | **A** | **Abort** | `AuditInterlockError` | **Hard Stop** | Code-wise same as S, but semantic is "Critical Logic Error". Stops Workflow. |
 | **B** | **Block** | `AuditBlockError` | **Rollback** | Rejects this Process only. Transaction cancelled. Workflow **STAYS ALIVE** and can retry or branch. |
 | **C** | **Campaign** | (None) | **Log Warning** | Only logs yellow warning. Process still Commits successfully. |
-| **I** | **Ignore** | (None) | **Silent** | Do nothing. |
 
-## 2. When to use what?
-- Use **S** for Physical Limits (Temp, Pressure, Max Memory).
-- Use **A** for Unrecoverable Data Errors (Lost DB connection, Corrupt data).
-- Use **B** for Business Rules (Invalid format, Insufficient funds, Duplicate name).
-- Use **C** for KPIs (Execution slightly slow, Value slightly high but acceptable).
+## 2. Dual-Thresholds: Error Accumulation
+Real systems have Noise. Theus v2 allows you to configure "Tolerance" via Thresholds (Rust Audit Tracker).
 
-## 3. Catching Errors
-In Control Logic (Orchestrator):
+### How Threshold Works
+Each Rule has its own Counter in `AuditTracker`.
+- **min_threshold:** Count to start Warning (Yellow).
+- **max_threshold:** Count to trigger Punishment (Red Action - S/A/B).
+
+**Example:** `max_threshold: 3`.
+- 1st Error: Allow (or Warn if >= min).
+- 2nd Error: Allow.
+- 3rd Error: **BOOM!** Trigger Level (e.g., Block).
+- After "BOOM", counter resets to 0.
+
+### Important: No Auto-Reset
+By default, the counter **DOES NOT RESET ON SUCCESS**. This detects **Flaky Systems**.
+If you error once every 10 runs -> After 30 runs, you get Blocked (accumulated 3 errors).
+
+## 3. Catching Errors in Orchestrator
 ```python
 try:
     engine.run_process("add_product", ...)
@@ -32,4 +41,4 @@ except AuditInterlockError:
 
 ---
 **Exercise:**
-Try configuring Audit Level `S`. Violate it and observe `AuditInterlockError`. Try configuring `B` and observe `AuditBlockError`. Write `try/except` code to handle these 2 cases differently.
+Configure `max_threshold: 3` for rule `price >= 0`. Call consecutively with negative price and observe the 3rd call failing.

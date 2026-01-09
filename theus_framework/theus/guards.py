@@ -113,6 +113,11 @@ class ContextGuard:
         val = getattr(self._target_obj, name)
         
         if self._transaction:
+            # OPTIMIZATION: If strict_mode is False, skip Transaction overhead entirely.
+            # This prevents History Accumulation (Container Leak) and Shadow Copying.
+            if not self._strict_mode:
+                 return val
+
             # Check if this specific leaf path is declared as Output (Writeable)
             # Logic: If it's in Outputs, it's Mutable. If it's only in Inputs, it's Immutable.
             # CAUTION: 'full_path' might be a parent of the output. 

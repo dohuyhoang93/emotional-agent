@@ -1,0 +1,5 @@
+
+name: "Benchmark Loop"
+steps:
+  - name: "No-op"
+    process: "noop_process"

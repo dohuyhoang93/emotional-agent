@@ -10,8 +10,8 @@ import numpy as np
 from theus.contracts import process
 from src.core.context import SystemContext
 from src.core.snn_context_theus import (
-    ensure_tensors_initialized,
-    sync_from_tensors
+    ensure_heavy_tensors_initialized,
+    sync_from_heavy_tensors
 )
 
 
@@ -45,8 +45,8 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
         return
     
     # 1. Prepare Tensors
-    ensure_tensors_initialized(snn_ctx)
-    t = snn_ctx.domain_ctx.tensors
+    ensure_heavy_tensors_initialized(snn_ctx)
+    t = snn_ctx.domain_ctx.heavy_tensors
     
     # Unpack tensors
     pots = t['potentials']      # (N,)
@@ -124,7 +124,7 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
         
     # 6. Sync Back to Objects (Audit Compatibility)
     if sync:
-        sync_from_tensors(snn_ctx)
+        sync_from_heavy_tensors(snn_ctx)
 
 
 @process(
@@ -149,8 +149,8 @@ def process_fire(ctx: SystemContext):
         return
     
     # 1. Prepare Tensors
-    ensure_tensors_initialized(snn_ctx)
-    t = snn_ctx.domain_ctx.tensors
+    ensure_heavy_tensors_initialized(snn_ctx)
+    t = snn_ctx.domain_ctx.heavy_tensors
     
     # Unpack tensors
     pots = t['potentials']      # (N,)
@@ -207,7 +207,7 @@ def process_fire(ctx: SystemContext):
             
     # 6. Sync Back to Objects (Audit Compatibility)
     if sync:  # noqa: F821
-        sync_from_tensors(snn_ctx)
+        sync_from_heavy_tensors(snn_ctx)
 
 
 @process(
@@ -235,8 +235,8 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
         return
         
     # 1. Prepare Tensors (Assume initialized/synced by process_integrate step)
-    ensure_tensors_initialized(snn_ctx) # Idempotent safety
-    t = snn_ctx.domain_ctx.tensors
+    ensure_heavy_tensors_initialized(snn_ctx) # Idempotent safety
+    t = snn_ctx.domain_ctx.heavy_tensors
     
     pots = t['potentials']
     thresh = t['thresholds']
@@ -303,7 +303,7 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
         
     # 4. Sync Back (LastFire, Pots, PVecs changed)
     if sync:
-        sync_from_tensors(snn_ctx)
+        sync_from_heavy_tensors(snn_ctx)
     
     # Metrics
     # Metrics
@@ -341,4 +341,16 @@ def _tick_impl(ctx: SystemContext):
     # Safe increment
     now = int(snn_ctx.domain_ctx.current_time)
     snn_ctx.domain_ctx.current_time = now + 1
+    
+    # === MEMORY LEAK FIX: Cleanup old spike_queue entries ===
+    # NOTE: spike_queue dict grows unbounded if we don't remove consumed entries.
+    # After processing time T, entry spike_queue[T] is no longer needed.
+    # We clean up entries older than (now - buffer_window) to be safe.
+    spike_queue = snn_ctx.domain_ctx.spike_queue
+    buffer_window = 10  # Keep last 10 time steps for safety
+    
+    # Remove old entries
+    old_times = [t for t in spike_queue.keys() if t < now - buffer_window]
+    for t in old_times:
+        del spike_queue[t]
 

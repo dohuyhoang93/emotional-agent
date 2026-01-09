@@ -40,5 +40,5 @@ steps:
   - execute_action_with_env
   - update_q_learning
 
-  
-  # Social Learning is handled by MultiAgentExperiment (Orchestrator level)
+  # Recording (POP Architecture)
+  - process_record_snn_step

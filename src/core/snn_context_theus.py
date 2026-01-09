@@ -223,9 +223,26 @@ class SNNDomainContext(BaseDomainContext):
     agent_id: int = 0
     
     # === Network State (ECS Arrays) ===
-    # NOTE: Theus sẽ track changes vào arrays này
-    neurons: List[NeuronState] = field(default_factory=list)
-    synapses: List[SynapseState] = field(default_factory=list)
+    # [HEAVY ZONE] - Skip shadow copy (large object lists)
+    heavy_neurons: List[NeuronState] = field(default_factory=list)
+    heavy_synapses: List[SynapseState] = field(default_factory=list)
+    
+    # Property aliases for backward compatibility
+    @property
+    def neurons(self) -> List[NeuronState]:
+        return self.heavy_neurons
+    
+    @neurons.setter
+    def neurons(self, value):
+        self.heavy_neurons = value
+    
+    @property
+    def synapses(self) -> List[SynapseState]:
+        return self.heavy_synapses
+    
+    @synapses.setter
+    def synapses(self, value):
+        self.heavy_synapses = value
     
     # === Temporal State ===
     current_time: int = 0
@@ -238,8 +255,8 @@ class SNNDomainContext(BaseDomainContext):
     })
     
     # ===== Emotion Vectors (SNN-RL Bridge) =====
-    snn_emotion_vector: Optional[torch.Tensor] = None  # Current emotion from SNN
-    previous_snn_emotion_vector: Optional[torch.Tensor] = None  # Previous emotion (t-1)
+    heavy_snn_emotion_vector: Optional[torch.Tensor] = None  # Current emotion from SNN
+    heavy_previous_snn_emotion_vector: Optional[torch.Tensor] = None  # Previous emotion (t-1)
     
     # ===== Metrics & Monitoring =====
     metrics: Dict[str, float] = field(default_factory=dict)
@@ -273,7 +290,8 @@ class SNNDomainContext(BaseDomainContext):
     # - thresholds: (N,)
     # - weights: (N, N) - Connectivity matrix (0.0 if incomplete)
     # - prototypes: (N, D) - For vector matching
-    tensors: Dict[str, np.ndarray] = field(default_factory=dict)
+    # [HEAVY ZONE] - Skip shadow copy
+    heavy_tensors: Dict[str, np.ndarray] = field(default_factory=dict)
 
     # === Phase 11: Robust Control (Safety) ===
     # Stores the current state of defense mechanisms
@@ -381,9 +399,9 @@ def create_snn_context_theus(
 # Vectorization Helpers (Compute-Sync Strategy)
 # ============================================================================
 
-def ensure_tensors_initialized(ctx: SNNSystemContext):
+def ensure_heavy_tensors_initialized(ctx: SNNSystemContext):
     """
-    Ensure shadow tensors exist and match object state.
+    Ensure shadow heavy_tensors exist and match object state.
     Call this at the start of Vectorized Process blocks.
     
     Creates:
@@ -397,30 +415,30 @@ def ensure_tensors_initialized(ctx: SNNSystemContext):
     N = len(neurons)
     
     # Initialize if missing or size mismatch
-    if 'potentials' not in domain.tensors or len(domain.tensors['potentials']) != N:
+    if 'potentials' not in domain.heavy_tensors or len(domain.heavy_tensors['potentials']) != N:
         # Potentials & Thresholds
         def _sf(x):
             try: return float(x)
             except: return 0.0
             
-        domain.tensors['potentials'] = np.array([_sf(n.potential) for n in neurons], dtype=np.float32)
-        domain.tensors['thresholds'] = np.array([_sf(n.threshold) for n in neurons], dtype=np.float32)
+        domain.heavy_tensors['potentials'] = np.array([_sf(n.potential) for n in neurons], dtype=np.float32)
+        domain.heavy_tensors['thresholds'] = np.array([_sf(n.threshold) for n in neurons], dtype=np.float32)
         
         # Last Fire Times (for Refractory)
-        domain.tensors['last_fire_times'] = np.array([n.last_fire_time for n in neurons], dtype=np.int32)
+        domain.heavy_tensors['last_fire_times'] = np.array([n.last_fire_time for n in neurons], dtype=np.int32)
         
         # Prototypes (N, D)
         D = neurons[0].vector_dim if N > 0 else 16
         prototypes = np.zeros((N, D), dtype=np.float32)
         for i, n in enumerate(neurons):
             prototypes[i] = n.prototype_vector
-        domain.tensors['prototypes'] = prototypes
+        domain.heavy_tensors['prototypes'] = prototypes
         
         # Potential Vectors (N, D) - Mutable State!
         pot_vecs = np.zeros((N, D), dtype=np.float32)
         for i, n in enumerate(neurons):
             pot_vecs[i] = n.potential_vector
-        domain.tensors['potential_vectors'] = pot_vecs
+        domain.heavy_tensors['potential_vectors'] = pot_vecs
         
         # Weights (N, N)
         # We assume sparse connectivity mapped to dense matrix for fast multiply
@@ -429,9 +447,9 @@ def ensure_tensors_initialized(ctx: SNNSystemContext):
         for s in domain.synapses:
             if s.pre_neuron_id < N and s.post_neuron_id < N:
                 weights[s.pre_neuron_id, s.post_neuron_id] = s.weight
-        domain.tensors['weights'] = weights
+        domain.heavy_tensors['weights'] = weights
     
-    # If tensors exist, we assume they are stale if we came from Object-logic land?
+    # If heavy_tensors exist, we assume they are stale if we came from Object-logic land?
     # NO. The "Sync" strategy assumes Tensors are valid ONLY during compute burst.
     # But initialization should happen.
     # For robust Compute-Sync: Always overwrite Tensors from Objects OR 
@@ -439,53 +457,53 @@ def ensure_tensors_initialized(ctx: SNNSystemContext):
     # "Load" step says: Sync Objects -> Tensors.
     
     # NEW: Add STDP traces tensor
-    if 'traces' not in domain.tensors:
-        domain.tensors['traces'] = np.zeros((N, N), dtype=np.float32)
+    if 'traces' not in domain.heavy_tensors:
+        domain.heavy_tensors['traces'] = np.zeros((N, N), dtype=np.float32)
         # Sync from synapses
         for syn in domain.synapses:
             if syn.pre_neuron_id < N and syn.post_neuron_id < N:
-                domain.tensors['traces'][syn.pre_neuron_id, syn.post_neuron_id] = syn.trace
+                domain.heavy_tensors['traces'][syn.pre_neuron_id, syn.post_neuron_id] = syn.trace
     
     # NEW: Add fitness tensor (for Neural Darwinism)
-    if 'fitnesses' not in domain.tensors:
-        domain.tensors['fitnesses'] = np.zeros((N, N), dtype=np.float32)
+    if 'fitnesses' not in domain.heavy_tensors:
+        domain.heavy_tensors['fitnesses'] = np.zeros((N, N), dtype=np.float32)
         for syn in domain.synapses:
             if syn.pre_neuron_id < N and syn.post_neuron_id < N:
-                domain.tensors['fitnesses'][syn.pre_neuron_id, syn.post_neuron_id] = syn.fitness
+                domain.heavy_tensors['fitnesses'][syn.pre_neuron_id, syn.post_neuron_id] = syn.fitness
 
     # NEW (Phase 7): Commitment Tensors
-    if 'commit_states' not in domain.tensors:
-        domain.tensors['commit_states'] = np.zeros((N, N), dtype=np.int8)
-        domain.tensors['consecutive_correct'] = np.zeros((N, N), dtype=np.int16)
-        domain.tensors['consecutive_wrong'] = np.zeros((N, N), dtype=np.int16)
+    if 'commit_states' not in domain.heavy_tensors:
+        domain.heavy_tensors['commit_states'] = np.zeros((N, N), dtype=np.int8)
+        domain.heavy_tensors['consecutive_correct'] = np.zeros((N, N), dtype=np.int16)
+        domain.heavy_tensors['consecutive_wrong'] = np.zeros((N, N), dtype=np.int16)
         
         for syn in domain.synapses:
             if syn.pre_neuron_id < N and syn.post_neuron_id < N:
-                domain.tensors['commit_states'][syn.pre_neuron_id, syn.post_neuron_id] = syn.commit_state
-                domain.tensors['consecutive_correct'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_correct
-                domain.tensors['consecutive_correct'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_correct
-                domain.tensors['consecutive_wrong'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_wrong
+                domain.heavy_tensors['commit_states'][syn.pre_neuron_id, syn.post_neuron_id] = syn.commit_state
+                domain.heavy_tensors['consecutive_correct'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_correct
+                domain.heavy_tensors['consecutive_correct'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_correct
+                domain.heavy_tensors['consecutive_wrong'][syn.pre_neuron_id, syn.post_neuron_id] = syn.consecutive_wrong
 
     # Phase 3: Vectorized Spike Buffer
     # Shape: (Buffer_Size, Num_Neurons)
     # Default buffer size 10ms is sufficient for most delays
     buffer_size = 10
-    if 'spike_buffer' not in domain.tensors:
-        domain.tensors['spike_buffer'] = np.zeros((buffer_size, N), dtype=np.int8)
-        domain.tensors['use_vectorized_queue'] = True  # Flag to switch logic
+    if 'spike_buffer' not in domain.heavy_tensors:
+        domain.heavy_tensors['spike_buffer'] = np.zeros((buffer_size, N), dtype=np.int8)
+        domain.heavy_tensors['use_vectorized_queue'] = True  # Flag to switch logic
 
     # NEW (Harmonic Homeostasis): Firing Traces
-    if 'firing_traces' not in domain.tensors:
-         domain.tensors['firing_traces'] = np.zeros(N, dtype=np.float32)
+    if 'firing_traces' not in domain.heavy_tensors:
+         domain.heavy_tensors['firing_traces'] = np.zeros(N, dtype=np.float32)
 
     # NEW (Phase 10.5): Derived Neuron Commitment
-    if 'solidity_ratios' not in domain.tensors:
-         domain.tensors['solidity_ratios'] = np.array([n.solidity_ratio for n in neurons], dtype=np.float32)
+    if 'solidity_ratios' not in domain.heavy_tensors:
+         domain.heavy_tensors['solidity_ratios'] = np.array([n.solidity_ratio for n in neurons], dtype=np.float32)
 
     # FULL SYNC (Objects -> Tensors)
-    sync_to_tensors(ctx)
+    sync_to_heavy_tensors(ctx)
 
-def sync_to_tensors(ctx: SNNSystemContext):
+def sync_to_heavy_tensors(ctx: SNNSystemContext):
     """
     Sync Objects (Source of Truth) -> Tensors (Cache).
     """
@@ -496,56 +514,56 @@ def sync_to_tensors(ctx: SNNSystemContext):
 
     # 1. Potentials & Last Fire Times & Thresholds (Vectorized Sync)
     # Optimized: Use list comprehension is faster than direct loop for small objects
-    domain.tensors['potentials'] = np.array([n.potential for n in neurons], dtype=np.float32)
-    domain.tensors['last_fire_times'] = np.array([n.last_fire_time for n in neurons], dtype=np.int32)
-    domain.tensors['thresholds'] = np.array([n.threshold for n in neurons], dtype=np.float32)
+    domain.heavy_tensors['potentials'] = np.array([n.potential for n in neurons], dtype=np.float32)
+    domain.heavy_tensors['last_fire_times'] = np.array([n.last_fire_time for n in neurons], dtype=np.int32)
+    domain.heavy_tensors['thresholds'] = np.array([n.threshold for n in neurons], dtype=np.float32)
     
     # 2. Weights (Expensive! Only sync if missing to avoid O(S) loop)
     # We assume weights are primarily updated via Tensors (STDP) or valid if present.
-    if 'weights' not in domain.tensors:
+    if 'weights' not in domain.heavy_tensors:
         weights = np.zeros((N, N), dtype=np.float32)
         for s in domain.synapses:
              if s.pre_neuron_id < N and s.post_neuron_id < N:
                   weights[s.pre_neuron_id, s.post_neuron_id] = s.weight
-        domain.tensors['weights'] = weights
+        domain.heavy_tensors['weights'] = weights
     
     # 3. Prototypes & Potential Vectors
-    domain.tensors['prototypes'] = np.array([n.prototype_vector for n in neurons], dtype=np.float32)
-    domain.tensors['potential_vectors'] = np.array([n.potential_vector for n in neurons], dtype=np.float32)
-    domain.tensors['solidity_ratios'] = np.array([n.solidity_ratio for n in neurons], dtype=np.float32)
+    domain.heavy_tensors['prototypes'] = np.array([n.prototype_vector for n in neurons], dtype=np.float32)
+    domain.heavy_tensors['potential_vectors'] = np.array([n.potential_vector for n in neurons], dtype=np.float32)
+    domain.heavy_tensors['solidity_ratios'] = np.array([n.solidity_ratio for n in neurons], dtype=np.float32)
 
     # 4. Traces & Fitness (Avoid allocations if possible)
-    # Check if tensors exist, otherwise create them. 
-    # NOTE: Re-creating from scratch is O(S), ideally we assume tensors are authoritative during RUN.
+    # Check if heavy_tensors exist, otherwise create them. 
+    # NOTE: Re-creating from scratch is O(S), ideally we assume heavy_tensors are authoritative during RUN.
     # But if objects are authoritative (e.g. after Load), we need to sync.
     # For now, we only sync if missing or explicitly triggered (this function is called explicitly).
-    if 'traces' not in domain.tensors: 
-        ensure_tensors_initialized(ctx) # Logic matches ensure_tensors
+    if 'traces' not in domain.heavy_tensors: 
+        ensure_heavy_tensors_initialized(ctx) # Logic matches ensure_heavy_tensors
     else:
-        # If tensors exist, we do NOT perform full sync from objects every step.
+        # If heavy_tensors exist, we do NOT perform full sync from objects every step.
         # This function is meant for "Force Sync" or "Initialization".
-        # During runtime loop, we trust tensors.
+        # During runtime loop, we trust heavy_tensors.
         pass
 
     # 5. Connectome Metadata (Phase 7)
     # Similar to weights, usually static structure unless Darwinism runs.
 
 
-def sync_from_tensors(ctx: SNNSystemContext):
+def sync_from_heavy_tensors(ctx: SNNSystemContext):
     """
     Sync Tensors (Cache) -> Objects (Source of Truth).
     Call this AFTER vectorized computation.
     """
     domain = ctx.domain_ctx
-    if 'potentials' not in domain.tensors:
+    if 'potentials' not in domain.heavy_tensors:
         return
         
-    pots = domain.tensors['potentials']
-    lfts = domain.tensors.get('last_fire_times', [])
-    pvecs = domain.tensors.get('potential_vectors', [])
-    pvecs = domain.tensors.get('potential_vectors', [])
-    thresholds = domain.tensors.get('thresholds', [])
-    solidity_ratios = domain.tensors.get('solidity_ratios', [])
+    pots = domain.heavy_tensors['potentials']
+    lfts = domain.heavy_tensors.get('last_fire_times', [])
+    pvecs = domain.heavy_tensors.get('potential_vectors', [])
+    pvecs = domain.heavy_tensors.get('potential_vectors', [])
+    thresholds = domain.heavy_tensors.get('thresholds', [])
+    solidity_ratios = domain.heavy_tensors.get('solidity_ratios', [])
     
     check_lft = len(lfts) > 0
     check_pvec = len(pvecs) > 0
@@ -578,14 +596,14 @@ def sync_from_tensors(ctx: SNNSystemContext):
     # If we vectorized STDP, we would sync weights back to domain.synapses.
     
     # NEW: Sync Traces & Fitness & Commitment Back (Partial Sync if they exist)
-    if 'commit_states' in domain.tensors:
-         traces = domain.tensors.get('traces')
-         fitnesses = domain.tensors.get('fitnesses')
+    if 'commit_states' in domain.heavy_tensors:
+         traces = domain.heavy_tensors.get('traces')
+         fitnesses = domain.heavy_tensors.get('fitnesses')
          
          # Commitment Tensors
-         commit_states = domain.tensors.get('commit_states')
-         consecutive_correct = domain.tensors.get('consecutive_correct')
-         consecutive_wrong = domain.tensors.get('consecutive_wrong')
+         commit_states = domain.heavy_tensors.get('commit_states')
+         consecutive_correct = domain.heavy_tensors.get('consecutive_correct')
+         consecutive_wrong = domain.heavy_tensors.get('consecutive_wrong')
          
          N = len(domain.neurons)
          

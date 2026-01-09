@@ -51,17 +51,20 @@ When you run a **Replay (Bug Reproduction)**:
 This ensures **Determinism** - Running 100 times yields the exact same result.
 
 ## 4. Locked Context Mechanism
-Theus protects the Context using `LockManager`.
+Theus protects the Context using `LockManager` (enforced by Rust Core).
 
 ### 4.1. Default State: LOCKED
-As soon as you initialize `Engine(ctx)`, the Context switches to a **LOCKED** state.
+As soon as you initialize `Engine(ctx, strict_mode=True)`, the Context switches to a **LOCKED** state.
 If you try to modify it externally (External Mutation):
 ```python
 # Code outside of @process
 def hack_system(ctx):
+    # This will FAIL if strict_mode=True
     ctx.domain.total_value = 9999 # -> Raises ContextLockedError!
 ```
 The system raises an error to prevent Untraceable Mutations.
+
+> **Note:** `strict_mode=True` is Highly Recommended for Production/Testing to guarantee data integrity.
 
 ### 4.2. Valid Mutation: `engine.edit()`
 In special cases (like Unit Tests, Initial Data Setup), you need to modify the Context without writing a Process. Theus provides a "Master Key":

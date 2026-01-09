@@ -3,22 +3,22 @@ process_recipes:
   # Monitor SNN Learning Process
   process_stdp:
     inputs:
-      - field: "domain.snn_context.domain_ctx.tensors.weights.max()"
+      - field: "domain.snn_context.domain_ctx.heavy_tensors.weights.max()"
         max: 1.0
         level: "C"
         message: "Weights exploded > 1.0"
         
-      - field: "domain.snn_context.domain_ctx.tensors.traces.max()"
+      - field: "domain.snn_context.domain_ctx.heavy_tensors.traces.max()"
         max: 100.0  # Arbitrary high limit
         level: "C" 
         message: "Traces unstable > 100"
 
-      - field: "domain.snn_context.domain_ctx.tensors.potentials.max()"
+      - field: "domain.snn_context.domain_ctx.heavy_tensors.potentials.max()"
         max: 50.0 # Runaway excitation check
         level: "C"
         message: "Potentials exploding > 50.0"
 
-      - field: "domain.snn_context.domain_ctx.tensors.fitnesses.min()"
+      - field: "domain.snn_context.domain_ctx.heavy_tensors.fitnesses.min()"
         min: 0.0
         level: "C"
         message: "Negative fitness detected"
@@ -28,12 +28,12 @@ process_recipes:
         # Python built-in min/max propagates NaNs but won't trigger standard comparisons easily unless we assume nan compares false.
         # Ideally we'd have an 'isnan()' check but current audit is simple.
         # We can check min >= 0 if weights are non-negative.
-      - field: "domain.snn_context.domain_ctx.tensors.weights.min()"
+      - field: "domain.snn_context.domain_ctx.heavy_tensors.weights.min()"
         min: 0.0
         level: "C"
         message: "Negative weights detected"
         
-      - field: "domain.snn_context.domain_ctx.tensors.prototypes.max()"
+      - field: "domain.snn_context.domain_ctx.heavy_tensors.prototypes.max()"
         max: 1.1 # Normalized vectors should be <= 1.0 (allow small tolerance)
         level: "C"
         message: "Prototypes denormalized > 1.1"

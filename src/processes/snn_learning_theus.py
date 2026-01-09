@@ -42,10 +42,10 @@ def _clustering_impl_vectorized(ctx):
     domain = snn_ctx.domain_ctx
     
     # Ensure Infrastructure
-    from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
-    ensure_tensors_initialized(snn_ctx)
+    from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
+    ensure_heavy_tensors_initialized(snn_ctx)
     
-    t = domain.tensors
+    t = domain.heavy_tensors
     weights = t['weights']          # (N, N)
     protos = t['prototypes']        # (N, D)
     
@@ -97,7 +97,7 @@ def _clustering_impl_vectorized(ctx):
         protos[post_indices] /= norms
     
     # Sync Back
-    sync_from_tensors(snn_ctx)
+    sync_from_heavy_tensors(snn_ctx)
 
 
 @process(
@@ -132,10 +132,10 @@ def _stdp_impl_vectorized(ctx):
     domain = snn_ctx.domain_ctx
     
     # 0. Ensure Infrastructure
-    from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
-    ensure_tensors_initialized(snn_ctx)
+    from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
+    ensure_heavy_tensors_initialized(snn_ctx)
     
-    t = domain.tensors
+    t = domain.heavy_tensors
     weights = t['weights']          # (N, N)
     traces = t['traces']            # (N, N)
     last_fire = t['last_fire_times'] # (N,)
@@ -154,7 +154,7 @@ def _stdp_impl_vectorized(ctx):
     # 2. Check Spikes
     current_spikes = domain.spike_queue.get(cur_time, [])
     if not current_spikes:
-        sync_from_tensors(snn_ctx)
+        sync_from_heavy_tensors(snn_ctx)
         return
 
     # Filter valid spikes

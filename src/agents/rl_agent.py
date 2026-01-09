@@ -89,8 +89,8 @@ class RLAgent:
         
         # Link state to Domain Context (Safe Mutation)
         with self.engine.edit():
-            self.domain_ctx.gated_network = self.gated_network
-            self.domain_ctx.gated_optimizer = self.optimizer
+            self.domain_ctx.heavy_gated_network = self.gated_network
+            self.domain_ctx.heavy_gated_optimizer = self.optimizer
         
         
         
@@ -135,13 +135,26 @@ class RLAgent:
         
         # Recorder (Feature Flag in GlobalContext)
         if getattr(self.global_ctx, 'enable_recorder', False):
-             self.recorder = SNNRecorder(
-                agent_id=self.agent_id,
-                output_dir=os.path.join("results", "recordings"), # Default dir, orchestrator might override
-                buffer_size=1000
-            )
+             # POP REFACTOR: SNNRecorder class removed. 
+             # We configure context for process_record_snn_step
+             output_dir = os.path.join("results", "recordings")
+             
+             with self.engine.edit():
+                 self.domain_ctx.recorder_config = {
+                    'agent_id': self.agent_id,
+                    'output_dir': output_dir,
+                    'buffer_size': 1000
+                 }
+                 # Ensure buffer init (Done by dataclass default, but safe to touch)
+                 if self.domain_ctx.heavy_recorder_buffer is None:
+                     self.domain_ctx.heavy_recorder_buffer = []
+             
+             # self.recorder = SNNRecorder(...) # DEPRECATED
+             self.recorder = None # Flag for manual calls removal
         else:
              self.recorder = None
+             with self.engine.edit():
+                 self.domain_ctx.recorder_config = None
     
     # Phase 14: Sleep & Dream
     # ==========================
@@ -176,9 +189,21 @@ class RLAgent:
         Args:
             observation: Initial observation từ environment
         """
-        # Flush recorder if active from previous episode
-        if self.recorder:
-            self.recorder.flush()
+        # Flush recorder if active (Handled by process logic? No, reset flushes buffer usually)
+        # In POP, buffer is in context. We can clear it or flush it. 
+        # Ideally, we should flush manually here if we want to save end-of-episode?
+        # Actually, if buffer > 0, we can flush. 
+        # Let's clean buffer on reset.
+        if self.domain_ctx.recorder_config:
+             # Explicitly flush remaining?
+             # For simplicity/safety, just clear buffer on reset. 
+             # Or we can invoke process? No process invocation here easily without creating new transaction.
+             # Just clear buffer to prevent leak across episodes. 
+             # Safe Flush logic implies we want to SAVE data.
+             # We will skip saving 'tail' of episode for now to avoid complexity, or implement a manual flush util.
+             # Decision: Clear buffer to solve memory leak absolutely.
+             if self.domain_ctx.heavy_recorder_buffer:
+                 self.domain_ctx.heavy_recorder_buffer.clear()
         
         with self.engine.edit():
             # Reset RL state
@@ -226,20 +251,9 @@ class RLAgent:
             agent_id=self.agent_id
         )
         
-        # Record Step (Phase 15)
-        if self.recorder:
-            # We record running metrics
-            # ep_metrics has 'steps' which is count
-            current_step = self.episode_metrics['steps']
-            # We assume episode index is handled externally or we pass it? 
-            # Actually recorder needs Ep Index. 
-            # We don't have Ep Index in RLAgent state easily (it's in Runner).
-            # But we can assume sequential or pass it in reset?
-            # For now passing 0 or adding episode_count to DomainContext.
-            # Let's use 0 for now as placeholder, or self.snn_ctx.domain_ctx.cycle_count
-            
-            # Better: context likely has it or we just use global timestamp
-            self.recorder.record_step(self.snn_ctx, 0, current_step)
+        # Record Step (Phase 15 - Legacy)
+        # REMOVED: Handled by workflow process 'process_record_snn_step'
+        # if self.recorder: ...
         
         # Update metrics
         self.episode_metrics['steps'] += 1

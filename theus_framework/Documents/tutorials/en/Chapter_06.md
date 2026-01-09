@@ -1,19 +1,19 @@
 # Chapter 6: Transaction & Delta - The Time Machine v2
 
-In Theus v2, the Transaction concept is upgraded to ensure absolute data integrity (ACID-like) right in Python memory.
+In Theus v2, the Transaction concept is handled by the **Rust Core**, ensuring absolute data integrity (ACID-like) with zero Python overhead.
 
-## 1. Two Transaction Strategies
-Theus uses a Hybrid Approach to optimize performance:
+## 1. Two Transaction Strategies (Hybrid Engine)
+Theus uses a Hybrid Approach to optimize performance automatically:
 
 ### 1.1. Optimistic Concurrency (For Scalar: int, str, bool)
-When you assign `ctx.domain.counter = 10`:
+When you assign `ctx.domain_ctx.counter = 10`:
 - **Action:** Theus overwrites 10 to the Real Context **immediately** (In-place update).
 - **Insurance:** Simultaneously, Theus logs to `DeltaLog`: *"Old value of counter was 5"*.
-- **Rollback:** If error, Theus reads Log backwards and restores old values.
+- **Rollback:** If error, Theus reads Log backwards and restores old values (Rust Speed).
 - **Benefit:** Extremely fast for simple variables.
 
 ### 1.2. Shadow Copy (For Collection: list, dict)
-When you modify `ctx.domain.items`:
+When you modify `ctx.domain_ctx.items`:
 - **Action:** Theus creates a replica (Shadow) of that list.
 - **Operation:** All your `append`, `pop` commands happen on this Shadow. The original List knows nothing.
 - **Commit:** If success, Theus swaps the Shadow content into the Original List.

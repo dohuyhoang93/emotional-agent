@@ -12,6 +12,7 @@ from src.agents.rl_agent import RLAgent
 from theus import TheusEngine
 import os
 import torch
+import gc # Memory management
 from src.core.context import GlobalContext, DomainContext, SystemContext
 from src.core.snn_context_theus import SNNGlobalContext, create_snn_context_theus
 from src.adapters.environment_adapter import EnvironmentAdapter
@@ -70,7 +71,7 @@ class MultiAgentCoordinator:
                 last_action=-1,
                 emotion_state=np.zeros(16, dtype=np.float32),
                 N_vector=torch.tensor(global_ctx.initial_needs) if hasattr(global_ctx, 'initial_needs') else torch.zeros(2),
-                E_vector=torch.tensor(global_ctx.initial_emotions) if hasattr(global_ctx, 'initial_emotions') else torch.zeros(16),
+                heavy_E_vector=torch.tensor(global_ctx.initial_emotions) if hasattr(global_ctx, 'initial_emotions') else torch.zeros(16),
                 
                 # Beliefs etc (defaults in dataclass are empty usually, but let's be explicit if needed)
                 believed_switch_states={slug: False for slug in getattr(global_ctx, 'switch_locations', {}).keys()},
@@ -102,7 +103,7 @@ class MultiAgentCoordinator:
             engine = TheusEngine(
                 system_ctx,
                 audit_recipe=None, # TODO: Load recipe?
-                strict_mode=True
+                strict_mode=False
             )
             engine.scan_and_register(processes_dir)
             
@@ -152,6 +153,8 @@ class MultiAgentCoordinator:
         
         # Run episode
         step_count = 0
+        consecutive_errors = 0 # Circuit Breaker
+        max_steps = self.global_ctx.max_steps
         max_steps = self.global_ctx.max_steps
         
         while step_count < max_steps:
@@ -177,10 +180,23 @@ class MultiAgentCoordinator:
                              agent.episode_metrics['steps_to_goal'] = step_count
                     
                 except Exception as e:
+                    # RUST CORE TRAP: Theus catches KeyboardInterrupt and wraps it in ContractViolationError
+                    if "KeyboardInterrupt" in str(e):
+                        print("\n🛑 MASTER INTERRUPT: Received Ctrl+C (Caught by Theus). Terminating...")
+                        import sys
+                        sys.exit(0)
+
                     import traceback
                     traceback.print_exc()
                     print(f"Agent {i} error: {e}")
+                    consecutive_errors += 1
+                    if consecutive_errors > 5:
+                        print("🚨 CIRCUIT BREAKER TRIPPED: Too many consecutive errors. Aborting Episode.")
+                        return float('-inf') # Abort execution
                     continue
+                
+                # Reset circuit breaker on success
+                consecutive_errors = 0
             
             # Increment step
             env.current_step += 1
@@ -193,6 +209,9 @@ class MultiAgentCoordinator:
         # Collect population metrics
         self._collect_population_metrics()
         self.episode_count += 1
+        
+        # Explicit GC
+        gc.collect()
         
         return self.get_episode_metrics()
 
@@ -225,8 +244,16 @@ class MultiAgentCoordinator:
              if not hasattr(leader_ctx, 'population_performance'):
                  leader_ctx.population_performance = []
              leader_ctx.population_performance.append(avg_reward)
+             # === MEMORY LEAK FIX: Limit history size ===
+             MAX_HISTORY = 200  # Keep last 200 episodes (enough for Revolution Protocol)
+             if len(leader_ctx.population_performance) > MAX_HISTORY:
+                 leader_ctx.population_performance = leader_ctx.population_performance[-MAX_HISTORY:]
         
         self.population_performance.append(avg_reward)
+        # === MEMORY LEAK FIX: Limit coordinator's history too ===
+        if len(self.population_performance) > 200:
+            self.population_performance = self.population_performance[-200:]
+        
         self.last_success_rate = success_rate # Store for immediate retrieval
 
     def get_episode_metrics(self) -> Dict[str, Any]:

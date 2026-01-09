@@ -129,12 +129,12 @@ def observation_to_state_key(obs: Dict[str, Any]) -> str:
 @process(
     inputs=['domain_ctx', 
         'domain_ctx.current_observation',
-        'domain_ctx.snn_emotion_vector',
+        'domain_ctx.heavy_snn_emotion_vector',
         'domain_ctx.heavy_q_table',
         'domain_ctx.current_exploration_rate',
-        'domain_ctx.gated_network'
+        'domain_ctx.heavy_gated_network'
     ],
-    outputs=['domain_ctx', 'domain_ctx.last_action', 'domain_ctx.last_q_values'],
+    outputs=['domain_ctx', 'domain_ctx.last_action', 'domain_ctx.heavy_last_q_values'],
     side_effects=[]
 )
 def select_action_gated(ctx: SystemContext):
@@ -148,7 +148,7 @@ def select_action_gated(ctx: SystemContext):
         ctx: System context
     """
     obs = ctx.domain_ctx.current_observation
-    emotion = ctx.domain_ctx.snn_emotion_vector
+    emotion = ctx.domain_ctx.heavy_snn_emotion_vector
     
     # Fallback: If no emotion vector, use standard epsilon-greedy
     if emotion is None:
@@ -160,7 +160,7 @@ def select_action_gated(ctx: SystemContext):
             action = int(np.argmax(q_values))
         
         ctx.domain_ctx.last_action = action
-        ctx.domain_ctx.last_q_values = torch.tensor([0.0] * 4)
+        ctx.domain_ctx.heavy_last_q_values = torch.tensor([0.0] * 4).detach()
         return
     
     # Emotion-modulated exploration
@@ -171,7 +171,7 @@ def select_action_gated(ctx: SystemContext):
             emo_tensor = emotion
             
         if isinstance(emo_tensor, (list, tuple)):
-            emo_tensor = torch.tensor(emo_tensor, dtype=torch.float32)
+            emo_tensor = torch.tensor(emo_tensor, dtype=torch.float32).detach()
             
         emotion_magnitude = float(torch.norm(emo_tensor).item())
     except Exception as e:
@@ -182,9 +182,9 @@ def select_action_gated(ctx: SystemContext):
     adjusted_exploration = min(adjusted_exploration, 1.0)
     
     # Get Q-values from Network if available, else Q-table
-    if ctx.domain_ctx.gated_network is not None:
+    if ctx.domain_ctx.heavy_gated_network is not None:
         # Neural Network Path
-        net = ctx.domain_ctx.gated_network
+        net = ctx.domain_ctx.heavy_gated_network
         obs_tensor = observation_to_tensor(obs)
         
         # Predict
@@ -206,7 +206,7 @@ def select_action_gated(ctx: SystemContext):
         action = int(np.argmax(q_values_list))
     
     ctx.domain_ctx.last_action = action
-    ctx.domain_ctx.last_q_values = torch.tensor(q_values_list, dtype=torch.float32)
+    ctx.domain_ctx.heavy_last_q_values = torch.tensor(q_values_list, dtype=torch.float32).detach()
 
 
 @process(
@@ -215,11 +215,11 @@ def select_action_gated(ctx: SystemContext):
         'domain_ctx.last_reward',
         'domain_ctx.current_observation',
         'domain_ctx.last_action',
-        'domain_ctx.gated_network',
-        'domain_ctx.gated_optimizer',
+        'domain_ctx.heavy_gated_network',
+        'domain_ctx.heavy_gated_optimizer',
         'domain_ctx.previous_observation',
-        'domain_ctx.previous_snn_emotion_vector',
-        'domain_ctx.snn_emotion_vector'
+        'domain_ctx.heavy_previous_snn_emotion_vector',
+        'domain_ctx.heavy_snn_emotion_vector'
     ],
     outputs=['domain_ctx', 
         'domain_ctx.heavy_q_table',
@@ -282,17 +282,17 @@ def update_q_learning(ctx: SystemContext):
     ctx.domain_ctx.td_error = td_error
     
     # === Train Gated Network (Deep RL) ===
-    if ctx.domain_ctx.gated_network is not None and ctx.domain_ctx.gated_optimizer is not None:
-        net = ctx.domain_ctx.gated_network
-        opt = ctx.domain_ctx.gated_optimizer
+    if ctx.domain_ctx.heavy_gated_network is not None and ctx.domain_ctx.heavy_gated_optimizer is not None:
+        net = ctx.domain_ctx.heavy_gated_network
+        opt = ctx.domain_ctx.heavy_gated_optimizer
         
         # Previous State (t-1)
         prev_obs = ctx.domain_ctx.previous_observation
-        prev_emo = ctx.domain_ctx.previous_snn_emotion_vector
+        prev_emo = ctx.domain_ctx.heavy_previous_snn_emotion_vector
         
         # Current State (t) - becomes Next State for update
         curr_obs = ctx.domain_ctx.current_observation
-        curr_emo = ctx.domain_ctx.snn_emotion_vector
+        curr_emo = ctx.domain_ctx.heavy_snn_emotion_vector
         
         if prev_obs is not None and prev_emo is not None and curr_emo is not None:
             # Prepare tensors

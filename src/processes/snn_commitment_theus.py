@@ -56,10 +56,10 @@ def process_commitment(
         error = 0.0
     
     # === VECTORIZED UPDATE ===
-    from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
+    from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
     
-    ensure_tensors_initialized(snn_ctx)
-    t = domain.tensors
+    ensure_heavy_tensors_initialized(snn_ctx)
+    t = domain.heavy_tensors
     
     commit_states = t['commit_states']
     con_correct = t['consecutive_correct']
@@ -148,7 +148,7 @@ def process_commitment(
         domain.metrics.get('revoked_count', 0) + int(revoked)
     
     # Sync Back to Objects (O(S) but necessary for Pruning)
-    sync_from_tensors(snn_ctx)
+    sync_from_heavy_tensors(snn_ctx)
     
     # Count by state (Vectorized)
     fluid_count = np.sum(commit_states == COMMIT_STATE_FLUID)

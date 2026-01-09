@@ -71,18 +71,30 @@ class DomainContext(BaseDomainContext):
 
     # --- Internal State (Vectors) ---
     N_vector: Optional[torch.Tensor] = None # Needs
-    E_vector: Optional[torch.Tensor] = None # Emotions
+    heavy_E_vector: Optional[torch.Tensor] = None # Emotions
     
     # --- SNN Integration (Phase 5) ---
-    snn_context: Any = None  # SNNSystemContext (nested context)
-    snn_emotion_vector: Optional[torch.Tensor] = None  # Emotion từ SNN
-    previous_snn_emotion_vector: Optional[torch.Tensor] = None # Emotion cũ (t-1)
+    # [HEAVY ZONE] - Entire SNN subsystem is large, skip shadow copy
+    heavy_snn_context: Any = None  # SNNSystemContext (nested context)
+    heavy_snn_emotion_vector: Optional[torch.Tensor] = None  # Emotion từ SNN
+    heavy_previous_snn_emotion_vector: Optional[torch.Tensor] = None # Emotion cũ (t-1)
     intrinsic_reward: float = 0.0  # Novelty signal từ SNN
+    
+    # Property alias for backward compatibility
+    @property
+    def snn_context(self):
+        return self.heavy_snn_context
+    
+    @snn_context.setter
+    def snn_context(self, value):
+        self.heavy_snn_context = value
     
     # --- Belief State ---
     believed_switch_states: Dict[str, bool] = field(default_factory=dict)
     
     # --- Knowledge (Memory & Models) ---
+    # [HEAVY ZONE] Prefix 'heavy_' instructions Theus Engine to SKIP shadow copying (optimization).
+    # This prevents MemoryError/QuotaPanic for large structures.
     heavy_q_table: Dict[str, List[float]] = field(default_factory=dict)
     short_term_memory: List[Any] = field(default_factory=list)
     long_term_memory: Dict[str, Any] = field(default_factory=dict)
@@ -92,8 +104,9 @@ class DomainContext(BaseDomainContext):
     emotion_optimizer: Any = None # Torch Optimizer (Legacy)
     
     # --- Integration Models (Phase 2 Upgrade) ---
-    gated_network: Any = None # GatedIntegrationNetwork
-    gated_optimizer: Any = None # Optimizer for Gated Net
+    heavy_gated_network: Any = None # GatedIntegrationNetwork
+    heavy_gated_optimizer: Any = None # Optimizer for Gated Net
+    heavy_last_q_values: Optional[torch.Tensor] = None # Last Q snapshot (Tensor)
     
     # --- Dynamic Parameters ---
     current_exploration_rate: float = 1.0
@@ -114,6 +127,26 @@ class DomainContext(BaseDomainContext):
     # Metric tracking
     metrics: Dict[str, Any] = field(default_factory=dict)
     last_cycle_time: float = 0.0
+    
+    # --- SNN Recorder (Phase 15 - POP Refactor) ---
+    # [HEAVY ZONE] Buffer is large and shouldn't be deep copied per step
+    heavy_recorder_buffer: List[Any] = field(default_factory=list)
+    recorder_config: Optional[Dict[str, Any]] = None
+    
+    # Alias for backward compatibility (Process expects 'recorder_buffer')
+    # property setter/getter? No, dataclass field best. 
+    # Process uses domain_ctx.recorder_buffer. 
+    # Theus checks "heavy_" prefix for avoiding copy. 
+    # If we name it 'heavy_recorder_buffer', process MUST use that name. 
+    # Let's map it:
+    
+    @property
+    def recorder_buffer(self) -> List[Any]:
+        return self.heavy_recorder_buffer
+        
+    @recorder_buffer.setter
+    def recorder_buffer(self, value):
+        self.heavy_recorder_buffer = value
 
 @dataclass
 class SystemContext(BaseSystemContext):

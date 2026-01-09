@@ -87,11 +87,11 @@ def _hysteria_impl(ctx: SystemContext):
     # Apply dampening
     # Apply dampening (Vectorized)
     if domain.dampening_active:
-        from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
+        from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
         
         # Ensure tensors on the SNN context
-        ensure_tensors_initialized(snn_ctx)
-        t = domain.tensors
+        ensure_heavy_tensors_initialized(snn_ctx)
+        t = domain.heavy_tensors
         
         # Vector Update: Multiply all thresholds
         t['thresholds'] *= (1 + damp_factor)
@@ -105,7 +105,7 @@ def _hysteria_impl(ctx: SystemContext):
         )
         
         # Sync back
-        sync_from_tensors(snn_ctx)
+        sync_from_heavy_tensors(snn_ctx)
         
         # Deactivate if recovered
         if domain.emotion_saturation_level < 0.1:
@@ -142,10 +142,10 @@ def process_lateral_inhibition(ctx: SystemContext):
     """
     """
     try:
-        from src.core.snn_context_theus import ensure_tensors_initialized, sync_from_tensors
-        ensure_tensors_initialized(ctx.domain_ctx.snn_context)
+        from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
+        ensure_heavy_tensors_initialized(ctx.domain_ctx.snn_context)
         _lateral_inhibition_vectorized(ctx)
-        sync_from_tensors(ctx.domain_ctx.snn_context)
+        sync_from_heavy_tensors(ctx.domain_ctx.snn_context)
     except Exception:
         import traceback
         print(f"CRASH in process_lateral_inhibition: {traceback.format_exc()}")
@@ -161,7 +161,7 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
     if snn_ctx is None:
         return
         
-    t = domain.tensors
+    t = domain.heavy_tensors
     if t is None: # Should be ensured
         return
         
@@ -432,6 +432,14 @@ def process_neural_darwinism(
     
     if new_synapses:
         domain.synapses.extend(new_synapses)
+    
+    # === MEMORY LEAK FIX: Cap synapse count to prevent unbounded growth ===
+    # NOTE: Neural Darwinism adds new synapses but may grow faster than pruning.
+    MAX_SYNAPSES = global_ctx.num_neurons * 20  # ~20 synapses per neuron max
+    if len(domain.synapses) > MAX_SYNAPSES:
+        # Keep strongest synapses by weight (use sorted() for TrackedList compatibility)
+        sorted_synapses = sorted(domain.synapses, key=lambda s: abs(s.weight), reverse=True)
+        domain.synapses = list(sorted_synapses[:MAX_SYNAPSES])
     
     # Update metrics
     domain.metrics['darwinism_survivors'] = len(survivors)

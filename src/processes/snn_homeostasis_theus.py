@@ -8,7 +8,7 @@ Date: 2025-12-25
 """
 import numpy as np
 from theus.contracts import process
-from src.core.snn_context_theus import SNNSystemContext, ensure_tensors_initialized, sync_from_tensors
+from src.core.snn_context_theus import SNNSystemContext, ensure_heavy_tensors_initialized, sync_from_heavy_tensors
 
 
 @process(
@@ -22,11 +22,11 @@ from src.core.snn_context_theus import SNNSystemContext, ensure_tensors_initiali
         'domain_ctx.snn_context.global_ctx.trace_decay',             # NEW
         'domain_ctx.snn_context.global_ctx.threshold_min',
         'domain_ctx.snn_context.global_ctx.threshold_max',
-        'domain_ctx.snn_context.domain_ctx.tensors'
+        'domain_ctx.snn_context.domain_ctx.heavy_tensors'
     ],
     outputs=['domain_ctx', 
         'domain_ctx.snn_context.domain_ctx.neurons',
-        'domain_ctx.snn_context.domain_ctx.tensors'
+        'domain_ctx.snn_context.domain_ctx.heavy_tensors'
     ],
     side_effects=[]
 )
@@ -58,7 +58,7 @@ def process_homeostasis(ctx: SNNSystemContext):
         rate_local = float(snn_global.local_homeostasis_rate)
         decay = float(snn_global.trace_decay)
         
-        t = snn_domain.tensors
+        t = snn_domain.heavy_tensors
         
         thresholds = t['thresholds']
         firing_traces = t['firing_traces']
@@ -132,8 +132,8 @@ def process_homeostasis(ctx: SNNSystemContext):
         # 10. Sync Back (CRITICAL FIX)
         # Must sync tensors -> objects immediately, otherwise next cycle's 
         # sync_to_tensors will overwrite these changes with stale object data!
-        from src.core.snn_context_theus import sync_from_tensors
-        sync_from_tensors(snn_ctx)
+        from src.core.snn_context_theus import sync_from_heavy_tensors
+        sync_from_heavy_tensors(snn_ctx)
         
     except Exception as e:
         log_error(ctx, f"CRITICAL ERROR in process_homeostasis: {e}")
@@ -198,13 +198,13 @@ def pid_controller_with_antiwindup(
         'domain_ctx.snn_context.global_ctx.pid_scale_factor',
         'domain_ctx.snn_context.global_ctx.threshold_min',
         'domain_ctx.snn_context.global_ctx.threshold_max',
-        'domain_ctx.snn_context.domain_ctx.tensors' # NEW
+        'domain_ctx.snn_context.domain_ctx.heavy_tensors' # NEW
     ],
     outputs=['domain_ctx', 
         'domain_ctx.snn_context.domain_ctx.neurons',
         'domain_ctx.snn_context.domain_ctx.pid_state',
         'domain_ctx.snn_context.domain_ctx.metrics',
-        'domain_ctx.snn_context.domain_ctx.tensors' # NEW
+        'domain_ctx.snn_context.domain_ctx.heavy_tensors' # NEW
     ],
     side_effects=[]
 )
@@ -243,8 +243,8 @@ def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
         
         # === VECTORIZED UPDATE ===
         # 1. Ensure tensors
-        ensure_tensors_initialized(snn_ctx)
-        t = domain.tensors
+        ensure_heavy_tensors_initialized(snn_ctx)
+        t = domain.heavy_tensors
 
         # 2. Vectorized Update
         # NOTE: Giảm threshold khi fire_rate thấp (error > 0)
@@ -259,7 +259,7 @@ def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
         )
         
         # 4. Sync back
-        sync_from_tensors(snn_ctx)
+        sync_from_heavy_tensors(snn_ctx)
         
         # Cập nhật metrics để audit
         domain.metrics['meta_threshold_adj'] = threshold_adjustment

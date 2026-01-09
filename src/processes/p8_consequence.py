@@ -68,15 +68,15 @@ def _calculate_dynamic_weight(cycle_time, current_step, current_episode, total_e
     inputs=['global_ctx', 'domain_ctx', 
         'domain_ctx.previous_observation', 'domain_ctx.current_observation', 'domain_ctx.selected_action', 'domain_ctx.last_reward',
         'domain_ctx.heavy_q_table', 'domain_ctx.believed_switch_states', 'domain_ctx.short_term_memory',
-        'domain_ctx.E_vector', 'domain_ctx.emotion_optimizer', 'domain_ctx.emotion_model', 'domain_ctx.td_error',
+        'domain_ctx.heavy_E_vector', 'domain_ctx.emotion_optimizer', 'domain_ctx.emotion_model', 'domain_ctx.td_error',
         'global_ctx.learning_rate', 'global_ctx.discount_factor', 'global_ctx.use_dynamic_curiosity',
         'domain_ctx.last_cycle_time', 'domain_ctx.current_episode', 'domain_ctx.current_step',
         'global_ctx.total_episodes', 'global_ctx.use_adaptive_fatigue', 'global_ctx.fatigue_growth_rate', 'global_ctx.max_steps',
         'global_ctx.intrinsic_reward_weight', 'global_ctx.short_term_memory_limit'
     ],
     outputs=['global_ctx', 'domain_ctx', 
-        'domain_ctx.heavy_q_table', 'domain_ctx.td_error', 'domain_ctx.last_reward', 'domain_ctx.short_term_memory', 'domain_ctx.E_vector'
-        # E_vector is updated via optimizer step (technically pure output? No, side effect on torch graph, but we say it outputs updated state)
+        'domain_ctx.heavy_q_table', 'domain_ctx.td_error', 'domain_ctx.last_reward', 'domain_ctx.short_term_memory', 'domain_ctx.heavy_E_vector'
+        # heavy_E_vector is updated via optimizer step (technically pure output? No, side effect on torch graph, but we say it outputs updated state)
     ],
     side_effects=[],
     errors=[]
@@ -159,13 +159,13 @@ def record_consequences(ctx: SystemContext):
     # 5. Train Emotion Model (MLP)
     if domain.emotion_model and domain.emotion_optimizer:
         # Target 1: Value Prediction (Confidence -> Q Value)
-        predicted_value = domain.E_vector[0]
+        predicted_value = domain.heavy_E_vector[0]
         target_value = torch.tensor(next_max_q * global_cfg.discount_factor, dtype=torch.float32)
         loss_value = F.mse_loss(predicted_value, target_value)
         
         # Target 2: Curiosity Prediction (Excitement -> TD Error)
         normalized_td = torch.tensor(min(1.0, abs(domain.td_error)), dtype=torch.float32)
-        predicted_curiosity = domain.E_vector[1]
+        predicted_curiosity = domain.heavy_E_vector[1]
         loss_curiosity = F.mse_loss(predicted_curiosity, normalized_td)
         
         total_loss = loss_value + loss_curiosity
@@ -173,9 +173,9 @@ def record_consequences(ctx: SystemContext):
         domain.emotion_optimizer.zero_grad()
         total_loss.backward()
         domain.emotion_optimizer.step()
-        # Note: E_vector updates via backward/optimizer step? No, optimizer updates weights. 
-        # E_vector itself is output of Model. It changes *next time* model runs (P3).
-        # But wait, P3 sets `domain.E_vector`.
+        # Note: heavy_E_vector updates via backward/optimizer step? No, optimizer updates weights. 
+        # heavy_E_vector itself is output of Model. It changes *next time* model runs (P3).
+        # But wait, P3 sets `domain.heavy_E_vector`.
         # Here we just train the weights.
         
     # 6. Update Memory
