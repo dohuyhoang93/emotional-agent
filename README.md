@@ -83,7 +83,7 @@ EmotionAgent/
 ### Installation
 ```bash
 # 1. Install Dependencies
-pip install torch pandas matplotlib networkx numpy pyyaml
+pip install -r requirements.txt
 
 # 2. Install Theus Hook
 pip install -e theus
