@@ -58,6 +58,7 @@ def process_homeostasis(ctx: SNNSystemContext):
         rate_local = float(snn_global.local_homeostasis_rate)
         decay = float(snn_global.trace_decay)
         
+        ensure_heavy_tensors_initialized(snn_ctx)
         t = snn_domain.heavy_tensors
         
         thresholds = t['thresholds']

@@ -244,6 +244,10 @@ class RLAgent:
         Returns:
             Selected action (0-3)
         """
+        # Inject adapter into context for processes to use (Theus V2 Compat)
+        with self.engine.edit():
+            self.domain_ctx.env_adapter = env_adapter
+
         # Run workflow
         self.engine.execute_workflow(
             "workflows/agent_main.yaml",

@@ -15,15 +15,15 @@ class TestSystemContext:
     domain_ctx: TestDomainContext
     global_ctx: Any = None # Added for compatibility
 
-@process(inputs=['domain'], outputs=['domain'])    
+@process(inputs=['domain_ctx'], outputs=['domain_ctx'])    
 def p_increment(ctx):
     ctx.domain_ctx.counter += 1
     
-@process(inputs=['domain'], outputs=['domain'])
+@process(inputs=['domain_ctx'], outputs=['domain_ctx'])
 def p_set_flag_true(ctx):
     ctx.domain_ctx.flag = True
 
-@process(inputs=['domain'], outputs=['domain'])    
+@process(inputs=['domain_ctx'], outputs=['domain_ctx'])    
 def p_reset_counter(ctx):
     ctx.domain_ctx.counter = 0
 

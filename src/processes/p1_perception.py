@@ -10,13 +10,22 @@ import numpy as np
     outputs=['domain_ctx', 'domain_ctx.current_observation', 'domain_ctx.previous_observation'],
     side_effects=['env_adapter.get_sensor_vector']  # Updated
 )
-def perception(ctx: SystemContext, env_adapter: EnvironmentAdapter, agent_id: int):
+def perception(ctx: SystemContext, env_adapter: EnvironmentAdapter = None, agent_id: int = None):
     """
     Process: Nhận thức (Perception)
     Mục tiêu: Đọc trạng thái từ môi trường và cập nhật vào Domain Context.
     
     Support cả dict (legacy) và vector (sensor system mới).
     """
+    # Auto-resolve dependencies from context if not passed (for Engine compatibility)
+    if env_adapter is None:
+        env_adapter = getattr(ctx.domain_ctx, 'env_adapter', None)
+    if agent_id is None:
+        agent_id = getattr(ctx.domain_ctx, 'agent_id', 0)
+        
+    if env_adapter is None:
+        # Cannot proceed without adapter
+        return
     # 1. Lưu observation cũ
     ctx.domain_ctx.previous_observation = ctx.domain_ctx.current_observation
     

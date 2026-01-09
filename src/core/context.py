@@ -59,6 +59,7 @@ class DomainContext(BaseDomainContext):
 
     # --- Identification ---
     agent_id: int = 0
+    env_adapter: Any = None # Added for Process access compatibility
 
     # --- GridWorld State ---
     position: List[int] = field(default_factory=lambda: [0, 0])

@@ -8,6 +8,11 @@ Date: 2025-12-25
 """
 import json
 import numpy as np
+import sys
+import os
+# Ensure root directory is in path to import environment.py
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from environment import GridWorld
 from src.adapters.environment_adapter import EnvironmentAdapter
 from src.core.context import SystemContext, DomainContext, GlobalContext
@@ -61,10 +66,18 @@ def test_end_to_end():
     
     # 1. Setup Environment
     print("\n1. SETUP ENVIRONMENT:")
-    with open('multi_agent_complex_maze.json', 'r') as f:
-        config = json.load(f)
+    # 1. Setup Environment
+    print("\n1. SETUP ENVIRONMENT:")
+    # Inline config to avoid file dependency
+    env_config = {
+        "grid_size": 15,
+        "max_steps_per_episode": 100,
+        "num_agents": 1,
+        "start_positions": [[0, 0]],
+        "walls": [],
+        "switch_locations": {}
+    } # Minimal config
     
-    env_config = config['experiments'][0]['parameters']['environment_config']
     env = GridWorld(env_config)
     env.reset()
     adapter = EnvironmentAdapter(env)
@@ -74,6 +87,11 @@ def test_end_to_end():
     print("\n2. SETUP CONTEXTS:")
     rl_ctx = SystemContext(GlobalContext(), DomainContext())
     snn_ctx = create_test_snn()
+    rl_ctx.domain_ctx.snn_context = snn_ctx # Link contexts
+    
+    # Initialize observation with dummy avoids KeyErrors before first step
+    rl_ctx.domain_ctx.current_observation = {'position': [0,0]}
+
     print("   ✅ RL Context created")
     print(f"   ✅ SNN Context created ({len(snn_ctx.domain_ctx.neurons)} neurons, {len(snn_ctx.domain_ctx.synapses)} synapses)")
     
@@ -91,10 +109,10 @@ def test_end_to_end():
             obs = rl_ctx.domain_ctx.current_observation
             
             # 3.2 Encode to SNN
-            encode_state_to_spikes(rl_ctx, snn_ctx)
+            encode_state_to_spikes(rl_ctx)
             
             # 3.3 Encode emotion from SNN
-            encode_emotion_vector(rl_ctx, snn_ctx)
+            encode_emotion_vector(rl_ctx)
             
             # 3.4 Select action (random for test)
             action = np.random.choice(['up', 'down', 'left', 'right'])

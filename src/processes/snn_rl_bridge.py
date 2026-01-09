@@ -232,7 +232,7 @@ def modulate_snn_attention(ctx: SystemContext):
     action = ctx.domain_ctx.last_action
     
     # Needs action to modulate
-    if action is None:
+    if action is None or action < 0:
         return
         
     snn_domain = ctx.domain_ctx.snn_context.domain_ctx

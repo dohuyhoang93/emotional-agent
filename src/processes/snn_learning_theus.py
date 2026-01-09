@@ -38,7 +38,10 @@ def _clustering_impl_vectorized(ctx):
     4. Move post-neurons' prototypes closer to spike's prototype (Hebbian)
     5. Normalize
     """
-    snn_ctx = ctx.domain_ctx.snn_context
+    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
+    snn_ctx = ctx
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
     domain = snn_ctx.domain_ctx
     
     # Ensure Infrastructure
@@ -128,7 +131,10 @@ def _stdp_impl_vectorized(ctx):
     3. LTP: Pre-spikes -> Update weights based on traces (Masked Broadcast)
     4. LTD: Post-spikes -> Update weights based on traces (Masked Broadcast)
     """
-    snn_ctx = ctx.domain_ctx.snn_context
+    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
+    snn_ctx = ctx
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
     domain = snn_ctx.domain_ctx
     
     # 0. Ensure Infrastructure

@@ -50,7 +50,10 @@ def process_hysteria_dampener(ctx: SystemContext):
 def _hysteria_impl(ctx: SystemContext):
     """Internal Hysteria implementation (Object-based)."""
     # Extract SNN Context
-    snn_ctx = ctx.domain_ctx.snn_context
+    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
+    snn_ctx = ctx
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
     
@@ -143,9 +146,14 @@ def process_lateral_inhibition(ctx: SystemContext):
     """
     try:
         from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
-        ensure_heavy_tensors_initialized(ctx.domain_ctx.snn_context)
+        # Resolve SNN Context
+        snn_ctx = ctx
+        if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+            snn_ctx = ctx.domain_ctx.snn_context
+            
+        ensure_heavy_tensors_initialized(snn_ctx)
         _lateral_inhibition_vectorized(ctx)
-        sync_from_heavy_tensors(ctx.domain_ctx.snn_context)
+        sync_from_heavy_tensors(snn_ctx)
     except Exception:
         import traceback
         print(f"CRASH in process_lateral_inhibition: {traceback.format_exc()}")
@@ -154,7 +162,10 @@ def process_lateral_inhibition(ctx: SystemContext):
 def _lateral_inhibition_vectorized(ctx: SystemContext):
     """Internal Vectorized Lateral Inhibition."""
     # Extract SNN Context
-    snn_ctx = ctx.domain_ctx.snn_context
+    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
+    snn_ctx = ctx
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
     
@@ -314,7 +325,11 @@ def process_neural_darwinism(
     from src.core.snn_context_theus import COMMIT_STATE_SOLID, SynapseState
     # Extract
     rl_ctx = ctx
-    snn_ctx = ctx.domain_ctx.snn_context
+    rl_ctx = ctx
+    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
+    snn_ctx = ctx
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
     
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
@@ -657,7 +672,10 @@ def process_assimilate_ancestor(ctx: SystemContext):
     """
     from src.core.snn_context_theus import COMMIT_STATE_SOLID
     
-    snn_ctx = ctx.domain_ctx.snn_context
+    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
+    snn_ctx = ctx
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
     

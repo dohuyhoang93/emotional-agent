@@ -39,8 +39,10 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
         ctx: System Context
         sync: If True, sync tensors back to objects.
     """
-    snn_ctx = ctx.domain_ctx.snn_context
-    
+    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
+    snn_ctx = ctx
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
     if snn_ctx is None:
         return
     
@@ -143,8 +145,10 @@ def process_fire(ctx: SystemContext):
 
 
 
-    snn_ctx = ctx.domain_ctx.snn_context
-    
+    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
+    snn_ctx = ctx
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
     if snn_ctx is None:
         return
     
@@ -229,8 +233,10 @@ def process_fire(ctx: SystemContext):  # noqa: F811
 
 def _fire_impl(ctx: SystemContext, sync: bool = True):
     """Internal fire implementation."""
-    snn_ctx = ctx.domain_ctx.snn_context
-    
+    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
+    snn_ctx = ctx
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
     if snn_ctx is None:
         return
         
@@ -333,8 +339,10 @@ def process_tick(ctx: SystemContext):
 
 def _tick_impl(ctx: SystemContext):
     """Internal tick implementation."""
-    snn_ctx = ctx.domain_ctx.snn_context
-    
+    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
+    snn_ctx = ctx
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        snn_ctx = ctx.domain_ctx.snn_context
     if snn_ctx is None:
         return
     
