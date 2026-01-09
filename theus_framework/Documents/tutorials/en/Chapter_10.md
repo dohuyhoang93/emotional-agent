@@ -1,47 +1,57 @@
-# Chapter 10: Heavy Zone - Optimizing for AI/Tensor Workloads
+# Chapter 10: Performance Optimization & Memory Management
 
-Theus v2 introduces a **High-Performance Optimization** called "Heavy Zone".
-This is designed for AI Agents, Machine Learning, or Image Processing where you work with large Blobs (Tensors, Images) that are too expensive to Copy.
+Performance in Theus is a balance between **Safety (Transactional Integrity)** and **Speed (Raw Access)**. This chapter guides you through optimizing Theus for high-load scenarios like Deep Learning Training.
 
-## 1. The "Heavy" Problem
-In standard Theus logic, `outputs=['domain_ctx.items']` triggers a **Shadow Copy**.
-If `items` is a 1GB Tensor:
-1.  Copy 1GB Tensor (Shadow).
-2.  Process runs (Modify Shadow).
-3.  Commit (Scan differences? Swap pointers?).
-This creates massive Latency and Output Overhead ("Quota Panic").
+## 1. Level 1 Optimization: "Heavy Zone" (Granular)
+**Best for:** Hybrid systems (e.g., Robot with critical safety logic + Vision AI).
 
-## 2. The Solution: `heavy_` Prefix
-If you name a variable starting with `heavy_` in your Context Domain, Theus treats it as a **Heavy Asset**.
+In standard logic, Theus "Shadow Copies" lists and dicts. For a 1GB Tensor, this is fatal.
+Soluton: Prefix variable names with `heavy_`.
 
 ```python
 @dataclass
 class VisionDomain(BaseDomainContext):
-    # Standard Data (Protected by Shadow Copy)
+    # Standard (Protected, Rollback-capable)
     counter: int = 0
     
-    # HEAVY ASSET (Bypasses Shadow Copy!)
+    # HEAVY ASSET (Bypasses Shadow Copy)
     heavy_camera_frame: np.ndarray = field(...)
     heavy_q_table: dict = field(...)
 ```
 
-## 3. Behavior Changes
-When a Process inputs/outputs a `heavy_` variable:
+*   **Behavior:** Theus passes the **Direct Reference** to the process.
+*   **Trade-off:** Zero Copy speed, but **No Rollback** for that specific field.
 
-1.  **Skip Shadow Copy:** Theus passes the **Real Reference** directly to the Process.
-    - *Benefit:* Zero Copy. Performance is Native Python speed.
-    - *Risk:* **No Rollback Protection**. If your process crashes, the changes to the Tensor are **Permanent** (Dirty Read).
+## 2. Level 2 Optimization: Strict Mode Toggle (Global)
+**Best for:** Pure AI Training, Simulations (Gym/GridWorld), where speed is #1 and crash recovery is handled by restarting the episode.
 
-2.  **Log Once Strategy:**
-    - To avoid spamming logs ("Skipping copy..."), Theus Rust Core only warns you **ONCE** per session per variable path.
+You can disable the entire Transactional layer of Theus.
 
-## 4. When to use?
-- **Use Heavy Zone for:** Pytorch Tensors, Numpy Arrays, Large Initial Config Blobs, Q-Tables.
-- **Do NOT use for:** Financial Data, Login State, or Logic Flags (where Rollback is critical).
+```python
+# In run_experiments.py
+engine = TheusEngine(
+    system_ctx, 
+    strict_mode=False  # <--- THE MAGIC SWITCH
+)
+```
 
----
-**Exercise:**
-Create a context with `heavy_q_table`.
-Write a process that modifies it.
-Crash the process intentionally.
-Check if `heavy_q_table` retained the modification (It should!). Compare this with a normal variable like `counter` (which should rollback).
+### What happens when `strict_mode=False`?
+1.  **Zero Overhead:** No Transaction objects created. No Audit Log history.
+2.  **Pass-through Guards:** `ContextGuard` becomes a transparent proxy. Reading/Writing happens directly on the real object.
+3.  **Contract Enforcement:** Disabled. You can modify undeclared variables (Side Effects possible).
+4.  **Rollback:** Disabled. If a process crashes, the Context is left in a "Dirty" state.
+
+## 3. Comparison Matrix
+
+| Feature | Default (`True`) | Heavy Zone | Strict Mode `False` |
+| :--- | :--- | :--- | :--- |
+| **Shadow Copy** | Yes (Safe) | No (Direct) | No (Direct) |
+| **Rollback** | Yes (Full) | Scalar: Yes, Heavy: No | **No** (None) |
+| **Audit Logs** | Yes (Ephemeral) | Yes | **No** (None) |
+| **Memory Usage** | High (History) | Low | **Lowest** |
+| **Use Case** | Production / Finance | Robotics / Hybrid AI | **Training / Sim** |
+
+## 4. Avoiding Memory Leaks
+Even with optimizations, Python references can leak.
+*   **Restart Strategy:** For long training (1M+ episodes), restart the worker process periodically to clear fragmented memory.
+*   **Avoid "God Objects":** Don't put everything in one giant List/Dict. Use specific dataclasses.
