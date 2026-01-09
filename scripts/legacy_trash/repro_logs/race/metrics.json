@@ -1,0 +1,14 @@
+[
+  {
+    "episode": 0,
+    "metrics": {
+      "agent": "B"
+    }
+  },
+  {
+    "episode": 2,
+    "metrics": {
+      "agent": "B"
+    }
+  }
+]

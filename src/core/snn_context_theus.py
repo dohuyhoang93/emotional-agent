@@ -620,3 +620,12 @@ def sync_from_heavy_tensors(ctx: SNNSystemContext):
                      synapse.commit_state = int(commit_states[u, v])
                      synapse.consecutive_correct = int(consecutive_correct[u, v])
                      synapse.consecutive_wrong = int(consecutive_wrong[u, v])
+
+
+# ============================================================================
+# Backward Compatibility Aliases
+# ============================================================================
+
+# Legacy name used in older tests
+ensure_tensors_initialized = ensure_heavy_tensors_initialized
+sync_from_tensors = sync_from_heavy_tensors

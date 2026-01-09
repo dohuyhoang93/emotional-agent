@@ -163,7 +163,7 @@ def _stdp_impl_vectorized(ctx):
     spike_indices = spike_indices[(spike_indices >= 0) & (spike_indices < N)]
     
     if len(spike_indices) == 0:
-        sync_from_tensors(snn_ctx)
+        sync_from_heavy_tensors(snn_ctx)
         return
         
     # 3. Update Traces (Pre-synaptic spikes increase trace)
@@ -245,5 +245,5 @@ def _stdp_impl_vectorized(ctx):
     weights[:, spike_indices] = np.clip(weights[:, spike_indices], 0.0, 1.0)
     
     # 7. Sync Back
-    sync_from_tensors(snn_ctx)
+    sync_from_heavy_tensors(snn_ctx)
 

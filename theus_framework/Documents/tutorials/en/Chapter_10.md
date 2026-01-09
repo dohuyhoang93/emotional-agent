@@ -40,6 +40,7 @@ engine = TheusEngine(
 2.  **Pass-through Guards:** `ContextGuard` becomes a transparent proxy. Reading/Writing happens directly on the real object.
 3.  **Contract Enforcement:** Disabled. You can modify undeclared variables (Side Effects possible).
 4.  **Rollback:** Disabled. If a process crashes, the Context is left in a "Dirty" state.
+5.  **Silent Mode:** "Unsafe Mutation" warnings (modifying context without a lock) are suppressed (moved to DEBUG level) to keep logs clean during high-speed loops.
 
 ## 3. Comparison Matrix
 

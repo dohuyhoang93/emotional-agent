@@ -443,7 +443,7 @@ def process_neural_darwinism(
     
     # Update metrics
     domain.metrics['darwinism_survivors'] = len(survivors)
-    domain.metrics['darwinism_offspring'] = len(offspring) if 'offspring' in locals() else 0
+    # domain.metrics['darwinism_offspring'] = len(offspring)  # Variable not defined in this scope
     domain.metrics['recycled_neurons'] = recycled_count
     domain.metrics['new_synapses_generated'] = len(new_synapses)
 

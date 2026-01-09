@@ -24,9 +24,21 @@ Each Rule has its own Counter in `AuditTracker`.
 - 3rd Error: **BOOM!** Trigger Level (e.g., Block).
 - After "BOOM", counter resets to 0.
 
-### Important: No Auto-Reset
-By default, the counter **DOES NOT RESET ON SUCCESS**. This detects **Flaky Systems**.
-If you error once every 10 runs -> After 30 runs, you get Blocked (accumulated 3 errors).
+### Important: Flaky Detection & Reset Strategy
+Theus allows you to choose how strictly to track errors over time using the `reset_on_success` parameter.
+
+#### 1. Standard Mode (Default)
+`reset_on_success: true`
+- If a process succeeds, the error counter is wiped clean (Reset to 0).
+- **Use case:** Transient network glitches that resolve themselves immediately. You only care if errors happen *consecutively* (e.g., 3 fails in a row).
+
+#### 2. Strict Accumulation Mode (Flaky Detector)
+`reset_on_success: false`
+- The counter **NEVER resets** automatically (until max_threshold is hit).
+- **Use case:** Detecting "Flaky" components that fail 10% of the time but pass on retry.
+- **Example:** Fails on run 1, Passes run 2, Fails run 3.
+    - Standard Mode: Sees "1 error", then "0 errors", then "1 error". System stays green forever.
+    - Flaky Detector: Sees "1 error", then "1 error" (legacy), then "2 errors". Eventually hits limit and Blocks.
 
 ## 3. Catching Errors in Orchestrator
 ```python

@@ -8,6 +8,7 @@ This release addresses a critical memory leak ("Container Leak") that affected l
 *   **[Core] Conditional Transaction Initialization:** The Rust Engine no longer creates `Transaction` objects when `strict_mode=False`. Previously, these objects were created unconditionally, causing `DomainContext` snapshots (containing PyTorch Tensors) to be retained in the Audit History, leading to a leak of +1500 tensors/episode.
 *   **[Core] Context Guard Bypass:** `ContextGuard` now detects `strict_mode=False` and immediately returns raw values (`val`), bypassing the Shadow Copy mechanism entirely (Zero Overhead).
 *   **[Fix] Audit Interlock:** Resolved an issue where Audit Policy could hold references to "Heavy" objects even after transaction drop.
+*   **[UX] Log Noise Reduction:** Downgraded "Unsafe Mutation" warnings to DEBUG level when strict_mode is disabled, preventing log file explosion during training.
 
 ### 📚 Documentation
 *   **New "Performance Optimization" Guide (Chapter 10):** Detailed instructions on when to use `strict_mode` toggle vs "Heavy Zone".
