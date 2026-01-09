@@ -104,6 +104,18 @@ The complete simulation pipeline (Initialization -> Simulation -> Structural Evo
 python run_experiments.py
 ```
 
+### Resume Training
+
+To resume a training run from a specific checkpoint:
+
+```bash
+python run_experiments.py --config experiments_sanity.json --resume results/MyExp_checkpoints/checkpoint_ep_700 --start-episode 700
+```
+- `--resume`: Path to the checkpoint directory.
+- `--start-episode`: The episode number to resume from. The system will skip episodes 0 to N-1 and resume training from episode N.
+
+### Running Tests
+
 ### Running Dashboard (Real-time Monitoring)
 You need to open **two separate terminals**:
 

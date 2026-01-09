@@ -47,6 +47,14 @@ def run_single_episode(ctx: OrchestratorSystemContext):
     current_episode = domain.active_experiment_episode_idx
     total_episodes = exp_def.episodes_per_run # Or config value
     
+    # Support resume: Skip episodes before start_episode
+    start_episode = getattr(runner, 'start_episode', 0)
+    if current_episode < start_episode:
+        log(ctx, "info", f"⏭️  Skipping episode {current_episode} (resume starts at {start_episode})")
+        domain.active_experiment_episode_idx += 1
+        if bus: bus.emit("EPISODE_DONE")
+        return
+    
     if current_episode >= total_episodes:
         # Experiment Finished
         log(ctx, "info", f"Experiment {exp_def.name} completed all {total_episodes} episodes.")

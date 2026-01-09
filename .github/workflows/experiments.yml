@@ -1,0 +1,79 @@
+name: Run Experiments
+
+on:
+  # Chạy thủ công từ GitHub UI
+  workflow_dispatch:
+    inputs:
+      experiment_file:
+        description: 'Experiment config file'
+        required: true
+        default: 'experiments_sanity.json'
+        type: choice
+        options:
+          - experiments_sanity.json
+          - experiments.json
+      max_episodes:
+        description: 'Max episodes (override)'
+        required: false
+        default: '100'
+
+  # Hoặc chạy theo lịch (ví dụ: mỗi đêm lúc 2h sáng)
+  # schedule:
+  #   - cron: '0 2 * * *'
+
+permissions:
+  contents: write  # Để upload artifacts
+
+jobs:
+  run-experiment:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120  # Giới hạn 2 giờ
+    
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python 3.10
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.10"
+
+    - name: Install Dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install theus numpy matplotlib pyyaml
+        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+    - name: Run Experiment
+      env:
+        PYTHONPATH: .
+      run: |
+        python run_experiments.py \
+          --config ${{ github.event.inputs.experiment_file || 'experiments_sanity.json' }} \
+          --max-episodes ${{ github.event.inputs.max_episodes || '100' }}
+
+    - name: Upload Results
+      if: always()  # Upload kể cả khi experiment fail
+      uses: actions/upload-artifact@v3
+      with:
+        name: experiment-results-${{ github.run_number }}
+        path: |
+          results/
+          logs/
+        retention-days: 30
+
+    - name: Generate Summary Report
+      if: success()
+      run: |
+        echo "## Experiment Results 📊" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Config:** ${{ github.event.inputs.experiment_file }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Episodes:** ${{ github.event.inputs.max_episodes }}" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        
+        # Hiển thị metrics cuối cùng (nếu có)
+        if [ -f results/*/metrics.jsonl ]; then
+          echo "**Final Metrics:**" >> $GITHUB_STEP_SUMMARY
+          echo '```json' >> $GITHUB_STEP_SUMMARY
+          tail -1 results/*/metrics.jsonl >> $GITHUB_STEP_SUMMARY
+          echo '```' >> $GITHUB_STEP_SUMMARY
+        fi

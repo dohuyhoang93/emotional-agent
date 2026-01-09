@@ -42,13 +42,44 @@ def main(argv=None):
         action='store_true',
         help='Run in headless mode (Disable UI/Visualization).'
     )
+    # Resume arguments
+    parser.add_argument(
+        '--resume',
+        type=str,
+        default=None,
+        help='Checkpoint path to resume from.'
+    )
+    parser.add_argument(
+        '--start-episode',
+        type=int,
+        default=0,
+        help='Episode number to resume from.'
+    )
+    
     args = parser.parse_args(argv)
+
+    # Construct Settings Override
+    override_dict = {}
+    if args.settings_override:
+        import json
+        try:
+            override_dict = json.loads(args.settings_override)
+        except:
+            print(f"Error parsing --settings-override: {args.settings_override}")
+            
+    if args.resume:
+        override_dict['checkpoint_path'] = args.resume
+    if args.start_episode > 0:
+        override_dict['start_episode'] = args.start_episode
+        
+    import json
+    settings_override_json = json.dumps(override_dict) if override_dict else None
 
     # 1. Initialize Contexts (3-Layer)
     global_ctx = OrchestratorGlobalContext(
         config_path=args.config,
         cli_log_level=args.log_level,
-        settings_override=args.settings_override
+        settings_override=settings_override_json
     )
     # Inject headless flag
     global_ctx.headless = args.headless

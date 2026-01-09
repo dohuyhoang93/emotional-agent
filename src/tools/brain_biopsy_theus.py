@@ -305,9 +305,84 @@ class BrainBiopsyTheus:
     @staticmethod
     def export_to_json(data: Dict[str, Any], filename: str):
         """Export data to JSON file."""
+        import json
         with open(filename, 'w') as f:
-            json.dump(data, f, indent=2)
+            json.dump(data, f, indent=4)
         print(f"Exported to {filename}")
+            
+    # ============================================================================
+    # Checkpoint Loading (For Resume)
+    # ============================================================================
+    
+    @staticmethod
+    def load_agent_checkpoint(filename: str, snn_ctx: SNNSystemContext) -> SNNSystemContext:
+        """
+        Load agent SNN state from JSON checkpoint.
+        
+        Args:
+            filename: Path to JSON file
+            snn_ctx: Existing context to hydrate (avoids re-creating objects)
+            
+        Returns:
+            Updated snn_ctx
+        """
+        import json
+        import numpy as np
+        
+        with open(filename, 'r') as f:
+            data = json.load(f)
+            
+        domain = snn_ctx.domain_ctx
+        
+        # 1. Load Neurons
+        if 'neurons' in data:
+            for i, n_data in enumerate(data['neurons']):
+                if i < len(domain.neurons):
+                    neuron = domain.neurons[i]
+                    neuron.potential = n_data.get('potential', 0.0)
+                    neuron.threshold = n_data.get('threshold', 0.0)
+                    neuron.last_fire_time = n_data.get('last_fire_time', -1)
+                    # NOTE: Prototype & Potential vectors are heavy, skipped in JSON?
+                    # If saved, load them. Else keep initialized values.
+                    
+        # 2. Load Synapses (Critical)
+        if 'synapses' in data:
+            syn_dict = {s['synapse_id']: s for s in data['synapses']}
+            
+            for syn in domain.synapses:
+                s_data = syn_dict.get(syn.synapse_id)
+                if s_data:
+                    syn.weight = s_data.get('weight', syn.weight)
+                    syn.trace = s_data.get('trace', 0.0)
+                    # Phase 7: Commitment
+                    syn.commit_state = s_data.get('commit_state', 0)
+                    syn.consecutive_correct = s_data.get('consecutive_correct', 0)
+                    syn.consecutive_wrong = s_data.get('consecutive_wrong', 0)
+                    
+        # 3. Sync to Heavy Tensors (Compute-Sync)
+        from src.core.snn_context_theus import sync_to_heavy_tensors
+        sync_to_heavy_tensors(snn_ctx)
+        
+        return snn_ctx
+
+def load_all_agents(checkpoint_dir: str, snn_contexts: list) -> list:
+    """
+    Load checkpoints for all agents in a directory.
+    Expects files: agent_0_snn.json, agent_1_snn.json, etc.
+    """
+    import os
+    
+    loaded = []
+    for i, ctx in enumerate(snn_contexts):
+        filename = os.path.join(checkpoint_dir, f"agent_{i}_snn.json")
+        if os.path.exists(filename):
+            BrainBiopsyTheus.load_agent_checkpoint(filename, ctx)
+            loaded.append(ctx)
+        else:
+            print(f"Warning: Checkpoint file not found: {filename}")
+            loaded.append(ctx) # Keep partially loaded or empty
+            
+    return loaded
 
 
 # ============================================================================

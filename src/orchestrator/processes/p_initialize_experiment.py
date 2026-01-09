@@ -99,6 +99,31 @@ class FSMExperimentRunner:
         # Agents are already initialized in Coordinator __init__
         # self.coordinator.initialize_agents()
         
+        # 6. Auto-Resume from Checkpoint (if specified)
+        checkpoint_path = self.config.get('checkpoint_path')
+        self.start_episode = self.config.get('start_episode', 0)
+        
+        if checkpoint_path and os.path.exists(checkpoint_path):
+            try:
+                from src.tools.brain_biopsy_theus import load_all_agents
+                system_log(None, "info", f"🔄 Resuming from checkpoint: {checkpoint_path}")
+                
+                # Load SNN states for all agents
+                snn_contexts = [agent.snn_ctx for agent in self.coordinator.agents]
+                loaded_contexts = load_all_agents(checkpoint_path, snn_contexts)
+                
+                # Update coordinator's agents with loaded states
+                for i, agent in enumerate(self.coordinator.agents):
+                    agent.snn_ctx = loaded_contexts[i]
+                
+                system_log(None, "info", f"✅ Checkpoint loaded. Resuming from episode {self.start_episode}")
+            except Exception as e:
+                system_log(None, "error", f"❌ Failed to load checkpoint: {e}")
+                traceback.print_exc()
+                # Continue with fresh initialization
+                self.start_episode = 0
+        
+        
     def initialize_run(self, run_idx):
         """Initialize a new run (reset episode count)."""
         self.current_episode_count = 0
