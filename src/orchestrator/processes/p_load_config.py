@@ -86,10 +86,15 @@ def load_config(ctx: OrchestratorSystemContext):
         if settings_override:
             recursive_update(base_params, settings_override)
 
+        # Apply top-level overrides
+        final_episodes = exp_config["episodes_per_run"]
+        if settings_override and 'max_episodes' in settings_override:
+            final_episodes = int(settings_override['max_episodes'])
+
         exp_def = ExperimentDefinition(
             name=exp_config["name"],
             runs=exp_config["runs"],
-            episodes_per_run=exp_config["episodes_per_run"],
+            episodes_per_run=final_episodes,
             parameters=base_params,
             log_level=exp_config.get("log_level", domain.effective_log_level)
         )

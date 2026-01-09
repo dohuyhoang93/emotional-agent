@@ -55,6 +55,12 @@ def main(argv=None):
         default=0,
         help='Episode number to resume from.'
     )
+    parser.add_argument(
+        '--max-episodes',
+        type=int,
+        default=None,
+        help='Override maximum episodes to run.'
+    )
     
     args = parser.parse_args(argv)
 
@@ -71,6 +77,8 @@ def main(argv=None):
         override_dict['checkpoint_path'] = args.resume
     if args.start_episode > 0:
         override_dict['start_episode'] = args.start_episode
+    if args.max_episodes is not None:
+        override_dict['max_episodes'] = args.max_episodes
         
     import json
     settings_override_json = json.dumps(override_dict) if override_dict else None
