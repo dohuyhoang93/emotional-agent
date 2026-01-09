@@ -26,27 +26,48 @@ def aggregate_results(ctx: OrchestratorSystemContext):
         if not exp_def.list_of_runs:
             # Fallback for FSM Architecture (Single Run / Implicit)
             checkpoints_dir = os.path.join(domain.output_dir, f"{exp_def.name}_checkpoints")
-            metrics_path = os.path.join(checkpoints_dir, "metrics.json")
+            metrics_path = os.path.join(checkpoints_dir, "metrics.jsonl")
+            
+            if not os.path.exists(metrics_path):
+                 # Try legacy json
+                 metrics_path = os.path.join(checkpoints_dir, "metrics.json")
             
             if os.path.exists(metrics_path):
                 try:
-                    with open(metrics_path, 'r') as f:
-                        run_data = json.load(f)
+                    all_runs_metrics = []
                     
-                    # FSM Format: List of {'episode': int, 'metrics': dict}
-                    if isinstance(run_data, list):
-                        # Flatten metrics for plotter
-                        for entry in run_data:
-                            flat_metrics = entry.get('metrics', {}).copy()
-                            flat_metrics['episode'] = entry.get('episode')
-                            flat_metrics['run_id'] = 0 # Single run assumption
-                            all_runs_metrics.append(flat_metrics)
-                    # Legacy Format fallback
-                    elif isinstance(run_data, dict):
-                        metrics = run_data.get('metrics', [])
-                        all_runs_metrics.extend(metrics)
+                    if metrics_path.endswith('.jsonl'):
+                        with open(metrics_path, 'r', encoding='utf-8') as f:
+                            for line in f:
+                                if line.strip():
+                                    entry = json.loads(line)
+                                    # Flatten: Merge 'metrics' into top level
+                                    flat_metrics = entry.get('metrics', {}).copy()
+                                    flat_metrics['episode'] = entry.get('episode')
+                                    flat_metrics['timestamp'] = entry.get('timestamp')
+                                    flat_metrics['run_id'] = 0
+                                    all_runs_metrics.append(flat_metrics)
                         
-                    log(ctx, "info", f"    [Experiment: {exp_def.name}] Loaded FSM metrics from {metrics_path}.")
+                        log(ctx, "info", f"    [Experiment: {exp_def.name}] Loaded {len(all_runs_metrics)} episodes from {metrics_path} (JSONL).")
+
+                    else:
+                        with open(metrics_path, 'r') as f:
+                            run_data = json.load(f)
+                        
+                        # FSM Format: List of {'episode': int, 'metrics': dict}
+                        if isinstance(run_data, list):
+                            # Flatten metrics for plotter
+                            for entry in run_data:
+                                flat_metrics = entry.get('metrics', {}).copy()
+                                flat_metrics['episode'] = entry.get('episode')
+                                flat_metrics['run_id'] = 0 # Single run assumption
+                                all_runs_metrics.append(flat_metrics)
+                        # Legacy Format fallback
+                        elif isinstance(run_data, dict):
+                            metrics = run_data.get('metrics', [])
+                            all_runs_metrics.extend(metrics)
+                            
+                        log(ctx, "info", f"    [Experiment: {exp_def.name}] Loaded FSM metrics from {metrics_path}.")
                 except Exception as e:
                     log_error(ctx, f"Cannot read FSM metrics file '{metrics_path}': {e}")
             else:
