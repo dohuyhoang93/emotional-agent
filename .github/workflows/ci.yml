@@ -28,7 +28,7 @@ jobs:
         # Install CPU-only Torch (Lighter for CI)
         pip install torch --index-url https://download.pytorch.org/whl/cpu
         # Install other deps
-        pip install numpy matplotlib pyyaml psutil
+        pip install numpy matplotlib pyyaml psutil pandas
         # Install Theus
         pip install theus
         # Requirements (fallback)
