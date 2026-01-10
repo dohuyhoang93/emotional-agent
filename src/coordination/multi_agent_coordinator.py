@@ -17,6 +17,7 @@ from src.core.context import GlobalContext, DomainContext, SystemContext
 from src.core.snn_context_theus import SNNGlobalContext, create_snn_context_theus
 from src.adapters.environment_adapter import EnvironmentAdapter
 from src.coordination.revolution_protocol import RevolutionProtocolManager
+from theus.config import ConfigFactory
 
 
 class MultiAgentCoordinator:
@@ -100,10 +101,18 @@ class MultiAgentCoordinator:
             )
             
             # 4. Engine
+            # Load Full Audit Recipe
+            audit_recipe = None
+            if os.path.exists("specs/multi_agent_audit.yaml"):
+                 try:
+                     audit_recipe = ConfigFactory.load_recipe("specs/multi_agent_audit.yaml")
+                 except Exception as e:
+                     print(f"Failed to load Audit Recipe: {e}")
+            
             engine = TheusEngine(
                 system_ctx,
-                audit_recipe=None, # TODO: Load recipe?
-                strict_mode=False
+                audit_recipe=audit_recipe,
+                strict_mode=True
             )
             engine.scan_and_register(processes_dir)
             

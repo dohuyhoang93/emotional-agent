@@ -118,10 +118,10 @@ def main(argv=None):
     
     # Load Audit Recipe
     audit_recipe = None
-    if os.path.exists("specs/snn_audit_recipe.yaml"):
+    if os.path.exists("specs/multi_agent_audit.yaml"):
         try:
-            log(global_ctx, "info", "✅ Loading SNN Audit Recipe...")
-            audit_recipe = ConfigFactory.load_recipe("specs/snn_audit_recipe.yaml")
+            log(global_ctx, "info", "✅ Loading Multi-Agent Audit Recipe...")
+            audit_recipe = ConfigFactory.load_recipe("specs/multi_agent_audit.yaml")
         except Exception as e:
             log_error(global_ctx, f"Failed to load Audit Recipe: {e}")
 
@@ -129,7 +129,7 @@ def main(argv=None):
     # NOTE: strict_mode=False to bypass shadow copying and prevent Memory Leak (conditional init active)
     engine = TheusEngine(
         system_ctx, 
-        strict_mode=False,
+        strict_mode=True,
         audit_recipe=audit_recipe # Inject Recipe
     )
     
