@@ -1,3 +1,0 @@
-2026-01-10 18:20:41,153 - Optimization_Sanity_Check - INFO - Experiment 'Optimization_Sanity_Check' started. Metrics: results\Optimization_Sanity_Check_checkpoints\metrics.jsonl
-2026-01-10 18:21:00,189 - Optimization_Sanity_Check - INFO - Episode   0: agents=5 R=17.15
-2026-01-10 18:21:19,348 - Optimization_Sanity_Check - INFO - Episode   1: agents=5 R=15.92
