@@ -44,7 +44,7 @@ from src.context import DemoSystemContext
 
 @process(
     inputs=[], 
-    outputs=['domain.status'],
+    outputs=['domain_ctx.status'],
     side_effects=['I/O']
 )
 def p_init(ctx: DemoSystemContext):
@@ -54,8 +54,8 @@ def p_init(ctx: DemoSystemContext):
     return "Initialized"
 
 @process(
-    inputs=['domain.status', 'domain.items', 'domain.processed_count'],
-    outputs=['domain.status', 'domain.processed_count', 'domain.items'],
+    inputs=['domain_ctx.status', 'domain_ctx.items', 'domain_ctx.processed_count'],
+    outputs=['domain_ctx.status', 'domain_ctx.processed_count', 'domain_ctx.items'],
     side_effects=['I/O']
 )
 def p_process(ctx: DemoSystemContext):
@@ -72,8 +72,8 @@ def p_process(ctx: DemoSystemContext):
     return "Processed"
 
 @process(
-    inputs=['domain.status'], 
-    outputs=['domain.status'],
+    inputs=['domain_ctx.status'], 
+    outputs=['domain_ctx.status'],
     side_effects=['I/O']
 )
 def p_finalize(ctx: DemoSystemContext):
@@ -90,7 +90,7 @@ from src.context import DemoSystemContext
 
 @process(
     inputs=[], 
-    outputs=['domain.status'], 
+    outputs=['domain_ctx.status'], 
     side_effects=['I/O'],
     errors=['ValueError']
 ) # Declared correctly
@@ -100,8 +100,8 @@ def p_crash_test(ctx: DemoSystemContext):
     raise ValueError("Simulated Process Crash!")
 
 @process(
-    inputs=['domain.processed_count'], 
-    outputs=['domain.processed_count'],
+    inputs=['domain_ctx.processed_count'], 
+    outputs=['domain_ctx.processed_count'],
     side_effects=['I/O'],
     errors=['RuntimeError']
 )
@@ -230,7 +230,7 @@ def orchestrator_loop(manager, bus, stop_event):
 
 def main():
     basedir = os.path.dirname(os.path.abspath(__file__))
-    workflow_path = os.path.join(basedir, "specs", "workflow.yaml")
+    workflow_path = os.path.join(basedir, "workflows", "workflow.yaml")
     audit_path = os.path.join(basedir, "specs", "audit_recipe.yaml")
 
     print_header()
