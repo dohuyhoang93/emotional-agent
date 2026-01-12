@@ -858,8 +858,48 @@ Disable cơ chế lan truyền trạng thái switch của lưới môi trường
 
 Tăng số episode kích hoạt cơ chế học social_learing bắt buộc từ 50 -> 500. Kết quả: Có cải thiện nhưng không đáng kể. Điều này cho thấy: Kinh nghiệm của agent khác không phát huy được hiệu quả, thậm chí khiến agent rơi vào vòng lặp bế tắc khi tỷ lệ chép bài - đồng hóa: `assimilation = 0.3` cao (ban đầu là 0.1).
 
+Disable cơ chế ép buộc khai thác khi quá trình đi đến 90% episode. Kết quả: Hiệu suất tăng trở lại, mức Success Rate: 80%. Điều này cho thấy: khi trạng thái môi trường thay đổi liên tục do các switch bị agent trước thay đổi. Việc chỉ khai thác sẽ khiến agent rơi vào vòng lặp bế tắc do dự doán dựa trên đầu vào cũ không còn đúng. Một tỷ lệ exploration rate cân bằng giúp agent tìm ra đường thoát khỏi bế tắc. đồng thời cũng có thể khai thác hợp lý để về đích với tỷ lệ thành công cao hơn.
 
-Disable cơ chế ép buộc khai thác khi quá trình đi đến 90% episode. Kết quả: Hiệu suất tăng trở lại, mức Success Rate: 80% . Điều này cho thấy: khi trạng thái môi trường thay đổi liên tục do các switch bị agent trước thay đổi. Việc chỉ khai thác sẽ khiến agent rơi vào vòng lặp bế tắc do dự doán dựa trên đầu vào cũ không còn đúng. Một tỷ lệ exploration rate cân bằng giúp agent tìm ra đường thoát khỏi bế tắc. đồng thời cũng có thể khai thác hợp lý để về đích với tỷ lệ thành công cao hơn.
+---
+
+## Giai đoạn 6.5: Sản xuất Hóa Hệ thống (Production Rewrite) - Ngày 25/12/2025
+
+> **Mục tiêu:** Tái cấu trúc toàn bộ codebase từ prototype nghiên cứu sang hệ thống Production-ready với Theus Framework làm cốt lõi.
+
+### 6.5.1. Phase 1: Tích hợp SNN-RL Core (8 giờ)
+
+**Công việc:**
+1.  **`RLAgent` Class** (`src/agents/rl_agent.py`): Tích hợp SNN context với RL agent, triển khai Gated Integration Network (22K params).
+2.  **`SNN-RL Bridge`** (`src/processes/snn_rl_bridge.py`): Xây dựng các quy trình `encode_state_to_spikes`, `encode_emotion_vector`, `modulate_snn_attention`, `compute_intrinsic_reward_snn`.
+3.  **Cập nhật SNN Core**: Sửa `process_integrate` và `process_fire` cho pattern dual-context.
+4.  **Workflow** (`workflows/rl_snn_minimal.yaml`): Tạo workflow 6 bước tối thiểu.
+
+**Thách thức & Giải pháp:**
+*   **Theus Contract Violation:** Path resolution tự động bỏ hậu tố `_ctx`. **Giải pháp:** Dùng `domain` trong contracts, `domain_ctx` trong code.
+*   **Process Not Found:** Static methods trong class không được auto-discovery. **Giải pháp:** Chuyển sang module-level functions.
+
+### 6.5.2. Phase 2: Điều phối Đa Tác nhân (4 giờ)
+
+**Công việc:**
+1.  **`MultiAgentCoordinator`** (`src/coordination/multi_agent_coordinator.py`): Quản lý 5 agents đồng thời.
+2.  **`SocialLearningManager`** (`src/coordination/social_learning.py`): Xác định Elite (top 20%), trích xuất và inject synapses.
+3.  **`RevolutionProtocolManager`** (`src/coordination/revolution_protocol.py`): Theo dõi hiệu suất, kích hoạt Revolution, cập nhật Ancestor.
+
+**Kết quả Test:** 5 agents chạy ổn định, 10 synapses được chuyển giao, 2 cuộc Revolution xảy ra.
+
+### 6.5.3. Phase 3-9: Production Polish & Hardening (2 giờ)
+
+**Công việc:**
+1.  **`ExperimentLogger`** & **`PerformanceMonitor`**: Logging có cấu trúc, export JSON metrics.
+2.  **`BrainBiopsy` Integration**: Chạy tại Start/End episode để dump trạng thái neuron/synapse.
+3.  **`Persistence System`**: Serialize toàn bộ SNN Context vào `results/{exp_name}_checkpoints/`.
+4.  **`Complex Maze Support`**: Port config sang format V2 với Dynamic Walls, Logical Switches.
+5.  **Cleanup**: Xóa code rác (`main.py`, `run_100_episodes.py`), gom script vào `scripts/`, test vào `tests/`.
+
+**Kết quả:**
+*   Performance: 11.05 episodes/sec, Peak memory: 253.93 MB.
+*   Tổng thời gian: 13 giờ (vs 18 giờ dự kiến = 72% efficiency).
+*   16 files mới, ~1,900 dòng code, 9 tests (100% pass).
 
 ---
 

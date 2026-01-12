@@ -404,3 +404,69 @@ Trong đó:
 - Development Log: Mục này
 
 ---
+
+---
+
+## 🚑 Phase 10.5: Critical Memory Leak (The 'Strict Mode' Incident)
+
+### Ngày: 2026-01-07
+
+**Sự cố:** Hệ thống bị tràn bộ nhớ (OOM - Out of Memory) lên tới >4GB RAM sau khoảng 50-100 episodes, dù đã fix lỗi Darwinism trước đó.
+
+**Phân tích & Debug:**
+1.  **Dấu hiệu:** Memory graph tăng tuyến tính không ngừng nghỉ.
+2.  **Điều tra:** Sử dụng objgraph phát hiện hàng triệu object DomainContext và Snapshot tồn tại trong bộ nhớ.
+3.  **Nguyên nhân Gốc rễ (Root Cause):**
+    *   Có 5 instance phụ của \Engine\ (dùng cho Coordinator và Helper Processes) được khởi tạo mà không truyền tham số \strict_mode\.
+    *   Mặc định, Theus framework bật \strict_mode=True\ (Transaction Mode).
+    *   Hậu quả: Mỗi bước tính toán của Coordinator đều tạo ra một bản sao lưu lịch sử (History Snapshot) trong Rust core để phục vụ rollback. Vì Coordinator chạy vô tận, lịch sử này phình to vô hạn.
+
+**Giải pháp:**
+1.  **Strict Mode Config:** Cấu hình tường minh \strict_mode=False\ cho tất cả các Engine phụ trợ (Coordinator, Observer).
+2.  **SNN Tensor Tagging:** Đảm bảo các Tensor lớn của SNN (weights, traces) có prefix \heavy_\. Trong Theus Architecture, biến \heavy_\ được thiết kế để bỏ qua cơ chế deep-clone của Transaction System -> giảm tải CPU/RAM.
+3.  **Garbage Collection:** Thêm \gc.collect()\ định kỳ trong vòng lặp chính của \un_experiments.py\.
+
+**Kết quả:**
+*   Memory usage ổn định ở mức ~300-400MB cho 5 Agents.
+*   Training chạy mượt mà >2000 episodes không crash.
+
+---
+
+## 🏗️ Phase 11: CI/CD & Robustness (System Hardening)
+
+### Ngày: 2026-01-09
+
+**Mục tiêu:** Thiết lập quy trình Continuous Integration (CI), sửa lỗi hiển thị và đảm bảo khả năng khôi phục (Resume Training).
+
+**Công việc:**
+
+1.  **Resume Training Feature:**
+    *   Thêm tham số CLI \--resume\ và \--start-episode\.
+    *   Cập nhật \un_experiments.py\ để override cấu hình cũ.
+    *   Cập nhật \p_initialize_experiment\ để load checkpoint từ disk.
+    *   Cập nhật \p_episode_runner\ để nhảy qua các episode đã chạy.
+
+2.  **CI/CD Pipeline (GitHub Actions):**
+    *   Tạo \.github/workflows/ci.yml\: Chạy Unit Test tự động trên mỗi PR.
+    *   Tạo \.github/workflows/experiments.yml\: Cho phép chạy training trên Cloud (workflow_dispatch).
+    *   Fix dependency: Thêm \pandas\, \psutil\ vào \equirements.txt\.
+
+3.  **Plotting Engine Upgrade:**
+    *   Nâng cấp \src/orchestrator/processes/p_plot_results.py\.
+    *   Chuyển sang \Seaborn\ theme darkgrid.
+    *   Thêm Rolling Average (Smoothing) cho Reward Curve.
+    *   Hỗ trợ đọc file \metrics.jsonl\ (trước đây bị lỗi do tìm file .json).
+
+4.  **Performance Analysis:**
+    *   So sánh hiệu năng giữa \Sanity Check\ (15x15, 100 neurons) và \Complex Maze\ (25x25, 50 neurons).
+    *   Kết quả: \Complexity\ chạy nhanh hơn \Sanity\ do số lượng neuron ít hơn (O(N^2)).
+
+**Test Results:**
+*   CI Pipeline: ✅ Passed (Core tests passed).
+*   Resume Training: ✅ Verified (Tiếp tục training từ checkpoint).
+*   Plotting: ✅ Generated Dashboard-quality plots.
+
+**Thời gian:** 4h
+
+**Trạng thái:** ✅ COMPLETED
+
