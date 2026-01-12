@@ -20,14 +20,9 @@ class EnvironmentAdapter:
         """
         reward = self.env.perform_action(agent_id, action)
         
-        # Determine observation type (Vector vs Dict)
-        # Should align with system config. 
-        # For now, return vector if available, else dict?
-        # GridWorld V2 uses sensor vectors primarily for SNN.
-        try:
-             next_obs = self.env.get_sensor_vector(agent_id)
-        except Exception:
-             next_obs = self.env.get_observation(agent_id)
+        # UNIFIED DATA FLOW: Always return the full observation Dict
+        # This dict contains 'sensor_vector' (16-dim) AND 'agent_pos'
+        next_obs = self.env.get_observation(agent_id)
              
         done = self.env.is_done()
         info = {}

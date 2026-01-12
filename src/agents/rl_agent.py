@@ -276,7 +276,11 @@ class RLAgent:
         """
         # Calculate total reward
         intrinsic = self.domain_ctx.intrinsic_reward if hasattr(self.domain_ctx, 'intrinsic_reward') else 0.0
-        total = extrinsic_reward + intrinsic
+        
+        # Apply weighting (Prevent Curiosity Hacking)
+        weight = getattr(self.global_ctx, 'intrinsic_reward_weight', 0.1)
+        
+        total = extrinsic_reward + (intrinsic * weight)
         
         # Update context within transaction
         with self.engine.edit():

@@ -10,7 +10,8 @@ import numpy as np
 from theus.contracts import process
 from src.core.snn_context_theus import (
     COMMIT_STATE_SOLID,
-    COMMIT_STATE_REVOKED
+    COMMIT_STATE_REVOKED,
+    ensure_heavy_tensors_initialized
 )
 from src.core.context import SystemContext
 
@@ -65,17 +66,41 @@ def _stdp_3factor_impl(ctx: SystemContext):
     w_decay = float(global_ctx.weight_decay)
     
     # Single loop over synapses (O(S))
+    # 2. Hebbian Coincidence Update (Corrected Logic)
+    # Eligibility increases ONLY if:
+    # A. Post-Neuron fires NOW (current_spikes)
+    # B. Pre-Neuron fired RECENTLY (last_fire_times)
+    # This creates a causal link: Input -> Output.
+    
+    ensure_heavy_tensors_initialized(snn_ctx)
+    last_fire_times = domain.heavy_tensors['last_fire_times']
+    
+    # Window for coincidence (e.g., 20 ticks)
+    # Should be defined in global config but using typical STDP window here
+    hebbian_window = 20.0 
+    
     for synapse in domain.synapses:
-        # 1. Decay traces
+        # 1. Always Decay
         synapse.trace_fast *= tau_fast
         synapse.trace_slow *= tau_slow
         
-        # 2. Update traces on spike
-        if synapse.pre_neuron_id in current_spikes:
-            synapse.trace_fast += 1.0
-            synapse.trace_slow += 1.0
-            synapse.last_active_time = domain.current_time
+        # 2. Check Hebbian Event (Post Fired?)
+        post_id = synapse.post_neuron_id
+        if post_id in current_spikes:
+            # Check Pre-Neuron History
+            pre_id = synapse.pre_neuron_id
+            pre_last_fire = float(last_fire_times[pre_id])
             
+            # Calculate time difference
+            dt = float(domain.current_time) - pre_last_fire
+            
+            # If Pre fired recently before Post (Causal)
+            if 0 < dt <= hebbian_window:
+                # Update Eligibility Traces (Tagging)
+                synapse.trace_fast += 1.0
+                synapse.trace_slow += 1.0
+                synapse.last_active_time = domain.current_time
+
         # 3. Compute eligibility
         synapse.eligibility = synapse.trace_fast + synapse.trace_slow
         

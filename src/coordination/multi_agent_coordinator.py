@@ -219,6 +219,9 @@ class MultiAgentCoordinator:
         self._collect_population_metrics()
         self.episode_count += 1
         
+        # NOTE: Epsilon decay đã chuyển sang orchestrator_flux.yaml (process: decay_exploration_all_agents)
+        # Tuân thủ POP - logic trong process, không inline vào coordinator
+        
         # Explicit GC
         gc.collect()
         

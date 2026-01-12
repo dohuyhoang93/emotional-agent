@@ -93,6 +93,10 @@ class SNNGlobalContext(BaseGlobalContext):
     use_social_learning: bool = False  # Multi-agent only
     viral_top_k: int = 5
     shadow_confidence_threshold: float = 0.2
+    # Added during Config Audit 2026-01-12
+    social_elite_ratio: float = 0.2
+    social_learner_ratio: float = 0.5
+    social_synapses_per_transfer: int = 10
     
     # === Social Quarantine (Phase 8) ===
     use_social_quarantine: bool = True

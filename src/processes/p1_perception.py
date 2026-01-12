@@ -33,17 +33,16 @@ def perception(ctx: SystemContext, env_adapter: EnvironmentAdapter = None, agent
     agent_id = int(agent_id) # Force cast to int to fix KeyError '0' if it's string
     
     # Try sensor vector first (new system), fallback to dict (legacy)
+    # CRITICAL FIX: Always use get_observation to get the full dict (Metadata + Sensor)
+    # environment.py has been updated to include 'sensor_vector' in this dict.
     try:
-        raw_obs = env_adapter.get_sensor_vector(agent_id)
-        # Verify it's a vector
-        if isinstance(raw_obs, np.ndarray) and raw_obs.shape == (16,):
-            ctx.domain_ctx.current_observation = raw_obs
-        else:
-            # Fallback to legacy
-            raw_obs = env_adapter.get_observation(agent_id)
-            ctx.domain_ctx.current_observation = raw_obs
-    except AttributeError:
-        # Adapter doesn't have get_sensor_vector, use legacy
-        raw_obs = env_adapter.get_observation(agent_id)
-        ctx.domain_ctx.current_observation = raw_obs
+        full_obs = env_adapter.get_observation(agent_id)
+        ctx.domain_ctx.current_observation = full_obs
+        
+        # Validation (Optional)
+        # if 'sensor_vector' not in full_obs:
+        #     print("WARNING: Sensor vector missing in observation!")
+    except Exception as e:
+        print(f"Perception Error: {e}")
+        # Fallback? No, crash if essential.
 

@@ -39,6 +39,7 @@ steps:
   # Execution & Learning
   - execute_action_with_env
   - update_q_learning
+  # NOTE: decay_exploration đã chuyển sang multi_agent_coordinator.py để gọi 1 lần/episode (không phải mỗi step)
 
   # Recording (POP Architecture)
   - process_record_snn_step

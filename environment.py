@@ -170,7 +170,8 @@ class GridWorld:
         return {
             'agent_pos': tuple(self.agent_positions[agent_id]),
             'step_count': self.current_step,
-            'global_events': self.broadcast_events # Gửi sự kiện cho agent
+            'global_events': self.broadcast_events, # Gửi sự kiện cho agent
+            'sensor_vector': self.get_sensor_vector(agent_id) # CRITICAL: Provide vision!
         }
     
     def get_all_observations(self):
@@ -223,22 +224,30 @@ class GridWorld:
                         'new_state': self.switch_states[switch_id]
                     })
                     
-                    # REWARD: +1.0 for toggling switch
-                    reward += 1.0
+                    # REWARD: Modified to prevent Reward Hacking (Switch Spamming)
+                    # We only reward IMPACT (Opening Gates), not just toggling.
                     
                     # INTERMEDIATE REWARD 2: Cổng mở
                     # Check if any gate changed state
                     for gate_id in self.dynamic_wall_states:
                         if old_wall_states[gate_id] != self.dynamic_wall_states[gate_id]:
+                            is_open = not self.dynamic_wall_states[gate_id]
+                            
                             # Gate state changed
                             self.broadcast_events.append({
                                 'type': 'gate_changed',
                                 'gate_id': gate_id,
-                                'new_state': 'OPEN' if not self.dynamic_wall_states[gate_id] else 'CLOSED'
+                                'new_state': 'OPEN' if is_open else 'CLOSED'
                             })
                             
-                            # REWARD: +0.5 for opening/closing gate
-                            reward += 0.5
+                            if is_open:
+                                # REWARD: +1.0 for OPENING gate (Progress)
+                                reward += 1.0
+                            else:
+                                # PENALTY: -1.2 for CLOSING gate (Sabotage/Mistake)
+                                # CRITICAL FIX: Must be magnitude > (Reward - 2*StepPenalty)
+                                # Loop Calc: +1.0 - 0.1 - 1.2 - 0.1 = -0.4 (Negative Loop)
+                                reward -= 1.2
         else:
             # Invalid move penalty
             reward = -0.5

@@ -1,7 +1,7 @@
 """
 RL Processes for Theus Framework
 =================================
-Q-learning processes với Gated Integration Network.
+Q-learning processes with Gated Integration Network.
 
 Author: Do Huy Hoang
 Date: 2025-12-25
@@ -10,121 +10,122 @@ import numpy as np
 import torch
 from theus.contracts import process
 from src.core.context import SystemContext
-from typing import Dict, Any
+from typing import Dict, Any, Union, Mapping, MutableSequence
 
+# ------------------------------------------------------------------------------
+# Helper Functions (Pure Logic)
+# ------------------------------------------------------------------------------
 
-def observation_to_tensor(obs: Dict[str, Any]) -> torch.Tensor:
+def observation_to_tensor(obs: Union[Mapping[str, Any], np.ndarray, torch.Tensor]) -> torch.Tensor:
     """
-    Convert observation dict to tensor.
-    
-    Args:
-        obs: Observation dict from GridWorld
-            - agent_pos: (x, y) tuple
-            - step_count: int
-            - global_events: list
-        
-    Returns:
-        Tensor of shape (obs_dim,)
+    Convert observation to tensor.
+    Standardized: Expects Dict input with 'sensor_vector'.
+    Legacy Support: Accepts raw NDArray/Tensor via EAFP fallback.
     """
-    # If obs is already a tensor or numpy array (from sensor system)
-    if isinstance(obs, (np.ndarray, torch.Tensor)):
-        if isinstance(obs, np.ndarray):
-            tensor = torch.from_numpy(obs).float()
+    # 1. Standard Dict Path (Priority)
+    sensor_vec = None
+    try:
+        sensor_vec = obs.get('sensor_vector')
+    except AttributeError:
+        # Not a dict (has no .get), likely a raw vector (ndarray/Tensor)
+        pass 
+
+    # 2. Legacy Vector Path (Fallback if not a dict)
+    if sensor_vec is None:
+        # Check if obs itself is the vector
+        if isinstance(obs, (np.ndarray, torch.Tensor)):
+             sensor_vec = obs
+        elif not hasattr(obs, 'get'):
+             sensor_vec = obs
+
+    # Process extracted vector
+    if sensor_vec is not None:
+        if isinstance(sensor_vec, np.ndarray):
+            tensor = torch.from_numpy(sensor_vec).float()
+        elif isinstance(sensor_vec, torch.Tensor):
+            tensor = sensor_vec.float()
         else:
-            tensor = obs.float()
+            # Try converting unknown type (e.g. list)
+            try:
+                tensor = torch.tensor(sensor_vec, dtype=torch.float32)
+            except:
+                tensor = None
+                
+        if tensor is not None:
+             # Ensure dimension compatibility with SNN (16-dim)
+             target_dim = 16
+             if tensor.shape[0] == target_dim:
+                  return tensor
+             elif tensor.shape[0] > target_dim:
+                  return tensor[:target_dim]
+             else:
+                  # Pad strictly to 16
+                  padded = torch.zeros(target_dim)
+                  padded[:tensor.shape[0]] = tensor
+                  # print(f"DEBUG: Padded Tensor Shape: {padded.shape}")
+                  return padded
+
+    # 3. Fallback Key-based Feature Extraction (Blind Agent)
+    x, y = 0, 0
+    # Safe retrieval
+    try:
+        agent_pos = obs.get('agent_pos')
+        if agent_pos:
+            x, y = agent_pos
+        else:
+            pos = obs.get('position')
+            if pos:
+                x, y = pos
+    except AttributeError:
+        pass
             
-        # Ensure correct dimension if needed, or just return
-        # Our sensor vector is 16-dim.
-        # But gated network expects obs_dim=5?
-        # WAIT! RLAgent.__init__ defines obs_dim=5.
-        # If we use sensor vector (16), we must match network input!
-        # Network definition: GatedIntegrationNetwork(obs_dim=5, ...)
-        
-        # We need to map 16-dim sensor to 5-dim features OR update Network to 16-dim.
-        # For now, let's just extract first 2 dims as x,y and mock others?
-        # Or better: Update RLAgent to use obs_dim=16?
-        
-        # Quick Fix (since I can't change Model easily without verifying):
-        # Allow tensor return, but let's see if Model handles size mismatch.
-        # GatedIntegrationNetwork usually has Linear(obs_dim, ...).
-        # Checking RLAgent line 91: obs_dim = 5.
-        # Checking get_sensor_vector return: 16-dim.
-        
-        # Mismatch Alert!
-        # If I pass 16-dim vector to 5-dim network, it crashes.
-        # I must Extract features from 16-dim vector if possible, or PAD if logic expects x,y.
-        # But 16-dim sensor is "wall proximity". It has NO coordinates.
-        # If I use relative coords?
-        
-        # Compromise: Return a 5-dim vector from the 16-dim one (slice or aggregate).
-        # Or Just use 0s if meaningful data is missing?
-        # Actually RLAgent logic SHOULD be updated to use 16-dim input.
-        # But that requires retraining/init change.
-        # RLAgent.__init__ is in rl_agent.py.
-        
-        # I will slice/pad to 5-dim to prevent crash.
-        # [0-4] of sensor vector.
-        if tensor.shape[0] >= 5:
-            return tensor[:5]
-        else:
-            # Pad
-            padded = torch.zeros(5)
-            padded[:tensor.shape[0]] = tensor
-            return padded
-
-    # Extract position (GridWorld format: agent_pos)
-    if 'agent_pos' in obs:
-        x, y = obs['agent_pos']
-    elif 'position' in obs:
-        x, y = obs['position']
-    else:
-        x, y = 0, 0
-    
-    # For now, simple features: [x, y, step_count, normalized_x, normalized_y]
-    # TODO: Add goal position, switch states when available
-    if isinstance(obs, dict):
+    step_count = 0
+    try:
         step_count = obs.get('step_count', 0)
-    else:
-        step_count = 0
+    except AttributeError:
+        pass
     
     features = [
         float(x),
         float(y),
-        float(step_count) / 100.0,  # Normalize
-        float(x) / 20.0,  # Normalized x
-        float(y) / 20.0,  # Normalized y
+        float(step_count) / 100.0,
+        float(x) / 20.0,
+        float(y) / 20.0,
     ]
-    
+    # Pad fallback to 16-dim to satisfy SNN input
+    while len(features) < 16:
+        features.append(0.0)
+        
     return torch.tensor(features, dtype=torch.float32)
 
 
-def observation_to_state_key(obs: Dict[str, Any]) -> str:
+def observation_to_state_key(obs: Union[Mapping[str, Any], np.ndarray, torch.Tensor]) -> str:
     """
-    Convert observation to state key for Q-table.
-    
-    Args:
-        obs: Observation dict
-        
-    Returns:
-        State key string
+    Convert observation to state key for Tabular Q-learning.
     """
-    # If numpy/tensor
+    # 1. Vector Input (Discretization)
     if isinstance(obs, (np.ndarray, torch.Tensor)):
         if isinstance(obs, torch.Tensor):
             obs = obs.detach().cpu().numpy()
-        # Round to 1 decimal to discretize continuous space
         return str(np.round(obs, 1).tolist())
 
-    # Handle GridWorld format
-    if 'agent_pos' in obs:
-        x, y = obs['agent_pos']
-    elif 'position' in obs:
-        x, y = obs['position']
-    else:
-        x, y = 0, 0
-    
-    return f"{x},{y}"
+    # 2. Dict Input (Mapping)
+    # Prefer explicit position key for GridWorld
+    pos = None
+    try:
+        pos = obs.get('agent_pos') or obs.get('position')
+    except AttributeError:
+        pass
+        
+    if pos:
+        return f"{pos[0]},{pos[1]}"
+            
+    # Fallback default
+    return "0,0"
 
+# ------------------------------------------------------------------------------
+# POP Processes
+# ------------------------------------------------------------------------------
 
 @process(
     inputs=['domain_ctx', 
@@ -140,68 +141,60 @@ def observation_to_state_key(obs: Dict[str, Any]) -> str:
 def select_action_gated(ctx: SystemContext):
     """
     Select action using emotion gating from SNN.
-    
-    Combines observation + emotion → Q-values → action.
-    Uses epsilon-greedy exploration modulated by emotion.
-    
-    Args:
-        ctx: System context
     """
     obs = ctx.domain_ctx.current_observation
     emotion = ctx.domain_ctx.heavy_snn_emotion_vector
     
-    # Fallback: If no emotion vector, use standard epsilon-greedy
+    # 1. Fallback: No Emotion -> Standard Epsilon-Greedy
     if emotion is None:
         if np.random.rand() < ctx.domain_ctx.current_exploration_rate:
-            action = np.random.randint(0, 4)
+            action = np.random.randint(0, 8)
         else:
-            state_key = str(obs)
-            q_values = ctx.domain_ctx.heavy_q_table.get(state_key, [0.0] * 4)
+            state_key = observation_to_state_key(obs) # Use helper
+            q_values = ctx.domain_ctx.heavy_q_table.get(state_key, [0.0] * 8)
             action = int(np.argmax(q_values))
         
         ctx.domain_ctx.last_action = action
-        ctx.domain_ctx.heavy_last_q_values = torch.tensor([0.0] * 4).detach()
+        ctx.domain_ctx.heavy_last_q_values = torch.tensor([0.0] * 8).detach()
         return
     
-    # Emotion-modulated exploration
+    # 2. Emotion Magnitude Calculation
+    # Compliant check: 'emotion' usually is list or tensor
     try:
-        if hasattr(emotion, '_target_obj'): # Is ContextGuard?
-            emo_tensor = emotion._target_obj
+        # Convert list to tensor if needed
+        if isinstance(emotion, (list, tuple)):
+            emo_tensor = torch.tensor(emotion, dtype=torch.float32).detach()
         else:
-            emo_tensor = emotion
-            
-        if isinstance(emo_tensor, (list, tuple)):
-            emo_tensor = torch.tensor(emo_tensor, dtype=torch.float32).detach()
+            emo_tensor = emotion # Assume tensor or compliant object
             
         emotion_magnitude = float(torch.norm(emo_tensor).item())
-    except Exception as e:
-        # print(f"DEBUG: emotion_magnitude error: {e}")
+    except Exception:
         emotion_magnitude = 0.0
 
+    # 3. Dynamic Exploration
     adjusted_exploration = ctx.domain_ctx.current_exploration_rate * (1.0 + 0.5 * emotion_magnitude)
     adjusted_exploration = min(adjusted_exploration, 1.0)
     
-    # Get Q-values from Network if available, else Q-table
+    # 4. Q-Value Prediction (Network vs Table)
     if ctx.domain_ctx.heavy_gated_network is not None:
         # Neural Network Path
         net = ctx.domain_ctx.heavy_gated_network
-        obs_tensor = observation_to_tensor(obs)
+        obs_tensor = observation_to_tensor(obs) # Use helper
         
-        # Predict
         net.eval()
         with torch.no_grad():
-            q_values_tensor = net(obs_tensor, emotion)
+            q_values_tensor = net(obs_tensor, emo_tensor if 'emo_tensor' in locals() else emotion)
         net.train()
         
         q_values_list = q_values_tensor.tolist()
     else:
         # Tabular Path
-        state_key = str(obs)
-        q_values_list = ctx.domain_ctx.heavy_q_table.get(state_key, [0.0] * 4)
+        state_key = observation_to_state_key(obs) # Use helper
+        q_values_list = ctx.domain_ctx.heavy_q_table.get(state_key, [0.0] * 8)
 
-    # Epsilon-greedy
+    # 5. Action Selection
     if np.random.rand() < adjusted_exploration:
-        action = np.random.randint(0, 4)
+        action = np.random.randint(0, 8)
     else:
         action = int(np.argmax(q_values_list))
     
@@ -229,23 +222,23 @@ def select_action_gated(ctx: SystemContext):
 )
 def update_q_learning(ctx: SystemContext):
     """
-    Update Q-table với TD-learning.
-    
-    Compute TD-error for SNN dopamine signal.
-    
-    Q(s,a) ← Q(s,a) + α[r + γ max Q(s',a') - Q(s,a)]
-    
-    Args:
-        ctx: System context
+    Update Q-table and Network with TD-learning.
     """
-    # Previous state (before action)
-    prev_state = str(ctx.domain_ctx.previous_observation)
+    # 0. Check Initialization
+    if ctx.domain_ctx.previous_observation is None:
+        ctx.domain_ctx.td_error = 0.0
+        return
+
+    # 1. State Keys
+    prev_obs = ctx.domain_ctx.previous_observation
+    curr_obs = ctx.domain_ctx.current_observation
     
-    # Current state (after action = next state)
-    next_state = str(ctx.domain_ctx.current_observation)
+    prev_state_key = observation_to_state_key(prev_obs)
+    next_state_key = observation_to_state_key(curr_obs)
     
     action = ctx.domain_ctx.last_action
-    # Handle dict or scalar reward
+    
+    # 2. Reward Extraction
     raw_reward = ctx.domain_ctx.last_reward
     if isinstance(raw_reward, dict):
         reward = raw_reward.get('total', 0.0)
@@ -255,66 +248,82 @@ def update_q_learning(ctx: SystemContext):
         except:
             reward = 0.0
     
-    # Skip if no previous state (first step of episode)
-    if ctx.domain_ctx.previous_observation is None:
-        ctx.domain_ctx.td_error = 0.0
-        return
+    # 3. Tabular Q-Learning (Heavy Q-Table)
+    # DEFENSIVE LOGIC: Ensure we have a List, not a Float (Corruption/Legacy fix)
     
-    # Initialize Q-values if needed
-    if prev_state not in ctx.domain_ctx.heavy_q_table:
-        ctx.domain_ctx.heavy_q_table[prev_state] = [0.0] * 4
-    if next_state not in ctx.domain_ctx.heavy_q_table:
-        ctx.domain_ctx.heavy_q_table[next_state] = [0.0] * 4
+    # Check Prev State
+    if prev_state_key not in ctx.domain_ctx.heavy_q_table:
+        ctx.domain_ctx.heavy_q_table[prev_state_key] = [0.0] * 8
+    else:
+        # Self-Healing: If it's not a list (e.g. float corruption), Reset it.
+        val = ctx.domain_ctx.heavy_q_table[prev_state_key]
+        # Allow MutableSequence (TrackedList) via name check to be robust
+        is_valid = isinstance(val, (list, tuple)) or (hasattr(val, '__class__') and val.__class__.__name__ == 'TrackedList')
+        if not is_valid: 
+             print(f"WARNING: Q-Table Corruption detected at {prev_state_key}. Expected List, got {type(val)}. Resetting.")
+             ctx.domain_ctx.heavy_q_table[prev_state_key] = [0.0] * 8
+
+    # Check Next State (for max_q)
+    if next_state_key not in ctx.domain_ctx.heavy_q_table:
+        ctx.domain_ctx.heavy_q_table[next_state_key] = [0.0] * 8
+    else:
+        val = ctx.domain_ctx.heavy_q_table[next_state_key]
+        is_valid = isinstance(val, (list, tuple)) or (hasattr(val, '__class__') and val.__class__.__name__ == 'TrackedList')
+        if not is_valid:
+             ctx.domain_ctx.heavy_q_table[next_state_key] = [0.0] * 8
     
-    # Q-learning update with next state (CORRECT)
-    current_q = ctx.domain_ctx.heavy_q_table[prev_state][action]
-    max_next_q = max(ctx.domain_ctx.heavy_q_table[next_state])
+    # Calculation
+    current_q_list = ctx.domain_ctx.heavy_q_table[prev_state_key]
+    next_q_list = ctx.domain_ctx.heavy_q_table[next_state_key]
     
-    # Correct TD-error: reward + gamma * max(Q(s', a')) - Q(s, a)
+    current_q = current_q_list[action]
+    max_next_q = max(next_q_list)
+    
     gamma = 0.95
     td_error = reward + gamma * max_next_q - current_q
     
-    # Update Q-value
     alpha = 0.1
-    ctx.domain_ctx.heavy_q_table[prev_state][action] += alpha * td_error
+    # Update In-Place (Safe now because we verified it's a list)
+    try:
+        ctx.domain_ctx.heavy_q_table[prev_state_key][action] += alpha * td_error
+    except TypeError as e:
+        # Emergency Log
+        val_now = ctx.domain_ctx.heavy_q_table[prev_state_key]
+        print(f"CRITICAL ERROR: {e}. Key: {prev_state_key}. Val: {val_now}. Resetting.")
+        # Force Reset again
+        ctx.domain_ctx.heavy_q_table[prev_state_key] = [0.0] * 8
     
-    # Store TD-error for SNN dopamine signal
     ctx.domain_ctx.td_error = td_error
     
-    # === Train Gated Network (Deep RL) ===
+    # 4. Neural Network Training (Deep RL)
     if ctx.domain_ctx.heavy_gated_network is not None and ctx.domain_ctx.heavy_gated_optimizer is not None:
         net = ctx.domain_ctx.heavy_gated_network
         opt = ctx.domain_ctx.heavy_gated_optimizer
         
-        # Previous State (t-1)
-        prev_obs = ctx.domain_ctx.previous_observation
         prev_emo = ctx.domain_ctx.heavy_previous_snn_emotion_vector
-        
-        # Current State (t) - becomes Next State for update
-        curr_obs = ctx.domain_ctx.current_observation
         curr_emo = ctx.domain_ctx.heavy_snn_emotion_vector
         
-        if prev_obs is not None and prev_emo is not None and curr_emo is not None:
-            # Prepare tensors
+        if prev_emo is not None and curr_emo is not None:
+            # Conversion
             state_tensor = observation_to_tensor(prev_obs)
-            emotion_tensor = prev_emo
             next_state_tensor = observation_to_tensor(curr_obs)
-            next_emotion_tensor = curr_emo
             
-            # Predict Q(s, a)
-            q_values = net(state_tensor, emotion_tensor)
+            # Forward Q(s,a)
+            # Ensure emotion is tensor compatible
+            if isinstance(prev_emo, list): prev_emo = torch.tensor(prev_emo).float()
+            if isinstance(curr_emo, list): curr_emo = torch.tensor(curr_emo).float()
+
+            q_values = net(state_tensor, prev_emo)
             current_q_val = q_values[action]
             
             # Target Q
             with torch.no_grad():
-                next_q_values = net(next_state_tensor, next_emotion_tensor)
-                max_next_q = torch.max(next_q_values)
-                target_q_val = reward + 0.95 * max_next_q # gamma = 0.95
+                next_q_values = net(next_state_tensor, curr_emo)
+                max_next_q_tensor = torch.max(next_q_values)
+                target_q_val = reward + 0.95 * max_next_q_tensor
             
-            # Loss & Step
+            # Backprop
             loss = torch.nn.functional.mse_loss(current_q_val, target_q_val)
-            
             opt.zero_grad()
             loss.backward()
             opt.step()
-
