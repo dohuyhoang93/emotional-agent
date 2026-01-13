@@ -27,8 +27,7 @@ steps:
   - process_assimilate_ancestor
   
   # RL Decision Making
-  - compute_intrinsic_reward_snn # Novelty-based reward
-  - combine_rewards              # Extrinsic + intrinsic
+  - compute_intrinsic_reward_snn # Novelty-based reward (Compute & Store)
   - select_action_gated          # Emotion-gated action
   
   - process_inject_viral_with_quarantine # Filter blacklisted sources (Sandbox Entrance)
@@ -38,6 +37,7 @@ steps:
   
   # Execution & Learning
   - execute_action_with_env
+  - combine_rewards              # Combine Extrinsic (from Env) + Intrinsic (from SNN)
   - update_q_learning
   # NOTE: decay_exploration đã chuyển sang multi_agent_coordinator.py để gọi 1 lần/episode (không phải mỗi step)
 

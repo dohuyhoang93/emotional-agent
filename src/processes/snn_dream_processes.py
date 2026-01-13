@@ -65,4 +65,67 @@ def _inject_impl(ctx: SystemContext):
         if input_current > 0.1:
             active_count += 1
             
-    domain.metrics['dream_stimulus_active_neurons'] = active_count
+
+@process(
+    inputs=['domain_ctx', 
+        'domain_ctx.snn_context',
+        'domain_ctx.snn_context.domain_ctx.metrics',
+        'domain_ctx.intrinsic_reward'
+    ],
+    outputs=['domain_ctx', 
+        'domain_ctx.intrinsic_reward',
+        'domain_ctx.snn_context.domain_ctx.metrics'
+    ],
+    side_effects=[]
+)
+def apply_dream_reward(ctx: SystemContext):
+    """
+    Evaluate Dream Coherence and apply intrinsic reward/penalty.
+    Used during SLEEP phase to reinforce stable patterns.
+    
+    Logic:
+    - Goldilocks Zone (5% - 30% firing): Coherent (+0.1)
+    - Silence (<5%): Boring (-0.2)
+    - Epilepsy (>40%): Nightmare (-0.5)
+    """
+    snn_ctx = ctx.domain_ctx.snn_context
+    domain = snn_ctx.domain_ctx
+    
+    # Calculate Actual Firing Rate (Network Response)
+    # Better than input noise check - captures epilepsy/silence
+    current_time = domain.current_time
+    active_neurons = 0
+    for neuron in domain.neurons:
+        if neuron.last_fire_time == current_time:
+            active_neurons += 1
+            
+    total_neurons = len(domain.neurons)
+    
+    if total_neurons > 0:
+        firing_rate = active_neurons / total_neurons
+    else:
+        firing_rate = 0.0
+        
+    # Coherence Reward Logic
+    reward = 0.0
+    
+    if 0.05 <= firing_rate <= 0.3:
+        # Coherent Dream (Good)
+        reward = 0.1
+        state = "COHERENT"
+    elif firing_rate < 0.05:
+        # Silence (Bad - nothing happening)
+        reward = -0.2
+        state = "SILENCE"
+    else:
+        # Epilepsy/Nightmare (Bad - chaos)
+        reward = -0.5
+        state = "NIGHTMARE"
+        
+    # Inject into intrinsic reward (for STDP to pick up)
+    ctx.domain_ctx.intrinsic_reward = reward
+    
+    # Metrics
+    domain.metrics['dream_coherence_state'] = state
+    domain.metrics['dream_firing_rate'] = firing_rate
+    domain.metrics['dream_reward'] = reward

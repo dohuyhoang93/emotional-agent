@@ -19,49 +19,110 @@ from src.core.context import SystemContext
 @process(
     inputs=['global_ctx', 'domain_ctx', 
         'domain_ctx.last_reward',
-        'domain_ctx.intrinsic_reward',
-        'global_ctx.intrinsic_reward_weight'
+        'domain_ctx.intrinsic_reward', # Novelty
+        'domain_ctx.td_error',         # Surprise (New)
+        'domain_ctx.metrics',
+        'global_ctx.intrinsic_reward_weight', # w1 (Novelty)
+        'global_ctx.surprise_reward_weight',  # w2 (Surprise)
+        'global_ctx.confidence_decay'         # EMA alpha
     ],
     outputs=['domain_ctx', 
-        'domain_ctx.last_reward'  # Combined reward
+        'domain_ctx.last_reward',
+        'domain_ctx.metrics'
     ],
     side_effects=[]  # Pure function
 )
 def combine_rewards(ctx: SystemContext):
     """
-    Kết hợp extrinsic và intrinsic rewards.
+    Kết hợp Extrinsic + Intrinsic (Novelty + Surprise).
+    Tính toán Confidence (Meta-cognition).
     
-    Total reward = extrinsic + α × intrinsic
-    
-    NOTE: Pure function - chỉ tính toán.
-    
+    Formula:
+        R_total = R_ex + (w1 * Novelty) + (w2 * |TD_Error|)
+        
+    Confidence (EMA):
+        C_inst = (1 - Novelty) * exp(-|TD_Error|)
+        C_t = alpha * C_inst + (1 - alpha) * C_{t-1}
+        
     Args:
         ctx: System context
     """
     domain = ctx.domain_ctx
+    global_ctx = ctx.global_ctx
+    import numpy as np
     
+    # 1. Get Extrinsic
     try:
         raw_reward = domain.last_reward
         if isinstance(raw_reward, dict):
             extrinsic = float(raw_reward.get('extrinsic', 0.0))
         else:
             extrinsic = float(raw_reward) if raw_reward else 0.0
-            
-        intrinsic = float(domain.intrinsic_reward)
-        weight = float(ctx.global_ctx.intrinsic_reward_weight)
     except:
         extrinsic = 0.0
-        intrinsic = 0.0
-        weight = 0.0
+            
+    # 2. Get Intrinsic Components
+    # Component A: Novelty (from SNN Bridge)
+    try:
+        novelty = float(getattr(domain, 'intrinsic_reward', 0.0))
+    except:
+        novelty = 0.0
     
-    # Combined reward
-    total = extrinsic + weight * intrinsic
+    # Component B: Surprise (|TD-Error|)
+    try:
+        td_error = float(getattr(domain, 'td_error', 0.0))
+    except:
+        td_error = 0.0
+    surprise = abs(td_error)
     
-    # Update - ensure last_reward is dict before writing
+    # Weights
+    try:
+        w_novelty = float(getattr(global_ctx, 'intrinsic_reward_weight', 0.1))
+        # Default Surprise Weight smaller than Novelty to avoid instability
+        w_surprise = float(getattr(global_ctx, 'surprise_reward_weight', 0.05))
+    except:
+        w_novelty = 0.1
+        w_surprise = 0.05
+    
+    # 3. Calculate Hybrid Reward
+    intrinsic_total = (w_novelty * novelty) + (w_surprise * surprise)
+    total_reward = extrinsic + intrinsic_total
+    
+    # 4. Meta-Cognition: Calculate Confidence (EMA)
+    # Instantaneous Confidence: High if Low Novelty AND Low Error
+    # Using simple exp decay logic: exp(-|TD|)
+    # Bound to [0, 1]
+    confidence_inst = (1.0 - novelty) * np.exp(-surprise)
+    
+    # EMA Smoothing
+    try:
+        prev_conf = float(domain.metrics.get('confidence', 0.5))
+    except:
+        prev_conf = 0.5
+        
+    try:
+        ema_alpha = float(getattr(global_ctx, 'confidence_decay', 0.1))
+    except:
+        ema_alpha = 0.1
+        
+    confidence = (ema_alpha * confidence_inst) + ((1.0 - ema_alpha) * prev_conf)
+    confidence = np.clip(confidence, 0.0, 1.0)
+    
+    # 5. Update Context
     if not isinstance(domain.last_reward, dict):
         domain.last_reward = {'extrinsic': extrinsic}
-    domain.last_reward['intrinsic'] = intrinsic
-    domain.last_reward['total'] = total
+    
+    domain.last_reward['intrinsic'] = intrinsic_total
+    domain.last_reward['intrinsic_novelty'] = novelty
+    domain.last_reward['intrinsic_surprise'] = surprise
+    domain.last_reward['total'] = total_reward
+    
+    # Update Metrics
+    domain.metrics['confidence'] = confidence
+    domain.metrics['novelty'] = novelty
+    domain.metrics['surprise'] = surprise
+    domain.metrics['total_reward'] = total_reward
+
 
 
 # ============================================================================

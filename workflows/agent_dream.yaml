@@ -12,7 +12,7 @@ steps:
   - process_fire
   
   # 3. Learning & Consolidation
-  - process_dream_coherence_reward # Generate internal reward signal
+  - apply_dream_reward           # Generate internal reward signal
   - process_stdp_3factor           # Learning (uses coherence reward)
   
   # 4. Visualization/Analysis

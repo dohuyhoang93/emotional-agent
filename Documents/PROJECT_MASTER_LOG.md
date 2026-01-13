@@ -1397,3 +1397,52 @@ khiến agent crash ngay lập tức.
 *   **Experiment:** Đang chạy Verification Run 500 episodes.
 *   **Next:** Chờ kết quả để đánh giá hiệu quả của các bản sửa lỗi SNN & Reward Hacking.
 
+---
+
+## 2026-01-13: Phase 16 - Hybrid Reward & Meta-Cognition Architecture
+
+### 1. Bối cảnh & Vấn đề
+Hệ thống gặp vấn đề **Sparse Reward** (Reward thưa thớt) khiến Success Rate là 0%. Các cơ chế cũ (Fatigue/Confidence MLP) không tương thích với SNN. Cần một cơ chế **Intrinsic Reward** mạnh mẽ và mang tính sinh học.
+
+### 2. Giải pháp Kiến trúc: Hybrid Reward System
+Đã implement công thức phần thưởng lai ghép mới trong `rl_snn_integration.py`:
+
+$$ R_{total} = R_{extrinsic} + w_1 \cdot Novelty + w_2 \cdot |TD_{Error}| $$
+
+*   **Novelty (Tính Mới):** Từ SNN `compute_intrinsic_reward_snn`. Đo bằng `1 - MaxSimilarity(CurrentPattern, Prototypes)`. Khuyến khích khám phá không gian trạng thái mới.
+*   **Surprise (Sự Ngạc Nhiên):** Từ RL `update_q_learning` ($|TD\_Error|$). Khuyến khích tìm kiếm các sự kiện vi phạm dự báo (cả tốt lẫn xấu) để học nhanh hơn (One-shot learning tiềm năng).
+
+### 3. Meta-Cognition: SNN-Native Confidence
+Đã định nghĩa lại và implement **Confidence** (Sự Tự Tin) không phải là Output của mạng, mà là một **Metatext (Chỉ số siêu nhận thức)**:
+
+$$ Confidence_t = EMA \left( (1 - Novelty_t) \times e^{-|TD\_Error_t|} \right) $$
+
+*   **Logic:** Agent chỉ tự tin khi nó thấy **Quen thuộc** (Low Novelty) **VÀ** dự báo **Chính xác** (Low Error).
+*   **Hồi đáp:**
+    *   **Smoothing (EMA):** Giúp chỉ số này ổn định, không bị giật cục (flickering) do nhiễu môi trường.
+    *   **Tác động:** Dùng để điều tiết Exploration (Epsilon) và Learning Rate trong tương lai.
+
+### 4. Cơ chế Dreaming: Coherence Reward
+Đã kích hoạt khả năng "tự học trong mơ" tại `snn_dream_processes.py`:
+*   **Nguyên lý:** Giấc mơ không chỉ là nhiễu trắng. Nó phải mạch lạc (Coherence).
+*   **Thực thi:** Đo `Firing Rate` của mạng trong lúc ngủ.
+    *   **+0.1 Reward:** Nếu Rate $\in [5\%, 30\%]$ (Goldilocks Zone - Trạng thái tối ưu).
+    *   **-0.5 Penalty:** Nếu Rate quá cao (Động kinh/Nightmare) hoặc quá thấp (Chết não).
+*   **Kết quả:** SNN sẽ tự học cách duy trì cân bằng nội môi (Homeostasis) ngay cả khi không có đầu vào cảm giác.
+
+### 5. Sửa lỗi Quy trình (Workflow Fix)
+Phát hiện lỗi nghiêm trọng trong `agent_main.yaml`:
+*   **Lỗi:** Bước `combine_rewards` chạy **TRƯỚC** bước `execute_action`. Dẫn đến việc Extrinsic Reward mới đè lên và xóa sạch Intrinsic Reward.
+*   **Khắc phục:** Đã di chuyển `combine_rewards` xuống **SAU** `execute_action` và **TRƯỚC** `update_q_learning`. Đảm bảo luồng dữ liệu chính xác: $SNN \to Action \to Reward_{ext} \to Reward_{total} \to Learn$.
+
+### 6. Phân tích Chuyên sâu (Critical Analysis)
+*   **Tại sao cần Vector 16-dim?** Để có Novelty, cần Content (Nội dung cảm giác). Tọa độ (x,y) thuần túy không tạo ra Novelty ngữ nghĩa.
+*   **Theus vs SOTA SNN:**
+    *   **SOTA (Nengo/Loihi):** Population Coding (Vector rải rác trên hàng nghìn neuron "ngu"). Bền bỉ nhưng khó học nhanh.
+    *   **Theus:** Localist/Prototype Coding (Vector 16-dim nằm trong từng neuron "khôn"). Tốn bộ nhớ nhưng học cực nhanh (Fast Adaptation) và dễ giải thích (Explainable).
+    *   **Kết luận:** Theus là kiến trúc lai (Hybrid SNN-VSA) tối ưu cho Game/Logic Agent.
+
+### 7. Trạng thái Hiện tại
+*   **Code:** Đã hoàn tất implementation và verified bằng Unit Test (`tests/test_reward_dynamics.py` pass).
+*   **Next:** Chạy thực nghiệm Full Scale (5000 episodes) để chứng minh hiệu quả thực tế.
+
