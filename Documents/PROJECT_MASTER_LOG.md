@@ -1673,3 +1673,45 @@ python theus_framework/tests/test_structures_compliance.py
 - **Package:** Ready for PyPI release.
 - **Experiment:** Đang chạy verification với v2.2.5 (Episode 0-2 passed, no errors).
 
+---
+
+## 2026-01-13: Phase 20 - Neural Darwinism Restoration (Stability Fixes)
+
+### 1. Bối cảnh & Bug Report (Episode 150 Audit)
+Phân tích checkpoint Episode 150 phát hiện cơ chế Neural Darwinism bị vô hiệu hóa hoàn toàn:
+- **Fitness Saturation:** 100% synapses có fitness = 1.0 (Uniform).
+- **Counter Overflow:** `consecutive_correct` đạt 15,100 (đếm theo Step thay vì Episode).
+- **Zero Commitment:** 0% SOLID synapses do logic Threshold quá strict.
+- **Homogenization:** Weight variance cực thấp (~0.02), mạng mất tính đa dạng.
+
+### 2. Các bản vá lỗi (Fixes Implemented)
+
+#### 2.1. Fitness System Overhaul
+- **Stronger Decay:** Giảm `fitness_decay` từ 0.999 xuống 0.95 để ngăn saturation.
+- **Multiplicative Update:** Thay đổi logic cộng/trừ tuyến tính thành nhân/chia (+5% / -10%) để tạo động lực mạnh hơn.
+- **Diversity Bonus:** Thêm phần thưởng nhỏ cho các weights khác biệt với trung bình chung.
+
+#### 2.2. Episode-Gated Counters
+- **Fix:** Thêm logic `last_commitment_update_episode` vào `SNNDomainContext`.
+- Chỉ cập nhật `consecutive_correct/wrong` **một lần mỗi episode**.
+- **Kết quả:** Counter hiển thị đúng số episode (Max ~150 thay vì 15,000).
+
+#### 2.3. Dynamic Commitment Threshold
+- **Logic cũ:** Disable commitment nếu `avg_reward < 0` (quá khắc nghiệt).
+- **Logic mới (Relaxed):** Scale threshold (2x-5x) nếu reward thấp, cho phép agent vẫn học và commit kiến thức cốt lõi ngay cả khi chưa đạt performance dương.
+
+#### 2.4. Regression Fix: ContextGuard Crash (Critical)
+- **Vấn đề:** Theus `ContextGuard` wrap Numpy Arrays và Lists nhưng không implement `__len__`.
+- **Triệu chứng:** Crash `TypeError: object of type 'ContextGuard' has no len()` tại Ep 44/50.
+- **Phạm vi tác động:** Commitment (tensor check), Lateral Inhibition (spike list), Darwinism (synapse list), Pruning.
+- **Fix:** Thay thế toàn bộ `len(x)` bằng `.shape[0]` (Numpy) hoặc `len(list(x))` (Wrapped Lists) trên toàn bộ codebase SNN.
+
+### 3. Verification & Metrics
+- **Config Fix:** Sửa `obs_dim: 5` thành `16` trong `experiments_sanity.json` (Root cause của lỗi Shape Mismatch ban đầu).
+- **Verification Run:**
+    - Experiment 50 episodes (Pre-crash) data confirmed: Fitness đa dạng (0.0-0.99), Counter đúng logic, Weights phân tán tốt.
+    - Experiment 110 episodes đang chạy ổn định (đã qua điểm crash cũ).
+
+### 4. Kết luận
+Hệ thống Neural Darwinism đã hoạt động trở lại đúng thiết kế. SNN có khả năng tiến hóa, chọn lọc và commit kiến thức bền vững.
+

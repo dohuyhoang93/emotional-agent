@@ -53,13 +53,17 @@ def process_commitment(
     avg_reward = domain.metrics.get('avg_reward', -1.0)
     base_threshold = int(global_ctx.commitment_threshold)
     
-    if avg_reward < 0:
-        # Survival Mode: Infinite Threshold -> No Commitment
-        THRESHOLD_SOLIDIFY = 999999
-        # Optional: Accelerate Decay? No, keep it standard.
+    # FIX: Relaxed threshold (was 999999 when reward < 0, disabling commitment)
+    # NEW: Gradual scaling allows commitment even during learning
+    if avg_reward < -20:
+        # Very bad performance: 5x threshold
+        THRESHOLD_SOLIDIFY = base_threshold * 5  # 50 episodes
+    elif avg_reward < 0:
+        # Still learning: 2x threshold  
+        THRESHOLD_SOLIDIFY = base_threshold * 2  # 20 episodes
     else:
-        # Success Mode: Normal Threshold -> Commit to Winning
-        THRESHOLD_SOLIDIFY = base_threshold
+        # Success mode: Normal threshold
+        THRESHOLD_SOLIDIFY = base_threshold  # 10 episodes
         
     # Log the dynamic threshold
     domain.metrics['commitment_threshold_dynamic'] = THRESHOLD_SOLIDIFY
@@ -83,15 +87,31 @@ def process_commitment(
     con_correct = t['consecutive_correct']
     con_wrong = t['consecutive_wrong']
     
-    # 1. Update Counters (Global Error Broadcast)
-    if error < ERROR_THRESHOLD:
-        # Good prediction: Increment correct, Reset wrong for ALL synapses
-        con_correct += 1
-        con_wrong[:] = 0 # Reset all to 0
-    else:
-        # Bad prediction: Increment wrong, Reset correct
-        con_wrong += 1
-        con_correct[:] = 0
+    # === FIX: Episode-Gated Counter Update ===
+    # NOTE: Prevent counter overflow (was 15100 at ep 150)
+    # Only update counters ONCE PER EPISODE, not every step
+    try:
+        current_episode = int(rl_ctx.domain_ctx.current_episode)
+    except:
+        current_episode = 0
+    
+    # 1. Update Counters ONLY if not already done this episode
+    if current_episode != domain.last_commitment_update_episode:
+        domain.last_commitment_update_episode = current_episode
+        
+        # NOW ONCE PER EPISODE
+        if error < ERROR_THRESHOLD:
+            # Good prediction: Increment correct, Reset wrong for ALL synapses
+            t['consecutive_correct'] = con_correct + 1
+            t['consecutive_wrong'] = np.zeros_like(con_wrong)
+        else:
+            # Bad prediction: Increment wrong, Reset correct
+            t['consecutive_wrong'] = con_wrong + 1
+            t['consecutive_correct'] = np.zeros_like(con_correct)
+        
+        # Refresh references after reassignment
+        con_correct = t['consecutive_correct']
+        con_wrong = t['consecutive_wrong']
         
     # 2. State Transitions
     
@@ -141,7 +161,7 @@ def process_commitment(
         # A bit risky if weights are 0 but state is tracked.
         # Let's use weights > 0 as safer proxy.
         # If weights unavailable, we skip update to avoid INF.
-        incoming_total_count = np.ones(len(commit_states)) # Dummy
+        incoming_total_count = np.ones(commit_states.shape[0]) # Dummy
     
     # 4. Compute Ratio (Safe Divide)
     # Avoid div by zero
@@ -197,7 +217,8 @@ def process_pruning(ctx: SNNSystemContext):
     """
     domain = ctx.domain_ctx
     
-    before = len(domain.synapses)
+    # FIX: Safe len for TrackedList
+    before = len(list(domain.synapses))
     
     # Filter out REVOKED synapses
     domain.synapses = [
@@ -205,9 +226,10 @@ def process_pruning(ctx: SNNSystemContext):
         if s.commit_state != COMMIT_STATE_REVOKED
     ]
     
-    pruned = before - len(domain.synapses)
+    # FIX: Safe len
+    pruned = before - len(list(domain.synapses))
     
     # Update metrics
     domain.metrics['pruned_count'] = \
         domain.metrics.get('pruned_count', 0) + pruned
-    domain.metrics['active_synapses'] = len(domain.synapses)
+    domain.metrics['active_synapses'] = len(list(domain.synapses))

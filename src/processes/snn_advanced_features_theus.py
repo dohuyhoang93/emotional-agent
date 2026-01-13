@@ -191,16 +191,19 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
         wta_k = 5
         inhib_str = 0.5
 
-    if len(current_spikes) <= wta_k:
+    # FIX: Safe len for ContextGuard wrapped list
+    # Cast to list to unwrap or assume iteration works
+    if len(list(current_spikes)) <= wta_k:
         # Not enough spikes to inhibit
-        domain.metrics['wta_winners'] = len(current_spikes)
+        domain.metrics['wta_winners'] = len(list(current_spikes))
         domain.metrics['wta_losers'] = 0
         return
 
     # To vectorize sorting on a subset (spikes):
     # 1. Get potentials of firing neurons
     spike_indices = np.array(current_spikes, dtype=int)
-    spike_indices = spike_indices[spike_indices < len(pots)] # Safety
+    # FIX: pots is numpy array wrapped in ContextGuard -> use shape[0]
+    spike_indices = spike_indices[spike_indices < pots.shape[0]] # Safety
     
     firing_pots = pots[spike_indices]
     
@@ -283,7 +286,8 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
     # Original Logic: Iterates 'current_spikes'.
     # So I vectorizing that logic is correct (faithful translation).
     
-    domain.metrics['wta_winners'] = len(current_spikes) - len(loser_global_indices)
+    # FIX: Safe len
+    domain.metrics['wta_winners'] = len(list(current_spikes)) - len(loser_global_indices)
     domain.metrics['wta_losers'] = len(loser_global_indices)
 
 
@@ -341,7 +345,7 @@ def process_neural_darwinism(
         selection_pressure = float(global_ctx.selection_pressure)
     except:
         darwinism_interval = 1000
-        fitness_decay = 0.999
+        fitness_decay = 0.95  # FIX: Stronger decay (was 0.999) to prevent saturation
         selection_pressure = 0.1
 
     # Check interval
@@ -352,18 +356,30 @@ def process_neural_darwinism(
     
     # === PART 1: SYNAPSE EVOLUTION ===
     
-    # 1. Update fitness
+    # 1. Update fitness (FIX: Multiplicative instead of additive)
     for synapse in domain.synapses:
         if error < 0.1:
-            synapse.fitness += 0.1
+            # Good prediction: 5% boost (was +0.1 additive)
+            synapse.fitness = min(1.0, synapse.fitness * 1.05)
         else:
-            synapse.fitness -= 0.05
+            # Bad prediction: 10% penalty (was -0.05 additive)
+            synapse.fitness = max(0.0, synapse.fitness * 0.90)
         
+        # Apply decay
         synapse.fitness *= fitness_decay
-        synapse.fitness = np.clip(synapse.fitness, 0.0, 1.0)
+    
+    # 1b. Diversity bonus (FIX: Prevent weight homogenization)
+    # FIX: Safe len for domain.synapses
+    if len(list(domain.synapses)) > 0:
+        weight_mean = np.mean([s.weight for s in domain.synapses])
+        for synapse in domain.synapses:
+            diversity_factor = abs(synapse.weight - weight_mean)
+            synapse.fitness += diversity_factor * 0.01  # Small bonus for diverse weights
+            synapse.fitness = np.clip(synapse.fitness, 0.0, 1.0)
     
     # 2. Selection: Remove weak
-    if len(domain.synapses) > 100:  # Keep minimum population
+    # FIX: Safe len
+    if len(list(domain.synapses)) > 100:  # Keep minimum population
         fitnesses = [s.fitness for s in domain.synapses]
         threshold = np.percentile(fitnesses, selection_pressure * 100)
         
@@ -373,7 +389,8 @@ def process_neural_darwinism(
             if s.fitness >= threshold or s.commit_state == COMMIT_STATE_SOLID
         ]
     else:
-        survivors = domain.synapses
+        # FIX: Cast to list to ensure survivors is a list, not wrapped TrackedList
+        survivors = list(domain.synapses)
     
     # 3. Reproduction: REMOVED (Violates SNN Spec & Causes Memory Explosion)
     # Neural Darwinism = Selection (Pruning) + Diversity (Neuron Recycling)
@@ -450,8 +467,9 @@ def process_neural_darwinism(
     
     # === MEMORY LEAK FIX: Cap synapse count to prevent unbounded growth ===
     # NOTE: Neural Darwinism adds new synapses but may grow faster than pruning.
-    MAX_SYNAPSES = global_ctx.num_neurons * 20  # ~20 synapses per neuron max
-    if len(domain.synapses) > MAX_SYNAPSES:
+    MAX_SYNAPSES = int(global_ctx.num_neurons) * 20  # ~20 synapses per neuron max
+    # FIX: Safe len
+    if len(list(domain.synapses)) > MAX_SYNAPSES:
         # Keep strongest synapses by weight (use sorted() for TrackedList compatibility)
         sorted_synapses = sorted(domain.synapses, key=lambda s: abs(s.weight), reverse=True)
         domain.synapses = list(sorted_synapses[:MAX_SYNAPSES])
@@ -522,7 +540,8 @@ def process_revolution_protocol(
     global_ctx = snn_ctx.global_ctx
     
     # Single-agent mode: Skip
-    if population_contexts is None or len(population_contexts) <= 1:
+    # FIX: Safe len
+    if population_contexts is None or len(list(population_contexts)) <= 1:
         domain.metrics['revolution_skipped'] = 1
         return
     
@@ -553,7 +572,8 @@ def process_revolution_protocol(
         return  # Still in cooldown period
     
     # 3. Check revolution condition
-    if len(domain.population_performance) < rev_window:
+    # FIX: Safe len for TrackedList
+    if len(list(domain.population_performance)) < rev_window:
         return  # Not enough data
     
     # Compute ancestor performance
@@ -573,7 +593,7 @@ def process_revolution_protocol(
     if current_baseline == 0.0:
         # Use current population mean as the first baseline
         # (Ignore ancestor_weights as they correspond to synaptic weights < 1.0, not reward)
-        if len(domain.population_performance) > 0:
+        if len(list(domain.population_performance)) > 0:
             current_baseline = np.mean(domain.population_performance)
             domain.ancestor_baseline_reward = current_baseline
         # If no performance data yet, we wait.
@@ -584,7 +604,7 @@ def process_revolution_protocol(
         1 for p in domain.population_performance
         if p > current_baseline
     )
-    outperform_ratio = outperform_count / len(domain.population_performance)
+    outperform_ratio = outperform_count / len(list(domain.population_performance))
 
     if outperform_ratio > rev_threshold:
         domain.revolution_triggered = True
@@ -594,7 +614,7 @@ def process_revolution_protocol(
         all_perfs = [
             (i, np.mean(ctx.domain_ctx.population_performance[-100:]))
             for i, ctx in enumerate(population_contexts)
-            if len(ctx.domain_ctx.population_performance) > 0
+            if len(list(ctx.domain_ctx.population_performance)) > 0
         ]
         
         if all_perfs:

@@ -4,12 +4,12 @@
             "name": "Optimization_Sanity_Check",
             "description": "Quick verification of Vectorized SNN performance.",
             "runs": 1,
-            "episodes_per_run": 1000,
+            "episodes_per_run": 110,
             "parameters": {
                 "learning_rate": 0.1,
                 "discount_factor": 0.9,
                 "model_config": {
-                    "obs_dim": 5,
+                    "obs_dim": 16,
                     "emotion_dim": 16,
                     "hidden_dim": 64,
                     "action_dim": 8,

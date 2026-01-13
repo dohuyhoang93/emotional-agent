@@ -288,6 +288,10 @@ class SNNDomainContext(BaseDomainContext):
     last_revolution_episode: int = -1000  # Cooldown tracker
     ancestor_baseline_reward: float = 0.0 # Baseline for Revolution (Reward vs Reward)
     
+    # === FIX: Episode Tracking for Commitment ===
+    # NOTE: Counter overflow fix - only update consecutive_correct/wrong once per episode
+    last_commitment_update_episode: int = -1
+    
     # === Optimization: Shadow Tensors (Phase 2) ===
     # Holds numpy arrays for vectorized computation:
     # - potentials: (N,)
@@ -419,7 +423,7 @@ def ensure_heavy_tensors_initialized(ctx: SNNSystemContext):
     N = len(neurons)
     
     # Initialize if missing or size mismatch
-    if 'potentials' not in domain.heavy_tensors or len(domain.heavy_tensors['potentials']) != N:
+    if 'potentials' not in domain.heavy_tensors or domain.heavy_tensors['potentials'].shape[0] != N:
         # Potentials & Thresholds
         def _sf(x):
             try: return float(x)
