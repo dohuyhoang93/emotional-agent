@@ -45,7 +45,25 @@ def process_commitment(
     global_ctx = snn_ctx.global_ctx
     domain = snn_ctx.domain_ctx
     
-    THRESHOLD_SOLIDIFY = int(global_ctx.commitment_threshold)
+    # === DYNAMIC THRESHOLD (POP Logic) ===
+    # Phase 16 Fix: Prevent Premature Solidification on Negative Rewards
+    # Strategy: Only commit if we are SUCCESSFUL (Reward > 0).
+    # If we are suffering (Reward < 0), keep synapses FLUID to allow adaptation.
+    
+    avg_reward = domain.metrics.get('avg_reward', -1.0)
+    base_threshold = int(global_ctx.commitment_threshold)
+    
+    if avg_reward < 0:
+        # Survival Mode: Infinite Threshold -> No Commitment
+        THRESHOLD_SOLIDIFY = 999999
+        # Optional: Accelerate Decay? No, keep it standard.
+    else:
+        # Success Mode: Normal Threshold -> Commit to Winning
+        THRESHOLD_SOLIDIFY = base_threshold
+        
+    # Log the dynamic threshold
+    domain.metrics['commitment_threshold_dynamic'] = THRESHOLD_SOLIDIFY
+
     THRESHOLD_REVOKE = int(global_ctx.revoke_threshold)
     ERROR_THRESHOLD = float(global_ctx.prediction_error_threshold)
     

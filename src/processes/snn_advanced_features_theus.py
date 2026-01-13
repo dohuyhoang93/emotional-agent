@@ -462,6 +462,15 @@ def process_neural_darwinism(
     domain.metrics['recycled_neurons'] = recycled_count
     domain.metrics['new_synapses_generated'] = len(new_synapses)
 
+    # === SYNC FIX (Phase 16) ===
+    # Darwinism changes Topology (Pruning/Recycling) and Fitness (Object attributes).
+    # Heavy Tensors are ignorant of these changes and will OVERWRITE objects on next sync.
+    # We must INVALIDATE the cache to force Re-initialization from Objects next step.
+    if hasattr(domain, 'heavy_tensors') and domain.heavy_tensors:
+         # Fix: TrackedDict (v2.2.5 Rust) now supports .clear() efficiently
+         domain.heavy_tensors.clear()
+
+
 
 # ============================================================================
 # Phase 12: Revolution Protocol

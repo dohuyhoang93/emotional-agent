@@ -15,6 +15,7 @@ mod fsm;
 fn theus_core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<engine::Engine>()?;
     m.add_class::<delta::Transaction>()?;
+    m.add_class::<delta::DeltaEntry>()?;
     m.add_class::<guards::ContextGuard>()?; 
     m.add_class::<zones::ContextZone>()?;
     m.add_class::<structures::TrackedList>()?;

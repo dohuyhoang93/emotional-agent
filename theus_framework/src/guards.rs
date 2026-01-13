@@ -73,7 +73,9 @@ impl ContextGuard {
         let val_bound = val.bind(py);
         let type_name = val_bound.get_type().name()?.to_string();
 
-        if ["int", "float", "str", "bool", "NoneType"].contains(&type_name.as_str()) {
+        // NOTE: Whitelist includes Numpy scalar types (float64, int64...) for framework robustness.
+        // These are immutable and should not be wrapped by ContextGuard.
+        if ["int", "float", "str", "bool", "NoneType", "float64", "float32", "int64", "int32", "int16", "int8", "uint64", "uint32", "uint16", "uint8", "bool_"].contains(&type_name.as_str()) {
              return Ok(val);
         }
 

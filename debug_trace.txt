@@ -3706,3 +3706,1364 @@ Traceback (most recent call last):
     metrics['epsilon'] = epsilon
     ~~~~~~~^^^^^^^^^^^
 TypeError: 'float' object does not support item assignment
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    domain.heavy_tensors.clear()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_neural_darwinism:
+Traceback (most recent call last):
+  File "C:\Python312\Lib\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_advanced_features_theus.py", line 470, in process_neural_darwinism
+    # Fix: TrackedDict does not support .clear(), use explicit deletion
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'builtins.TrackedDict' object has no attribute 'clear'
+ERROR in process_snn_cycle:
+Traceback (most recent call last):
+  File "C:\Users\dohoang\AppData\Roaming\Python\Python312\site-packages\theus\contracts.py", line 38, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_composite_theus.py", line 102, in process_snn_cycle
+    _stdp_3factor_impl(ctx)
+  File "C:\Users\dohoang\projects\EmotionAgent\src\processes\snn_learning_3factor_theus.py", line 120, in _stdp_3factor_impl
+    effective_lr = float(global_ctx.dopamine_learning_rate)
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: float() argument must be a string or a real number, not 'builtins.ContextGuard'

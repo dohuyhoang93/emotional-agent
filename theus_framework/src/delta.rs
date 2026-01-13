@@ -1,23 +1,31 @@
 use pyo3::prelude::*;
+use pyo3::types::PyList;
 use std::sync::{Mutex, OnceLock};
 use std::collections::HashSet;
 
 static LOGGED_HEAVY_PATHS: OnceLock<Mutex<HashSet<String>>> = OnceLock::new();
 
 
+#[pyclass]
 #[derive(Debug)]
 pub struct DeltaEntry {
+    #[pyo3(get)]
     pub path: String,
+    #[pyo3(get)]
     pub op: String,
+    #[pyo3(get)]
     pub value: Option<PyObject>,
+    #[pyo3(get)]
     pub old_value: Option<PyObject>,
+    #[pyo3(get)]
     pub target: Option<PyObject>,
+    #[pyo3(get)]
     pub key: Option<String>,
 }
 
 #[pyclass]
 pub struct Transaction {
-    pub log: Vec<DeltaEntry>,
+    pub delta_log: Vec<DeltaEntry>,
     shadow_cache: std::collections::HashMap<usize, (PyObject, PyObject)>, // id -> (original, shadow)
 }
 
@@ -31,7 +39,7 @@ impl Transaction {
         target: Option<PyObject>, 
         key: Option<String>
     ) {
-        self.log.push(DeltaEntry {
+        self.delta_log.push(DeltaEntry {
             path, op, value, old_value, target, key 
         });
     }
@@ -45,10 +53,28 @@ impl Default for Transaction {
 
 #[pymethods]
 impl Transaction {
+    #[getter]
+    pub fn delta_log(&self, py: Python) -> PyResult<PyObject> {
+        let list = PyList::empty_bound(py);
+        for entry in &self.delta_log {
+            let cloned = DeltaEntry {
+                path: entry.path.clone(),
+                op: entry.op.clone(),
+                value: entry.value.as_ref().map(|v| v.clone_ref(py)),
+                old_value: entry.old_value.as_ref().map(|v| v.clone_ref(py)),
+                target: entry.target.as_ref().map(|v| v.clone_ref(py)),
+                key: entry.key.clone(),
+            };
+            let py_obj = Py::new(py, cloned)?;
+            list.append(py_obj)?;
+        }
+        Ok(list.into_py(py))
+    }
+
     #[new]
     pub fn new() -> Self {
         Transaction { 
-            log: Vec::new(),
+            delta_log: Vec::new(),
             shadow_cache: std::collections::HashMap::new(),
         }
     }
@@ -156,20 +182,20 @@ impl Transaction {
         
         // [FIX] Clean up references immediately to prevent memory leak via reference cycles
         self.shadow_cache.clear();
-        self.log.clear();
+        self.delta_log.clear();
         
         Ok(())
     }
 
     pub fn rollback(&mut self, py: Python) -> PyResult<()> {
-        for entry in self.log.iter().rev() {
+        for entry in self.delta_log.iter().rev() {
              if let (Some(target), Some(key), Some(old)) = (&entry.target, &entry.key, &entry.old_value) {
                  if entry.op == "SET" {
                      target.bind(py).setattr(key.as_str(), old)?;
                  }
              }
         }
-        self.log.clear();
+        self.delta_log.clear();
         self.shadow_cache.clear();
         Ok(())
     }
