@@ -65,7 +65,7 @@
                 },
                 "snn_config": {
                     "num_neurons": 100,
-                    "connectivity": 0.2,
+                    "connectivity": 0.1,
                     "initial_threshold": 0.05,
                     "tau_decay": 0.9,
                     "threshold_min": 0.01,

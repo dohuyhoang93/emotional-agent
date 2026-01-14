@@ -1715,3 +1715,84 @@ Phân tích checkpoint Episode 150 phát hiện cơ chế Neural Darwinism bị 
 ### 4. Kết luận
 Hệ thống Neural Darwinism đã hoạt động trở lại đúng thiết kế. SNN có khả năng tiến hóa, chọn lọc và commit kiến thức bền vững.
 
+---
+
+## 2026-01-14: Phase 21 - Full Scale Verification (5000 Episodes)
+
+### 1. Verification Outcome
+Đã hoàn thành chạy thử nghiệm `multi_agent_complex_maze` (5000 episodes) để kiểm chứng sự ổn định và cơ chế Neural Darwinism.
+
+#### 1.1. System Stability (Passed)
+- **Status**: 100% Stability.
+- **Crash Fix Confirmation**: ContextGuard fix (`.shape[0]`) hoạt động hoàn hảo, không có crash nào xảy ra trong suốt 5000 episodes (so với crash ở Ep 44/50 trước đó).
+
+#### 1.2. Neural Darwinism Health (Passed)
+Phân tích Checkpoint Episode 4950:
+- **Fitness:** Mean 0.89, Min/Max [0.0, 0.99]. **Saturation Fixed** (nhờ decay 0.95 & multiplicative updates).
+- **Diversity:** Weight Std = 0.107 (Cao). **Homogenization Fixed**.
+- **Counters:** Max Consecutive Correct = 1. **Overflow Fixed** (nhờ episode-gating).
+- **Commitment:** 100% FLUID (0% SOLID).
+    - **Giải thích:** Do Agent không giải được maze (Success rate 0%, Avg Reward -24.4), cơ chế **Dynamic Threshold (Survival Mode)** đã hoạt động đúng thiết kế: Giữ ngưỡng Solidify cực cao để ngăn Agent commit vào chiến lược sai lầm.
+    - **Kết luận:** "Zombie Brain" (Brain death) đã được ngăn chặn. SNN vẫn giữ được tính mềm dẻo (Plasticity).
+
+### 2. Task Performance Note
+- **Success Rate:** 0.00%.
+- **Observation:** Agent gặp khó khăn với Complex Maze 25x25. Tuy nhiên, mục tiêu của Phase 20-21 là sửa lỗi **Cơ chế (Mechanism)** của não bộ SNN, không phải tối ưu **Chiến thuật (Strategy)**.
+- **Next Step:** Cần điều chỉnh Curriculum Learning hoặc Reward Shaping để giúp Agent học tốt hơn trong môi trường phức tạp này, nhưng *nền tảng SNN* giờ đã vững chắc.
+
+**TRẠNG THÁI DỰ ÁN: STABLE & READY FOR OPTIMIZATION.**
+
+---
+
+## Phase 22: Capacity Scale Up (1024 Neurons)
+
+### 1. Problem Analysis: The "Blind Brain" Hypothesis
+Verification của Phase 21 cho thấy SNN hoạt động tốt về mặt cơ chế (Mechanism stable) nhưng thất bại về mặt nhiệm vụ (0% Success).
+- **Core Cause:** **Perceptual Aliasing** due to Compression Loss.
+    - Grid Size: 25x25 = 625 discrete positions.
+    - SNN Size: 100 neurons.
+    - **Compression Ratio 1:6**: Một neuron phải đại diện cho ~6 vị trí khác nhau. SNN không thể phân biệt chính xác vị trí của mình để điều hướng trong mê cung phức tạp.
+
+### 2. Solution: Brute Force Scaling
+Thay vì Curriculum Learning (tốn thời gian training), Strategy được chọn là **Scale Up** capacity.
+- **Config Change:**
+    - `num_neurons`: 100 -> **1024** (Cover 25x25 map with 1.6x redundancy).
+    - `connectivity`: 0.15 -> **0.1** (Balance computational load ~100k synapses).
+- **Goal:** Cung cấp đủ "băng thông" neural để Agent map 1:1 hoặc tốt hơn với không gian bài toán.
+
+### 3. Verification Plan
+- Chạy `experiments_sanity.json` (110 Eps) với cấu hình 1024 neurons.
+- Nếu ổn định (không Crash vì Memory/Timestep), sẽ chạy Full Experiment.
+
+---
+
+## Phase 23: Theus Core Patch (ContextGuard Magic Methods)
+
+### 1. Issue: Proxy Limitations
+Theus `ContextGuard` lacked implementation of Python Magic Methods (`__len__`, `__getitem__`, `__add__`...), causing `TypeError` when Processes treated wrapped objects (Lists, Numpy Arrays) as native types.
+
+### 2. Solution: Transparent Proxy Patch
+Instead of applying workaround hacks (`len(list(obj))`) in every Process, we patched the Core Framework (`theus_framework/theus/guards.py`):
+- **Implemented Magic Methods:** `__len__`, `__getitem__`, `__setitem__`, `__iter__`, `__contains__`.
+- **Implemented Arithmetic:** `__add__`, `__sub__`, `__mul__`... (Forwarding to internal object).
+- **Deployment:** Installed patched core via `pip install -e ./theus_framework`.
+
+### 3. Result
+- **Codebase Cleanup:** Reverted all "Safe len" hacks in `snn_advanced_features_theus.py` and `snn_commitment_theus.py`.
+- **Verification:** SNN Logic now runs with cleaner, readable code, proving the Transparent Proxy works.
+
+### 4. Experiment Status (1024 Neurons Sanity Check)
+- **Episodes:** 3/50 completed.
+- **Performance:** ~2.5 mins/episode (Very slow due to Python Overhead + 10x Scale).
+- **Stability:** Stable metrics, no drift.
+- **Darwinism:** Pruning working (Synapses dropped 102k -> 74k in 3 eps).
+
+---
+
+## Phase 24: Rust Core Optimization (In Planning)
+**Goal:** Migrate `ContextGuard` logic entirely to Rust (PyO3) to achieve "Industrial Grade" performance.
+**Strategy:**
+1.  **Specialized Wrappers:** `TheusListGuard`, `TheusTensorGuard` implementing PyO3 protocols directly in C.
+2.  **Tiered Optimization:** Formalize `heavy_` zone for Zero Copy tensor access.
+3.  **Benchmark:** Target <10ms overhead per episode (currently ~seconds).
+

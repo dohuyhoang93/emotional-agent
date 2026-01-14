@@ -5,7 +5,7 @@ use crate::delta::Transaction;
 use crate::structures::{TrackedList, TrackedDict, FrozenList, FrozenDict};
 use crate::zones::{resolve_zone, ContextZone};
 
-#[pyclass]
+#[pyclass(module = "theus_core", dict, subclass)]
 pub struct ContextGuard {
     #[pyo3(get, name = "_target")]
     target: PyObject,
@@ -15,18 +15,24 @@ pub struct ContextGuard {
     tx: Option<Py<Transaction>>, 
     is_admin: bool,
     strict_mode: bool,
+    #[pyo3(get, set)]
+    log: Option<PyObject>,
 }
 
 impl ContextGuard {
-    pub fn new_internal(target: PyObject, inputs: Vec<String>, outputs: Vec<String>, tx: Option<Py<Transaction>>, is_admin: bool, strict_mode: bool) -> PyResult<Self> {
+    pub fn new_internal(target: PyObject, inputs: Vec<String>, outputs: Vec<String>, path_prefix: String, tx: Option<Py<Transaction>>, is_admin: bool, strict_mode: bool) -> PyResult<Self> {
          // Strict Mode: Check for Forbidden Input Zones
          if strict_mode {
              for inp in &inputs {
-                 let root = inp.split('.').next().unwrap_or(inp);
-                 if ["SIG", "CMD", "META"].contains(&root.to_uppercase().as_str()) {
-                     return Err(PyPermissionError::new_err(
-                         format!("SECURITY VIOLATION: Using Control Plane '{}' as input is forbidden in Strict Mode.", root)
-                     ));
+                 let zone = resolve_zone(inp);
+                 // println!("DEBUG: Checking Input: '{}', Zone: {:?}, Strict: {}", inp, zone, strict_mode);
+                 match zone {
+                     ContextZone::Signal | ContextZone::Meta => {
+                         return Err(PyPermissionError::new_err(
+                             format!("SECURITY VIOLATION: Input '{}' belongs to restricted Control Zone {:?}.", inp, zone)
+                         ));
+                     },
+                     _ => {}
                  }
              }
          }
@@ -35,10 +41,11 @@ impl ContextGuard {
             target,
             allowed_inputs: inputs,
             allowed_outputs: outputs,
-            path_prefix: "".to_string(),
+            path_prefix,
             tx,
             is_admin,
             strict_mode,
+            log: None,
         })
     }
 
@@ -133,6 +140,7 @@ impl ContextGuard {
             tx: Some(tx.clone_ref(py)),
             is_admin: self.is_admin,
             strict_mode: self.strict_mode,
+            log: None,
         })?.into_py(py))
     }
 }
@@ -140,9 +148,27 @@ impl ContextGuard {
 #[pymethods]
 impl ContextGuard {
     #[new]
-    #[pyo3(signature = (target, inputs, outputs, tx, is_admin=false, strict_mode=false))]
-    fn new(target: PyObject, inputs: Vec<String>, outputs: Vec<String>, tx: Option<Py<Transaction>>, is_admin: bool, strict_mode: bool) -> PyResult<Self> {
-        Self::new_internal(target, inputs, outputs, tx, is_admin, strict_mode)
+    #[pyo3(signature = (target, inputs, outputs, path_prefix=None, tx=None, is_admin=false, strict_mode=false))]
+    fn new(target: PyObject, inputs: &Bound<'_, PyAny>, outputs: &Bound<'_, PyAny>, path_prefix: Option<String>, tx: Option<Py<Transaction>>, is_admin: bool, strict_mode: bool) -> PyResult<Self> {
+        let prefix = path_prefix.unwrap_or_default();
+        
+        // Helper to convert iterable (Set/List) to Vec<String>
+        let to_vec = |obj: &Bound<'_, PyAny>| -> PyResult<Vec<String>> {
+            let mut result = Vec::new();
+            if let Ok(iter) = obj.iter() {
+                for item in iter {
+                   result.push(item?.extract::<String>()?); 
+                }
+            } else {
+                 return Err(pyo3::exceptions::PyTypeError::new_err("Expected iterable for inputs/outputs"));
+            }
+            Ok(result)
+        };
+
+        let inputs_vec = to_vec(inputs)?;
+        let outputs_vec = to_vec(outputs)?;
+
+        Self::new_internal(target, inputs_vec, outputs_vec, prefix, tx, is_admin, strict_mode)
     }
 
     fn __getattr__(&self, py: Python, name: String) -> PyResult<PyObject> {
@@ -167,7 +193,20 @@ impl ContextGuard {
         self.apply_guard(py, val, full_path)
     }
 
-    fn __setattr__(&self, py: Python, name: String, value: PyObject) -> PyResult<()> {
+    fn __setattr__(&mut self, py: Python, name: String, value: PyObject) -> PyResult<()> {
+        // 1. Whitelist: Check for Local Attributes
+        // "log" is now a struct field, so we can set it directly.
+        if name == "log" {
+             self.log = Some(value);
+             return Ok(());
+        }
+        
+        // _local_ prefix support? With explicit field approach, we don't have _local_* fields on struct.
+        // If user tries to set _local_foo, we can't store it on struct easily unless we have a dict field.
+        // But for now, "log" is the only requirement. 
+        // If we want _local_ support, we'd need a Py<PyDict> field "locals".
+        // Let's stick to "log" fix as it addresses the immediate failure.
+
         let full_path = if self.path_prefix.is_empty() {
             name.clone()
         } else {
@@ -180,8 +219,8 @@ impl ContextGuard {
 
         // Unwrap Tracked Objects & Nested Guards
         let mut value = value;
-        if let Ok(inner) = value.bind(py).getattr("_target") {
-             value = inner.unbind();
+        if let Ok(nested) = value.bind(py).getattr("_target") {
+             value = nested.unbind();
         } 
         else if let Ok(shadow) = value.bind(py).getattr("_data") {
              value = shadow.unbind();
@@ -189,7 +228,7 @@ impl ContextGuard {
         
         let zone = resolve_zone(&name);
         
-        // HEAVY Zone Optimization: Skip Transaction Logging for heavy data (Tensors, Blobs)
+        // HEAVY Zone Optimization
         if zone != ContextZone::Heavy {
             if let Some(tx) = &self.tx {
                 let mut tx_ref = tx.bind(py).borrow_mut();
@@ -201,7 +240,7 @@ impl ContextGuard {
                 Some(self.target.clone_ref(py)),
                 Some(name.clone())
             );
-            } // End if let Some(tx)
+            } 
         }
         
         self.target.bind(py).setattr(name.as_str(), value)?;
@@ -236,7 +275,7 @@ impl ContextGuard {
         target.get_item(&key).map(|v| v.unbind())
     }
 
-    fn __setitem__(&self, py: Python, key: PyObject, value: PyObject) -> PyResult<()> {
+    fn __setitem__(&mut self, py: Python, key: PyObject, value: PyObject) -> PyResult<()> {
         let target = self.target.bind(py);
         
         if let Ok(key_str) = key.extract::<String>(py) {

@@ -1,7 +1,3 @@
-# Enable Pyflakes (`F`) and pycodestyle (`E`, `W`) codes by default.
-select = ["E", "F"]
-ignore = ["E501", "F841", "E402", "E722", "F403", "F401", "E712", "E701"]
-
 # Exclude specific directories
 exclude = [
     ".bzr",
@@ -28,5 +24,10 @@ exclude = [
     "tests/legacy_archive",
 ]
 
-[per-file-ignores]
+[lint]
+# Enable Pyflakes (`F`) and pycodestyle (`E`, `W`) codes by default.
+select = ["E", "F"]
+ignore = ["E501", "F841", "E402", "E722", "F403", "F401", "E712", "E701"]
+
+[lint.per-file-ignores]
 "__init__.py" = ["F401"]

@@ -34,20 +34,26 @@ impl TrackedList {
         Ok(real_index)
     }
 
-    fn __getitem__(&self, py: Python, index: isize) -> PyResult<PyObject> {
-        let idx = self.normalize_index(py, index)?;
-        let val = self.data.bind(py).get_item(idx)?.unbind();
+    fn __getitem__(&self, py: Python, key: PyObject) -> PyResult<PyObject> {
+        // Use generic get_item which supports Slices and Integers via PyAny
+        // PyList::get_item only supports usize, so we must use PyAny
+        let val = self.data.bind(py).as_any().get_item(&key)?.unbind();
         let val_type = val.bind(py).get_type().name()?.to_string();
 
         if val_type == "list" || val_type == "dict" {
              let mut tx_val = self.tx.bind(py).borrow_mut();
              let shadow = tx_val.get_shadow(py, val.clone_ref(py), None)?;
              
-             if !shadow.is(&val) {
-                 self.data.bind(py).set_item(idx, shadow.clone_ref(py))?;
+             // If key is Integer, we CAN update.
+             if let Ok(idx) = key.extract::<usize>(py) {
+                 if !shadow.is(&val) {
+                     // Use PyList set_item for index (efficient)
+                     self.data.bind(py).set_item(idx, shadow.clone_ref(py))?;
+                 }
              }
              
-             let child_path = format!("{}[{}]", self.path, index);
+             let key_str = key.to_string();
+             let child_path = format!("{}[{}]", self.path, key_str);
              
              if val_type == "list" {
                  let child_list = shadow.bind(py).downcast::<PyList>()?.clone().unbind();
@@ -71,18 +77,19 @@ impl TrackedList {
         Ok(val)
     }
 
-    fn __setitem__(&self, py: Python, index: isize, value: PyObject) -> PyResult<()> {
-        let idx = self.normalize_index(py, index)?;
-        let old_val = self.data.bind(py).get_item(idx)?.unbind();
-        self.data.bind(py).set_item(idx, value.clone_ref(py))?;
+    fn __setitem__(&self, py: Python, key: PyObject, value: PyObject) -> PyResult<()> {
+        // Use generic set_item
+        let old_val = self.data.bind(py).as_any().get_item(&key).ok().map(|v| v.unbind());
+        self.data.bind(py).as_any().set_item(&key, value.clone_ref(py))?;
         
         // Log
-        let entry_path = format!("{}[{}]", self.path, index);
+        let key_str = key.to_string();
+        let entry_path = format!("{}[{}]", self.path, key_str);
         self.tx.bind(py).borrow_mut().log_internal(
             entry_path, 
             "SET".to_string(), 
             Some(value), 
-            Some(old_val), 
+            old_val, 
             None, 
             None
         );

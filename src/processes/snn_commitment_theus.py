@@ -217,8 +217,8 @@ def process_pruning(ctx: SNNSystemContext):
     """
     domain = ctx.domain_ctx
     
-    # FIX: Safe len for TrackedList
-    before = len(list(domain.synapses))
+    # FIX: Safe len via Core Patch
+    before = len(domain.synapses)
     
     # Filter out REVOKED synapses
     domain.synapses = [
@@ -226,10 +226,10 @@ def process_pruning(ctx: SNNSystemContext):
         if s.commit_state != COMMIT_STATE_REVOKED
     ]
     
-    # FIX: Safe len
-    pruned = before - len(list(domain.synapses))
+    # FIX: Safe len via Core Patch
+    pruned = before - len(domain.synapses)
     
     # Update metrics
     domain.metrics['pruned_count'] = \
         domain.metrics.get('pruned_count', 0) + pruned
-    domain.metrics['active_synapses'] = len(list(domain.synapses))
+    domain.metrics['active_synapses'] = len(domain.synapses)

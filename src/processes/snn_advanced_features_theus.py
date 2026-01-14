@@ -191,19 +191,17 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
         wta_k = 5
         inhib_str = 0.5
 
-    # FIX: Safe len for ContextGuard wrapped list
-    # Cast to list to unwrap or assume iteration works
-    if len(list(current_spikes)) <= wta_k:
+    if len(current_spikes) <= wta_k:
         # Not enough spikes to inhibit
-        domain.metrics['wta_winners'] = len(list(current_spikes))
+        domain.metrics['wta_winners'] = len(current_spikes)
         domain.metrics['wta_losers'] = 0
         return
 
     # To vectorize sorting on a subset (spikes):
     # 1. Get potentials of firing neurons
     spike_indices = np.array(current_spikes, dtype=int)
-    # FIX: pots is numpy array wrapped in ContextGuard -> use shape[0]
-    spike_indices = spike_indices[spike_indices < pots.shape[0]] # Safety
+    # FIX: pots is numpy array wrapped in ContextGuard -> handled by Core Patch
+    spike_indices = spike_indices[spike_indices < len(pots)] # Safety
     
     firing_pots = pots[spike_indices]
     
@@ -286,8 +284,8 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
     # Original Logic: Iterates 'current_spikes'.
     # So I vectorizing that logic is correct (faithful translation).
     
-    # FIX: Safe len
-    domain.metrics['wta_winners'] = len(list(current_spikes)) - len(loser_global_indices)
+    # FIX: Safe len via Core Patch
+    domain.metrics['wta_winners'] = len(current_spikes) - len(loser_global_indices)
     domain.metrics['wta_losers'] = len(loser_global_indices)
 
 
@@ -369,8 +367,7 @@ def process_neural_darwinism(
         synapse.fitness *= fitness_decay
     
     # 1b. Diversity bonus (FIX: Prevent weight homogenization)
-    # FIX: Safe len for domain.synapses
-    if len(list(domain.synapses)) > 0:
+    if len(domain.synapses) > 0:
         weight_mean = np.mean([s.weight for s in domain.synapses])
         for synapse in domain.synapses:
             diversity_factor = abs(synapse.weight - weight_mean)
@@ -378,8 +375,7 @@ def process_neural_darwinism(
             synapse.fitness = np.clip(synapse.fitness, 0.0, 1.0)
     
     # 2. Selection: Remove weak
-    # FIX: Safe len
-    if len(list(domain.synapses)) > 100:  # Keep minimum population
+    if len(domain.synapses) > 100:  # Keep minimum population
         fitnesses = [s.fitness for s in domain.synapses]
         threshold = np.percentile(fitnesses, selection_pressure * 100)
         
@@ -468,8 +464,8 @@ def process_neural_darwinism(
     # === MEMORY LEAK FIX: Cap synapse count to prevent unbounded growth ===
     # NOTE: Neural Darwinism adds new synapses but may grow faster than pruning.
     MAX_SYNAPSES = int(global_ctx.num_neurons) * 20  # ~20 synapses per neuron max
-    # FIX: Safe len
-    if len(list(domain.synapses)) > MAX_SYNAPSES:
+    MAX_SYNAPSES = int(global_ctx.num_neurons) * 20  # ~20 synapses per neuron max
+    if len(domain.synapses) > MAX_SYNAPSES:
         # Keep strongest synapses by weight (use sorted() for TrackedList compatibility)
         sorted_synapses = sorted(domain.synapses, key=lambda s: abs(s.weight), reverse=True)
         domain.synapses = list(sorted_synapses[:MAX_SYNAPSES])
