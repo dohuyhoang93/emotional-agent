@@ -244,16 +244,12 @@ class RLAgent:
         Returns:
             Selected action (0-3)
         """
-        # Inject adapter into context for processes to use (Theus V2 Compat)
+        # Inject adapter into context for processes to use (v3 Context-based approach)
         with self.engine.edit():
             self.domain_ctx.env_adapter = env_adapter
 
-        # Run workflow
-        self.engine.execute_workflow(
-            "workflows/agent_main.yaml",
-            env_adapter=env_adapter,
-            agent_id=self.agent_id
-        )
+        # Run workflow (v3: args are in context, not kwargs)
+        self.engine.execute_workflow("workflows/agent_main.yaml")
         
         # Record Step (Phase 15 - Legacy)
         # REMOVED: Handled by workflow process 'process_record_snn_step'

@@ -4,11 +4,11 @@ build-backend = "maturin"
 
 [project]
 name = "theus"
-version = "2.2.6"
+version = "2.2.7"
 description = "Reliable, Rust-Powered Agentic AI Framework with Transactional Memory."
 authors = [{name = "Do Huy Hoang", email = "dohuyhoangvn93@gmail.com"}]
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.14"
 keywords = ["ai", "agents", "rust", "memory", "transactional", "safety", "pop", "framework"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
@@ -30,6 +30,8 @@ dependencies = [
     "pydantic>=2.0",
     "pyyaml>=6.0",
     "typing-extensions>=4.0",
+    "rich>=13.0",
+    "questionary>=2.0",
 ]
 
 [project.urls]

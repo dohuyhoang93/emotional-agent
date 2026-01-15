@@ -132,6 +132,8 @@ def combine_rewards(ctx: SystemContext):
 @process(
     inputs=['domain_ctx', 
         'domain_ctx.selected_action',
+        'domain_ctx.env_adapter',  # v3: Read from context
+        'domain_ctx.agent_id',     # v3: Read from context
         'domain_ctx.metrics'
     ],
     outputs=['domain_ctx', 
@@ -141,7 +143,7 @@ def combine_rewards(ctx: SystemContext):
     ],
     side_effects=['env_adapter.step']  # ← KHAI BÁO RÕ RÀNG!
 )
-def execute_action_with_env(ctx: SystemContext, env_adapter=None, agent_id=0):
+def execute_action_with_env(ctx: SystemContext):
     """
     Execute action trong environment.
     
@@ -150,15 +152,20 @@ def execute_action_with_env(ctx: SystemContext, env_adapter=None, agent_id=0):
     NOTE: Theus sẽ KHÔNG rollback được external state!
     Environment state changes là permanent.
     
+    v3: Reads env_adapter and agent_id from context, not kwargs.
+    
     Args:
         ctx: System context
-        env_adapter: Environment Adapter (Injected param)
-        agent_id: Agent ID (Injected param)
     """
-    if env_adapter is None:
-        raise ValueError("Critical: env_adapter not provided to execute_action_with_env")
-
     domain = ctx.domain_ctx
+    
+    # v3: Read from context
+    env_adapter = getattr(domain, 'env_adapter', None)
+    agent_id = getattr(domain, 'agent_id', 0)
+    
+    if env_adapter is None:
+        raise ValueError("Critical: env_adapter not found in domain_ctx. "
+                         "Set it with 'engine.edit(): domain_ctx.env_adapter = adapter'")
     
     # Execute action (SIDE EFFECT!)
     # NOTE: Đây là external call, không thể rollback
@@ -179,13 +186,15 @@ def execute_action_with_env(ctx: SystemContext, env_adapter=None, agent_id=0):
 
 
 @process(
-    inputs=[],
+    inputs=['domain_ctx',
+        'domain_ctx.env_adapter'  # v3: Read from context
+    ],
     outputs=['domain_ctx', 
         'domain_ctx.current_observation'
     ],
     side_effects=['env_adapter.reset']  # ← KHAI BÁO RÕ RÀNG!
 )
-def reset_environment(ctx: SystemContext, env_adapter=None):
+def reset_environment(ctx: SystemContext):
     """
     Reset environment.
     
@@ -193,15 +202,21 @@ def reset_environment(ctx: SystemContext, env_adapter=None):
     
     NOTE: Theus sẽ KHÔNG rollback được external state!
     
+    v3: Reads env_adapter from context, not kwargs.
+    
     Args:
         ctx: System context
-        env_adapter: Environment Adapter
     """
+    domain = ctx.domain_ctx
+    
+    # v3: Read from context
+    env_adapter = getattr(domain, 'env_adapter', None)
+    
     if env_adapter is None:
-        raise ValueError("Critical: env_adapter not provided to reset_environment")
+        raise ValueError("Critical: env_adapter not found in domain_ctx.")
     
     # Reset environment (SIDE EFFECT!)
     initial_obs = env_adapter.reset()
     
     # Update context
-    ctx.domain_ctx.current_observation = initial_obs
+    domain.current_observation = initial_obs

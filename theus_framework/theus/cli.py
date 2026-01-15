@@ -1,78 +1,71 @@
 import argparse
-import os
 import sys
 import yaml
 import ast
-import inspect
 from pathlib import Path
-from .templates import (
-    TEMPLATE_ENV, 
-    TEMPLATE_MAIN, 
-    TEMPLATE_CONTEXT, 
-    TEMPLATE_WORKFLOW, 
-    TEMPLATE_PROCESS_CHAIN,
-    TEMPLATE_PROCESS_STRESS,
-    TEMPLATE_AUDIT_RECIPE
-)
+from rich.console import Console
+from rich.panel import Panel
+from rich.table import Table
+import questionary
+
+from .templates.registry import TemplateRegistry
 from .config import ConfigFactory
 
-def init_project(project_name: str, target_dir: Path):
+console = Console()
+
+def init_project(project_name: str, target_dir: Path, template: str = "standard", interactive: bool = False):
     """
     Scaffolds a new Theus project.
     """
-    print(f"🚀 Initializing Theus Project: {project_name}")
+    console.print(f"[bold green]🚀 Initializing Theus Project: {project_name}[/bold green]")
     
     # 1. Create Directories
     try:
         (target_dir / "src" / "processes").mkdir(parents=True, exist_ok=True)
         (target_dir / "workflows").mkdir(parents=True, exist_ok=True)
-        (target_dir / "specs").mkdir(parents=True, exist_ok=True) # New V2 folder
+        (target_dir / "specs").mkdir(parents=True, exist_ok=True)
     except OSError as e:
-        print(f"❌ Error creating directories: {e}")
+        console.print(f"[bold red]❌ Error creating directories: {e}[/bold red]")
         sys.exit(1)
 
-    # 2. Write Files
-    files_to_create = {
-        ".env": TEMPLATE_ENV,
-        "main.py": TEMPLATE_MAIN,
-        "src/context.py": TEMPLATE_CONTEXT,
-        "src/__init__.py": "",
-        "src/processes/__init__.py": "",
-        "src/processes/chain.py": TEMPLATE_PROCESS_CHAIN,
-        "src/processes/stress.py": TEMPLATE_PROCESS_STRESS,
-        "workflows/workflow.yaml": TEMPLATE_WORKFLOW,
-        "specs/context_schema.yaml": "# Define your Data Contract here\n",
-        "specs/audit_recipe.yaml": TEMPLATE_AUDIT_RECIPE,
-        "specs/workflow.yaml": TEMPLATE_WORKFLOW # Added missing file
-    }
+    # 2. Get Template Files
+    try:
+        files_to_create = TemplateRegistry.get_template(template)
+    except ValueError as e:
+        console.print(f"[bold red]❌ {e}[/bold red]")
+        sys.exit(1)
 
+    # 3. Write Files
     for rel_path, content in files_to_create.items():
         file_path = target_dir / rel_path
         if file_path.exists():
-            print(f"   ⚠️  Skipping existing file: {rel_path}")
+            console.print(f"   [yellow]⚠️  Skipping existing file: {rel_path}[/yellow]")
             continue
+            
+        # Ensure parent dir exists (for template files in subdir)
+        file_path.parent.mkdir(parents=True, exist_ok=True)
             
         with open(file_path, "w", encoding="utf-8") as f:
             f.write(content)
-        print(f"   ✅ Created {rel_path}")
+        console.print(f"   [green]✅ Created {rel_path}[/green]")
 
-    print("\n🎉 Project created successfully!")
-    print("\nNext steps:")
+    console.print(f"\n[bold blue]🎉 Project created successfully using '{template}' template![/bold blue]")
+    console.print("\nNext steps:")
     if project_name != ".":
-        print(f"  cd {project_name}")
-    print("  pip install -r requirements.txt (if you have one)")
-    print("  python main.py")
+        console.print(f"  cd {project_name}")
+    console.print("  pip install -r requirements.txt (if you have one)")
+    console.print("  python main.py")
 
 def gen_spec(target_dir: Path = Path.cwd()):
     """
     Scans src/processes/*.py and generates missing rules in specs/audit_recipe.yaml
     """
-    print("🔍 Scanning processes for Audit Spec generation...")
+    console.print("[cyan]🔍 Scanning processes for Audit Spec generation...[/cyan]")
     processes_dir = target_dir / "src" / "processes"
     recipe_path = target_dir / "specs" / "audit_recipe.yaml"
     
     if not processes_dir.exists():
-        print(f"❌ Processes directory not found: {processes_dir}")
+        console.print(f"[bold red]❌ Processes directory not found: {processes_dir}[/bold red]")
         return
 
     # 1. Parse Python Files
@@ -122,10 +115,10 @@ def gen_spec(target_dir: Path = Path.cwd()):
 
                     process_name = node.name
                     discovered_recipes[process_name] = skeleton
-                    print(f"   found process: {process_name}")
+                    console.print(f"   found process: [bold]{process_name}[/bold]")
 
     if not discovered_recipes:
-        print("⚠️ No processes found.")
+        console.print("[yellow]⚠️ No processes found.[/yellow]")
         return
 
     # 2. Merge with existing YAML
@@ -142,22 +135,22 @@ def gen_spec(target_dir: Path = Path.cwd()):
         if name not in existing_data['process_recipes']:
             existing_data['process_recipes'][name] = skeleton
             changes_made = True
-            print(f"   ➕ Added skeleton for {name}")
+            console.print(f"   [green]➕ Added skeleton for {name}[/green]")
 
     if changes_made:
         with open(recipe_path, 'w', encoding='utf-8') as f:
             yaml.dump(existing_data, f, sort_keys=False)
-        print(f"✅ Updated {recipe_path}")
+        console.print(f"[green]✅ Updated {recipe_path}[/green]")
     else:
-        print("✨ No new processes to add.")
+        console.print("✨ No new processes to add.")
 
 def inspect_process(process_name: str, target_dir: Path = Path.cwd()):
     """
-    Displays the effective audit rules for a process.
+    Displays the effective audit rules for a process using Rich Tables.
     """
     recipe_path = target_dir / "specs" / "audit_recipe.yaml"
     if not recipe_path.exists():
-        print(f"❌ No audit recipe found at {recipe_path}")
+        console.print(f"[bold red]❌ No audit recipe found at {recipe_path}[/bold red]")
         return
 
     try:
@@ -165,36 +158,49 @@ def inspect_process(process_name: str, target_dir: Path = Path.cwd()):
         recipe = recipe_book.definitions.get(process_name)
         
         if not recipe:
-            print(f"❌ Process '{process_name}' not found in Audit Recipe.")
+            console.print(f"[bold red]❌ Process '{process_name}' not found in Audit Recipe.[/bold red]")
             return
             
-        print(f"\\n🔍 Audit Inspector: {process_name}")
-        print("-----------------------------------")
+        console.print(Panel(f"[bold cyan]🔍 Audit Inspector: {process_name}[/bold cyan]"))
         
-        print(f"📥 INPUTS ({len(recipe.input_rules)} Rules):")
+        # Inputs Table
+        table_in = Table(title="📥 INPUTS", show_lines=True)
+        table_in.add_column("Field", style="cyan")
+        table_in.add_column("Condition", style="magenta")
+        table_in.add_column("Value", style="green")
+        table_in.add_column("Level", style="yellow")
+        
         for r in recipe.input_rules:
-            print(f"   - {r.target_field}: {r.condition} {r.value} [Level: {r.level}]")
+            table_in.add_row(r.target_field, r.condition, str(r.value), str(r.level))
+        console.print(table_in)
             
-        print(f"\\n📤 OUTPUTS ({len(recipe.output_rules)} Rules):")
+        # Outputs Table
+        table_out = Table(title="📤 OUTPUTS", show_lines=True)
+        table_out.add_column("Field", style="cyan")
+        table_out.add_column("Condition", style="magenta")
+        table_out.add_column("Value", style="green")
+        table_out.add_column("Level", style="yellow")
+        
         for r in recipe.output_rules:
-            print(f"   - {r.target_field}: {r.condition} {r.value} [Level: {r.level}]")
+            table_out.add_row(r.target_field, r.condition, str(r.value), str(r.level))
+        console.print(table_out)
 
-        print("\\n⚡ SIDE EFFECTS:")
+        console.print("\n[bold]⚡ SIDE EFFECTS:[/bold]")
         if recipe.side_effects:
             for s in recipe.side_effects:
-                print(f"   - {s}")
+                console.print(f"   - {s}")
         else:
-            print("   (None declared)")
+            console.print("   (None declared)")
 
-        print("\\n🚫 EXPECTED ERRORS:")
+        console.print("\n[bold]🚫 EXPECTED ERRORS:[/bold]")
         if recipe.errors:
             for e in recipe.errors:
-                print(f"   - {e}")
+                console.print(f"   - {e}")
         else:
-            print("   (None declared)")
+            console.print("   (None declared)")
             
     except Exception as e:
-        print(f"❌ Error loading recipe: {e}")
+        console.print(f"[bold red]❌ Error loading recipe: {e}[/bold red]")
 
 def main():
     parser = argparse.ArgumentParser(description="Theus SDK CLI - Manage your Process-Oriented projects.")
@@ -202,7 +208,13 @@ def main():
 
     # Command: init
     parser_init = subparsers.add_parser("init", help="Initialize a new Theus project.")
-    parser_init.add_argument("name", help="Name of the project (or '.' for current directory).")
+    parser_init.add_argument("name", nargs="?", help="Name of the project (optional for interactive).")
+    parser_init.add_argument("--template", help="Template to use (minimal, standard, agent).")
+    parser_init.add_argument("--quiet", action="store_true", help="Non-interactive mode.")
+
+    # Command: check (New V3.1)
+    parser_check = subparsers.add_parser("check", help="Run POP Static Analysis (Linter).")
+    parser_check.add_argument("target", nargs="?", default=".", help="Directory to check.")
 
     # Command: audit
     parser_audit = subparsers.add_parser("audit", help="Audit tools.")
@@ -215,7 +227,7 @@ def main():
     parser_inspect = audit_subs.add_parser("inspect", help="Inspect effective rules for a process.")
     parser_inspect.add_argument("process_name", help="Name of the process to inspect.")
 
-    # Command: schema (New V2 Tool)
+    # Command: schema
     parser_schema = subparsers.add_parser("schema", help="Data Schema tools.")
     schema_subs = parser_schema.add_subparsers(dest="schema_command")
     
@@ -231,7 +243,20 @@ def main():
     args = parser.parse_args()
 
     if args.command == "init":
-        project_name = args.name
+        # Interactive Mode Logic
+        if not args.name and not args.quiet:
+            args.name = questionary.text("Project Name:", default="my-theus-app").ask()
+        
+        project_name = args.name or "."
+        
+        if not args.template and not args.quiet:
+            args.template = questionary.select(
+                "Choose a template:",
+                choices=TemplateRegistry.list_templates(),
+                default="standard"
+            ).ask()
+            
+        template = args.template or "standard"
         
         if project_name == ".":
             target_path = Path.cwd()
@@ -239,11 +264,21 @@ def main():
         else:
             target_path = Path.cwd() / project_name
             if target_path.exists() and any(target_path.iterdir()):
-                print(f"❌ Directory '{project_name}' exists and is not empty.")
+                console.print(f"[bold red]❌ Directory '{project_name}' exists and is not empty.[/bold red]")
                 sys.exit(1)
             target_path.mkdir(exist_ok=True)
             
-        init_project(project_name, target_path)
+        init_project(project_name, target_path, template=template)
+    
+    elif args.command == "check":
+        from .linter import run_lint
+        target = Path(args.target)
+        if not target.exists():
+             console.print(f"[bold red]❌ Target path does not exist: {target}[/bold red]")
+             sys.exit(1)
+        success = run_lint(target)
+        if not success:
+            sys.exit(1)
         
     elif args.command == "audit":
         if args.audit_command == "gen-spec":
@@ -254,7 +289,7 @@ def main():
     elif args.command == "schema":
         if args.schema_command == "gen":
             from .schema_gen import generate_schema_from_file
-            print(f"🔍 Scanning context definition: {args.context_file}")
+            console.print(f"[cyan]🔍 Scanning context definition: {args.context_file}[/cyan]")
             try:
                 schema_dict = generate_schema_from_file(args.context_file)
                 output_path = Path("specs/context_schema.yaml")
@@ -263,15 +298,15 @@ def main():
                 with open(output_path, "w", encoding="utf-8") as f:
                     yaml.dump(schema_dict, f, sort_keys=False)
                     
-                print(f"✅ Generated schema at: {output_path}")
-                print(yaml.dump(schema_dict, sort_keys=False))
+                console.print(f"[green]✅ Generated schema at: {output_path}[/green]")
+                console.print(yaml.dump(schema_dict, sort_keys=False))
                 
             except Exception as e:
-                print(f"❌ Failed to generate schema: {e}")
+                console.print(f"[bold red]❌ Failed to generate schema: {e}[/bold red]")
 
         elif args.schema_command == "code":
             from .schema_gen import generate_code_from_schema
-            print(f"🏗️  Generating Context Code from: {args.schema_file}")
+            console.print(f"[cyan]🏗️  Generating Context Code from: {args.schema_file}[/cyan]")
             try:
                 code_content = generate_code_from_schema(args.schema_file)
                 output_path = Path(args.out_file)
@@ -280,10 +315,10 @@ def main():
                 with open(output_path, "w", encoding="utf-8") as f:
                     f.write(code_content)
                     
-                print(f"✅ Generated Python Context at: {output_path}")
+                console.print(f"[green]✅ Generated Python Context at: {output_path}[/green]")
                 
             except Exception as e:
-                print(f"❌ Failed to generate code: {e}")
+                console.print(f"[bold red]❌ Failed to generate code: {e}[/bold red]")
 
     else:
         parser.print_help()
