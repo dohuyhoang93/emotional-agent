@@ -52,27 +52,27 @@ consecutive_correct = [s['consecutive_correct'] for s in synapses]
 consecutive_wrong = [s['consecutive_wrong'] for s in synapses]
 commit_states = [s['commit_state'] for s in synapses]
 
-print(f"Fitness:")
+print("Fitness:")
 print(f"  - Unique values: {sorted(set(fitnesses))}")
 print(f"  - Mean: {np.mean(fitnesses):.4f}")
 print(f"  - Std: {np.std(fitnesses):.4f}")
 print(f"  - Min/Max: {min(fitnesses):.4f} / {max(fitnesses):.4f}")
 
-print(f"\nWeights:")
+print("\nWeights:")
 print(f"  - Mean: {np.mean(weights):.4f}")
 print(f"  - Std: {np.std(weights):.4f}")
 print(f"  - Min/Max: {min(weights):.4f} / {max(weights):.4f}")
 
-print(f"\nConsecutive Correct:")
+print("\nConsecutive Correct:")
 print(f"  - Unique values: {sorted(set(consecutive_correct))[:10]}")  # Top 10
 print(f"  - Mean: {np.mean(consecutive_correct):.1f}")
 print(f"  - Max: {max(consecutive_correct)}")
 
-print(f"\nConsecutive Wrong:")
+print("\nConsecutive Wrong:")
 print(f"  - Unique values: {sorted(set(consecutive_wrong))}")
 print(f"  - Mean: {np.mean(consecutive_wrong):.1f}")
 
-print(f"\nCommit States:")
+print("\nCommit States:")
 commit_counter = Counter(commit_states)
 print(f"  - FLUID (0): {commit_counter[0]}")
 print(f"  - SOLID (1): {commit_counter[1]}")
@@ -85,20 +85,20 @@ print("-" * 60)
 fire_counts = [n['fire_count'] for n in neurons]
 thresholds = [n['threshold'] for n in neurons]
 
-print(f"Fire Counts:")
+print("Fire Counts:")
 print(f"  - Mean: {np.mean(fire_counts):.1f}")
 print(f"  - Std: {np.std(fire_counts):.1f}")
 print(f"  - Min/Max: {min(fire_counts)} / {max(fire_counts)}")
 print(f"  - Neurons with 0 fires: {sum(1 for fc in fire_counts if fc == 0)}")
 print(f"  - Neurons with >15 fires: {sum(1 for fc in fire_counts if fc > 15)}")
 
-print(f"\nThresholds:")
+print("\nThresholds:")
 print(f"  - Mean: {np.mean(thresholds):.4f}")
 print(f"  - Std: {np.std(thresholds):.4f}")
 print(f"  - Min/Max: {min(thresholds):.4f} / {max(thresholds):.4f}")
 
 # Critical Issues
-print(f"\n\n⚠️  CRITICAL ISSUES DETECTED")
+print("\n\n⚠️  CRITICAL ISSUES DETECTED")
 print("=" * 60)
 
 issues = []

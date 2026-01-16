@@ -5,6 +5,12 @@ import os
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from theus import TheusEngine
+from theus.context import BaseGlobalContext, BaseDomainContext, BaseSystemContext
+
+# Aliases for compatibility
+GlobalContext = BaseGlobalContext
+DomainContext = BaseDomainContext
+OrchestratorSystemContext = BaseSystemContext
 
 def main():
     print("--- STARTING POST-PROCESSING ---")

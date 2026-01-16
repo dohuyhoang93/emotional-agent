@@ -1,6 +1,7 @@
 
 import sys
 import os
+import numpy as np
 
 print(f"Python: {sys.version}")
 print(f"CWD: {os.getcwd()}")
@@ -14,7 +15,7 @@ except ImportError as e:
 
 try:
     import theus_core
-    print(f"Theus Core (Rust) Version: Loaded Successfully")
+    print("Theus Core (Rust) Version: Loaded Successfully")
     print(f"Theus Core File: {theus_core.__file__}")
 except ImportError as e:
     print(f"ERROR: Could not import theus_core: {e}")

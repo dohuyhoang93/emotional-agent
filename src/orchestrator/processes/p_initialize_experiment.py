@@ -185,7 +185,7 @@ def initialize_active_experiment(ctx: OrchestratorSystemContext):
              except: pass
 
     if heavy is None:
-        log(ctx, "error", "Failed to access Heavy Zone! Runner persistence will fail.")
+        system_log(ctx, "error", "Failed to access Heavy Zone! Runner persistence will fail.")
         # Fallback to local dict just to avoid crash, but logic will break downstream
         heavy = {}
 

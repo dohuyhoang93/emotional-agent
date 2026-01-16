@@ -18,7 +18,6 @@ from src.processes.snn_composite_theus import process_snn_cycle
 from src.processes.snn_homeostasis_theus import process_homeostasis, process_meta_homeostasis_fixed
 from src.processes.snn_commitment_theus import process_commitment
 from src.processes.snn_advanced_features_theus import process_neural_darwinism, process_assimilate_ancestor
-from src.processes.snn_rl_bridge import compute_intrinsic_reward_snn
 from src.processes.rl_processes import select_action_gated, update_q_learning
 from src.processes.snn_social_quarantine_theus import process_inject_viral_with_quarantine, process_quarantine_validation
 from src.processes.snn_resync_theus import process_periodic_resync
