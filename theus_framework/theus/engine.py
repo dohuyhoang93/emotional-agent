@@ -51,9 +51,14 @@ class TheusEngine:
         self._audit = None
         
         if audit_recipe:
+             # Unwrap Hybrid Config (if present)
+             rust_recipe = audit_recipe
+             if hasattr(audit_recipe, 'rust_recipe'):
+                 rust_recipe = audit_recipe.rust_recipe
+
              try:
                  from theus_core import AuditSystem
-                 self._audit = AuditSystem(audit_recipe)
+                 self._audit = AuditSystem(rust_recipe)
              except ImportError:
                  pass
 
@@ -276,7 +281,9 @@ class TheusEngine:
              # Normalization
              check_key = key
              if key.startswith("data."):
-                 check_key = "domain" + key[4:] # Map data -> domain
+                 # V3 FIX: Properly strip 'data.' prefix (len 5) to get relative path
+                 # e.g. "data.domain" -> "domain"
+                 check_key = key[5:]
              
              allowed = False
              for pattern in valid_patterns:

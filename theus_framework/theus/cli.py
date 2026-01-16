@@ -163,38 +163,52 @@ def inspect_process(process_name: str, target_dir: Path = Path.cwd()):
             
         console.print(Panel(f"[bold cyan]🔍 Audit Inspector: {process_name}[/bold cyan]"))
         
+        def _get_condition_str(rule):
+            # Helper to format condition from dict
+            conds = []
+            for k, v in rule.items():
+                if k in ('field', 'level', 'message', 'min_threshold', 'max_threshold', 'reset_on_success'): continue
+                conds.append(f"{k}={v}")
+            return ", ".join(conds)
+
         # Inputs Table
         table_in = Table(title="📥 INPUTS", show_lines=True)
         table_in.add_column("Field", style="cyan")
         table_in.add_column("Condition", style="magenta")
-        table_in.add_column("Value", style="green")
         table_in.add_column("Level", style="yellow")
         
-        for r in recipe.input_rules:
-            table_in.add_row(r.target_field, r.condition, str(r.value), str(r.level))
+        for r in recipe.get('inputs', []):
+            field = r.get('field', 'Unknown')
+            cond = _get_condition_str(r)
+            level = r.get('level', 'I')
+            table_in.add_row(field, cond, str(level))
         console.print(table_in)
             
         # Outputs Table
         table_out = Table(title="📤 OUTPUTS", show_lines=True)
         table_out.add_column("Field", style="cyan")
         table_out.add_column("Condition", style="magenta")
-        table_out.add_column("Value", style="green")
         table_out.add_column("Level", style="yellow")
         
-        for r in recipe.output_rules:
-            table_out.add_row(r.target_field, r.condition, str(r.value), str(r.level))
+        for r in recipe.get('outputs', []):
+            field = r.get('field', 'Unknown')
+            cond = _get_condition_str(r)
+            level = r.get('level', 'I')
+            table_out.add_row(field, cond, str(level))
         console.print(table_out)
 
         console.print("\n[bold]⚡ SIDE EFFECTS:[/bold]")
-        if recipe.side_effects:
-            for s in recipe.side_effects:
+        side_effects = recipe.get('side_effects', [])
+        if side_effects:
+            for s in side_effects:
                 console.print(f"   - {s}")
         else:
             console.print("   (None declared)")
 
         console.print("\n[bold]🚫 EXPECTED ERRORS:[/bold]")
-        if recipe.errors:
-            for e in recipe.errors:
+        errors = recipe.get('errors', [])
+        if errors:
+            for e in errors:
                 console.print(f"   - {e}")
         else:
             console.print("   (None declared)")
@@ -252,7 +266,10 @@ def main():
         if not args.template and not args.quiet:
             args.template = questionary.select(
                 "Choose a template:",
-                choices=TemplateRegistry.list_templates(),
+                choices=[
+                    questionary.Choice(title=f"{name: <10} - {desc}", value=name)
+                    for name, desc in TemplateRegistry.list_templates_details()
+                ],
                 default="standard"
             ).ask()
             

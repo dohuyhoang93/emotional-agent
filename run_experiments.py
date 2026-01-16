@@ -1,7 +1,11 @@
 import argparse
-import sys
 import os
-sys.path.append(os.getcwd())
+import sys
+
+# V3 Fix: Ensure project root is in path for Threaded Execution imports
+if os.getcwd() not in sys.path:
+    sys.path.append(os.getcwd())
+
 sys.path.append('theus')
 
 from theus.engine import TheusEngine
@@ -126,11 +130,12 @@ def main(argv=None):
             log_error(global_ctx, f"Failed to load Audit Recipe: {e}")
 
     # 2. Initialize Engine
-    # NOTE: strict_mode=False to bypass shadow copying and prevent Memory Leak (conditional init active)
+    # V3 Migration: strict_mode is native to Rust Core (Process Isolation).
+    # Memory Leak issues from V2 are resolved by Arc<T> Zero-Copy.
     engine = TheusEngine(
-        system_ctx, 
-        strict_mode=True,
-        audit_recipe=audit_recipe # Inject Recipe
+        context=system_ctx, 
+        strict_mode=True, # Explicitly Enable Transactional Checks
+        audit_recipe=audit_recipe
     )
     
     # 3. Auto-Discovery

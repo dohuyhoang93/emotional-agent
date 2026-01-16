@@ -171,6 +171,9 @@ class MultiAgentCoordinator:
             env.new_step()
             
             # Each agent takes a step
+            # if step_count % 10 == 0:
+            #     print(f"DEBUG: Heartbeat Step {step_count}/{max_steps}")
+            
             for i, agent in enumerate(self.agents):
                 try:
                     action = agent.step(env_adapter)

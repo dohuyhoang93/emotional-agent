@@ -24,7 +24,9 @@ def run_sleep_cycle_process(ctx: OrchestratorSystemContext):
     
     # Get active experiment runner
     exp_def = domain.experiments[domain.active_experiment_idx]
-    runner = getattr(exp_def, 'runner', None)
+    # V3 MIGRATION: Fetch Runner from Registry
+    from src.orchestrator.runtime_registry import get_runner
+    runner = get_runner(exp_def.name)
     
     if not runner:
         return

@@ -16,7 +16,9 @@ def run_population_dreaming(ctx: OrchestratorSystemContext):
     bus = domain.event_bus
     
     exp_def = domain.experiments[domain.active_experiment_idx]
-    runner = getattr(exp_def, 'runner', None)
+    # V3 MIGRATION: Fetch Runner from Registry
+    from src.orchestrator.runtime_registry import get_runner
+    runner = get_runner(exp_def.name)
     
     if runner:
         log(ctx, "info", "💤 Population is SLEEPING (Dreaming & Consolidation)...")

@@ -49,9 +49,27 @@ class TemplateRegistry:
             base_files["src/processes/learning.py"] = "# Learning processes\n"
             return base_files
             
+        elif template_name == "hybrid":
+             # FSM + Pipeline Hybrid
+             from .data import TEMPLATE_PROCESS_PIPELINE, TEMPLATE_WORKFLOW_HYBRID
+             base_files["src/processes/pipeline.py"] = TEMPLATE_PROCESS_PIPELINE
+             base_files["workflows/workflow.yaml"] = TEMPLATE_WORKFLOW_HYBRID
+             # We reuse context/main from standard for simplicity
+             return base_files
+
         else:
             raise ValueError(f"Unknown template: {template_name}")
 
     @staticmethod
     def list_templates() -> list[str]:
-        return ["minimal", "standard", "agent"]
+        return ["minimal", "standard", "agent", "hybrid"]
+
+    @staticmethod
+    def list_templates_details() -> list[tuple[str, str]]:
+        """Returns list of (name, description) tuples."""
+        return [
+            ("standard", "Standard project with Flux Loop + Audit Demo"),
+            ("hybrid",   "Advanced: Flux FSM + Pure Python Pipelines (High Performance)"),
+            ("agent",    "Agentic Skeleton (Perception-Action-Learning)"),
+            ("minimal",  "Bare-bones structure (experienced users only)"),
+        ]

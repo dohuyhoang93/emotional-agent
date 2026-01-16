@@ -71,6 +71,11 @@ def p_process(ctx: DemoSystemContext):
     
     return "Processed"
 
+@process(inputs=[], outputs=[])
+def save_checkpoint_placeholder(ctx: DemoSystemContext):
+    print("   [save_checkpoint] Saving system state...")
+    return "Saved"
+
 @process(
     inputs=['domain_ctx.status'], 
     outputs=['domain_ctx.status'],
@@ -123,62 +128,28 @@ def p_unsafe_write(ctx: DemoSystemContext):
     return "Malicious"
 """
 
-TEMPLATE_WORKFLOW = """name: "Hybrid Industrial Workflow"
-description: "Demonstrates FSM + Linear Chains"
+TEMPLATE_WORKFLOW = """name: "Theus V3 Flux Workflow"
+description: "Declarative Workflow using Theus Flux Engine (Rust Core)."
 
-# FSM Definition
-states:
-  IDLE:
-    events: 
-      CMD_START: "PROCESSING" # External Start Signal
-      CMD_HACK: "TEST_HACK"   # Security Test
-      CMD_CRASH: "TEST_CRASH" # Resilience Test
-      CMD_ROLLBACK: "TEST_TRANSACTION" # Transaction Test
+# FLUX Definition (Theus V3)
+# Instead of Python FSM states, we manage control flow declaratively.
 
-  PROCESSING:
-    entry: ["p_init", "p_process", "p_finalize"] # Linear Chain
-    events:
-       EVT_CHAIN_DONE: "IDLE" # Auto-return when chain finishes
-       EVT_CHAIN_FAIL: "IDLE" # Fallback on error
-       CMD_RESET: "IDLE"
-
-  TEST_HACK:
-    entry: ["p_unsafe_write"]
-    events:
-       EVT_CHAIN_DONE: "IDLE"
-       EVT_CHAIN_FAIL: "IDLE" # Return even if failed
-
-  TEST_TRANSACTION:
-    entry: ["p_transaction_test"]
-    events:
-       EVT_CHAIN_DONE: "IDLE"
-       EVT_CHAIN_FAIL: "IDLE"
-
-  TEST_CRASH:
-    entry: ["p_crash_test"]
-    events:
-       EVT_CHAIN_DONE: "IDLE"
-       EVT_CHAIN_FAIL: "IDLE"
-
-# --- FLUX EXAMPLES (Advanced Logic) ---
-#   COMPLEX_STATE:
-#     entry:
-#       - flux: run
-#         steps:
-#           - "p_step1"
-#           - flux: if
-#             condition: "ctx.domain_ctx.processed_count > 50"
-#             then:
-#               - "p_step2_high_load"
-#             else:
-#               - "p_step2_normal"
-#           - flux: while
-#             condition: "len(ctx.domain_ctx.items) > 0"
-#             do:
-#               - "p_process_item"
-#     events:
-#       EVT_CHAIN_DONE: "IDLE"
-
+steps:
+  - process: p_init
+    
+  # Example Loop
+  - flux: while
+    condition: "domain.processed_count < 50"
+    do:
+       - process: p_process
+         
+       # Example Conditional
+       - flux: if
+         condition: "domain.processed_count % 20 == 0"
+         then:
+           - process: save_checkpoint_placeholder
+    
+  - process: p_finalize
 """
 
 TEMPLATE_AUDIT_RECIPE = """# ================================================================
@@ -299,14 +270,11 @@ process_recipes:
   #       message: "Cannot proceed while status is LOCKED."
 """
 
-TEMPLATE_MAIN = """# === THEUS V2.1 SHOWCASE DEMO ===
+TEMPLATE_MAIN = """# === THEUS V3.0 FLUX DEMO ===
 import sys
 import logging
-import yaml
-import threading
 import os
 import time
-import queue
 
 # --- ANSI COLORS ---
 class Color:
@@ -322,139 +290,170 @@ logging.basicConfig(level=logging.INFO, format=f'{Color.BLUE}%(message)s{Color.R
 
 from theus import TheusEngine
 from theus.config import ConfigFactory
-from theus.orchestrator import WorkflowManager, SignalBus, ThreadExecutor
 
 # Import Context & Processes
 from src.context import DemoSystemContext
 from src.processes import * 
-
-def print_header():
-    print(f"\\n{Color.BOLD}=== THEUS v2.1 INDUSTRIAL DEMO ==={Color.RESET}")
-    print(f"{Color.YELLOW}Architecture: Microkernel + FSM + ThreadPool{Color.RESET}")
-    print("---------------------------------------")
-
-def print_menu():
-    print(f"\\n{Color.BOLD}COMMANDS:{Color.RESET}")
-    print(f"  {Color.GREEN}start{Color.RESET}  : Run Workflow.")
-    print(f"  {Color.RED}hack{Color.RESET}   : Security Demo.")
-    print(f"  {Color.RED}crash{Color.RESET}  : Resilience Demo.")
-    print(f"  {Color.BLUE}rollback{Color.RESET}: Transaction Demo.")
-    print(f"  {Color.YELLOW}reset{Color.RESET}  : Reset Logic.")
-    print(f"  {Color.BLUE}status{Color.RESET} : Check State.")
-    print(f"  {Color.BOLD}quit{Color.RESET}   : Exit.")
-
-def orchestrator_loop(manager, bus, stop_event):
-    \"\"\"Background thread to process signals so UI doesn't block.\"\"\"
-    while not stop_event.is_set():
-        try:
-            # Blocking get with timeout allows checking stop_event periodically
-            signal = bus.get(block=True, timeout=0.1)
-            manager.process_signal(signal)
-        except queue.Empty:
-            continue
-        except Exception as e:
-            print(f"{Color.RED}Orchestrator Error: {e}{Color.RESET}")
 
 def main():
     basedir = os.path.dirname(os.path.abspath(__file__))
     workflow_path = os.path.join(basedir, "workflows", "workflow.yaml")
     audit_path = os.path.join(basedir, "specs", "audit_recipe.yaml")
 
-    print_header()
+    print(f"\\n{Color.BOLD}=== THEUS V3 FLUX DEMO ==={Color.RESET}")
+    print(f"{Color.YELLOW}Architecture: Rust Flux Engine + Pure POP Processes{Color.RESET}")
+    print("---------------------------------------")
+    
+    # 1. Init Data Context
     sys_ctx = DemoSystemContext()
     
-    print(f"1. Loading Audit Policy...")
+    # 2. Loading Audit Policy
+    print(f"Loading Audit Policy...")
     recipe = ConfigFactory.load_recipe(audit_path)
     
-    # 2. Start (Theus V2)
-    # -------------------
-    # This loop simulates the application runtime.
-    # In production, this might be an Infinite Loop or a Web Scraper Trigger.
-    
-    # Init Engine
-    print(f"2. Initializing TheusEngine...")
+    # 3. Init Engine
+    print(f"Initializing TheusEngine (V3)...")
     engine = TheusEngine(sys_ctx, strict_mode=True, audit_recipe=recipe)
     
-    # Auto-discover and register all @process functions
+    # 4. Register Processes
     processes_path = os.path.join(basedir, "src", "processes")
     engine.scan_and_register(processes_path)
     
-    # Orchestrator
-    scheduler = ThreadExecutor(max_workers=2)
-    bus = SignalBus()
-    manager = WorkflowManager(engine, scheduler, bus)
-    
-    print("3. Loading Workflow FSM...")
-    with open(workflow_path, 'r') as f:
-        wf_def = yaml.safe_load(f)
-    manager.load_workflow(wf_def)
-    
-    # --- Start Background Orchestrator ---
-    stop_event = threading.Event()
-    orchestrator_thread = threading.Thread(
-        target=orchestrator_loop, 
-        args=(manager, bus, stop_event),
-        daemon=True
-    )
-    orchestrator_thread.start()
-
-    print_menu()
-    
-    running = True
-    while running:
-        try:
-            # Input is blocking, but Orchestrator is now in background!
-            cmd = input(f"\\n{Color.BOLD}theus>{Color.RESET} ").strip().lower()
-            
-            if cmd == 'quit':
-                running = False
-            elif cmd == 'start':
-                print(f"{Color.GREEN}▶ Triggering Workflow...{Color.RESET}")
-                bus.emit("CMD_START")
-            elif cmd == 'reset':
-                bus.emit("CMD_RESET")
-            elif cmd == 'hack':
-                 print(f"\\n{Color.YELLOW}[SECURITY DEMO] Attempting Unsafe Write...{Color.RESET}")
-                 bus.emit("CMD_HACK")
-                 # Sleep briefly to allow logs to appear before next prompt
-                 time.sleep(0.2) 
-            elif cmd == 'crash':
-                 print(f"\\n{Color.YELLOW}[RESILIENCE DEMO] Triggering Crash...{Color.RESET}")
-                 bus.emit("CMD_CRASH")
-                 time.sleep(0.2)
-            elif cmd == 'rollback':
-                print(f"\\n{Color.YELLOW}[TRANSACTION DEMO] Testing Rollback...{Color.RESET}")
-                orig_count = sys_ctx.domain_ctx.processed_count
-                print(f"   Original Count: {orig_count}")
-                bus.emit("CMD_ROLLBACK")
-                
-                # Check result after a delay
-                time.sleep(1.5) 
-                
-                final_count = sys_ctx.domain_ctx.processed_count
-                if final_count == 9999:
-                     print(f"{Color.RED}❌ FAILED! Dirty Write Persisted! (Count=9999){Color.RESET}")
-                elif final_count == orig_count:
-                     print(f"{Color.GREEN}✅ PASSED! Value Rolled Back to {final_count}.{Color.RESET}")
-                else:
-                     print(f"{Color.RED}❌ FAILED! Value Mismatch! Expected {orig_count}, Got {final_count}{Color.RESET}")
-
-            elif cmd == 'status':
-                state = manager.fsm.get_current_state()
-                data_status = sys_ctx.domain_ctx.status
-                print(f"   [FSM]: {Color.BLUE}{state}{Color.RESET} | [Data]: {data_status}")
-                
-        except KeyboardInterrupt:
-            running = False
-        except Exception as e:
-            print(f"{Color.RED}Error: {e}{Color.RESET}")
-    
-    # Cleanup
-    stop_event.set()
-    orchestrator_thread.join(timeout=1.0)
-    scheduler.shutdown()
-    print("Goodbye!")
+    # 5. Execute Workflow (Flux)
+    print(f"Executing Workflow: {workflow_path}")
+    try:
+        # V3: Engine runs workflow directly (Blocking)
+        engine.execute_workflow(workflow_path)
+        print(f"\\n{Color.GREEN}✨ Workflow Completed Successfully!{Color.RESET}")
+    except Exception as e:
+        print(f"\\n{Color.RED}❌ Workflow Execution Failed: {e}{Color.RESET}")
+        import traceback
+        traceback.print_exc()
 
 if __name__ == "__main__":
     main()
+"""
+
+# --- HYBRID TEMPLATE (FSM + PIPELINE) ---
+
+TEMPLATE_PROCESS_PIPELINE = """from theus import process
+import time
+import random
+
+# --- PURE PYTHON LOGIC (The Pipeline) ---
+# These functions are NOT processes. They are internal logic steps.
+# This avoids "Nested Workflow" overhead and Deadlocks.
+
+def stage_1_perception(data):
+    print("      [1/3] Perception: Scanning data...")
+    return f"{data}_scanned"
+
+def stage_2_cognition(data):
+    print("      [2/3] Cognition: Thinking hard...")
+    time.sleep(0.2)
+    if random.random() < 0.1:
+        return None, "Confusion"
+    return f"{data}_processed", None
+
+def stage_3_action(ctx, result):
+    print(f"      [3/3] Action: Committing '{result}' to Domain.")
+    ctx.domain_ctx.items.append(result)
+
+# --- THE PROCESS WRAPPER ---
+# The Engine sees only this SINGLE process.
+# But internally, it executes a complex pipeline.
+
+@process(inputs=[], outputs=['domain_ctx.status'])
+def p_init(ctx):
+    print("   [Init] System Initialization...")
+    ctx.domain_ctx.status = "READY"
+    return "Initialized"
+
+@process(inputs=[], outputs=['domain_ctx.status'])
+def p_finalize(ctx):
+    print("   [Finalize] Cleaning up resources...")
+    return "Finalized"
+
+@process(inputs=[], outputs=[])
+def save_checkpoint_placeholder(ctx):
+    print("   [Checkpoint] Saving snapshot...")
+    return "Saved"
+    
+@process(
+    inputs=['domain_ctx.status'],
+    outputs=['domain_ctx.items', 'domain_ctx.status', 'domain_ctx.processed_count'],
+    side_effects=['I/O', 'Compute']
+)
+def p_run_pipeline(ctx):
+    print(f"   [Pipeline] Starting Complex Logic Chain...")
+    
+    # 1. Fetch
+    raw_input = f"Input_{ctx.domain_ctx.processed_count}"
+    
+    # 2. Pipeline Execution (Local Python Calls)
+    percept = stage_1_perception(raw_input)
+    result, err = stage_2_cognition(percept)
+    
+    if err:
+        print(f"   [Pipeline] Error detected: {err}")
+        ctx.domain_ctx.status = "ERROR" # Reuse 'status' as 'state' for demo simplicity
+        return "Pipeline Failed"
+        
+    stage_3_action(ctx, result)
+    
+    # 3. Update State
+    ctx.domain_ctx.processed_count += 1
+    if ctx.domain_ctx.processed_count >= 5:
+        ctx.domain_ctx.status = "DONE"
+        
+    return "Pipeline Success"
+
+@process(inputs=[], outputs=['domain_ctx.status'])
+def p_recover(ctx):
+    print("   [Recovery] Clearing errors and resetting state...")
+    time.sleep(0.5)
+    ctx.domain_ctx.status = "RUNNING"
+    return "Recovered"
+"""
+
+TEMPLATE_WORKFLOW_HYBRID = """name: "Hybrid FSM-Pipeline Demo"
+description: "Showcases Flux FSM (Outer Loop) + Python Pipeline (Inner Logic)"
+
+# CONCEPT:
+# 1. FLUX ENGINE (YAML): Manages High-Level Interactions and State Transitions.
+# 2. PYTHON PIPELINE (Code): Manages Complex localized logic chains.
+
+steps:
+  - process: p_init
+  
+  # --- THE FSM LOOP ---
+  - flux: while
+    condition: "domain.status != 'DONE'"
+    do:
+       # DISPATCHER: Check State and Route
+       
+       # Case 1: READY (Start it up)
+       - flux: if
+         condition: "domain.status == 'READY'"
+         then:
+           - process: save_checkpoint_placeholder # Reuse placeholder as 'init' step
+           # Manually set to RUNNING inside pipeline or init? 
+           # Let's assume p_init set it to READY. Use a lambda? No.
+           # Just call pipeline. Pipeline handles RUNNING logic.
+           
+       # Case 2: READY/RUNNING/PROCESSING (Do Work)
+       - flux: if
+         condition: "domain.status == 'READY' or domain.status == 'PROCESSING'"
+         then:
+           # Execute the Heavy Pipeline
+           # NOTE: This is ONE process call from Engine's perspective.
+           - process: p_run_pipeline
+           
+       # Case 3: ERROR (Handle Failure)
+       - flux: if
+         condition: "domain.status == 'ERROR'"
+         then:
+           - process: p_recover
+
+  - process: p_finalize
 """

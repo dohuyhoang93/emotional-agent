@@ -50,7 +50,10 @@ def execute_social_learning_if_needed(ctx: OrchestratorSystemContext):
     if domain.active_experiment_idx >= len(domain.experiments): return
 
     exp_def = domain.experiments[domain.active_experiment_idx]
-    runner = getattr(exp_def, 'runner', None)
+    # V3 MIGRATION: Fetch Runner from Registry
+    from src.orchestrator.runtime_registry import get_runner
+    runner = get_runner(exp_def.name)
+    
     if not runner: return
     
     log(ctx, "info", f"Executing Social Learning at Episode {runner.current_episode_count}")

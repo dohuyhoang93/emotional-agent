@@ -248,8 +248,10 @@ class RLAgent:
         with self.engine.edit():
             self.domain_ctx.env_adapter = env_adapter
 
-        # Run workflow (v3: args are in context, not kwargs)
-        self.engine.execute_workflow("workflows/agent_main.yaml")
+        # Run workflow (Manual Pipeline for Performance/Safety)
+        # Bypassing self.engine.execute_workflow to avoid nested loop/thread issues
+        from src.processes.agent_step_pipeline import run_agent_step_pipeline
+        run_agent_step_pipeline(self.rl_ctx)
         
         # Record Step (Phase 15 - Legacy)
         # REMOVED: Handled by workflow process 'process_record_snn_step'

@@ -147,28 +147,67 @@ class FSMExperimentRunner:
 )
 def initialize_active_experiment(ctx: OrchestratorSystemContext):
     """
-    Process: Khởi tạo Runner cho thí nghiệm hiện tại.
+    Process: Initialize the active experiment (FSM Runner).
     """
     domain = ctx.domain_ctx
     bus = domain.event_bus
     
     if domain.active_experiment_idx >= len(domain.experiments):
         if bus: bus.emit("ALL_EXPERIMENTS_DONE")
-        return
+        return {}
 
     exp_def = domain.experiments[domain.active_experiment_idx]
     
-    system_log(ctx, "info", f"Initializing Experiment: {exp_def.name}")
-    
-    # Create Runner
-    output_subdir = os.path.join(domain.output_dir, f"{exp_def.name}_checkpoints")
+    if getattr(exp_def, 'runner', None):
+         system_log(ctx, "warning", f"Experiment {exp_def.name} already has a runner? Re-initializing...")
+
+    # Create Output Directory
+    import os
+    output_subdir = os.path.join(domain.output_dir, exp_def.name)
     os.makedirs(output_subdir, exist_ok=True)
+    
+    # Initialize Runner
+    # Check parameters for type (SNN vs Standard)
+    # For now assume FSMExperimentRunner (Defined locally or via wrapper)
+    # from src.experiment_runner import FSMExperimentRunner, ExperimentConfig # REMOVED: Class is local
     
     runner = FSMExperimentRunner(exp_def.parameters, output_subdir)
     
-    # Store runner in ExperimentDefinition
-    exp_def.runner = runner
+    # V3 MIGRATION: Store Runner in Heavy Zone (Zero-Copy)
+    # Access heavy reliably via ctx or ctx.state
+    heavy = getattr(ctx, 'heavy', None)
+    if heavy is None and hasattr(ctx, 'state'):
+        # Try Attribute access first (Rust PyClass)
+        heavy = getattr(ctx.state, 'heavy', None)
+        if heavy is None:
+             # Try Key Access (if Dict-like)
+             try: heavy = ctx.state['heavy']
+             except: pass
+
+    if heavy is None:
+        log(ctx, "error", "Failed to access Heavy Zone! Runner persistence will fail.")
+        # Fallback to local dict just to avoid crash, but logic will break downstream
+        heavy = {}
+
+    # V3 MIGRATION: Use Global Runtime Registry
+    # Bypass Heavy Zone issues by using process-global singleton
+    from src.orchestrator.runtime_registry import register_runner
+    register_runner(exp_def.name, runner)
+    
+    # Store reference in ExpDef (for non-serialized access if any, or just compatibility)
+    # But rely on Registry for retrieval.
+    from dataclasses import replace
+    new_exp_def = replace(exp_def, runner=None) # Clear from domain to verify we don't use it
+    
+    # Update the experiments list
+    new_experiments = list(domain.experiments)
+    new_experiments[domain.active_experiment_idx] = new_exp_def
+    
+    # Update Domain
+    new_domain = replace(domain, experiments=new_experiments)
     
     system_log(ctx, "info", f"Experiment {exp_def.name} initialized ready for FSM loop.")
     if bus: bus.emit("INIT_DONE")
-
+    
+    # Return updates for Domain
+    return {"domain_ctx": new_domain}

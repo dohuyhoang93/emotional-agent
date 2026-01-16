@@ -31,7 +31,9 @@ def log_episode_metrics(ctx: OrchestratorSystemContext):
     
     # Get Runner for Logger access
     exp_def = domain.experiments[domain.active_experiment_idx]
-    runner = getattr(exp_def, 'runner', None)
+    # V3 MIGRATION: Fetch Runner from Registry
+    from src.orchestrator.runtime_registry import get_runner
+    runner = get_runner(exp_def.name)
     
     if not runner:
         return
