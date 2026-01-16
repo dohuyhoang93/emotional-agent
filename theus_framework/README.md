@@ -1,8 +1,8 @@
-# Theus Framework (v2.2.6)
+# Theus Framework (v3.0.0)
 
 [![PyPI version](https://badge.fury.io/py/theus.svg)](https://badge.fury.io/py/theus)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.14+](https://img.shields.io/badge/python-3.14+-blue.svg)](https://www.python.org/downloads/)
 
 > **"A Process-Oriented Operating System for AI Agents, powered by a Rust Microkernel."**
 
@@ -12,12 +12,25 @@
 
 Theus is vast. Use our **[Interactive Documentation Map](https://github.com/dohuyhoang93/theus/blob/main/Documents/00_Start_Here_Map.md)** to find your path:
 *   🚀 **I want to build an Agent now:** [Go to Quickstart](https://github.com/dohuyhoang93/theus/blob/main/Documents/AI_DEVELOPER_GUIDE.md)
-*   🏗️ **I want to check architecture:** [Go to Specs](https://github.com/dohuyhoang93/theus/blob/main/Documents/Architecture/theus_v2_2_architecture.md)
+*   🤖 **I am an AI Assistant:** [Go to AI Tutorials](https://github.com/dohuyhoang93/theus/blob/main/Documents/tutorials/ai/00_QUICK_REFERENCE.md)
+*   🏗️ **I want to check architecture:** [Go to Specs](https://github.com/dohuyhoang93/theus/blob/main/Documents/SPECS/)
 *   🎓 **I want to learn from scratch:** [Go to Tutorials](https://github.com/dohuyhoang93/theus/blob/main/Documents/tutorials/en/Chapter_01.md)
 
 ---
 
-## 🚀 Key Features (v2.2.6)
+## 🚀 What's New in v3.0.0 ("The Iron Mold")
+
+| Feature | v2.2.6 | v3.0.0 |
+|:--------|:-------|:-------|
+| Python | 3.12+ | **3.14+** (Sub-interpreters) |
+| Workflow Engine | Python FSM | **Rust Flux DSL** |
+| Event System | SignalBus | **SignalHub** (Tokio, 2.7M evt/s) |
+| Contract Paths | `domain.*` | `domain_ctx.*` |
+| API | `run_process()` | `execute()` |
+
+---
+
+## 🚀 Key Features
 
 > **"Data is the Asset. Code is the Liability. Theus protects the Asset."**
 
@@ -45,24 +58,6 @@ State is no longer a "bag of variables". It is a 3D space defined by:
     *   **META:** Observability (Logs/Traces).
     *   **HEAVY:** High-Perf Tensors/Blobs (Zero-Copy, Non-Transactional).
 
-```
-                                     [Y] SEMANTIC
-                             (Input, Output, SideEffect, Error)
-                                      ^
-                                      |
-                                      |
-                                      |                +------+------+
-                                      |               /|             /|
-                                      +--------------+ |  CONTEXT   + |----------> [Z] ZONE
-                                     /               | |  OBJECT    | |      (Data, Signal, Meta, Heavy)
-                                    /                | +------------+ |
-                                   /                 |/             |/
-                                  /                  +------+------+
-                                 v
-                            [X] LAYER
-                     (Global, Domain, Local)
-```
-
 ### 2. Zero-Trust Memory
 *   **Default Deny:** Processes cannot access ANY data unless explicitly declared in a `@process` Contract.
 *   **Immutability:** Inputs are physically frozen (`FrozenList`, `FrozenDict`).
@@ -74,14 +69,14 @@ State is no longer a "bag of variables". It is a 3D space defined by:
     *   **S (Safety):** Emergency Stop.
     *   **A (Abort):** Hard Stop Workflow.
     *   **B (Block):** Rollback Transaction.
-    *   **C (Campaign):** Warning.
+    *   **C (Count):** Warning.
 *   **Resilience:** Configurable tolerance thresholds (e.g., "Allow 2 glitches, block on 3rd").
 
 ---
 
 ## 📦 Installation
 
-Theus requires **Python 3.12+** to leverage advanced typing and dataclasses.
+Theus v3.0 requires **Python 3.14+** to leverage Sub-interpreter support.
 
 ```bash
 pip install theus
@@ -118,7 +113,7 @@ class BankSystem(BaseSystemContext):
 from theus.contracts import process
 
 @process(
-    # STRICT CONTRACT
+    # STRICT CONTRACT (v3.0: use domain_ctx.* paths)
     inputs=['domain_ctx.accounts'],
     outputs=['domain_ctx.accounts', 'domain_ctx.total_reserves', 'domain_ctx.sig_fraud_detected'],
     errors=['ValueError']
@@ -145,7 +140,7 @@ def transfer(ctx, from_user: str, to_user: str, amount: int):
 
 ### 3. Run with Safety (The Engine)
 ```python
-from theus.engine import TheusEngine
+from theus import TheusEngine
 
 # Setup Data
 sys_ctx = BankSystem()
@@ -158,13 +153,43 @@ engine = TheusEngine(sys_ctx, strict_mode=True)
 # Instead of registering manually, you can scan an entire directory:
 # engine.scan_and_register("src/processes")
 
-engine.register_process("transfer", transfer)
+engine.register(transfer)  # v3.0 API
 
-# Execute
-result = engine.run_process("transfer", from_user="Alice", to_user="Bob", amount=500)
+# Execute (v3.0 API)
+result = engine.execute(transfer, from_user="Alice", to_user="Bob", amount=500)
 
 print(f"Result: {result}")
 print(f"Alice: {sys_ctx.domain_ctx.accounts['Alice']}") # 500
+```
+
+---
+
+## 🔄 Workflow: Flux DSL
+
+v3.0 introduces **Flux DSL** - a declarative YAML language for workflow control.
+
+```yaml
+# workflows/main.yaml
+steps:
+  - process: "initialize"
+  
+  - flux: if
+    condition: "domain['is_valid'] == True"
+    then:
+      - "process_data"
+      - "save_result"
+    else:
+      - "handle_error"
+  
+  - flux: while
+    condition: "domain['items_left'] > 0"
+    do:
+      - "process_next_item"
+```
+
+Execute with:
+```python
+engine.execute_workflow("workflows/main.yaml")
 ```
 
 ---
@@ -173,15 +198,11 @@ print(f"Alice: {sys_ctx.domain_ctx.accounts['Alice']}") # 500
 
 Theus provides a powerful CLI suite to accelerate development and maintain architectural integrity.
 
-*   **`py -m theus.cli init <project_name>`**: Scaffolds a new project with the standard V2 structure (`src/`, `specs/`, `workflows/`).
-*   **`py -m theus.cli audit gen-spec`**: Scans your `@process` functions and automatically populates `specs/audit_recipe.yaml` with rule skeletons.
-*   **`py -m theus.cli audit inspect <process_name>`**: Inspects the effective audit rules, side effects, and error contracts for a specific process.
-*   **`py -m theus.cli schema gen`**: Infers and generates `specs/context_schema.yaml` from your Python Dataclass definitions.
+*   **`py -m theus.cli init <project_name>`**: Scaffolds a new project with the standard V3 structure.
+*   **`py -m theus.cli audit gen-spec`**: Scans your `@process` functions and automatically populates `specs/audit_recipe.yaml`.
+*   **`py -m theus.cli audit inspect <process_name>`**: Inspects the effective audit rules for a process.
+*   **`py -m theus.cli schema gen`**: Generates `specs/context_schema.yaml` from your Python Dataclass definitions.
 *   **`py -m theus.cli check`**: Runs the **POP Linter** to enforce architectural purity.
-    *   `POP-E01`: No `print()` (Use `ctx.log`).
-    *   `POP-E02`: No `open()` (Use Outbox).
-    *   `POP-E03`: No `requests` (No Side Effects).
-    *   `POP-E04`: No `global` (Strict Context).
 
 ---
 
@@ -198,53 +219,22 @@ For AI workloads (Images, Tensors) > 1MB, use `heavy_` variables.
 *   **Behavior:** Writes bypass the Transaction Log (Zero-Copy).
 *   **Trade-off:** Changes to Heavy data are **NOT** reverted on Rollback.
 
-### 🚀 High Performance Training (New in v2.2)
-For Pure Training Loops (Simulations/Games) where Transaction safety is overkill:
+### 🚀 High Performance Training
+For Pure Training Loops where Transaction safety is overkill:
 ```python
 engine = TheusEngine(sys_ctx, strict_mode=False)
 ```
 *   **Effect:** Completely disables Rust Transaction Layer (Zero Overhead).
 *   **Performance:** Native Python execution speed.
-*   **Trade-off:** No Rollback protection.
-
-
-### The Audit Recipe (`audit.yaml`)
-Decouple your business rules from your code.
-
-```yaml
-process_recipes:
-  transfer:
-    inputs:
-      - field: "amount"
-        max: 10000        # Max transfer limit
-        level: "B"        # Block transaction
-    outputs:
-      - field: "domain.total_reserves"
-        min: 0            # Reserves must never be negative
-        level: "S"        # Safety Interlock (Stop System)
-```
-
-### The Orchestrator (FSM)
-Manage complex flows using `workflow.yaml`:
-```yaml
-states:
-  IDLE:
-    events:
-      CMD_TX: "PROCESSING"
-  PROCESSING:
-    entry: "transfer"
-    events:
-      EVT_SUCCESS: "NOTIFY"
-      EVT_FAIL: "IDLE"
-```
 
 ---
 
 ## 📚 Documentation
 
-*   **[POP Whitepaper v2.0](https://github.com/dohuyhoang93/theus/blob/main/Documents/POP_Whitepaper_v2.0.md):** The formal theoretical basis.
-*   **[Theus Master Class](https://github.com/dohuyhoang93/theus/tree/main/Documents/tutorials/en/):** 15-Chapter Zero-to-Hero Tutorial.
-*   **[AI Developer Guide](https://github.com/dohuyhoang93/theus/blob/main/Documents/AI_DEVELOPER_GUIDE.md):** Prompt context for LLMs.
+*   **[AI Quick Reference](https://github.com/dohuyhoang93/theus/blob/main/Documents/tutorials/ai/00_QUICK_REFERENCE.md):** Cheat sheet for AI assistants.
+*   **[Theus Master Class](https://github.com/dohuyhoang93/theus/tree/main/Documents/tutorials/en/):** 16-Chapter Zero-to-Hero Tutorial.
+*   **[SPECS](https://github.com/dohuyhoang93/theus/tree/main/Documents/SPECS/):** Technical specifications.
+*   **[Release Notes v3.0.0](https://github.com/dohuyhoang93/theus/blob/main/RELEASE_NOTES_v3.0.0.md):** Full changelog.
 
 ---
 
