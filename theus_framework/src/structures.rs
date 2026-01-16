@@ -1,10 +1,11 @@
 use pyo3::prelude::*;
-use pyo3::types::PyDict;
+use pyo3::types::{PyDict, PyList};
 use pyo3::create_exception;
 use im::HashMap;
 use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
 use std::time::{SystemTime, UNIX_EPOCH};
+use crate::signals::SignalHub;
 
 create_exception!(theus.structures, ContextError, pyo3::exceptions::PyException);
 
@@ -83,12 +84,13 @@ impl MetaLogEntry {
 }
 
 /// Theus v3 Immutable State
+
 #[pyclass]
 #[derive(Clone)]
 pub struct State {
     pub data: HashMap<String, Arc<PyObject>>,
     pub heavy: HashMap<String, Arc<PyObject>>, 
-    pub signal: HashMap<String, Arc<PyObject>>,
+    pub signal: Arc<SignalHub>, // Revolution: Channel-based
     pub meta_logs: Arc<Mutex<VecDeque<MetaLogEntry>>>,
     pub meta_capacity: usize,
     pub version: u64,
@@ -99,9 +101,14 @@ impl State {
     #[new]
     #[pyo3(signature = (data=None, heavy=None, signal=None, version=1, meta_capacity=1000))]
     pub fn new(data: Option<PyObject>, heavy: Option<PyObject>, signal: Option<PyObject>, version: u64, meta_capacity: usize, py: Python) -> PyResult<Self> {
+        let _ = signal; // Suppress unused warning
         let mut state_data = HashMap::new();
         let mut state_heavy = HashMap::new();
-        let mut state_signal = HashMap::new();
+        
+        // Signal logic changed: We ignore input dict for signal (legacy) or use it?
+        // v3.2: Signal is transient. We create a fresh Hub unless one is passed (which is opaque).
+        // For now, simpler: Always new Hub. 
+        let state_signal = Arc::new(SignalHub::new());
 
         if let Some(d) = data {
             let d_dict = d.downcast_bound::<PyDict>(py)?;
@@ -119,13 +126,8 @@ impl State {
             }
         }
         
-        if let Some(s) = signal {
-            let s_dict = s.downcast_bound::<PyDict>(py)?;
-            for (k, v) in s_dict {
-                 let key = k.extract::<String>()?;
-                 state_signal.insert(key, Arc::new(v.into_py(py)));
-            }
-        }
+        // Legacy signal dict is ignored in v3.2 to enforce Channel usage.
+        // Or we could publish keys as initial messages? No, keep it clean.
 
         Ok(State {
             data: state_data,
@@ -139,8 +141,17 @@ impl State {
 
     #[pyo3(signature = (data=None, heavy=None, signal=None))]
     fn update(&self, py: Python, data: Option<PyObject>, heavy: Option<PyObject>, signal: Option<PyObject>) -> PyResult<Self> {
-        let mut new_state = self.clone();
-        new_state.version += 1; 
+        // In v3.2, 'signal' argument in update() is strictly used for firing events, 
+        // NOT for changing the Hub structure. The Hub remains the same Arc across versions (Topology).
+        
+        let mut new_state = State {
+            data: self.data.clone(),
+            heavy: self.heavy.clone(),
+            signal: self.signal.clone(), // Share same hub
+            meta_logs: self.meta_logs.clone(),
+            meta_capacity: self.meta_capacity,
+            version: self.version + 1,
+        };
 
         // Auto-log update event (Meta Zone)
         new_state.log_meta("state_update", &format!("State updated to version {}", new_state.version));
@@ -162,10 +173,22 @@ impl State {
         }
         
         if let Some(s) = signal {
-            let s_dict = s.downcast_bound::<PyDict>(py)?;
-             for (k, v) in s_dict {
-                let key = k.extract::<String>()?;
-                new_state.signal.insert(key, Arc::new(v.into_py(py)));
+            // Polymorphic handling: PyList (Batch from Transaction) or PyDict (Single update)
+            if let Ok(s_list) = s.downcast_bound::<PyList>(py) {
+                for item in s_list {
+                     let s_dict = item.downcast::<PyDict>()?;
+                     for (k, v) in s_dict {
+                        let topic = k.extract::<String>()?;
+                        let payload = v.to_string(); 
+                        new_state.signal.publish(format!("{}:{}", topic, payload));
+                     }
+                }
+            } else if let Ok(s_dict) = s.downcast_bound::<PyDict>(py) {
+                 for (k, v) in s_dict {
+                    let topic = k.extract::<String>()?;
+                    let payload = v.to_string(); 
+                    new_state.signal.publish(format!("{}:{}", topic, payload));
+                }
             }
         }
         
@@ -203,7 +226,7 @@ impl State {
         State {
             data: self.data.clone(),
             heavy: self.heavy.clone(),
-            signal: HashMap::new(),
+            signal: Arc::new(SignalHub::new()), // Fix: Arc<SignalHub>
             meta_logs: self.meta_logs.clone(), // Share system logs
             meta_capacity: self.meta_capacity,
             version: self.version,
@@ -237,12 +260,10 @@ impl State {
     
     #[getter]
     fn signal(&self, py: Python) -> PyResult<PyObject> {
-        let dict = PyDict::new_bound(py);
-        for (k, v) in &self.signal {
-            dict.set_item(k, v.as_ref())?;
-        }
-         let frozen = Py::new(py, FrozenDict::new(dict.unbind()))?;
-        Ok(frozen.into_py(py))
+         // v3.2: Return the SignalHub directly
+         // Create a new Python wrapper for the cloned SignalHub struct
+         let hub = Py::new(py, (*self.signal).clone())?;
+         Ok(hub.into_py(py))
     }
 
     #[getter]
