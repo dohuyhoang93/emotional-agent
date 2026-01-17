@@ -36,7 +36,7 @@ def main():
     sys_ctx = DemoSystemContext()
     
     # 2. Loading Audit Policy
-    print(f"Loading Audit Policy...")
+    print("Loading Audit Policy...")
     recipe = ConfigFactory.load_recipe(audit_path)
     
     # 3. Init Engine

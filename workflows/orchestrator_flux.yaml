@@ -1,63 +1,54 @@
 name: Experiment Orchestration (Flux)
-version: 2.0.0
-description: "Declarative Workflow using Theus Flux Engine."
+version: 2.1.0
+description: "Declarative Workflow using Theus Flux Engine (Signal-Based Control)."
 
 steps:
   - process: load_config
   
-  # Experiment Loop
+  # Experiment Loop (Signal-Based)
   - flux: while
-    condition: "domain.active_experiment_idx < len(domain.experiments)"
+    condition: "domain.sig_experiment_active_idx < domain.sig_total_experiments"
     do:
-       # Initialize Runner
+       # Initialize Runner & Signals
        - process: initialize_active_experiment
        
-       # Episode Loop
+       # Episode Loop (Signal-Based)
        - flux: while
-         # condition: "domain.experiments[domain.active_experiment_idx].runner and domain.experiments[domain.active_experiment_idx].runner.current_episode_count < domain.experiments[domain.active_experiment_idx].episodes_per_run"
-         # Accessing deeply nested objects in restricted eval can be verbose/fragile.
-         # Safer to rely on runner state if accessible or Helper Process return value?
-         # Or alias helper?
-         # Let's try the verbose path first.
-         # V3 MIGRATION: Use domain index instead of volatile runner object
-         condition: "domain.active_experiment_episode_idx < domain.experiments[domain.active_experiment_idx].episodes_per_run"
+         # Clean comparison of integers!
+         condition: "domain.sig_episode_counter < domain.sig_max_episodes"
          do:
             - process: run_single_episode
             - process: decay_exploration_all_agents  # FIX: Decay epsilon 1 lần/episode (không phải mỗi step)
             - process: enrich_episode_metrics
             - process: log_episode_metrics
             
-            # Event checks BEFORE advancing episode (so count is correct)
+            # Event checks BEFORE advancing episode
             # Social Learning Trigger (Every 25 eps)
             - flux: if
-              condition: "domain.active_experiment_episode_idx > 0 and domain.active_experiment_episode_idx % 25 == 0"
+              condition: "domain.sig_episode_counter > 0 and domain.sig_episode_counter % 25 == 0"
               then:
                  - process: execute_social_learning_if_needed
             
             # Sleep Cycle (Every 25 eps, same phase as social)
             - flux: if
-              condition: "domain.active_experiment_episode_idx > 0 and domain.active_experiment_episode_idx % 25 == 0"
+              condition: "domain.sig_episode_counter > 0 and domain.sig_episode_counter % 25 == 0"
               then:
                  - process: run_sleep_cycle_process
 
             # Revolution Protocol (Every 100 eps)
             - flux: if
-              # Check cooldown in Condition or Process? 
-              # Process 'perform_revolution_protocol' checks config 'revolution_manager' internally.
-              # So we can just call it periodically.
-              # Check every 100 episodes to align with revolution_window.
-              condition: "domain.active_experiment_episode_idx > 0 and domain.active_experiment_episode_idx % 100 == 0"
+              condition: "domain.sig_episode_counter > 0 and domain.sig_episode_counter % 100 == 0"
               then:
                  - process: perform_revolution_protocol
 
-            # Periodic Checkpoint (Every 50 eps - logic inside process currently)
+            # Periodic Checkpoint (Every 50 eps)
             - process: save_periodic_checkpoint
             
-            # NOW advance episode for next iteration
+            # NOW advance episode for next iteration (Increments sig_episode_counter)
             - process: advance_episode_index
             - process: save_metrics_snapshot
              
-       # Advance to next Experiment
+       # Advance to next Experiment (Increments sig_experiment_active_idx)
        - process: advance_experiment_index
   - process: aggregate_results
   - process: plot_results

@@ -22,9 +22,7 @@ from src.core.context import SystemContext
         'domain_ctx.td_error',
         'domain_ctx.snn_context.domain_ctx.synapses' 
     ],
-    outputs=['domain_ctx', 
-        'domain_ctx.snn_context.domain_ctx.synapses'
-    ],
+    outputs=[],
     side_effects=[]
 )
 def process_stdp_3factor(ctx: SystemContext):

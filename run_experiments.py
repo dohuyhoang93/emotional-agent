@@ -6,8 +6,6 @@ import sys
 if os.getcwd() not in sys.path:
     sys.path.append(os.getcwd())
 
-sys.path.append('theus')
-
 from theus.engine import TheusEngine
 from src.orchestrator.context import (
     OrchestratorGlobalContext, 

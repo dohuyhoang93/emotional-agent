@@ -18,9 +18,7 @@ from src.core.context import SystemContext
         'domain_ctx.snn_context.domain_ctx.neurons',
         'domain_ctx.metrics'
     ],
-    outputs=['domain_ctx', 
-        'domain_ctx.snn_context.domain_ctx.metrics'
-    ],
+    outputs=[],
     side_effects=[]
 )
 def process_decode_dream(ctx: SystemContext):

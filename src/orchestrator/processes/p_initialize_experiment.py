@@ -1,10 +1,12 @@
 from theus.contracts import process
+from theus.structures import StateUpdate
 from src.orchestrator.context import OrchestratorSystemContext
 from src.logger import log as system_log
-from src.utils.logger import ExperimentLogger # Fix: Use centralized logger
+from src.utils.logger import ExperimentLogger 
 from src.coordination.multi_agent_coordinator import MultiAgentCoordinator
 from src.adapters.environment_adapter import EnvironmentAdapter
 from environment import GridWorld as ComplexMazeEnvV2
+from src.orchestrator.context_helpers import get_domain_ctx, get_attr, set_attr
 import os
 import json
 import traceback
@@ -22,51 +24,33 @@ class FSMExperimentRunner:
         
         # 1. Setup Environment
         env_config = config.get('environment_config', {}) if 'environment_config' in config else config.get('environment', {})
-
-        
-        
-        # GridWorld expects the PARENT config (containing 'environment_config' key)
-        # self.config is the dict { ..., 'environment_config': {...} }
         self.env = ComplexMazeEnvV2(self.config) # GridWorld
-
-        
         self.adapter = EnvironmentAdapter(self.env)
         
         # 2. Setup Contexts for Coordinator
         from src.core.context import GlobalContext
         from src.core.snn_context_theus import SNNGlobalContext
         
-        # Retrieve settings
         num_agents = env_config.get('num_agents', 1)
         max_steps = env_config.get('max_steps_per_episode', 100)
         
         # HACK: Create GlobalContext from config
-        # GlobalContext fields: initial_needs, initial_emotions, etc.
-        # config is exp_def.parameters (contains both Agent and SNN params usually mixed)
         global_ctx = GlobalContext()
         for k, v in self.config.items():
             if hasattr(global_ctx, k):
                 setattr(global_ctx, k, v)
         
-        # Override defaults if needed
         global_ctx.max_steps = max_steps
-        # Map some fields if names differ
         if 'needs' in self.config and not global_ctx.initial_needs:
              global_ctx.initial_needs = self.config['needs']
         if 'emotions' in self.config and not global_ctx.initial_emotions:
              global_ctx.initial_emotions = self.config['emotions']
              
-        # Phase 2: Inject centralized model config
         if 'model_config' in self.config:
             global_ctx.model_config = self.config['model_config']
         
         # Create SNN Global Context
         snn_config = self.config.get('snn_config', {})
-        # Filter keys to match SNNGlobalContext fields (to avoid TypeError)
-        # For now, simplistic try-catch or just pass **snn_config if we trust it.
-        # Ideally we use the factory or just defaults.
-        # Only pass known args if possible, or expect exact config matches.
-        # Let's use defaults + manual update to be safe against random keys.
         snn_global_ctx = SNNGlobalContext()
         for k, v in snn_config.items():
             if hasattr(snn_global_ctx, k):
@@ -76,19 +60,16 @@ class FSMExperimentRunner:
         self.coordinator = MultiAgentCoordinator(num_agents, global_ctx, snn_global_ctx)
         
         # 3. Setup Logger
-        # Use name from config or directory name
         exp_name = os.path.basename(output_dir).replace("_checkpoints", "")
         self.logger = ExperimentLogger(exp_name, output_dir)
         
-        # 4. Performance Monitor (Mock for now or reuse legacy if portable)
+        # 4. Performance Monitor
         class PerfMonitor:
             def start_episode(self): pass
             def end_episode(self): pass
         self.perf_monitor = PerfMonitor()
         
-        
-        # 5. Revolution Config Injection (Phase 1 Refactor)
-        # Move params from Experiment Config to SNN Global Context for Process access
+        # 5. Revolution Config Injection
         if 'revolution_threshold' in config:
             snn_global_ctx.revolution_threshold = config['revolution_threshold']
         if 'revolution_window' in config:
@@ -96,10 +77,7 @@ class FSMExperimentRunner:
         if 'revolution_elite_ratio' in config:
             snn_global_ctx.top_elite_percent = config['revolution_elite_ratio']
         
-        # Agents are already initialized in Coordinator __init__
-        # self.coordinator.initialize_agents()
-        
-        # 6. Auto-Resume from Checkpoint (if specified)
+        # 6. Auto-Resume from Checkpoint
         checkpoint_path = self.config.get('checkpoint_path')
         self.start_episode = self.config.get('start_episode', 0)
         
@@ -108,11 +86,9 @@ class FSMExperimentRunner:
                 from src.tools.brain_biopsy_theus import load_all_agents
                 system_log(None, "info", f"🔄 Resuming from checkpoint: {checkpoint_path}")
                 
-                # Load SNN states for all agents
                 snn_contexts = [agent.snn_ctx for agent in self.coordinator.agents]
                 loaded_contexts = load_all_agents(checkpoint_path, snn_contexts)
                 
-                # Update coordinator's agents with loaded states
                 for i, agent in enumerate(self.coordinator.agents):
                     agent.snn_ctx = loaded_contexts[i]
                 
@@ -120,14 +96,12 @@ class FSMExperimentRunner:
             except Exception as e:
                 system_log(None, "error", f"❌ Failed to load checkpoint: {e}")
                 traceback.print_exc()
-                # Continue with fresh initialization
                 self.start_episode = 0
         
         
     def initialize_run(self, run_idx):
         """Initialize a new run (reset episode count)."""
         self.current_episode_count = 0
-        # Additional run setup if needed
         
     def run_episode(self, episode_idx):
         """Run a single episode wrapper."""
@@ -141,73 +115,51 @@ class FSMExperimentRunner:
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'domain.output_dir', 'log_level'],
-    outputs=['domain', 'domain_ctx', 'domain.experiments'],
+    outputs=[], # Empty inputs to allow StateUpdate
     side_effects=['memory.allocate'],
     errors=[]
 )
 def initialize_active_experiment(ctx: OrchestratorSystemContext):
     """
     Process: Initialize the active experiment (FSM Runner).
+    Resets Signal Counters for the Episode Loop.
     """
-    domain = ctx.domain_ctx
-    bus = domain.event_bus
+    domain, is_dict = get_domain_ctx(ctx)
+    bus = get_attr(domain, 'event_bus', None)
     
-    if domain.active_experiment_idx >= len(domain.experiments):
+    active_idx = get_attr(domain, 'active_experiment_idx', 0)
+    experiments = get_attr(domain, 'experiments', [])
+    
+    if active_idx >= len(experiments):
         if bus: bus.emit("ALL_EXPERIMENTS_DONE")
-        return {}
+        return 0, 0, 0
 
-    exp_def = domain.experiments[domain.active_experiment_idx]
+    exp_def = experiments[active_idx]
+    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
     
-    if getattr(exp_def, 'runner', None):
-         system_log(ctx, "warning", f"Experiment {exp_def.name} already has a runner? Re-initializing...")
-
     # Create Output Directory
     import os
-    output_subdir = os.path.join(domain.output_dir, exp_def.name)
+    output_dir = get_attr(domain, 'output_dir', 'results')
+    output_subdir = os.path.join(output_dir, exp_name)
     os.makedirs(output_subdir, exist_ok=True)
     
-    # Initialize Runner
-    # Check parameters for type (SNN vs Standard)
-    # For now assume FSMExperimentRunner (Defined locally or via wrapper)
-    # from src.experiment_runner import FSMExperimentRunner, ExperimentConfig # REMOVED: Class is local
+    parameters = get_attr(exp_def, 'parameters', {}) if isinstance(exp_def, dict) else exp_def.parameters
     
-    runner = FSMExperimentRunner(exp_def.parameters, output_subdir)
+    runner = FSMExperimentRunner(parameters, output_subdir)
     
-    # V3 MIGRATION: Store Runner in Heavy Zone (Zero-Copy)
-    # Access heavy reliably via ctx or ctx.state
-    heavy = getattr(ctx, 'heavy', None)
-    if heavy is None and hasattr(ctx, 'state'):
-        # Try Attribute access first (Rust PyClass)
-        heavy = getattr(ctx.state, 'heavy', None)
-        if heavy is None:
-             # Try Key Access (if Dict-like)
-             try: heavy = ctx.state['heavy']
-             except: pass
-
-    if heavy is None:
-        system_log(ctx, "error", "Failed to access Heavy Zone! Runner persistence will fail.")
-        # Fallback to local dict just to avoid crash, but logic will break downstream
-        heavy = {}
-
     # V3 MIGRATION: Use Global Runtime Registry
-    # Bypass Heavy Zone issues by using process-global singleton
     from src.orchestrator.runtime_registry import register_runner
-    register_runner(exp_def.name, runner)
+    register_runner(exp_name, runner)
     
-    # Store reference in ExpDef (for non-serialized access if any, or just compatibility)
-    # But rely on Registry for retrieval.
-    from dataclasses import replace
-    new_exp_def = replace(exp_def, runner=None) # Clear from domain to verify we don't use it
-    
-    # Update the experiments list
-    new_experiments = list(domain.experiments)
-    new_experiments[domain.active_experiment_idx] = new_exp_def
-    
-    # Update Domain
-    new_domain = replace(domain, experiments=new_experiments)
-    
-    system_log(ctx, "info", f"Experiment {exp_def.name} initialized ready for FSM loop.")
+    system_log(ctx, "info", f"Experiment {exp_name} initialized ready for FSM loop.")
     if bus: bus.emit("INIT_DONE")
     
-    # Return updates for Domain
-    return {"domain_ctx": new_domain}
+    # Reset Signals for Episode Loop
+    episodes_per_run = get_attr(exp_def, 'episodes_per_run', 100) if isinstance(exp_def, dict) else exp_def.episodes_per_run
+    
+    set_attr(domain, 'sig_episode_counter', 0)
+    set_attr(domain, 'sig_max_episodes', episodes_per_run)
+    set_attr(domain, 'active_experiment_episode_idx', 0) # Legacy sync
+    
+    # Return nothing
+    return

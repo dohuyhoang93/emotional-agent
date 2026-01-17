@@ -8,19 +8,33 @@ from src.processes.snn_social_learning_theus import process_social_learning_prot
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'log_level'],
-    outputs=[],  # v2 compatible - no output mapping
+    outputs=[],
     side_effects=[],
     errors=[]
 )
 def advance_experiment_index(ctx: OrchestratorSystemContext):
     """
     Increments the active experiment index.
+    Returns values for implicit mapping (SIGNAL-BASED).
     """
     domain, is_dict = get_domain_ctx(ctx)
-    current_idx = get_attr(domain, 'active_experiment_idx', 0)
-    new_idx = current_idx + 1
-    set_attr(domain, 'active_experiment_idx', new_idx)
-    log(ctx, "info", f"⏩ Advanced to Experiment Index: {new_idx}")
+    
+    current_sig_idx = get_attr(domain, 'sig_experiment_active_idx', 0)
+    current_idx_legacy = get_attr(domain, 'active_experiment_idx', 0)
+    
+    
+    # log(ctx, "info", f"DEBUG: Process Read sig_experiment_active_idx = {current_sig_idx}, sig_total_experiments = {current_total}")
+    
+    new_sig_idx = current_sig_idx + 1
+    new_idx_legacy = current_idx_legacy + 1
+    
+    set_attr(domain, 'sig_experiment_active_idx', new_sig_idx)
+    set_attr(domain, 'active_experiment_idx', new_idx_legacy)
+    
+    log(ctx, "info", f"⏩ Advanced to Experiment Index: {new_sig_idx}")
+    
+    # Return nothing
+    return
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'domain.metrics', 'domain.active_experiment_episode_idx'],
@@ -31,11 +45,7 @@ def advance_experiment_index(ctx: OrchestratorSystemContext):
 def save_metrics_snapshot(ctx: OrchestratorSystemContext):
     """
     DEPRECATED: Saves current metrics to JSON checkpoint.
-    
-    NOTE: This process is now disabled. Metrics are logged via JSONL only (p_log_metrics.py).
-    The legacy metrics.json format is no longer maintained.
     """
-    # Legacy JSON snapshot disabled - use metrics.jsonl instead
     return
 
 @process(
@@ -47,8 +57,6 @@ def save_metrics_snapshot(ctx: OrchestratorSystemContext):
 def execute_social_learning_if_needed(ctx: OrchestratorSystemContext):
     """
     Checks logic and executes social learning.
-    Note: In Flux V2, the 'if needed' check moves to YAML logic. 
-    But simpler to have a safe wrapper that prepares args.
     """
     domain, is_dict = get_domain_ctx(ctx)
     

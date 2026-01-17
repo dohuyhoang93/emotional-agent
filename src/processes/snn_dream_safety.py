@@ -16,10 +16,7 @@ from src.core.context import SystemContext
         'domain_ctx.snn_context.domain_ctx.neurons',
         'domain_ctx.td_error'
     ],
-    outputs=['domain_ctx', 
-        'domain_ctx.td_error',
-        'domain_ctx.snn_context.domain_ctx.metrics'
-    ],
+    outputs=[],
     side_effects=[]
 )
 def process_dream_coherence_reward(ctx: SystemContext):

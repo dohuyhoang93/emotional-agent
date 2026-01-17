@@ -1,0 +1,6 @@
+--- Debug: Testing State Update ---
+Initial Rust State Domain: OrchestratorDomainContext(raw_config={}, output_dir='results', experiments=[], active_experiment_idx=0, active_experiment_episode_idx=0, sig_experiment_active_idx=0, sig_total_experiments=0, sig_episode_counter=0, sig_max_episodes=0, metrics={}, metrics_history=[], analysis_summary={}, final_report='', effective_log_level='info', event_bus=None)
+
+Applying CAS Update (Implicit Mapping Simulation)...
+Updated Rust State Domain signals: total=1
+Γ£à SUCCESS: State Updated Correctly.

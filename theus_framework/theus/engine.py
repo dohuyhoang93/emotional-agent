@@ -250,7 +250,9 @@ class TheusEngine:
         if hasattr(self._core, "state"):
              try:
                  start_version = self.state.version
+                 print(f"DEBUG: Captured start_version: {start_version} for {func.__name__}")
              except:
+                 print("DEBUG: Failed to capture version")
                  pass
 
         # Execute with Audit Hook
@@ -316,8 +318,12 @@ class TheusEngine:
             
             if start_version is not None:
                  final_heavy = new_heavy if new_heavy else None
-                 self._core.compare_and_swap(start_version, updates_by_root, final_heavy, None)
-            
+                 print(f"DEBUG: Attempting CAS for {func.__name__} version {start_version} updates: {updates_by_root.keys()}")
+                 res = self._core.compare_and_swap(start_version, updates_by_root, final_heavy, None)
+                 print(f"DEBUG: CAS Result for {func.__name__}: {res}")
+            else:
+                 print(f"DEBUG: CAS Skipped for {func.__name__} (start_version is None)")
+
             return result
         
         return result

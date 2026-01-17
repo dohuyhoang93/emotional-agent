@@ -52,11 +52,14 @@ class OrchestratorDomainContext(BaseDomainContext):
     active_experiment_idx: int = 0
     active_experiment_episode_idx: int = 0  # Explicit POP State for Episode Count
     
+    # --- Control Signals (Tokio Signal Hub Bridge) ---
+    sig_experiment_active_idx: int = 0
+    sig_total_experiments: int = 0
+    sig_episode_counter: int = 0
+    sig_max_episodes: int = 0
+    
     # Run Metrics (Exposed to Dashboard)
     metrics: Dict[str, Any] = field(default_factory=dict)
-    
-    # Persistent Metrics History (POP Architecture)
-    metrics_history: List[Dict[str, Any]] = field(default_factory=list)
     
     # Persistent Metrics History (POP Architecture)
     metrics_history: List[Dict[str, Any]] = field(default_factory=list)

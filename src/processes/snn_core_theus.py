@@ -17,7 +17,7 @@ from src.core.snn_context_theus import (
 
 @process(
     inputs=['domain_ctx', 'domain_ctx.snn_context'],
-    outputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=[],
     side_effects=[]
 )
 def process_integrate(ctx: SystemContext):
@@ -134,7 +134,7 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
         'domain_ctx.snn_context',
         'domain_ctx.snn_context.domain_ctx.metrics'
     ],
-    outputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=[],
     side_effects=[]
 )
 def process_fire(ctx: SystemContext):
@@ -219,7 +219,7 @@ def process_fire(ctx: SystemContext):
         'domain_ctx.snn_context',
         'domain_ctx.snn_context.domain_ctx.metrics'
     ],
-    outputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=[],
     side_effects=[]
 )
 def process_fire(ctx: SystemContext):  # noqa: F811
@@ -330,7 +330,7 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
     
 @process(
     inputs=['domain_ctx', 'domain_ctx.snn_context'],
-    outputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=[],
     side_effects=[]
 )
 def process_tick(ctx: SystemContext):

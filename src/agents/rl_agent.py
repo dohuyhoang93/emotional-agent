@@ -177,6 +177,7 @@ class RLAgent:
         4. (Optional) Run Post-Cycle logic (Darwinism, etc.) - maybe skipped for stability.
         """
         # Execute Dream Workflow YAML
+        # print(f"DEBUG: Agent {self.agent_id} dreaming step {time_step}")
         self.engine.execute_workflow("workflows/agent_dream.yaml")
     
     # _register_all_processes removed (Refactoring Phase 1.3)

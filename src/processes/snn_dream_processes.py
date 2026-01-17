@@ -18,10 +18,7 @@ from src.core.context import SystemContext
         'domain_ctx.snn_context.domain_ctx.current_time',
         'domain_ctx.snn_context.global_ctx.dream_noise_level'
     ],
-    outputs=['domain_ctx', 
-        'domain_ctx.snn_context.domain_ctx.neurons', # Potentials updated
-        'domain_ctx.snn_context.domain_ctx.metrics'
-    ],
+    outputs=[],
     side_effects=[]
 )
 def process_inject_dream_stimulus(ctx: SystemContext):
@@ -72,10 +69,7 @@ def _inject_impl(ctx: SystemContext):
         'domain_ctx.snn_context.domain_ctx.metrics',
         'domain_ctx.intrinsic_reward'
     ],
-    outputs=['domain_ctx', 
-        'domain_ctx.intrinsic_reward',
-        'domain_ctx.snn_context.domain_ctx.metrics'
-    ],
+    outputs=[],
     side_effects=[]
 )
 def apply_dream_reward(ctx: SystemContext):

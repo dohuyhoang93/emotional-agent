@@ -28,12 +28,7 @@ from typing import List
         'domain_ctx.snn_context.global_ctx.dampening_factor',
         'domain_ctx.snn_context.global_ctx.recovery_rate'
     ],
-    outputs=['domain_ctx', 
-        'domain_ctx.snn_context.domain_ctx.neurons',
-        'domain_ctx.snn_context.domain_ctx.emotion_saturation_level',
-        'domain_ctx.snn_context.domain_ctx.dampening_active',
-        'domain_ctx.snn_context.domain_ctx.metrics'
-    ],
+    outputs=[],
     side_effects=[]
 )
 def process_hysteria_dampener(ctx: SystemContext):
@@ -133,10 +128,7 @@ def _hysteria_impl(ctx: SystemContext):
         'domain_ctx.snn_context.global_ctx.inhibition_strength',
         'domain_ctx.snn_context.global_ctx.wta_k'
     ],
-    outputs=['domain_ctx', 
-        'domain_ctx.snn_context.domain_ctx.neurons',
-        'domain_ctx.snn_context.domain_ctx.metrics'
-    ],
+    outputs=[],
     side_effects=[]
 )
 def process_lateral_inhibition(ctx: SystemContext):
@@ -302,11 +294,7 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
         'domain_ctx.snn_context.domain_ctx.metrics',
         'domain_ctx.snn_context.global_ctx'
     ],
-    outputs=['domain_ctx', 
-        'domain_ctx.snn_context.domain_ctx.synapses',
-        'domain_ctx.snn_context.domain_ctx.neurons',
-        'domain_ctx.snn_context.domain_ctx.metrics'
-    ],
+    outputs=[],
     side_effects=[]
 )
 def process_neural_darwinism(
@@ -503,12 +491,7 @@ def process_neural_darwinism(
         'global_ctx.top_elite_percent',
         'global_ctx.current_episode'  # For cooldown check
     ],
-    outputs=['domain_ctx', 
-        'domain_ctx.ancestor_weights',
-        'domain_ctx.revolution_triggered',
-        'domain_ctx.last_revolution_episode',
-        'domain_ctx.metrics'
-    ],
+    outputs=[],
     side_effects=[]
 )
 def process_revolution_protocol(
@@ -677,10 +660,7 @@ def _revolution_impl(
         'domain_ctx.snn_context.global_ctx.assimilation_rate', # New param
         'domain_ctx.snn_context.global_ctx.diversity_noise'    # New param
     ],
-    outputs=['domain_ctx', 
-        'domain_ctx.snn_context.domain_ctx.synapses',
-        'domain_ctx.snn_context.domain_ctx.metrics'
-    ],
+    outputs=[],
     side_effects=[]
 )
 def process_assimilate_ancestor(ctx: SystemContext):
