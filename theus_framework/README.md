@@ -1,10 +1,10 @@
-# Theus Framework (v3.0.0)
+# Theus Framework
 
 [![PyPI version](https://badge.fury.io/py/theus.svg)](https://badge.fury.io/py/theus)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.14+](https://img.shields.io/badge/python-3.14+-blue.svg)](https://www.python.org/downloads/)
 
-> **"A Process-Oriented Operating System for AI Agents, powered by a Rust Microkernel."**
+> *"Safe architecture for AI-assisted development. Powered by Rust."*
 
 ---
 
@@ -18,59 +18,29 @@ Theus is vast. Use our **[Interactive Documentation Map](https://github.com/dohu
 
 ---
 
-## 🚀 What's New in v3.0.0 ("The Iron Mold")
+## � Why Theus?
 
-| Feature | v2.2.6 | v3.0.0 |
-|:--------|:-------|:-------|
-| Python | 3.12+ | **3.14+** (Sub-interpreters) |
-| Workflow Engine | Python FSM | **Rust Flux DSL** |
-| Event System | SignalBus | **SignalHub** (Tokio, 2.7M evt/s) |
-| Contract Paths | `domain.*` | `domain_ctx.*` |
-| API | `run_process()` | `execute()` |
+> **"Build with confidence. Your AI assistant writes the code—Theus makes sure it's safe."**
 
----
+Whether you're **vibe coding** with an AI assistant, building a complex agent, or crafting production software that needs to last for years—Theus has your back.
 
-## 🚀 Key Features
+### For Vibe Coders & AI-Assisted Development
+You focus on *what* you want to build. Let your AI write the logic. Theus automatically ensures:
+- Every function declares exactly what data it reads and writes
+- No hidden side effects or surprise mutations
+- If something goes wrong, it rolls back cleanly
 
-> **"Data is the Asset. Code is the Liability. Theus protects the Asset."**
+### For Teams Who Care About Maintainability
+Come back to your code in 2 years. You'll thank yourself:
+- **Explicit Contracts:** Every `@process` is self-documenting
+- **Transparent State:** Know exactly where your data lives and who can touch it
+- **Built-in Audit:** Validate business rules at the boundary, not scattered in code
 
-Theus is a next-generation architectural framework that treats your application not as a collection of objects, but as a **deterministic workflow of processes**. It introduces the **Process-Oriented Programming (POP)** paradigm to solve the chaos of state management in complex systems like AI Agents, Core Banking, and Industrial Automation.
-
----
-
-## 🌪️ The Problem
-In modern software (OOP, EDA, Microservices), the biggest source of bugs is **State Management**:
-*   **Implicit Mutations:** Who changed `user.balance`? Was it the PaymentService or the RefundHandler?
-*   **Race Conditions:** Transient events corrupting persistent data.
-*   **Zombie State:** Old references pointing to stale data.
-*   **Audit Gaps:** We log *what* happened, but we can't mathematically prove *why* it was allowed.
-
-## 🛡️ The Theus Solution
-Theus acts as a micro-kernel for your logic, enforcing strict architectural invariants at runtime:
-
-### 1. The 3-Axis Context Model
-State is no longer a "bag of variables". It is a 3D space defined by:
-*   **Layer:** `Global` (Config), `Domain` (Session), `Local` (Process).
-*   **Semantic:** `Input` (Read-only), `Output` (Write-only), `SideEffect` (env), `Error`.
-*   **Zone:**
-    *   **DATA:** Persistent Assets (Replayable).
-    *   **SIGNAL:** Transient Events (Reset on Read).
-    *   **META:** Observability (Logs/Traces).
-    *   **HEAVY:** High-Perf Tensors/Blobs (Zero-Copy, Non-Transactional).
-
-### 2. Zero-Trust Memory
-*   **Default Deny:** Processes cannot access ANY data unless explicitly declared in a `@process` Contract.
-*   **Immutability:** Inputs are physically frozen (`FrozenList`, `FrozenDict`).
-*   **Isolation:** Signals cannot be used as Inputs for Business Logic (Architectural Boundary enforcement).
-
-### 3. Industrial-Grade Audit
-*   **Active Defense:** Rules (`min`, `max`, `regex`) are enforced at Input/Output Gates.
-*   **Severity Levels:**
-    *   **S (Safety):** Emergency Stop.
-    *   **A (Abort):** Hard Stop Workflow.
-    *   **B (Block):** Rollback Transaction.
-    *   **C (Count):** Warning.
-*   **Resilience:** Configurable tolerance thresholds (e.g., "Allow 2 glitches, block on 3rd").
+### For Safety-Critical Applications
+When bugs aren't just annoying—they're costly:
+- **Transaction Safety:** Automatic rollback on failure
+- **Zero-Trust Memory:** Processes can't access data they didn't declare
+- **Industrial Audit:** Block, warn, or stop based on configurable rules
 
 ---
 
@@ -84,83 +54,53 @@ pip install theus
 
 ---
 
-## ⚡ Quick Start: Building a Bank
+## ⚡ Quick Start
 
-This example demonstrates Contracts, Zoning, and Transaction safety.
+### Option 1: Use a Template (Recommended)
 
-### 1. Define the Context (The Asset)
-```python
-from dataclasses import dataclass, field
-from theus.context import BaseSystemContext, BaseDomainContext, BaseGlobalContext
-
-@dataclass
-class BankDomain(BaseDomainContext):
-    # DATA ZONE: Persistent Assets
-    accounts: dict = field(default_factory=dict) # {user_id: balance}
-    total_reserves: int = 1_000_000
-    
-    # SIGNAL ZONE: Control Flow
-    sig_fraud_detected: bool = False
-
-@dataclass
-class BankSystem(BaseSystemContext):
-    domain_ctx: BankDomain = field(default_factory=BankDomain)
-    global_ctx: BaseGlobalContext = field(default_factory=BaseGlobalContext)
+```bash
+# Create a new project with the E-Commerce demo (full-featured)
+py -m theus.cli init my_app --template ecommerce
+cd my_app
+python main.py
 ```
 
-### 2. Define the Process (The Logic)
-```python
-from theus.contracts import process
+This creates a complete runnable demo with: Orders, Payments, Heavy Zone, Audit Rules, and Workflow.
 
+### Option 2: Manual Setup
+
+```python
+from theus import TheusEngine, process
+
+# 1. Define a Process with Contract
 @process(
-    # STRICT CONTRACT (v3.0: use domain_ctx.* paths)
-    inputs=['domain_ctx.accounts'],
-    outputs=['domain_ctx.accounts', 'domain_ctx.total_reserves', 'domain_ctx.sig_fraud_detected'],
+    inputs=['domain.accounts'],
+    outputs=['domain.accounts'],
     errors=['ValueError']
 )
 def transfer(ctx, from_user: str, to_user: str, amount: int):
-    # 1. Input Validation
     if amount <= 0:
         raise ValueError("Amount must be positive")
     
-    # 2. Business Logic (Operating on Shadow Copies)
-    sender_bal = ctx.domain_ctx.accounts.get(from_user, 0)
+    accounts = ctx.domain.accounts
+    if accounts.get(from_user, 0) < amount:
+        raise ValueError("Insufficient funds")
     
-    if sender_bal < amount:
-        # Trigger Signal
-        ctx.domain_ctx.sig_fraud_detected = True
-        return "Failed: Insufficient Funds"
+    accounts[from_user] -= amount
+    accounts[to_user] = accounts.get(to_user, 0) + amount
+    return accounts
 
-    # 3. Mutation (Optimistic Write)
-    ctx.domain_ctx.accounts[from_user] -= amount
-    ctx.domain_ctx.accounts[to_user] = ctx.domain_ctx.accounts.get(to_user, 0) + amount
-    
-    return "Success"
-```
+# 2. Initialize Engine
+from src.context import DemoSystemContext
+engine = TheusEngine(DemoSystemContext(), strict_mode=True)
+engine.register(transfer)
 
-### 3. Run with Safety (The Engine)
-```python
-from theus import TheusEngine
-
-# Setup Data
-sys_ctx = BankSystem()
-sys_ctx.domain_ctx.accounts = {"Alice": 1000, "Bob": 0}
-
-# Initialize Engine
-engine = TheusEngine(sys_ctx, strict_mode=True)
-
-# 🚀 PRO TIP: Auto-Discovery
-# Instead of registering manually, you can scan an entire directory:
-# engine.scan_and_register("src/processes")
-
-engine.register(transfer)  # v3.0 API
-
-# Execute (v3.0 API)
+# 3. Execute with Transaction Safety
 result = engine.execute(transfer, from_user="Alice", to_user="Bob", amount=500)
-
-print(f"Result: {result}")
-print(f"Alice: {sys_ctx.domain_ctx.accounts['Alice']}") # 500
 ```
+
+> 💡 **Available Templates:** `standard`, `ecommerce`, `hybrid`, `agent`, `minimal`
+> Run `py -m theus.cli init --help` to see all options.
 
 ---
 
@@ -231,10 +171,7 @@ engine = TheusEngine(sys_ctx, strict_mode=False)
 
 ## 📚 Documentation
 
-*   **[AI Quick Reference](https://github.com/dohuyhoang93/theus/blob/main/Documents/tutorials/ai/00_QUICK_REFERENCE.md):** Cheat sheet for AI assistants.
-*   **[Theus Master Class](https://github.com/dohuyhoang93/theus/tree/main/Documents/tutorials/en/):** 16-Chapter Zero-to-Hero Tutorial.
-*   **[SPECS](https://github.com/dohuyhoang93/theus/tree/main/Documents/SPECS/):** Technical specifications.
-*   **[Release Notes v3.0.0](https://github.com/dohuyhoang93/theus/blob/main/RELEASE_NOTES_v3.0.0.md):** Full changelog.
+*   **[POP Manifesto](https://github.com/dohuyhoang93/theus/blob/main/Documents/POP_Manifesto.md):** The philosophy behind Process-Oriented Programming.
 
 ---
 
