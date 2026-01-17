@@ -13,7 +13,7 @@
 Theus is vast. Use our **[Interactive Documentation Map](https://github.com/dohuyhoang93/theus/blob/main/Documents/00_Start_Here_Map.md)** to find your path:
 *   🚀 **I want to build an Agent now:** [Go to Quickstart](https://github.com/dohuyhoang93/theus/blob/main/Documents/AI_DEVELOPER_GUIDE.md)
 *   🤖 **I am an AI Assistant:** [Go to AI Tutorials](https://github.com/dohuyhoang93/theus/blob/main/Documents/tutorials/ai/00_QUICK_REFERENCE.md)
-*   🏗️ **I want to check architecture:** [Go to Specs](https://github.com/dohuyhoang93/theus/blob/main/Documents/SPECS/)
+*   🏗️ **I want to check architecture:** [Go to Specs](https://github.com/dohuyhoang93/theus/blob/main/Documents/Architecture/theus_v3_0_1_architecture.md)
 *   🎓 **I want to learn from scratch:** [Go to Tutorials](https://github.com/dohuyhoang93/theus/blob/main/Documents/tutorials/en/Chapter_01.md)
 
 ---
@@ -165,13 +165,14 @@ For AI workloads (Images, Tensors) > 1MB, use `heavy_` variables.
 *   **Behavior:** Writes bypass the Transaction Log (Zero-Copy).
 *   **Trade-off:** Changes to Heavy data are **NOT** reverted on Rollback.
 
-### 🚀 High Performance Training
-For Pure Training Loops where Transaction safety is overkill:
-```python
-engine = TheusEngine(sys_ctx, strict_mode=False)
-```
-*   **Effect:** Completely disables Rust Transaction Layer (Zero Overhead).
-*   **Performance:** Native Python execution speed.
+
+### Research & Debugging Mode
+For rapid experimentation where you need to bypass architectural constraints:
+
+`engine = TheusEngine(sys_ctx, strict_mode=False)`
+
+Effect: Disables strict architectural guards (ContextGuard), allowing access to private attributes (`_hidden`) and restricted zones.
+> Note: Transaction safety (CAS) is still enforced to ensure consistency.
 
 ---
 
