@@ -52,10 +52,10 @@ inputs=['domain.user.name']
 
 | Access Pattern | Contract Path |
 |:---------------|:--------------|
-| `ctx.domain_ctx.items` | `'domain_ctx.items'` |
-| `ctx.domain_ctx.user.name` | `'domain_ctx.user.name'` |
-| `ctx.global_ctx.max_limit` | `'global_ctx.max_limit'` |
-| `ctx.domain_ctx.sig_alert` | `'domain_ctx.sig_alert'` |
+| `ctx.domain.items` | `'domain.items'` |
+| `ctx.domain.user.name` | `'domain.user.name'` |
+| `ctx.global_.max_limit` | `'global.max_limit'` |
+| `ctx.domain.sig_alert` | `'domain.sig_alert'` |
 
 ### Parent Path Inheritance
 
@@ -63,7 +63,7 @@ Declaring a parent path grants access to all children:
 
 ```python
 # Grants access to user.name, user.email, user.age, etc.
-inputs=['domain_ctx.user']
+inputs=['domain.user']
 ```
 
 ---
@@ -94,14 +94,14 @@ from theus.contracts import process, SemanticType
 
 @process(
     inputs=[
-        'domain_ctx.cart_items',
-        'domain_ctx.user_id',
-        'global_ctx.tax_rate'
+        'domain.cart_items',
+        'domain.user_id',
+        'global.tax_rate'
     ],
     outputs=[
-        'domain_ctx.cart_items',
-        'domain_ctx.total_price',
-        'domain_ctx.sig_checkout_ready'
+        'domain.cart_items',
+        'domain.total_price',
+        'domain.sig_checkout_ready'
     ],
     errors=['ValueError']
 )
@@ -119,9 +119,9 @@ def calculate_cart_total(ctx):
         - total_price: Calculated sum with tax
         - sig_checkout_ready: Signal when total > 0
     """
-    # 1. Read inputs (immutable access)
-    items = ctx.domain_ctx.cart_items
-    tax_rate = ctx.global_ctx.tax_rate
+    # 1. Read inputs (immutable)
+    items = ctx.domain.cart_items
+    tax_rate = ctx.global_.tax_rate
     
     # 2. Validation
     if not items:
@@ -132,11 +132,11 @@ def calculate_cart_total(ctx):
     total = subtotal * (1 + tax_rate)
     
     # 4. Write outputs
-    ctx.domain_ctx.total_price = round(total, 2)
+    ctx.domain.total_price = round(total, 2)
     
     # 5. Signal for workflow
     if total > 0:
-        ctx.domain_ctx.sig_checkout_ready = True
+        ctx.domain.sig_checkout_ready = True
     
     return {"subtotal": subtotal, "total": total}
 ```
@@ -150,18 +150,18 @@ import asyncio
 from theus.contracts import process
 
 @process(
-    inputs=['domain_ctx.query'],
-    outputs=['domain_ctx.result']
+    inputs=['domain.query'],
+    outputs=['domain.result']
 )
 async def fetch_data(ctx):
     """Async process for I/O operations."""
-    query = ctx.domain_ctx.query
+    query = ctx.domain.query
     
     # Async I/O
     await asyncio.sleep(0.1)  # Simulated API call
     result = {"data": f"Result for {query}"}
     
-    ctx.domain_ctx.result = result
+    ctx.domain.result = result
     return result
 ```
 
@@ -180,22 +180,22 @@ async def fetch_data(ctx):
 ### Example Violations
 
 ```python
-@process(inputs=['domain_ctx.items'])  # No outputs declared!
+@process(inputs=['domain.items'])  # No outputs declared!
 def broken_process(ctx):
-    ctx.domain_ctx.items.append("new")  # ❌ ContractViolationError
-    ctx.domain_ctx.counter += 1          # ❌ PermissionError: Illegal Write
+    ctx.domain.items.append("new")  # ❌ ContractViolationError
+    ctx.domain.counter += 1          # ❌ PermissionError: Illegal Write
 ```
 
 ### Fix
 
 ```python
 @process(
-    inputs=['domain_ctx.items'],
-    outputs=['domain_ctx.items', 'domain_ctx.counter']  # ✅ Declared
+    inputs=['domain.items'],
+    outputs=['domain.items', 'domain.counter']  # ✅ Declared
 )
 def fixed_process(ctx):
-    ctx.domain_ctx.items.append("new")  # ✅ OK
-    ctx.domain_ctx.counter += 1          # ✅ OK
+    ctx.domain.items.append("new")  # ✅ OK
+    ctx.domain.counter += 1          # ✅ OK
 ```
 
 ---
@@ -204,9 +204,9 @@ def fixed_process(ctx):
 
 ```python
 # ❌ WRONG - Signals should NOT be inputs
-@process(inputs=['domain_ctx.sig_start'])
+@process(inputs=['domain.sig_start'])
 def bad_process(ctx):
-    if ctx.domain_ctx.sig_start:
+    if ctx.domain.sig_start:
         ...
 
 # ✅ CORRECT - Handle signals in Flux DSL workflow

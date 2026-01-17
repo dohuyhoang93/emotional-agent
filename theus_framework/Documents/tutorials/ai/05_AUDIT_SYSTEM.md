@@ -279,7 +279,7 @@ process_recipes:
         regex: "^[A-Z]{2}[0-9]{20}$"  # IBAN format
         level: "B"
     outputs:
-      - field: "domain_ctx.sender_balance"
+      - field: "domain.sender_balance"
         min: 0
         level: "S"  # Safety: prevent negative balance
     threshold_max: 1  # No retries for wire transfers

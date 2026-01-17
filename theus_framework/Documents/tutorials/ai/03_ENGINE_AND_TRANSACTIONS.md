@@ -92,15 +92,16 @@ This recursively imports all `.py` files and registers any function with `_pop_c
 
 ```python
 # By function reference
-result = engine.execute(my_process, x=10, y=20)
+import asyncio
+result = await engine.execute(my_process, x=10, y=20)
 
 # By name (string)
-result = engine.execute("my_process", x=10, y=20)
+result = await engine.execute("my_process", x=10, y=20)
 ```
 
 ### Execution Pipeline
 
-When you call `engine.execute()`:
+When you call `await engine.execute()`:
 
 ```
 1. [AUDIT INPUT GATE]
@@ -154,12 +155,12 @@ For setup/testing when you need to bypass strict mode temporarily:
 
 ```python
 # ❌ WRONG - Will raise ContextLockedError
-sys_ctx.domain_ctx.counter = 0
+sys_ctx.domain.counter = 0
 
 # ✅ CORRECT - Use edit() context manager
 with engine.edit() as ctx:
-    ctx.domain_ctx.counter = 0
-    ctx.domain_ctx.items = []
+    ctx.domain.counter = 0
+    ctx.domain.items = []
 # Auto-relocked after block
 ```
 
@@ -176,6 +177,7 @@ with engine.edit() as ctx:
 
 ```python
 # Execute YAML workflow using Rust Flux DSL Engine
+# Note: This is synchronous (blocking)
 engine.execute_workflow("workflows/main_workflow.yaml")
 ```
 
@@ -227,7 +229,7 @@ from theus import TheusEngine, ContractViolationError
 from theus.engine import TransactionError, SecurityViolationError
 
 try:
-    result = engine.execute(my_process, x=10)
+    result = await engine.execute(my_process, x=10)
     
 except ContractViolationError as e:
     # Process violated its contract
@@ -250,10 +252,10 @@ except TransactionError as e:
 import asyncio
 from theus.contracts import process
 
-@process(inputs=['domain_ctx.query'], outputs=['domain_ctx.result'])
+@process(inputs=['domain.query'], outputs=['domain.result'])
 async def async_process(ctx):
     await asyncio.sleep(0.1)
-    ctx.domain_ctx.result = "done"
+    ctx.domain.result = "done"
 
 # Execute async process
 async def main():

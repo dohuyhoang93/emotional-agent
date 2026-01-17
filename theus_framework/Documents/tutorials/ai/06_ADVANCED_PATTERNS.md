@@ -1,4 +1,4 @@
-# Module 06: Advanced Patterns
+ # Module 06: Advanced Patterns
 
 > **For AI Assistants:** This module covers v3.0 advanced features: SignalHub, Heavy Zone optimization, Pipeline Pattern, and GUI integration.
 
@@ -109,17 +109,17 @@ class MLContext(BaseDomainContext):
 
 ```python
 @process(
-    inputs=['domain_ctx.query'],
-    outputs=['domain_ctx.heavy_embeddings']
+    inputs=['domain.query'],
+    outputs=['domain.heavy_embeddings']
 )
 def compute_embeddings(ctx):
-    query = ctx.domain_ctx.query
+    query = ctx.domain.query
     
     # Heavy computation
     embeddings = model.encode(query)  # Large numpy array
     
     # Direct write, no copy
-    ctx.domain_ctx.heavy_embeddings = embeddings
+    ctx.domain.heavy_embeddings = embeddings
 ```
 
 ---
@@ -132,7 +132,7 @@ v3.0 prohibits nested engine calls (calling `execute_workflow` inside a process)
 
 ```python
 # ❌ WRONG - Causes deadlock in Rust multi-threaded core
-@process(outputs=['domain_ctx.result'])
+@process(outputs=['domain.result'])
 def bad_process(ctx):
     # This will deadlock!
     engine.execute_workflow("sub_workflow.yaml")
@@ -154,23 +154,23 @@ def act_step(thought):
     return {"action": f"Acting on {thought}"}
 
 @process(
-    inputs=['domain_ctx.observation'],
-    outputs=['domain_ctx.action', 'domain_ctx.thought']
+    inputs=['domain.observation'],
+    outputs=['domain.action', 'domain.thought']
 )
 def agent_deliberation(ctx):
     """
     Single atomic process that runs entire pipeline.
     Engine lock held once for entire duration.
     """
-    obs = ctx.domain_ctx.observation
+    obs = ctx.domain.observation
     
     # Pipeline of pure functions
     thought = think_step(obs)
     action = act_step(thought)
     
     # Single write at end
-    ctx.domain_ctx.thought = thought
-    ctx.domain_ctx.action = action
+    ctx.domain.thought = thought
+    ctx.domain.action = action
     
     return action
 ```
@@ -206,8 +206,13 @@ Main Interpreter (GUI Thread)
 ### Pattern
 
 ```python
-from concurrent.interpreters import create_interp
-from theus import TheusEngine, CORE_AVAILABLE
+try:
+    from concurrent.interpreters import create_interp
+    CORE_AVAILABLE = True
+except ImportError:
+    CORE_AVAILABLE = False
+    
+from theus import TheusEngine
 
 def run_in_subinterp(context_handle):
     """Run agent in isolated sub-interpreter."""
@@ -222,8 +227,9 @@ def run_in_subinterp(context_handle):
 context_handle = engine.get_context_handle()
 
 # Spawn sub-interpreters
-interp1 = create_interp()
-interp1.run(run_in_subinterp, context_handle)
+if CORE_AVAILABLE:
+    interp1 = create_interp()
+    interp1.run(run_in_subinterp, context_handle)
 ```
 
 ### Heavy Zone + Sub-Interpreters
@@ -312,7 +318,9 @@ class UserSchema(BaseModel):
 engine.set_schema(UserSchema)
 
 try:
-    engine.execute(process_that_writes_invalid_data)
+    # Async execute need await
+    import asyncio
+    await engine.execute(process_that_writes_invalid_data)
 except SchemaViolationError as e:
     print(f"Invalid data: {e}")
 ```
@@ -355,10 +363,10 @@ For managing external side effects (emails, HTTP calls):
 ```python
 from theus_core import OutboxMsg
 
-@process(outputs=['domain_ctx.orders'])
+@process(outputs=['domain.orders'])
 def create_order(ctx, order_data):
     # 1. Update state
-    ctx.domain_ctx.orders.append(order_data)
+    ctx.domain.orders.append(order_data)
     
     # 2. Queue side effect
     ctx.outbox.add(OutboxMsg(

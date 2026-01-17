@@ -1,4 +1,4 @@
-# Chương 1: Luồng Tư Duy Theus (The Theus Mindset)
+ # Chương 1: Luồng Tư Duy Theus (The Theus Mindset)
 
 > *"Trước khi gõ `import theus`, bạn cần cài đặt `pop_mindset` vào não bộ."*
 

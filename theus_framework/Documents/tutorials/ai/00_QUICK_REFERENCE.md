@@ -62,18 +62,18 @@ def my_process(ctx, item_name: str, value: int):
         raise ValueError("Value must be positive")
     
     # 2. Read inputs (immutable)
-    max_limit = ctx.global_ctx.max_limit
+    max_limit = ctx.global_.max_limit
     
     # 3. Business logic
     new_item = {"name": item_name, "value": value}
     
     # 4. Write outputs
-    ctx.domain_ctx.items.append(new_item)
-    ctx.domain_ctx.counter += 1
+    ctx.domain.items.append(new_item)
+    ctx.domain.counter += 1
     
     # 5. Trigger signal if needed
-    if ctx.domain_ctx.counter > max_limit:
-        ctx.domain_ctx.sig_alert = True
+    if ctx.domain.counter > max_limit:
+        ctx.domain.sig_alert = True
     
     return "Success"
 ```
@@ -92,10 +92,11 @@ engine = TheusEngine(sys_ctx, strict_mode=True)
 # 3. Register process (auto-discovers name from function)
 engine.register(my_process)
 
-# 4. Execute
-result = engine.execute(my_process, item_name="Test", value=100)
+# 4. Execute (Async)
+import asyncio
+result = await engine.execute(my_process, item_name="Test", value=100)
 # OR by name:
-result = engine.execute("my_process", item_name="Test", value=100)
+result = await engine.execute("my_process", item_name="Test", value=100)
 ```
 
 ---
@@ -153,11 +154,11 @@ engine.execute_workflow("workflows/main_workflow.yaml")
 
 | Context | Path Format | Example |
 |:--------|:------------|:--------|
-| Domain | `domain_ctx.field` | `domain_ctx.items` |
-| Global | `global_ctx.field` | `global_ctx.max_limit` |
-| Nested | `domain_ctx.nested.field` | `domain_ctx.user.name` |
+| Domain | `domain.field` | `domain.items` |
+| Global | `global.field` | `global.max_limit` |
+| Nested | `domain.nested.field` | `domain.user.name` |
 
-> **CRITICAL:** Always use `domain_ctx` NOT `domain`. Rust Core enforces strict paths.
+> **CRITICAL:** Use `ctx.domain` in Python code. In contracts, you can use `domain` or `domain_ctx` (legacy).
 
 ---
 

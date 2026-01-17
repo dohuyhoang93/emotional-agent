@@ -191,9 +191,9 @@ sys_ctx.domain_ctx.counter = 10  # Outside @process
 
 ```python
 # ✅ CORRECT - Inside @process with outputs declared
-@process(outputs=['domain_ctx.counter'])
+@process(outputs=['domain.counter'])
 def increment(ctx):
-    ctx.domain_ctx.counter += 1
+    ctx.domain.counter += 1
 ```
 
 ### Legal: Via edit() (Setup/Testing Only)
@@ -201,7 +201,7 @@ def increment(ctx):
 ```python
 # ✅ CORRECT - Explicit unlock for setup
 with engine.edit() as safe_ctx:
-    safe_ctx.domain_ctx.counter = 0  # Initial setup
+    safe_ctx.domain.counter = 0  # Initial setup
 # Auto-relocked after with block
 ```
 
