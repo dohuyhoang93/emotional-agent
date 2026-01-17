@@ -186,7 +186,13 @@ class TheusEngine:
             loop = asyncio.new_event_loop()
             asyncio.set_event_loop(loop)
             
-        loop.run_until_complete(self.execute(name, **kwargs))
+        if loop.is_running():
+             # Blocking call from Rust, but loop is running (likely we are in a thread)
+             # Schedule coroutine and wait for result safely
+             future = asyncio.run_coroutine_threadsafe(self.execute(name, **kwargs), loop)
+             return future.result()
+        else:
+            loop.run_until_complete(self.execute(name, **kwargs))
 
     @property
     def state(self):

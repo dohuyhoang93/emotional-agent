@@ -15,8 +15,10 @@
     - **HEAVY**: Dữ liệu lớn (Tensor, Ảnh), Zero-copy, Write-Through (không Rollback dữ liệu, chỉ tham chiếu).
     - **SIGNAL**: Sự kiện, Ephemeral (biến mất sau xử lý).
 - **Optimistic Concurrency Control (CAS - `src/engine.rs`)**: Sử dụng thuật toán Compare-and-Swap dựa trên Version vector để cập nhật trạng thái an toàn trong đa luồng.
-- **Transactional Consistency (`src/delta.rs`, `src/engine.rs`)**: Hỗ trợ Rollback tự động khi có Process Failure (ngoại trừ Heavy Zone).
-- **Strict Mode (`src/guards.rs`)**: Bắt buộc tính bất biến (Immutability), chặn sửa đổi trực tiếp trên object trạng thái (phải qua Transaction/CAS).
+- **Transactional Consistency (`src/delta.rs`, `src/engine.rs`)**: Hỗ trợ Rollback tự động khi có Process Failure (Yêu cầu tuân thủ **Copy-on-Write** cho Collections).
+- **Zero-Copy & Strict Mode Strategy (V3)**:
+  - **Zero-Copy Read**: Truy cập dữ liệu (Domain, Heavy) với tốc độ O(1) (bỏ qua Shallow Copy).
+  - **Discipline Safety**: Do cơ chế Zero-Copy, việc sửa đổi trực tiếp (`in-place mutation`) là **KHÔNG AN TOÀN** (Bypass Rollback). Lập trình viên **BẮT BUỘC** sử dụng pattern `new = list(old)` (Copy-on-Write) để đảm bảo an toàn.
 
 ## 3. Hệ thống Quy trình làm việc (Workflow Engine - Flux DSL)
 - **Flux DSL (`src/fsm.rs`)**: Ngôn ngữ định nghĩa quy trình dựa trên YAML.
