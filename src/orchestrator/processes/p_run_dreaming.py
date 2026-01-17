@@ -1,10 +1,11 @@
 ﻿from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
+from src.orchestrator.context_helpers import get_domain_ctx, get_attr
 from src.logger import log
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level'],
-    outputs=['domain_ctx', ],
+    outputs=[],  # v2 compatible
     side_effects=[],
     errors=[]
 )
@@ -12,47 +13,28 @@ def run_population_dreaming(ctx: OrchestratorSystemContext):
     """
     Process: Chạy quy trình Dreaming cho toàn bộ Population.
     """
-    domain = ctx.domain_ctx
-    bus = domain.event_bus
+    domain, is_dict = get_domain_ctx(ctx)
+    bus = get_attr(domain, 'event_bus', None)
     
-    exp_def = domain.experiments[domain.active_experiment_idx]
+    active_idx = get_attr(domain, 'active_experiment_idx', 0)
+    experiments = get_attr(domain, 'experiments', [])
+    
+    if active_idx >= len(experiments):
+        return
+    
+    exp_def = experiments[active_idx]
+    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    
     # V3 MIGRATION: Fetch Runner from Registry
     from src.orchestrator.runtime_registry import get_runner
-    runner = get_runner(exp_def.name)
+    runner = get_runner(exp_name)
     
     if runner:
         log(ctx, "info", "💤 Population is SLEEPING (Dreaming & Consolidation)...")
-        # Loop agents and run 'agent_dream.yaml'
-        # Since we don't have direct access to 'execute_workflow' via runner easily without passing Engine,
-        # we assume each agent has a helper or we use the Engine attached to Context if available.
-        # But RLAgent usually takes an Engine in __init__.
         
-        # We need to manually invoke the steps or use the agent's internal mechanism.
-        # Assuming RLAgent has a method 'dream()'? It currently doesn't.
-        # We must add it or use the Engine from the Orchestrator to run the agent's context.
-        
-        # HACK: Re-use the Orchestrator's engine (self.engine is not available here).
-        # We can simulate by calling the processes directly if imported, OR use Runner's engine.
-        
-        # Let's assume MultiAgentCoordinator can handle this:
-        # runner.coordinator.run_workflow_for_all("workflows/agent_dream.yaml")
-        # But Coordinator doesn't have that method.
-        
-        # Simplest path: Iterate processes manually here (Python-side) for now,
-        # or better: Define 'dream' method in RLAgent during Phase 10 refactor.
-        
-        # LET'S EXTEND RLAgent DYNAMICALLY OR ASSUME UPDATE.
-        # For now, I will manually call the processes on each agent context.
-        pass
-        
-    # LOGIC:
-    # from src.processes.snn_core_theus import process_integrate... 
-    # This is getting messy. Use TheusEngine properly.
-    
-    # Correct way: Use the Engine that RLAgent holds.
-    for agent in runner.coordinator.agents:
-        # agent.engine is the TheusEngine instance
-        agent.engine.execute_workflow("workflows/agent_dream.yaml")
+        # Use the Engine that RLAgent holds
+        for agent in runner.coordinator.agents:
+            if hasattr(agent, 'engine'):
+                agent.engine.execute_workflow("workflows/agent_dream.yaml")
         
     if bus: bus.emit("DREAM_DONE")
-

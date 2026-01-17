@@ -1,12 +1,13 @@
 ﻿import os
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
+from src.orchestrator.context_helpers import get_domain_ctx, get_attr
 from src.utils.snn_persistence import save_all_agents
 from src.logger import log
 
 @process(
     inputs=['domain', 'domain_ctx', 'domain_ctx.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'log_level'],
-    outputs=['domain_ctx', ],
+    outputs=[],  # v2 compatible - no output mapping
     side_effects=['filesystem.write', 'filesystem.mkdir'],
     errors=[]
 )
@@ -14,15 +15,21 @@ def save_periodic_checkpoint(ctx: OrchestratorSystemContext):
     """
     Process: Save SNN Checkpoint periodically.
     """
-    domain = ctx.domain_ctx
+    domain, is_dict = get_domain_ctx(ctx)
     
-    # Get Runner
-    if domain.active_experiment_idx >= len(domain.experiments):
+    # Get experiment info (handle both dict and object)
+    active_idx = get_attr(domain, 'active_experiment_idx', 0)
+    experiments = get_attr(domain, 'experiments', [])
+    
+    if active_idx >= len(experiments):
         return
-    exp_def = domain.experiments[domain.active_experiment_idx]
+    
+    exp_def = experiments[active_idx]
+    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    
     # V3 MIGRATION: Fetch Runner from Registry
     from src.orchestrator.runtime_registry import get_runner
-    runner = get_runner(exp_def.name)
+    runner = get_runner(exp_name)
     
     if not runner: return
 
@@ -45,4 +52,3 @@ def save_periodic_checkpoint(ctx: OrchestratorSystemContext):
         # Save
         save_all_agents(snn_contexts, checkpoint_dir)
         log(ctx, "info", f"  [Checkpoint] Saved to {checkpoint_dir}")
-

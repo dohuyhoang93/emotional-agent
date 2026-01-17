@@ -1,0 +1,47 @@
+[FLUX-DEBUG] Parsed 6 top-level steps
+[FLUX-DEBUG] FSM State: Pending -> Running
+[FLUX-DEBUG] Op #1: Process { name: "load_config" }
+[FLUX-DEBUG] Op #2: While { condition: "domain.active_experiment_idx < len(domain.experiments)", do_steps: [Process { name: "initialize_active_experiment" }, While { condition: "domain.active_experiment_episode_idx < domain.experiments[domain.active_experiment_idx].episodes_per_run", do_steps: [Process { name: "run_single_episode" }, Process { name: "decay_exploration_all_agents" }, Process { name: "enrich_episode_metrics" }, Process { name: "log_episode_metrics" }, If { condition: "domain.active_experiment_episode_idx > 0 and domain.active_experiment_episode_idx % 25 == 0", then_steps: [Process { name: "execute_social_learning_if_needed" }], else_steps: [] }, If { condition: "domain.active_experiment_episode_idx > 0 and domain.active_experiment_episode_idx % 25 == 0", then_steps: [Process { name: "run_sleep_cycle_process" }], else_steps: [] }, If { condition: "domain.active_experiment_episode_idx > 0 and domain.active_experiment_episode_idx % 100 == 0", then_steps: [Process { name: "perform_revolution_protocol" }], else_steps: [] }, Process { name: "save_periodic_checkpoint" }, Process { name: "advance_episode_index" }, Process { name: "save_metrics_snapshot" }] }, Process { name: "advance_experiment_index" }] }
+[FLUX-DEBUG] Evaluating condition: 'domain.active_experiment_idx < len(domain.experiments)'
+[FLUX-DEBUG] Condition result: false
+[FLUX-DEBUG] Op #3: Process { name: "aggregate_results" }
+[FLUX-DEBUG] FSM State: Running -> Failed
+ERROR: CRITICAL FAILURE: 'dict' object has no attribute 'experiments'
+Traceback (most recent call last):
+  File "C:\Users\dohuy\Downloads\emotional-agent\run_experiments.py", line 154, in main
+    engine.execute_workflow("workflows/orchestrator_flux.yaml")
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohuy\AppData\Local\Programs\Python\Python314\Lib\site-packages\theus\engine.py", line 176, in execute_workflow
+    executed = wf_engine.execute(ctx, self._run_process_sync)
+  File "C:\Users\dohuy\AppData\Local\Programs\Python\Python314\Lib\site-packages\theus\engine.py", line 189, in _run_process_sync
+    loop.run_until_complete(self.execute(name, **kwargs))
+    ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohuy\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\dohuy\AppData\Local\Programs\Python\Python314\Lib\site-packages\theus\engine.py", line 267, in execute
+    raise e
+  File "C:\Users\dohuy\AppData\Local\Programs\Python\Python314\Lib\site-packages\theus\engine.py", line 258, in execute
+    result = await self._core.execute_process_async(func.__name__, target_func)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohuy\AppData\Local\Programs\Python\Python314\Lib\asyncio\threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohuy\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Users\dohuy\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\dohuy\AppData\Local\Programs\Python\Python314\Lib\site-packages\theus\contracts.py", line 107, in wrapper
+    raise e
+  File "C:\Users\dohuy\AppData\Local\Programs\Python\Python314\Lib\site-packages\theus\contracts.py", line 105, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+  File "C:\Users\dohuy\Downloads\emotional-agent\src/orchestrator/processes\p_aggregate_results.py", line 22, in aggregate_results
+    for exp_def in domain.experiments:
+                   ^^^^^^^^^^^^^^^^^^
+AttributeError: 'dict' object has no attribute 'experiments'
+Γ£à Loading Multi-Agent Audit Recipe...
+--- STARTING ORCHESTRATION WORKFLOW ---
+Γû╢∩╕Å Loading Orchestrator Workflow: workflows/orchestrator_flux.yaml
+  [Orchestration] Loading experiment configuration from experiments_sanity.json...
+  [Orchestration] Loaded 1 experiments.
+  [Orchestration] Aggregating results...

@@ -1,11 +1,12 @@
 ﻿from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
+from src.orchestrator.context_helpers import get_domain_ctx, get_attr
 from src.logger import log
 from src.processes.snn_advanced_features_theus import _revolution_impl
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level'],
-    outputs=['domain_ctx', ],
+    outputs=[],  # v2 compatible
     side_effects=[],
     errors=[]
 )
@@ -13,13 +14,22 @@ def perform_revolution_protocol(ctx: OrchestratorSystemContext):
     """
     Process: Thực hiện Revolution Protocol (Cultural Evolution).
     """
-    domain = ctx.domain_ctx
-    bus = domain.event_bus
+    domain, is_dict = get_domain_ctx(ctx)
+    bus = get_attr(domain, 'event_bus', None)
     
-    exp_def = domain.experiments[domain.active_experiment_idx]
+    active_idx = get_attr(domain, 'active_experiment_idx', 0)
+    experiments = get_attr(domain, 'experiments', [])
+    
+    if active_idx >= len(experiments):
+        if bus: bus.emit("REVOLUTION_SKIP")
+        return
+    
+    exp_def = experiments[active_idx]
+    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    
     # V3 MIGRATION: Fetch Runner from Registry
     from src.orchestrator.runtime_registry import get_runner
-    runner = get_runner(exp_def.name)
+    runner = get_runner(exp_name)
     
     # Check if multi-agent coordinator exists
     if not runner or not hasattr(runner, 'coordinator') or not runner.coordinator:
@@ -57,4 +67,3 @@ def perform_revolution_protocol(ctx: OrchestratorSystemContext):
         if bus: bus.emit("REVOLUTION_DONE")
     else:
         if bus: bus.emit("REVOLUTION_SKIP")
-
