@@ -11,6 +11,7 @@ mod guards;
 mod tracked;
 mod zones;
 mod signals;
+mod shm;
 
 /// Theus Core Rust Extension
 #[pymodule]
@@ -53,6 +54,11 @@ fn theus_core(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("AuditAbortError", py.get_type_bound::<audit::AuditAbortError>())?;
     m.add("AuditStopError", py.get_type_bound::<audit::AuditStopError>())?;
     m.add("AuditWarning", py.get_type_bound::<audit::AuditWarning>())?;
+
+    // Sub-module for SHM (v3.1)
+    let shm_mod = PyModule::new_bound(py, "shm")?;
+    shm::theus_shm(py, &shm_mod)?;
+    m.add_submodule(&shm_mod)?;
 
     Ok(())
 }

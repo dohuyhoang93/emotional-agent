@@ -160,10 +160,16 @@ Theus prioritizes **Performance** (Zero-Copy) while providing **Safety Tools**:
 *   **Atomic Commit:** The Engine swaps the pointer to the new data only if the transaction succeeds.
 > ⚠️ **Warning:** In-place mutation (e.g., `list.append`) bypasses the safety lawyer. Always use the Copy-on-Write pattern.
 
-### The Heavy Zone (Optimization)
-For AI workloads (Images, Tensors) > 1MB, use `heavy_` variables.
-*   **Behavior:** Writes bypass the Transaction Log (Zero-Copy).
-*   **Trade-off:** Changes to Heavy data are **NOT** reverted on Rollback.
+### The Heavy Zone & Zero-Copy Parallelism (Strategy V3)
+> **Current Status (v3.0.1):** Parallelism is Thread-based (GIL-bound). True Multi-Core requires correct usage of `ctx.heavy`.
+
+For AI workload/Tensors > 1MB, `ctx.heavy` is evolving into a **Shared Memory Gateway**:
+*   **Standard Mode (Thread):** `ctx.heavy` acts as a bypass for Transaction Log (Performance).
+*   **Parallel Mode (Sub-Interpreter):** `ctx.heavy` will map to **Shared Memory (Zero-Copy)**.
+    *   **Rule:** Only data in `ctx.heavy` bypasses the GIL overhead efficiently.
+    *   **Warning:** CPU-bound tasks on `ctx.data` (Pickle) will suffer from GIL contention.
+
+[Read the full Zero-Copy Strategy](Documents/ADR/V3/V3_ZeroCopy_Strategy.md)
 
 
 ### Research & Debugging Mode

@@ -93,10 +93,19 @@ class TheusEngine:
 
     def get_pool(self):
         if self._interpreter_pool is None:
-             from theus.parallel import InterpreterPool, INTERPRETERS_SUPPORTED, ParallelContext
-             if not INTERPRETERS_SUPPORTED:
-                 raise RuntimeError("PEP 554 Sub-interpreters not supported on this Python runtime.")
-             self._interpreter_pool = InterpreterPool(size=2)
+             import os
+             from theus.parallel import InterpreterPool, INTERPRETERS_SUPPORTED, ParallelContext, ProcessPool
+             
+             use_processes = os.environ.get("THEUS_USE_PROCESSES", "0") == "1"
+             
+             if use_processes or not INTERPRETERS_SUPPORTED:
+                 if not use_processes:
+                      # Warn if falling back automatically?
+                      pass
+                 self._interpreter_pool = ProcessPool(size=2)
+             else:
+                 self._interpreter_pool = InterpreterPool(size=2)
+                 
              self._ParallelContext = ParallelContext 
         return self._interpreter_pool
 
@@ -118,7 +127,15 @@ class TheusEngine:
             current_domain.update(input_args)
         
         # Use global picklable class from parallel module
-        ctx_data = self._ParallelContext(current_domain)
+        # v3.1: Inject Heavy Zone for Zero-Copy
+        # FIX: Convert FrozenDict to dict for Pickle Process boundary
+        heavy_data = self.state.heavy 
+        if hasattr(heavy_data, 'to_dict'):
+             heavy_data = heavy_data.to_dict()
+        elif not isinstance(heavy_data, dict):
+             heavy_data = dict(heavy_data)
+             
+        ctx_data = self._ParallelContext(current_domain, heavy=heavy_data)
         
         # 3. Submit
         future = pool.submit(func, ctx_data)
@@ -232,6 +249,23 @@ class TheusEngine:
             func = func_or_name
 
         contract = getattr(func, "_pop_contract", None)
+        
+        # v3.0.2: Auto-Dispatch Parallel Processes
+        if contract and contract.parallel:
+             # Ensure inputs match what execute_parallel expects
+             # execute_parallel takes **input_args.
+             # We should filter kwargs to match inputs?
+             # execute_parallel merges input_args into domain.
+             # We can basically pass **kwargs.
+             # Wait, execute_parallel is synchronous (blocking/Future).
+             # We are in async execute.
+             # We should wrap it in thread/executor to avoid blocking the loop?
+             # But execute_parallel manages its own pool submission.
+             # However, execute_parallel blocks waiting for result.
+             # We should run it in executor.
+             import asyncio
+             loop = asyncio.get_running_loop()
+             return await loop.run_in_executor(None, lambda: self.execute_parallel(func.__name__, **kwargs))
 
         # Runtime Semantic Firewall (View Restriction)
         target_func = func  

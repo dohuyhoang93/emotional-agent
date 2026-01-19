@@ -4,6 +4,106 @@ from .locks import LockManager
 from .zones import ContextZone, resolve_zone
 
 @dataclass
+class TransactionError(Exception):
+    pass
+
+try:
+    import numpy as np
+    from multiprocessing import shared_memory
+
+    def rebuild_shm_array(name, shape, dtype):
+        """Helper to reconstruct ShmArray from pickle meta-data."""
+        try:
+            shm = shared_memory.SharedMemory(name=name)
+        except FileNotFoundError:
+            # If SHM is gone, return None or empty?
+            # For now return None to indicate failure
+            return None
+        
+        # Zero-Copy Re-attach
+        raw_arr = np.ndarray(shape, dtype=dtype, buffer=shm.buf)
+        return ShmArray(raw_arr, shm=shm)
+
+    class ShmArray(np.ndarray):
+        """Numpy Array that keeps the backing SharedMemory object alive."""
+        def __new__(cls, input_array, shm=None):
+            obj = np.asarray(input_array).view(cls)
+            obj.shm = shm
+            return obj
+
+        def __array_finalize__(self, obj):
+            if obj is None: return
+            self.shm = getattr(obj, 'shm', None)
+            
+        def __reduce__(self):
+            """Smart Pickling: Send metadata, not data."""
+            if self.shm is None:
+                # Fallback to standard pickle if no SHM backing
+                return super().__reduce__()
+            
+            # Send (Function, Args) tuple
+            return (rebuild_shm_array, (self.shm.name, self.shape, self.dtype))
+
+except ImportError:
+    np = None
+    ShmArray = None
+    rebuild_shm_array = None
+
+class HeavyZoneWrapper:
+    """
+    Smart Wrapper for ctx.heavy that handles Zero-Copy interactions.
+    If it sees a BufferDescriptor, it auto-converts to memoryview/numpy.
+    """
+    def __init__(self, data_dict):
+        self._data = data_dict
+
+    def __getitem__(self, key):
+        val = self._data[key]
+        # Check if it's a BufferDescriptor (duck typing or strict check)
+        if hasattr(val, 'name') and hasattr(val, 'dtype') and hasattr(val, 'shape'):
+             # Lazy Import to avoid overhead if not used
+             try:
+                 import numpy as np
+                 from multiprocessing import shared_memory
+             except ImportError:
+                 return val # Fallback if numpy not present? Or raise?
+             
+             # Rehydrate View
+             try:
+                 shm = shared_memory.SharedMemory(name=val.name)
+                 # Note: This is read-only view logic for now
+                 # We need to ensure we don't leak SHM handles. 
+                 # Python's SharedMemory automatic cleanup is tricky. 
+                 # Ideally, we should cache this SHM handle handle.
+                 raw_arr = np.ndarray(val.shape, dtype=val.dtype, buffer=shm.buf)
+                 # Wrap in ShmArray to keep 'shm' alive
+                 return ShmArray(raw_arr, shm=shm)
+             except FileNotFoundError:
+                 # SHM might be gone
+                 return None
+        return val
+    
+    def __setitem__(self, key, value):
+        # Write-Through to underlying dict (Transaction Logic handles the rest)
+        self._data[key] = value
+
+    def get(self, key, default=None):
+        try:
+            return self[key]
+        except KeyError:
+            return default
+            
+    def __contains__(self, key):
+        return key in self._data
+
+    def items(self):
+        for k in self._data:
+            yield k, self[k]
+            
+    def __repr__(self):
+        return f"<HeavyZoneWrapper keys={list(self._data.keys())}>"
+
+@dataclass
 class LockedContextMixin:
     """
     Mixin that hooks __setattr__ to enforce LockManager policy.
@@ -36,6 +136,11 @@ class LockedContextMixin:
         Resolve the semantic zone of a key.
         """
         return resolve_zone(key)
+
+    @property
+    def heavy(self):
+        # Auto-Dispatch for Zero-Copy
+        return HeavyZoneWrapper(self._state.heavy)
 
     def to_dict(self, exclude_zones: List[ContextZone] = None) -> Dict[str, Any]:
         """
