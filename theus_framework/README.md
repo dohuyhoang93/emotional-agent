@@ -41,6 +41,7 @@ When bugs aren't just annoying—they're costly:
 - **Transaction Safety:** Automatic rollback on failure
 - **Explicit Access:** Processes must declare every data point they touch via `@process` contracts
 - **Industrial Audit:** Block, warn, or stop based on configurable rules
+- **Concurrency Safety:** Advanced Conflict Manager with Backoff & VIP Locking
 
 ---
 
@@ -161,16 +162,12 @@ Theus prioritizes **Performance** (Zero-Copy) while providing **Safety Tools**:
 > ⚠️ **Warning:** In-place mutation (e.g., `list.append`) bypasses the safety lawyer. Always use the Copy-on-Write pattern.
 
 ### The Heavy Zone & Zero-Copy Parallelism (Strategy V3)
-> **Current Status (v3.0.2):** Parallelism is Thread-based (GIL-bound). True Multi-Core requires correct usage of `ctx.heavy`.
+> **Current Status (v3.0.2):** True Parallelism is now available via `ProcessPool`.
 
-For AI workload/Tensors > 1MB, `ctx.heavy` is evolving into a **Shared Memory Gateway**:
-*   **Standard Mode (Thread):** `ctx.heavy` acts as a bypass for Transaction Log (Performance).
-*   **Parallel Mode (Sub-Interpreter):** `ctx.heavy` will map to **Shared Memory (Zero-Copy)**.
-    *   **Rule:** Only data in `ctx.heavy` bypasses the GIL overhead efficiently.
-    *   **Warning:** CPU-bound tasks on `ctx.data` (Pickle) will suffer from GIL contention.
-
-[Read the full Zero-Copy Strategy](Documents/ADR/V3/V3_ZeroCopy_Strategy.md)
-
+For AI workload/Tensors > 1MB, `ctx.heavy` acts as a **Shared Memory Gateway**:
+*   **Zero-Copy:** leverages shared memory to pass large datasets between processes without serialization overhead.
+*   **True Parallelism:** CPU-bound tasks can bypass the GIL using `ProcessPool`.
+*   **Conflict Safety:** Integrated **Exponential Backoff** and **VIP Locking** ensure that high-concurrency workloads do not starve or livelock.
 
 ### Research & Debugging Mode
 For rapid experimentation where you need to bypass architectural constraints:

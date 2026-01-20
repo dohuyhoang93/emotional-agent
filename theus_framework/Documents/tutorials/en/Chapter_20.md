@@ -2,19 +2,19 @@
 
 As you scale your Theus application to handle high concurrency (e.g., hundreds of parallel agents or intense sensor fusion), simple "Optimistic Locking" (Global CAS) can become a bottleneck. 
 
-From **Theus v3.3**, the framework includes a sophisticated **Advanced Conflict Resolution** engine built directly into the Rust Core. This system automatically handles contention, prevents livelocks, and maximizes parallelism without requiring changes to your application code.
+From **Theus v3.0.2**, the framework includes a sophisticated **Advanced Conflict Resolution** engine built directly into the Rust Core. This system automatically handles contention, prevents livelocks, and maximizes parallelism without requiring changes to your application code.
 
 ## 1. The Concurrency Challenge
 
 In Theus, state is **Immutable**. Mutating state means creating a new "Version".
-- **Old Behavior (v3.2):** If 10 workers try to update the State at version `100` simultaneously:
+- **Old Behavior (v3.0.1):** If 10 workers try to update the State at version `100` simultaneously:
     - Worker 1 succeeds -> Version `101`.
     - Workers 2-10 fail (CAS Mismatch: Expected `100`, Found `101`).
     - **Result:** High failure rate, wasted CPU ("Thundering Herd").
 
 ## 2. Solution: Smart CAS (Key-Level Optimism)
 
-Theus v3.3 introduces **Smart CAS (Compare-And-Swap)**. instead of checking the *Global Version*, the Engine now tracks the version of **Each Individual Key**.
+Theus v3.0.2 introduces **Smart CAS (Compare-And-Swap)**. instead of checking the *Global Version*, the Engine now tracks the version of **Each Individual Key**.
 
 ### How it Works
 When a transaction attempts to commit:

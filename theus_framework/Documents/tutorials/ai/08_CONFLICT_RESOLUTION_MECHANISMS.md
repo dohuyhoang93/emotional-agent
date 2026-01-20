@@ -1,10 +1,10 @@
 # 08_CONFLICT_RESOLUTION_MECHANISMS.md
 
-**Status:** Active (v3.3)
+**Status:** Active (3.0.2)
 **Component:** `theus_core` (Rust)
 
 ## Overview
-This document specifies the internal workings of the Advanced Conflict Resolution system deployed in Theus v3.3. It is designed to handle High Contention scenarios (Thundering Herd) and prevent Starvation (Livelock).
+This document specifies the internal workings of the Advanced Conflict Resolution system deployed in Theus v3.0.2. It is designed to handle High Contention scenarios (Thundering Herd) and prevent Starvation (Livelock).
 
 ## Architecture
 

@@ -1,6 +1,6 @@
 # Implementation Status Report: Managed Memory & Conflict Resolution
 
-**Version:** v3.3  
+**Version:** v3.0.2  
 **Date:** 2026-01-20  
 **Status:** ✅ Complete (with noted deviations)
 
@@ -8,7 +8,7 @@
 
 ## Overview
 
-This document compares the original design vision from two Architecture Decision Records (ADRs) with the actual implementation in Theus v3.3.
+This document compares the original design vision from two Architecture Decision Records (ADRs) with the actual implementation in Theus v3.0.2.
 
 ---
 

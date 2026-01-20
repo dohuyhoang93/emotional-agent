@@ -1,4 +1,4 @@
-# Các Tính Năng Cốt Lõi Của Theus Framework v3.3 (Phân tích từ Mã nguồn)
+# Các Tính Năng Cốt Lõi Của Theus Framework v3.0.2 (Phân tích từ Mã nguồn)
 
 ## 1. Process-Oriented Programming (POP)
 - **Decorator `@process` (`theus/contracts.py`)**: Chuyển đổi hàm Python thành "tiến trình" (process) có quản lý.
