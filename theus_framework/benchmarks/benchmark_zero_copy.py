@@ -214,7 +214,7 @@ if __name__ == "__main__":
     import os
     sys.path.append(os.getcwd())
 
-    print(f"=== Comprehensive Benchmark (Smart Wiring) ===")
+    print("=== Comprehensive Benchmark (Smart Wiring) ===")
     print(f"Matrix: {MATRIX_SIZE}x{MATRIX_SIZE} | Workers: {NUM_WORKERS}")
     
     # Create Heavy Data

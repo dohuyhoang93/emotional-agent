@@ -29,7 +29,7 @@ async def main():
     arr_out = engine.heavy.alloc("results_data", shape=(SIZE,), dtype=np.float32)
     
     # Populate Input
-    print(f"[*] generating random floats...")
+    print("[*] generating random floats...")
     arr_in[:] = np.random.rand(SIZE)
     
     # Inject Data (Zero-Copy)

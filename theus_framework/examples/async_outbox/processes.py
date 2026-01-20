@@ -3,16 +3,16 @@ import time
 import json
 from theus.contracts import process
 from theus.structures import StateUpdate  # Standard V3 Update Mechanism
-from demo_async_outbox.context import DemoSystemContext
-from demo_async_outbox.database import get_connection, insert_outbox_event
-from demo_async_outbox.helpers import get_attr # Minimal read helper
+from context import DemoSystemContext
+from database import get_connection, insert_outbox_event
+from helpers import get_attr # Minimal read helper
 
 # --- ASYNC JOB LOGIC ---
 async def heavy_async_job(duration: float):
     """Simulates I/O wait (e.g., API call)."""
     print(f"    [Background] Job sleeping for {duration}s...")
     await asyncio.sleep(duration)
-    print(f"    [Background] Job woke up!")
+    print("    [Background] Job woke up!")
     return f"Job Done at {time.time()}"
 
 # --- PROCESSES ---
@@ -138,7 +138,6 @@ def p_prepare_outbox_event(ctx: DemoSystemContext):
     
     # 4. Return Data (Signals Engine to CAS)
     new_status = f"{res} (Outbox Queued)"
-    from theus.structures import StateUpdate
     
     # We need to return MULTIPLE updates.
     # Theus V3 helper or Tuple return?

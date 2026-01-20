@@ -6,11 +6,12 @@ import time
 import json
 
 # Add project root to path
-sys.path.append(os.getcwd())
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
-from demo_async_outbox.context import DemoSystemContext, DemoDomainContext
-from demo_async_outbox.database import init_db, get_connection, insert_outbox_event
-from demo_async_outbox import processes # Register processes
+from context import DemoSystemContext, DemoDomainContext
+from database import init_db, get_connection, insert_outbox_event
+import processes # Register processes
 
 from theus.engine import TheusEngine
 # from demo_async_outbox.mock_engine import MockTheusEngine as TheusEngine # Reverted to Real Engine
@@ -80,7 +81,7 @@ async def main():
     
     # Run in thread pool to avoid blocking main loop
     # engine.execute_workflow is blocking rust call (internally manages tasks)
-    future = loop.run_in_executor(None, engine.execute_workflow, "demo_async_outbox/workflow.yaml")
+    future = loop.run_in_executor(None, engine.execute_workflow, "workflow.yaml")
     
     # Wait for completion (Non-blocking await)
     await future
@@ -101,7 +102,7 @@ async def main():
     # Write to SQLite
     if relay_buffer:
         print(f"[Relay] Found {len(relay_buffer)} msgs in Domain State.")
-        print(f"[Relay] Persisting to SQLite...")
+        print("[Relay] Persisting to SQLite...")
         
         conn = get_connection()
         for m in relay_buffer:
@@ -138,7 +139,7 @@ async def main():
     
     print("\n[Verification] Final State:")
     # Helper to print safe
-    from demo_async_outbox.helpers import get_attr
+    from helpers import get_attr
     print(f"  Sync Ops: {get_attr(ctx, 'domain.sync_ops_count')}")
     print(f"  Async Result: {get_attr(ctx, 'domain.async_job_result')}")
     # Buffer is no longer in domain!

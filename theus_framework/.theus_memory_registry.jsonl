@@ -30,3 +30,18 @@
 {"name":"theus:7ca8979d:21500:key2","pid":21500,"session":"7ca8979d","size":40,"ts":0.0}
 {"name":"theus:5482a7b0:21500:my_secret","pid":21500,"session":"5482a7b0","size":40,"ts":0.0}
 {"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1768887061.4638424}
+{"pid": 999999, "key": "zombie_key", "shm_name": "theus_test_zombie_2e0ee255-d4d2-4b8b-a86d-215fdbe7e496", "timestamp": 1768891288.3507648}
+{"pid": 20240, "key": "live_key", "shm_name": "theus_test_zombie_6dec1461-026e-4642-92f8-70ebc3592b6c", "timestamp": 1768891288.5489192}
+{"pid": 999999, "key": "zombie_key", "shm_name": "theus_test_zombie_40b01b3a-76b4-40bc-981f-81f7993d38e8", "timestamp": 1768891305.403611}
+{"pid": 19880, "key": "live_key", "shm_name": "theus_test_zombie_b3d20a3d-2ce9-45ae-8156-d4de3831a63b", "timestamp": 1768891307.1092935}
+{"pid": 999999, "key": "zombie_key", "shm_name": "theus_test_zombie_d10bd3f7-8c4f-423b-a263-46193a51dfa5", "timestamp": 1768891351.053561}
+{"pid": 17300, "key": "live_key", "shm_name": "theus_test_zombie_b9599a21-ace3-4f76-b50b-43d2b0677b71", "timestamp": 1768891352.595447}
+{"pid": 999999, "key": "zombie_key", "shm_name": "theus_test_zombie_7c0fa886-6c31-4380-966a-8ff11181f17e", "timestamp": 1768891360.7408838}
+{"pid": 22308, "key": "live_key", "shm_name": "theus_test_zombie_7cf451d2-a99f-442f-88c0-7f6aed823427", "timestamp": 1768891362.2913563}
+{"name": "theus_test_zombie_72cc4d23-9a9e-4d29-89d9-d8969a3e7a1b", "pid": 999999, "session": "test_session", "size": 1024, "ts": 1768891409.5481887}
+{"name": "theus_test_live_64f87e89-b0c6-40ec-8c9c-e11c3fa38480", "pid": 14716, "session": "test_session", "size": 1024, "ts": 1768891411.1172018}
+{"name":"theus:83999a9a:8148:test_lifecycle","pid":8148,"session":"83999a9a","size":400,"ts":0.0}
+{"name":"theus:69a2acef:8148:key1","pid":8148,"session":"69a2acef","size":40,"ts":0.0}
+{"name":"theus:69a2acef:8148:key2","pid":8148,"session":"69a2acef","size":40,"ts":0.0}
+{"name":"theus:10c47781:8148:my_secret","pid":8148,"session":"10c47781","size":40,"ts":0.0}
+{"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1768891994.1918135}

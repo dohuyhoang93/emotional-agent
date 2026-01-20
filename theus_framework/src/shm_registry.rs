@@ -58,56 +58,25 @@ impl MemoryRegistry {
         let mut active_records = Vec::new();
         let mut zombies_cleaned = 0;
 
-        for line in reader.lines() {
-            if let Ok(l) = line {
-     if let Ok(record) = serde_json::from_str::<AllocRecord>(&l) {
-                     // Check Liveness
-                     let current_pid = std::process::id();
-                     let is_alive = if record.pid == current_pid {
-                         true
-                     } else {
-                         // sysinfo 0.30 usage
-                         sys.process(Pid::from_u32(record.pid)).is_some()
-                     };
+        for l in reader.lines().map_while(Result::ok) {
+            if let Ok(record) = serde_json::from_str::<AllocRecord>(&l) {
+                // Check Liveness
+                let current_pid = std::process::id();
+                let is_alive = if record.pid == current_pid {
+                    true
+                } else {
+                    // sysinfo 0.30 usage
+                    sys.process(Pid::from_u32(record.pid)).is_some()
+                };
 
-                     if !is_alive {
-                         // ZOMBIE! Unlink.
-                         // We use shared_memory crate (or standard OS remove)
-                         // shared_memory::Shmem doesn't have a static unlink method usually, 
-                         // it relies on drop or specific OS calls?
-                         // The crate exposes `ShmemConf` but deletion requires opening.
-                         // Actually, on Linux/Windows, unlink by name is different.
-                         // The crate might not expose raw unlink easily without mapping?
-                         // Let's try to map and drop with unlink_on_drop if possible,
-                         // or use shm_unlink directly?
-                         // The `shared_memory` crate documentation says:
-                         // "To delete a shared memory link, simply drop the Shmem struct... however... persistence..."
-                         // Actually checking documentation: `ShmemConf` creates. 
-                         // To delete a named shm without mapping is tricky in this crate?
-                         // Ideally we map it then drop it with unlink config?
-                         // Let's try basic best-effort.
-                         
-                         // Attempt to remove via OS specific if needed, or open-then-unlink.
-                         // For now, let's assume we can treat it as a file on Linux (/dev/shm)
-                         // or use proper crate method if available.
-                         // Wait, standard `remove_file` works on /dev/shm on Linux.
-                         // On Windows? It's harder.
-                         
-                         // BUT, `shared_memory` crate usually unlinks on Drop if configured.
-                         // So we try to Open -> Set UnlinkOnDrop -> Drop.
-                         match ShmemConf::new().os_id(&record.name).open() {
-                             Ok(mut shm) => {
-                                 shm.set_owner(true); // Ensure we own it to unlink
-                                 // Dropping shm now unlinks it if owner is true?
-                                 // Depends on crate version behavior.
-                                 // Let's assume yes.
-                                 zombies_cleaned += 1;
-                             },
-                             Err(_) => {}
-                         }
-                     } else {
-                         active_records.push(record);
-                     }
+                if !is_alive {
+                    // ZOMBIE! Unlink via open-then-drop with owner=true
+                    if let Ok(mut shm) = ShmemConf::new().os_id(&record.name).open() {
+                        shm.set_owner(true);
+                        zombies_cleaned += 1;
+                    }
+                } else {
+                    active_records.push(record);
                 }
             }
         }
@@ -156,12 +125,9 @@ impl MemoryRegistry {
         if let Ok(map) = self.owned_allocations.lock() {
              for (name, _) in map.iter() {
                  // Open and Unlink
-                 match ShmemConf::new().os_id(name).open() {
-                     Ok(mut shm) => {
-                         shm.set_owner(true);
-                         // Drop -> Unlink
-                     },
-                     Err(_) => {}
+                 if let Ok(mut shm) = ShmemConf::new().os_id(name).open() {
+                     shm.set_owner(true);
+                     // Drop -> Unlink
                  }
              }
         }

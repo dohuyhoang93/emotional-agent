@@ -161,7 +161,7 @@ Theus prioritizes **Performance** (Zero-Copy) while providing **Safety Tools**:
 > ⚠️ **Warning:** In-place mutation (e.g., `list.append`) bypasses the safety lawyer. Always use the Copy-on-Write pattern.
 
 ### The Heavy Zone & Zero-Copy Parallelism (Strategy V3)
-> **Current Status (v3.0.1):** Parallelism is Thread-based (GIL-bound). True Multi-Core requires correct usage of `ctx.heavy`.
+> **Current Status (v3.0.2):** Parallelism is Thread-based (GIL-bound). True Multi-Core requires correct usage of `ctx.heavy`.
 
 For AI workload/Tensors > 1MB, `ctx.heavy` is evolving into a **Shared Memory Gateway**:
 *   **Standard Mode (Thread):** `ctx.heavy` acts as a bypass for Transaction Log (Performance).

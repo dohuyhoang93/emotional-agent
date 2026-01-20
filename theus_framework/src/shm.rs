@@ -1,11 +1,6 @@
 use pyo3::prelude::*;
-use pyo3::types::{PyBytes, PyDict};
-use memmap2::MmapMut;
-use std::fs::OpenOptions;
-use std::path::PathBuf;
 use uuid::Uuid;
 use std::collections::HashMap;
-use std::sync::{Arc, Mutex};
 
 /// BufferDescriptor: The "Passport" for Zero-Copy Data.
 /// Contains metadata needed for Python to reconstruct a memoryview.
@@ -37,6 +32,7 @@ impl BufferDescriptor {
 
 /// ShmAllocator: Manages the lifecycle of Memory-Mapped Files.
 /// This acts as the "Heavy Zone" Governor.
+#[allow(dead_code)]
 pub struct ShmAllocator {
     // Maps unique name -> Mmap handle (to keep it alive/RAII)
     // currently simplified: we don't hold MmapMut here forever in this version,
@@ -45,6 +41,7 @@ pub struct ShmAllocator {
     allocations: HashMap<String, usize>, 
 }
 
+#[allow(dead_code)]
 impl ShmAllocator {
     pub fn new() -> Self {
         ShmAllocator {
@@ -54,7 +51,7 @@ impl ShmAllocator {
 
     /// Allocates a new global SHM block.
     /// Returns the name (shm_name) of the block.
-    pub fn allocate(&mut self, size: usize) -> Result<String, std::io::Error> {
+    pub fn allocate(&mut self, _size: usize) -> Result<String, std::io::Error> {
         let name = format!("theus_shm_{}", Uuid::new_v4());
         
         // On Windows/Linux, Python's SharedMemory uses a specific path convention or shm_open.
