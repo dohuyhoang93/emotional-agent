@@ -11,10 +11,31 @@ try:
     import numpy as np
     from multiprocessing import shared_memory
 
+    class SafeSharedMemory:
+        """
+        Proxy for SharedMemory that forbids unlink() to enforce strict ownership.
+        Used by Borrower processes.
+        """
+        def __init__(self, name):
+            self._shm = shared_memory.SharedMemory(name=name)
+            self.name = self._shm.name
+            self.size = self._shm.size
+            self.buf = self._shm.buf
+            
+        def close(self):
+            return self._shm.close()
+            
+        def unlink(self):
+            raise PermissionError("Access Denied: Only the Owner process can unlink Managed Memory.")
+            
+        def __getattr__(self, name):
+            return getattr(self._shm, name)
+
     def rebuild_shm_array(name, shape, dtype):
         """Helper to reconstruct ShmArray from pickle meta-data."""
         try:
-            shm = shared_memory.SharedMemory(name=name)
+            # v3.2 Strict Mode: Borrowers get SafeSharedMemory
+            shm = SafeSharedMemory(name=name)
         except FileNotFoundError:
             # If SHM is gone, return None or empty?
             # For now return None to indicate failure
@@ -203,4 +224,122 @@ class BaseSystemContext(LockedContextMixin):
     """
     global_ctx: BaseGlobalContext
     domain_ctx: BaseDomainContext
+    
+import uuid
+import atexit
+import os
+
+import json
+import os
+import signal
+import time
+
+REGISTRY_FILE = ".theus_memory_registry.jsonl"
+
+class HeavyZoneAllocator:
+    """
+    Manager for Shared Memory Lifecycle (v3.1).
+    Delegates to Rust Core (v3.2) for Registry and Zombie Collection.
+    Fork-Safe: Tracks creator PID for each segment.
+    """
+    def __init__(self):
+        self._session_id = str(uuid.uuid4())[:8]
+        # self._pid is legacy/reference, we use os.getpid() dynamically now
+        self._allocations = {} # name -> (shm, shm_array, creator_pid)
+        self._cleaned = False
+        
+        # v3.2 Rust Core Integration
+        try:
+            # Strategy 1: Direct Import
+            try:
+                from theus_core import MemoryRegistry
+            except ImportError:
+                 # Strategy 2: Nested Extension Import
+                 try:
+                     from theus_core.theus_core import MemoryRegistry
+                 except ImportError:
+                     # Strategy 3: Submodule via Attribute Access (Reliable for PyO3)
+                     import theus_core
+                     if hasattr(theus_core, 'shm') and hasattr(theus_core.shm, 'MemoryRegistry'):
+                         MemoryRegistry = theus_core.shm.MemoryRegistry
+                     elif hasattr(theus_core, 'theus_core') and hasattr(theus_core.theus_core, 'shm'):
+                          # Wrapper case
+                          MemoryRegistry = theus_core.theus_core.shm.MemoryRegistry
+                     else:
+                          # Last ditch: try importing shm
+                          from theus_core.shm import MemoryRegistry
+
+            self._registry = MemoryRegistry(self._session_id) # Scans zombies on init
+        except (ImportError, AttributeError, NameError) as e:
+            # Fallback for dev/test without compiling
+            print(f"[Theus] Warning: Rust Core MemoryRegistry not found. Zombie Collection disabled. Error: {e}")
+            self._registry = None
+        
+        atexit.register(self.cleanup)
+
+    def alloc(self, key: str, shape: tuple, dtype) -> Any:
+        """
+        Allocate a managed ShmArray.
+        Name format: theus:{session}:{pid}:{key}
+        """
+        if np is None:
+            raise ImportError("Numpy/SharedMemory not available")
+
+        current_pid = os.getpid()
+        
+        # 1. Resolve Namespace (Dynamic PID to prevent collision in forks)
+        full_name = f"theus:{self._session_id}:{current_pid}:{key}"
+        
+        # 2. Calculate Size
+        temp = np.dtype(dtype)
+        size = int(np.prod(shape) * temp.itemsize)
+
+        # 3. Alloc (Collision Safe via Python SharedMemory)
+        try:
+            shm = shared_memory.SharedMemory(create=True, size=size, name=full_name)
+        except FileExistsError:
+            shm = shared_memory.SharedMemory(name=full_name)
+        
+        # 4. Wrap & Track
+        raw_arr = np.ndarray(shape, dtype=dtype, buffer=shm.buf)
+        
+        # Safe Wrapper
+        arr = ShmArray(raw_arr, shm=shm)
+        
+        self._allocations[full_name] = (shm, arr, current_pid)
+        
+        # 5. Notify Rust Registry
+        if self._registry:
+            self._registry.log_allocation(full_name, size)
+        
+        return arr
+
+    def cleanup(self):
+        """
+        Destructor ensuring UNLINK is called.
+        Fork-Safe: Only unlinks segments created by THIS process.
+        """
+        if self._cleaned: return
+        
+        current_pid = os.getpid()
+        
+        # 1. Python Cleanup (Close handles)
+        for name, (shm, _, creator_pid) in self._allocations.items():
+            try:
+                shm.close() # Always close handle
+                
+                if creator_pid == current_pid:
+                    # We are the owner. Unlink.
+                    shm.unlink()
+            except Exception:
+                pass
+        
+        # 2. Rust Cleanup
+        # Registry handles persistent file updates if needed
+        
+        self._allocations.clear()
+        self._cleaned = True
+    
+    def __del__(self):
+        self.cleanup()
 

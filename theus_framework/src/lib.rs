@@ -12,6 +12,9 @@ mod tracked;
 mod zones;
 mod signals;
 mod shm;
+mod shm_registry;
+mod conflict;
+
 
 /// Theus Core Rust Extension
 #[pymodule]
@@ -29,6 +32,10 @@ fn theus_core(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     // Signals (v3.1)
     m.add_class::<signals::SignalHub>()?;
     m.add_class::<signals::SignalReceiver>()?;
+
+    // Managed Memory (v3.2)
+    // Managed Memory (v3.2) - Moved to shm submodule
+    // m.add_class::<shm_registry::MemoryRegistry>()?;
     
     // Structures
     m.add_class::<structures::State>()?;
@@ -54,10 +61,16 @@ fn theus_core(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("AuditAbortError", py.get_type_bound::<audit::AuditAbortError>())?;
     m.add("AuditStopError", py.get_type_bound::<audit::AuditStopError>())?;
     m.add("AuditWarning", py.get_type_bound::<audit::AuditWarning>())?;
+    
+    // Conflict (v3.3)
+    m.add_class::<conflict::ConflictManager>()?;
+    m.add_class::<conflict::RetryDecision>()?;
+
 
     // Sub-module for SHM (v3.1)
     let shm_mod = PyModule::new_bound(py, "shm")?;
     shm::theus_shm(py, &shm_mod)?;
+    shm_mod.add_class::<shm_registry::MemoryRegistry>()?;
     m.add_submodule(&shm_mod)?;
 
     Ok(())

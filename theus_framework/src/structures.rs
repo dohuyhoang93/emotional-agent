@@ -84,7 +84,6 @@ impl MetaLogEntry {
 }
 
 /// Theus v3 Immutable State
-
 #[pyclass(module = "theus_core")]
 #[derive(Clone)]
 pub struct State {
@@ -94,6 +93,8 @@ pub struct State {
     pub meta_logs: Arc<Mutex<VecDeque<MetaLogEntry>>>,
     pub meta_capacity: usize,
     pub version: u64,
+    // v3.3: Key-Level Versioning for Smart CAS
+    pub key_last_modified: HashMap<String, u64>,
 }
 
 #[pymethods]
@@ -109,12 +110,14 @@ impl State {
         // v3.2: Signal is transient. We create a fresh Hub unless one is passed (which is opaque).
         // For now, simpler: Always new Hub. 
         let state_signal = Arc::new(SignalHub::new());
+        let mut key_last_mod = HashMap::new();
 
         if let Some(d) = data {
             let d_dict = d.downcast_bound::<PyDict>(py)?;
             for (k, v) in d_dict {
                 let key = k.extract::<String>()?;
-                state_data.insert(key, Arc::new(v.into_py(py)));
+                state_data.insert(key.clone(), Arc::new(v.into_py(py)));
+                key_last_mod.insert(key, version);
             }
         }
 
@@ -122,7 +125,8 @@ impl State {
             let h_dict = h.downcast_bound::<PyDict>(py)?;
             for (k, v) in h_dict {
                  let key = k.extract::<String>()?;
-                 state_heavy.insert(key, Arc::new(v.into_py(py)));
+                 state_heavy.insert(key.clone(), Arc::new(v.into_py(py)));
+                 key_last_mod.insert(key, version);
             }
         }
         
@@ -136,6 +140,7 @@ impl State {
             meta_logs: Arc::new(Mutex::new(VecDeque::with_capacity(meta_capacity))),
             meta_capacity,
             version,
+            key_last_modified: key_last_mod,
         })
     }
 
@@ -151,6 +156,7 @@ impl State {
             meta_logs: self.meta_logs.clone(),
             meta_capacity: self.meta_capacity,
             version: self.version + 1,
+            key_last_modified: self.key_last_modified.clone(),
         };
 
         // Auto-log update event (Meta Zone)
@@ -160,7 +166,8 @@ impl State {
             let d_dict = d.downcast_bound::<PyDict>(py)?;
             for (k, v) in d_dict {
                 let key = k.extract::<String>()?;
-                new_state.data.insert(key, Arc::new(v.into_py(py)));
+                new_state.data.insert(key.clone(), Arc::new(v.into_py(py)));
+                new_state.key_last_modified.insert(key, new_state.version);
             }
         }
         
@@ -168,7 +175,8 @@ impl State {
             let h_dict = h.downcast_bound::<PyDict>(py)?;
             for (k, v) in h_dict {
                 let key = k.extract::<String>()?;
-                new_state.heavy.insert(key, Arc::new(v.into_py(py)));
+                new_state.heavy.insert(key.clone(), Arc::new(v.into_py(py)));
+                new_state.key_last_modified.insert(key, new_state.version);
             }
         }
         
@@ -230,6 +238,7 @@ impl State {
             meta_logs: self.meta_logs.clone(), // Share system logs
             meta_capacity: self.meta_capacity,
             version: self.version,
+            key_last_modified: self.key_last_modified.clone(),
         }
     }
 

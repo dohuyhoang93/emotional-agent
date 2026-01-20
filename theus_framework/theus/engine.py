@@ -57,6 +57,11 @@ class TheusEngine:
         self._audit = None
         self._interpreter_pool = None # Lazy init
         
+        # v3.1 Managed Memory
+        # Import internally to avoid circular dep at module level if context imports engine (unlikely but safe)
+        from theus.context import HeavyZoneAllocator
+        self._allocator = HeavyZoneAllocator()
+
         if audit_recipe:
              # Unwrap Hybrid Config (if present)
              rust_recipe = audit_recipe
@@ -214,6 +219,11 @@ class TheusEngine:
     @property
     def state(self):
         return self._core.state
+        
+    @property
+    def heavy(self):
+        """v3.1 Managed Memory Allocator"""
+        return self._allocator
 
     def transaction(self):
         return self._core.transaction()
@@ -238,8 +248,10 @@ class TheusEngine:
     async def execute(self, func_or_name, *args, **kwargs):
         """
         Executes a process and handles Transactional Commit logic and Safety Guard enforcement.
-        Extended v3.0: Supports Audit Integration (Exceptions) and POP Output Mapping.
+        Extended v3.3: Supports Automatic Retry (Backoff) for Conflict Resolution.
         """
+        import asyncio
+        
         # Resolve function
         if isinstance(func_or_name, str):
             func = self._registry.get(func_or_name)
@@ -248,6 +260,44 @@ class TheusEngine:
         else:
             func = func_or_name
 
+        # Helper for Loop
+        start_version = None
+        
+        while True:
+            try:
+                result = await self._attempt_execute(func, *args, **kwargs)
+                
+                # If success, clear conflict counter
+                if hasattr(self._core, "report_success"):
+                    self._core.report_success(func.__name__)
+                
+                return result
+                
+            except Exception as e:
+                # Check for CAS Conflict (ContextError)
+                err_msg = str(e)
+                is_cas_error = "CAS Version Mismatch" in err_msg
+                is_busy_error = "System Busy" in err_msg
+                
+                if is_busy_error:
+                     # VIP Active. Sleep and retry.
+                     # print(f"[*] System Busy (VIP). Waiting...")
+                     await asyncio.sleep(0.05)
+                     continue
+
+                if is_cas_error and hasattr(self._core, "report_conflict"):
+                     decision = self._core.report_conflict(func.__name__)
+                     if decision.should_retry:
+                         print(f"[*] Conflict detected for {func.__name__}. Retrying in {decision.wait_ms}ms...")
+                         await asyncio.sleep(decision.wait_ms / 1000.0)
+                         continue
+                
+                # If not retryable or other error, propagate
+                # Also log fail in audit (already handled in nested _attempt_execute? No, I moved it)
+                # Let's move the bulk logic to _attempt_execute
+                raise e
+
+    async def _attempt_execute(self, func, *args, **kwargs):
         contract = getattr(func, "_pop_contract", None)
         
         # v3.0.2: Auto-Dispatch Parallel Processes
@@ -359,11 +409,13 @@ class TheusEngine:
             if start_version is not None:
                  final_heavy = new_heavy if new_heavy else None
                  print(f"DEBUG: Attempting CAS for {func.__name__} version {start_version} updates: {updates_by_root.keys()}")
-                 res = self._core.compare_and_swap(start_version, updates_by_root, final_heavy, None)
+                 res = self._core.compare_and_swap(start_version, updates_by_root, final_heavy, None, func.__name__)
                  print(f"DEBUG: CAS Result for {func.__name__}: {res}")
             else:
                  print(f"DEBUG: CAS Skipped for {func.__name__} (start_version is None)")
 
+            return result
+        
             return result
         
         return result

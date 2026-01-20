@@ -4,28 +4,61 @@ import time
 from theus.contracts import process
 
 @process(parallel=True)
-def apply_filter(ctx):
+def process_partition(ctx):
     """
-    Applies a simple filter to a large matrix (Zero-Copy).
-    Expected context:
-      - ctx.heavy['image']: Read-Only ShmArray (Result of Zero-Copy)
-      - ctx.input['kernel_size']: int
+    Processes a specific partition of the shared data.
+    Inputs (merged into ctx.domain/input):
+      - 'partition_id': int
+      - 'start_idx': int
+      - 'end_idx': int
     """
-    # 1. Access Zero-Copy Data (No Deserialization Cost)
-    # Theus automatically maps the shared buffer to a numpy array here.
-    image = ctx.heavy['image'] 
-    k = ctx.input.get('kernel_size', 1)
+    # 1. Get Inputs (Lightweight)
+    p_id = ctx.input.get('partition_id')
+    start = ctx.input.get('start_idx')
+    end = ctx.input.get('end_idx')
     
-    # 2. Simulate Work
-    # Simple operation: element-wise multiplication or similar
-    # In real world: convolution, detection, etc.
-    result_slice = image[0:100, 0:100] * k 
+    # 2. Access Shared Data (Zero-Copy)
+    # Note: ShmArray is backed by memory. Writing to it updates the global view.
+    # We will write to 'results' array at our specific slice.
+    input_data = ctx.heavy['source_data']
+    output_data = ctx.heavy['results_data']
     
-    # 3. Return Metadata/Result
-    # (We don't return the big array to avoid Pickle cost on return path)
+    # 3. Simulate Intensive Work (CPU Bound)
+    # E.g. Apply a transform and sum
+    chunk = input_data[start:end]
+    
+    # In-Place Write (Visible to all instantly)
+    # We square the values
+    processed = np.power(chunk, 2)
+    output_data[start:end] = processed
+    
+    # 4. Return Delta (Aggregation Metadata)
+    # We return the local sum to challenge the Engine's delta handling
+    local_sum = float(np.sum(processed))
+    
     return {
-        "status": "processed",
-        "sample_mean": float(np.mean(result_slice)),
-        "shape": image.shape,
+        "p_id": p_id,
+        "partial_sum": local_sum,
+        "rows_processed": (end - start),
         "pid": __import__('os').getpid()
     }
+
+@process(parallel=True)
+def saboteur_task(ctx):
+    """
+    Attempts to destroy the shared memory provided to it.
+    This should FAIL if Theus is working correctly.
+    """
+    try:
+        data = ctx.heavy['source_data']
+        # Attempt to unlink (Destroy)
+        # Note: data is ShmArray, data.shm is SafeSharedMemory wrapper
+        if hasattr(data, 'shm') and data.shm:
+            data.shm.unlink()
+            return {"status": "DESTROYED"}
+        else:
+            return {"status": "NO_HANDLE"}
+    except PermissionError:
+        return {"status": "BLOCKED"}
+    except Exception as e:
+        return {"status": f"ERROR: {e}"}
