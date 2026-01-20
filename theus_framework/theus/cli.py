@@ -229,6 +229,7 @@ def main():
     # Command: check (New V3.1)
     parser_check = subparsers.add_parser("check", help="Run POP Static Analysis (Linter).")
     parser_check.add_argument("target", nargs="?", default=".", help="Directory to check.")
+    parser_check.add_argument("--format", choices=["table", "json"], default="table", help="Output format (default: table).")
 
     # Command: audit
     parser_audit = subparsers.add_parser("audit", help="Audit tools.")
@@ -293,7 +294,7 @@ def main():
         if not target.exists():
              console.print(f"[bold red]❌ Target path does not exist: {target}[/bold red]")
              sys.exit(1)
-        success = run_lint(target)
+        success = run_lint(target, output_format=args.format)
         if not success:
             sys.exit(1)
         
