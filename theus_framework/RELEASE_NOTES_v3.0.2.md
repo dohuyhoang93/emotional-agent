@@ -26,6 +26,12 @@ Optimized the Heavy Zone for efficient data handling:
 - **Stability:** Fixed configuration templates and import paths for parallel execution examples.
 - **Standardization:** Codebase enforces strict architectural rules, vetted by both `cargo clippy` (Rust) and `ruff` (Python).
 
+### 🐛 Critical Fixes
+- **Flux Signal Blindness:** Fixed a race condition where ephemeral signals emitted by async processes were missed by the Flux Workflow engine. Signals are now properly latched in `State.last_signals` for one tick.
+- **Numpy Compatibility:** `ContextGuard` now natively supports Numpy scalar types (`int64`, `float32`, etc.), preventing `TypeError` during mathematical operations.
+
+
+
 ## Known Limitations
 - **Sub-Interpreter Compatibility:** While Theus supports PEP-554 (Sub-interpreters), major C-extensions like `numpy` do not yet support multi-phase initialization (`numpy._core._multiarray_umath` error). Therefore, the system currently defaults to `ProcessPool` for robust execution.
 - **Zombie Collector (Windows):** Automatic cleanup of shared memory from crashed processes is currently experimental on Windows due to OS-specific naming constraints (fully functional on Linux).

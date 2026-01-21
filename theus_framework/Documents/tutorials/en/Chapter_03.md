@@ -23,12 +23,24 @@ def my_process(ctx, ...):
       +-----------+           +----------------+           +------------+
       |  INPUTS   | --------> |    PROCESS     | --------> |  OUTPUTS   |
       | (Frozen)  |           |   (Function)   |           | (Mutation) |
+      | (Frozen)  |           |   (Function)   |           | (Mutation) |
       +-----------+           +----------------+           +------------+
             ^                         |                          |
             |                         v                          v
       [Audit Gate]               [Exception]                [Commit]
-     (Check Rules)             (Rollback All)            (Append Log)
+     (Check PERMISSION)        (Rollback All)            (Append Log)
+     (NOT Validation)
 ```
+
+> **🧠 Manifesto Connection:**
+> **Principle 1.2: "Explicit Contracts".**
+>
+> **Why force me to list inputs/outputs?**
+> Imagine reading code written 2 years ago. To know what `update_user()` does, you have to read every line.
+> With Theus, you just read the decorator. You know *exactly* what it touches.
+> **Benefit:** You can refactor `domain.user.age` logic without fearing you'll break `domain.order.total`. Fearless Refactoring.
+
+> **💡 Pro Tip:** The `inputs` list enforces **Security** (Access Control), not **Integrity** (Data Validation). Theus allows you to read `age=-5` if it was somehow stored in the DB. Use Python code if you need to validate input values.
 
 ## 2. Critical Path Change in v3.0
 

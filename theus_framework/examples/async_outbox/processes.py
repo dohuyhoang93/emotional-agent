@@ -145,5 +145,22 @@ def p_prepare_outbox_event(ctx: DemoSystemContext):
     
     return new_status, new_queue
 
-# NOTE: p_flush_outbox REMOVED.
+# p_flush_outbox REMOVED.
 # Persisting to DB is now a System-Level Relay task, not a workflow step.
+
+@process(
+    inputs=[],
+    outputs=[],
+    side_effects=['logging']
+)
+def p_log_blindness(ctx: DemoSystemContext):
+    """
+    Logs blindness detection.
+    """
+    print("\n[!!!] SIGNAL BLINDNESS DETECTED: cmd_start_outbox was ignored by Flux!")
+    return None
+
+@process(inputs=[], outputs=[], side_effects=['logging'])
+def p_log_success(ctx: DemoSystemContext):
+    print("\n[OK] SIGNAL RECEIVED BY FLUX: cmd_start_outbox detected!")
+    return None

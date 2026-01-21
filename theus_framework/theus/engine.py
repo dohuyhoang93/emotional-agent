@@ -189,9 +189,16 @@ class TheusEngine:
         
         # Build context dict for condition evaluation
         data = self.state.data
+        # v3.3: Inject Signal Snapshot (Fix Binding Blindness)
+        signals = {}
+        if hasattr(self.state, "signals"):
+             signals = self.state.signals
+        
         ctx = {
             'domain': data.get('domain', None),
             'global': data.get('global', None),
+            'signal': signals,
+            'cmd': signals
         }
         
         # Execute workflow with process executor callback

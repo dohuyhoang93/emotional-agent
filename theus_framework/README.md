@@ -13,7 +13,7 @@
 Theus is vast. Use our **[Interactive Documentation Map](https://github.com/dohuyhoang93/theus/blob/main/Documents/00_Start_Here_Map.md)** to find your path:
 *   🚀 **I want to build an Agent now:** [Go to Quickstart](https://github.com/dohuyhoang93/theus/blob/main/Documents/AI_DEVELOPER_GUIDE.md)
 *   🤖 **I am an AI Assistant:** [Go to AI Tutorials](https://github.com/dohuyhoang93/theus/blob/main/Documents/tutorials/ai/00_QUICK_REFERENCE.md)
-*   🏗️ **I want to check architecture:** [Go to Specs](https://github.com/dohuyhoang93/theus/blob/main/Documents/Architecture/theus_v3_0_1_architecture.md)
+*   🏗️ **I want to check architecture:** [Go to Specs](https://github.com/dohuyhoang93/theus/blob/main/Documents/Architecture/theus_v3_0_2_architecture.md)
 *   🎓 **I want to learn from scratch:** [Go to Tutorials](https://github.com/dohuyhoang93/theus/blob/main/Documents/tutorials/en/Chapter_01.md)
 
 ---
@@ -72,11 +72,12 @@ This creates a complete runnable demo with: Orders, Payments, Heavy Zone, Audit 
 
 ```python
 from theus import TheusEngine, process
+from theus.structures import StateUpdate
 
 # 1. Define a Process with Contract
 @process(
-    inputs=['domain.accounts'],
-    outputs=['domain.accounts'],
+    inputs=['domain_ctx.accounts'],
+    outputs=['domain_ctx.accounts'],
     errors=['ValueError']
 )
 def transfer(ctx, from_user: str, to_user: str, amount: int):
@@ -84,8 +85,8 @@ def transfer(ctx, from_user: str, to_user: str, amount: int):
         raise ValueError("Amount must be positive")
     
     # V3 Pattern: Copy -> Modify -> Return
-    # ctx.domain.accounts is Immutable (FrozenDict) in strict_mode
-    accounts = dict(ctx.domain.accounts)
+    # ctx.domain_ctx.accounts is Immutable (FrozenDict)
+    accounts = dict(ctx.domain_ctx.accounts)
     
     if accounts.get(from_user, 0) < amount:
         raise ValueError("Insufficient funds")
@@ -93,8 +94,8 @@ def transfer(ctx, from_user: str, to_user: str, amount: int):
     accounts[from_user] -= amount
     accounts[to_user] = accounts.get(to_user, 0) + amount
     
-    # Return new state (Engine handles the commit)
-    return accounts
+    # Return explicit update (Engine handles the commit)
+    return StateUpdate(domain={'accounts': accounts})
 
 # 2. Initialize Engine
 from src.context import DemoSystemContext
@@ -122,15 +123,15 @@ steps:
   - flux: if
     condition: "domain['is_valid'] == True"
     then:
-      - "process_data"
-      - "save_result"
+      - process: "process_data"
+      - process: "save_result"
     else:
-      - "handle_error"
+      - process: "handle_error"
   
   - flux: while
     condition: "domain['items_left'] > 0"
     do:
-      - "process_next_item"
+      - process: "process_next_item"
 ```
 
 Execute with:

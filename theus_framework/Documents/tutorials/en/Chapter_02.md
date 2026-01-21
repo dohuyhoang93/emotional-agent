@@ -12,7 +12,12 @@ Instead of forcing you to write `ctx.domain_ctx.data.user_id` (too verbose), The
 | **META** | `meta_` | Debug Info. | Read-only (usually). |
 | **HEAVY** | `heavy_` | AI Tensors/Blobs. | **Zero-Copy** (Direct RAM), No Rollback. |
 
-> **🧠 Philosophy Note:** Why divide into Zones? Because **"Transparency is Safety"**. By explicitly separating transient Signals from persistent Data, we prevent "Logic Leakage". See Principle 3.1 of the [POP Manifesto](../../POP_Manifesto.md).
+> **🧠 Manifesto Connection:**
+> **Principle 3.1: "Transparency is Safety".**
+>
+> **Why define Zones?**
+> A common bug in AI is "Logic Leakage": An agent sees an old implementation detail (like a `stop_command` flag remaining `True` from 50 steps ago) and hallucinates.
+> By strictly separating **Signals** (which self-destruct after 1 tick) from **Data** (which persists), Theus guarantees that your Agent only reacts to *current reality*, not historical ghosts.
 
 ## 2. Design with Dataclasses
 We still use `dataclass`, but we must adhere to Zone conventions.
@@ -28,9 +33,10 @@ class WarehouseDomain(BaseDomainContext):
     items: list = field(default_factory=list)
     total_value: int = 0
     
-    # --- SIGNAL ZONE (Control) ---
-    sig_restock_needed: bool = False  # Flag indicating restock needed
-    cmd_stop_robot: bool = False      # Emergency stop command
+    # --- SIGNAL ZONE ---
+    # NOTE (v3.0): Do NOT declare signals here! 
+    # Signals are Dynamic Events managed by Rust.
+    # They are ephemeral and don't belong in the persistent schema.
     
     # --- HEAVY ZONE (Large Data) ---
     heavy_inventory_image: object = None  # For camera snapshots
@@ -56,7 +62,11 @@ class WarehouseContext(BaseSystemContext):
 When you run a **Replay (Bug Reproduction)**:
 - Theus will restore exactly `items` and `total_value` (Data Zone).
 - Theus will **IGNORE** `sig_restock_needed` (Signal Zone) because it is past noise.
-This ensures **Determinism** - Running 100 times yields the exact same result.
+- Theus will restore exactly `items` and `total_value` (Data Zone).
+- Theus will **IGNORE** Signals because they are transient noise.
+
+**Benefit for You:**
+You can replay a bug from yesterday, and it will execute *exactly the same way*, bit-for-bit. This is **Principle 2.3: "Deterministic Replay"**. Debugging becomes a science, not guesswork.
 
 ## 4. Immutable Snapshot Mechanism
 Theus protects the Context using **Snapshot Isolation** (enforced by Rust Core).

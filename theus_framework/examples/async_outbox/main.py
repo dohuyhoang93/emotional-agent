@@ -74,6 +74,19 @@ async def main():
     engine.register(processes.p_do_sync_work)
     engine.register(processes.p_await_job)
     engine.register(processes.p_prepare_outbox_event)
+    engine.register(processes.p_log_blindness)
+    engine.register(processes.p_log_success)
+    
+    # 3.1 Inject Signal (Test Flux Capability)
+    print("\n[Test] Injecting 'cmd_start_outbox' signal...")
+    try:
+        engine.compare_and_swap(
+            engine.state.version, 
+            signal={'cmd_start_outbox': True}
+        )
+        print("[Test] Signal Injected.")
+    except Exception as e:
+        print(f"[Test] Signal Injection Failed: {e}")
     
     # --- Execute Workflow ---
     print("\n--- Start Workflow (Threaded) ---")

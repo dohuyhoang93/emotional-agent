@@ -95,6 +95,8 @@ pub struct State {
     pub version: u64,
     // v3.3: Key-Level Versioning for Smart CAS
     pub key_last_modified: HashMap<String, u64>,
+    // v3.3: Signal Latch for Flux (Snapshot of signals in this version)
+    pub last_signals: HashMap<String, String>,
 }
 
 #[pymethods]
@@ -111,6 +113,7 @@ impl State {
         // For now, simpler: Always new Hub. 
         let state_signal = Arc::new(SignalHub::new());
         let mut key_last_mod = HashMap::new();
+        let last_sig = HashMap::new(); // Init empty latch
 
         if let Some(d) = data {
             let d_dict = d.downcast_bound::<PyDict>(py)?;
@@ -141,6 +144,7 @@ impl State {
             meta_capacity,
             version,
             key_last_modified: key_last_mod,
+            last_signals: last_sig,
         })
     }
 
@@ -157,6 +161,7 @@ impl State {
             meta_capacity: self.meta_capacity,
             version: self.version + 1,
             key_last_modified: self.key_last_modified.clone(),
+            last_signals: HashMap::new(), // Reset latch for new tick
         };
 
         // Auto-log update event (Meta Zone)
@@ -188,7 +193,10 @@ impl State {
                      for (k, v) in s_dict {
                         let topic = k.extract::<String>()?;
                         let payload = v.to_string(); 
+
                         new_state.signal.publish(format!("{}:{}", topic, payload));
+                        // Latch for Flux
+                        new_state.last_signals.insert(topic, payload);
                      }
                 }
             } else if let Ok(s_dict) = s.downcast_bound::<PyDict>(py) {
@@ -196,6 +204,8 @@ impl State {
                     let topic = k.extract::<String>()?;
                     let payload = v.to_string(); 
                     new_state.signal.publish(format!("{}:{}", topic, payload));
+                    // Latch for Flux
+                    new_state.last_signals.insert(topic, payload);
                 }
             }
         }
@@ -239,6 +249,7 @@ impl State {
             meta_capacity: self.meta_capacity,
             version: self.version,
             key_last_modified: self.key_last_modified.clone(),
+            last_signals: self.last_signals.clone(),
         }
     }
 
@@ -273,6 +284,17 @@ impl State {
          // Create a new Python wrapper for the cloned SignalHub struct
          let hub = Py::new(py, (*self.signal).clone())?;
          Ok(hub.into_py(py))
+    }
+
+    #[getter]
+    fn signals(&self, py: Python) -> PyResult<PyObject> {
+        // Expose Latched Signals as Dict for Flux
+        let dict = PyDict::new_bound(py);
+        for (k, v) in &self.last_signals {
+            dict.set_item(k, v)?;
+        }
+        let frozen = Py::new(py, FrozenDict::new(dict.unbind()))?;
+        Ok(frozen.into_py(py))
     }
 
     #[getter]
