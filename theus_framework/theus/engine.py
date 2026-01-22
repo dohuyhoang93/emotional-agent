@@ -189,16 +189,18 @@ class TheusEngine:
         
         # Build context dict for condition evaluation
         data = self.state.data
+        
         # v3.3: Inject Signal Snapshot (Fix Binding Blindness)
+        # We need to expose transient signals to the Flux condition evaluator
         signals = {}
         if hasattr(self.state, "signals"):
              signals = self.state.signals
-        
+             
         ctx = {
             'domain': data.get('domain', None),
             'global': data.get('global', None),
             'signal': signals,
-            'cmd': signals
+            'cmd': signals # Alias for convenience
         }
         
         # Execute workflow with process executor callback
@@ -404,14 +406,21 @@ class TheusEngine:
                          # Fetch current safely
                          curr_wrapper = getattr(self.state, key, None)
                          if hasattr(curr_wrapper, "to_dict"):
-                              updates_by_root[key] = curr_wrapper.to_dict()
+                               updates_by_root[key] = curr_wrapper.to_dict()
                          elif isinstance(curr_wrapper, dict):
-                              updates_by_root[key] = curr_wrapper.copy()
+                               updates_by_root[key] = curr_wrapper.copy()
                          else:
-                              updates_by_root[key] = {}
+                               # Preserve Object Identity/State for Pydantic/Dataclasses
+                               updates_by_root[key] = curr_wrapper
                      
                      if len(rest) > 0:
-                         updates_by_root[key][rest[0]] = val
+                         target = updates_by_root[key]
+                         field = rest[0]
+                         if isinstance(target, dict):
+                             target[field] = val
+                         else:
+                             # Object Mutation
+                             setattr(target, field, val)
             
             if start_version is not None:
                  final_heavy = new_heavy if new_heavy else None

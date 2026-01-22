@@ -137,11 +137,14 @@ Base classes for defining your application structure.
 
 ### 🛡️ Immutable Context & Updates
 Theus contexts are **Read-Only** by default. You cannot do `ctx.domain.x = 1`.
-To update state, you must use one of two methods:
+To update state, you should use the **POP Contract Pattern**:
 
 1.  **Implicit Return (Recommended):**
+    Declare `outputs` in the decorator and return the new values.
     ```python
-    return {"domain.x": 1}
+    @process(inputs=['domain.count'], outputs=['domain.count'])
+    def increment(ctx):
+        return ctx.domain.count + 1
     ```
 
 2.  **Explicit `StateUpdate` (Advanced):**
@@ -150,9 +153,8 @@ To update state, you must use one of two methods:
     from theus.structures import StateUpdate
     
     return StateUpdate(
-        data={"x": 1},
-        heavy={"tensor": my_array},
-        signal={"sig_alert": True}
+        data={"domain": {"x": 1}},
+        heavy={"tensor": my_array}
     )
     ```
 

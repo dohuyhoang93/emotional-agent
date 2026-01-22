@@ -92,9 +92,12 @@ async def main():
     print("\n--- Start Workflow (Threaded) ---")
     loop = asyncio.get_running_loop()
     
+    basedir = os.path.dirname(os.path.abspath(__file__))
+    workflow_path = os.path.join(basedir, "workflow.yaml")
+    
     # Run in thread pool to avoid blocking main loop
     # engine.execute_workflow is blocking rust call (internally manages tasks)
-    future = loop.run_in_executor(None, engine.execute_workflow, "workflow.yaml")
+    future = loop.run_in_executor(None, engine.execute_workflow, workflow_path)
     
     # Wait for completion (Non-blocking await)
     await future
