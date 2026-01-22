@@ -170,18 +170,42 @@ impl State {
         if let Some(d) = data {
             let d_dict = d.downcast_bound::<PyDict>(py)?;
             for (k, v) in d_dict {
-                let key = k.extract::<String>()?;
-                new_state.data.insert(key.clone(), Arc::new(v.into_py(py)));
-                new_state.key_last_modified.insert(key, new_state.version);
+                let zone_key = k.extract::<String>()?;
+                
+                // v3.1: Track NESTED field paths for Field-Level CAS
+                // NOTE: Must downcast BEFORE into_py to avoid borrow-after-move
+                if let Ok(inner_dict) = v.downcast::<PyDict>() {
+                    for (ik, _iv) in inner_dict {
+                        let inner_key = ik.extract::<String>()?;
+                        let field_path = format!("{}.{}", zone_key, inner_key);  // "domain.counter"
+                        new_state.key_last_modified.insert(field_path, new_state.version);
+                    }
+                }
+                
+                // Keep zone-level tracking for backwards compatibility
+                new_state.key_last_modified.insert(zone_key.clone(), new_state.version);
+                new_state.data.insert(zone_key, Arc::new(v.into_py(py)));
             }
         }
         
         if let Some(h) = heavy {
             let h_dict = h.downcast_bound::<PyDict>(py)?;
             for (k, v) in h_dict {
-                let key = k.extract::<String>()?;
-                new_state.heavy.insert(key.clone(), Arc::new(v.into_py(py)));
-                new_state.key_last_modified.insert(key, new_state.version);
+                let zone_key = k.extract::<String>()?;
+                
+                // v3.1: Track NESTED field paths for Field-Level CAS
+                // NOTE: Must downcast BEFORE into_py to avoid borrow-after-move
+                if let Ok(inner_dict) = v.downcast::<PyDict>() {
+                    for (ik, _iv) in inner_dict {
+                        let inner_key = ik.extract::<String>()?;
+                        let field_path = format!("{}.{}", zone_key, inner_key);  // "heavy.buffer"
+                        new_state.key_last_modified.insert(field_path, new_state.version);
+                    }
+                }
+                
+                // Keep zone-level tracking for backwards compatibility
+                new_state.key_last_modified.insert(zone_key.clone(), new_state.version);
+                new_state.heavy.insert(zone_key, Arc::new(v.into_py(py)));
             }
         }
         

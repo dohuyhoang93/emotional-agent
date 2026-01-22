@@ -29,4 +29,10 @@ class StateUpdate:
     signal: Optional[Dict[str, Any]] = None
     assert_version: Optional[int] = None
 
-__all__ = ["State", "FrozenDict", "ContextError", "StateUpdate"]
+@dataclass
+class FunctionResult:
+    """Wrapper for Rust Function Result."""
+    val: Any = None
+    key: Optional[str] = None
+
+__all__ = ["State", "FrozenDict", "ContextError", "StateUpdate", "FunctionResult"]

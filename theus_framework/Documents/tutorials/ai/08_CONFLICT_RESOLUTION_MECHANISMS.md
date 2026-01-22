@@ -43,10 +43,13 @@ struct ConflictManager {
 2.  **Global Check:** `current.version == expected.version`?
     -   Yes: UPDATE -> Commit.
     -   No: Proceed to Smart Check.
-3.  **Smart Check:** For each Key `K` in Update:
-    -   Is `key_last_modified[K] <= expected.version`?
-    -   If ALL Keys are safe (True): UPDATE -> Commit.
-    -   If ANY Key is unsafe (False): Return `ContextError` (CAS Mismatch).
+3.  **Smart Check (Field-Level v3.1):** For each modified field `F` in Update:
+    -   Lookup: `last_modified = key_last_modified[F]`.
+    -   Tracked Path: e.g., `domain.counter` (exact path), not just `domain`.
+    -   Rule: Is `last_modified <= expected.version`?
+    -   **Result:**
+        -   If ALL modified fields are safe: UPDATE -> Commit (Partial Merge).
+        -   If ANY modified field has changed since `expected.version`: Return `ContextError` (CAS Mismatch).
 
 ### 2. Exponential Backoff
 **Policy:**

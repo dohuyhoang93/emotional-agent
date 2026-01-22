@@ -1,5 +1,8 @@
 # Chapter 4: TheusEngine - Operating the Machine
 
+> [!CAUTION]
+> **OVERHEAD WARNING:** Every call to `engine.execute()` triggers a **Global Lock** and a **Rust Audit**. Do not call this inside tight loops (e.g. iterating 1M array items). Use Batch Processing instead.
+
 TheusEngine v3.0 is a high-performance Rust machine. Understanding its execution flow makes debugging easier.
 
 ## 1. Initializing Standard v3.0 Engine

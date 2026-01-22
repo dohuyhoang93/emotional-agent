@@ -153,17 +153,35 @@ impl TheusEngine {
             
             let mut safe = true;
             
+            // v3.1: Check FIELD-Level Conflicts (domain.counter, not just domain)
             // Check Data Keys
             if let Some(ref d) = data {
                 if let Ok(d_dict) = d.downcast_bound::<PyDict>(py) {
-                    for k in d_dict.keys() {
-                         let key_str = k.extract::<String>()?;
-                         if let Some(last_ver) = current_state.key_last_modified.get(&key_str) {
-                             if *last_ver > expected_version {
-                                 safe = false;
-                                 break;
+                    for (zone_k, zone_v) in d_dict.iter() {
+                         let zone_key = zone_k.extract::<String>()?;
+                         
+                         // Check nested fields if value is a dict
+                         if let Ok(inner_dict) = zone_v.downcast::<PyDict>() {
+                             for (ik, _) in inner_dict {
+                                 let inner_key = ik.extract::<String>()?;
+                                 let field_path = format!("{}.{}", zone_key, inner_key);  // "domain.counter"
+                                 
+                                 if let Some(last_ver) = current_state.key_last_modified.get(&field_path) {
+                                     if *last_ver > expected_version {
+                                         safe = false;
+                                         break;
+                                     }
+                                 }
+                             }
+                         } else {
+                             // Non-dict value: fall back to zone-level check
+                             if let Some(last_ver) = current_state.key_last_modified.get(&zone_key) {
+                                 if *last_ver > expected_version {
+                                     safe = false;
+                                 }
                              }
                          }
+                         if !safe { break; }
                     }
                 }
             }
@@ -172,14 +190,31 @@ impl TheusEngine {
             if safe {
                 if let Some(ref h) = heavy {
                     if let Ok(h_dict) = h.downcast_bound::<PyDict>(py) {
-                        for k in h_dict.keys() {
-                             let key_str = k.extract::<String>()?;
-                             if let Some(last_ver) = current_state.key_last_modified.get(&key_str) {
-                                 if *last_ver > expected_version {
-                                     safe = false;
-                                     break;
+                        for (zone_k, zone_v) in h_dict.iter() {
+                             let zone_key = zone_k.extract::<String>()?;
+                             
+                             // Check nested fields if value is a dict
+                             if let Ok(inner_dict) = zone_v.downcast::<PyDict>() {
+                                 for (ik, _) in inner_dict {
+                                     let inner_key = ik.extract::<String>()?;
+                                     let field_path = format!("{}.{}", zone_key, inner_key);
+                                     
+                                     if let Some(last_ver) = current_state.key_last_modified.get(&field_path) {
+                                         if *last_ver > expected_version {
+                                             safe = false;
+                                             break;
+                                         }
+                                     }
+                                 }
+                             } else {
+                                 // Non-dict value: fall back to zone-level check
+                                 if let Some(last_ver) = current_state.key_last_modified.get(&zone_key) {
+                                     if *last_ver > expected_version {
+                                         safe = false;
+                                     }
                                  }
                              }
+                             if !safe { break; }
                         }
                     }
                 }

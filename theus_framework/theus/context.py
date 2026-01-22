@@ -163,6 +163,13 @@ class LockedContextMixin:
         # Auto-Dispatch for Zero-Copy
         return HeavyZoneWrapper(self._state.heavy)
 
+    def restrict_view(self):
+        """
+        Return the underlying state object for Read-Only wrapping.
+        Used by Engine to create RestrictedStateProxy for PURE processes.
+        """
+        return self._state
+
     def to_dict(self, exclude_zones: List[ContextZone] = None) -> Dict[str, Any]:
         """
         Export context state to dictionary, filtering out specified zones.
@@ -223,7 +230,7 @@ class BaseSystemContext(LockedContextMixin):
     Base Class cho System Context (Wrapper).
     """
     global_ctx: BaseGlobalContext
-    domain_ctx: BaseDomainContext
+    domain: BaseDomainContext
     
 import uuid
 import atexit

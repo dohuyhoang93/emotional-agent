@@ -1,154 +1,82 @@
+import os
+import sys
+import threading
 from contextlib import contextmanager
+from typing import Any, Dict, List, Optional, Union, Callable
 
+# Load Core Rust Module
 try:
-    from theus_core import TheusEngine as TheusEngineRust, State 
-    from theus.structures import StateUpdate, ContextError
-    from theus.contracts import SemanticType, ContractViolationError
-except ImportError:
-    class TheusEngineRust:
-        def __init__(self): pass
-        def execute_process_async(self, name, func): pass
-    StateUpdate = None
-    State = None
-    class SemanticType:
-        PURE = "pure"
-    class ContractViolationError(Exception): pass
+    import theus_core
+    from theus.structures import StateUpdate, FunctionResult
+    _HAS_RUST_CORE = True
+except ImportError as e:
+    _HAS_RUST_CORE = False
+    print(f"WARNING: 'theus_core' not found. Reason: {e}")
+    print("Running in Pure Python Fallback (Slower).")
 
-class SecurityViolationError(Exception):
-    pass
-
-class TransactionError(Exception):
-    pass
-
-
-class RestrictedStateProxy:
-    def __init__(self, state):
-        self._state = state
-    
-    @property
-    def data(self):
-        return self._state.data
-        
-    @property
-    def heavy(self):
-        return self._state.heavy
-        
-    @property
-    def version(self):
-        return self._state.version
-    
-    @property
-    def domain(self):
-        return self._state.domain
-        
-    @property
-    def global_(self): # global is reserved
-        return self._state.global_
-
-    @property
-    def domain_ctx(self):
-        """Alias for domain (Backwards Compatibility for PURE processes)."""
-        return self._state.domain
+from theus.context import BaseSystemContext
+from theus.contracts import SemanticType, ContractViolationError
 
 class TheusEngine:
-    def __init__(self, context=None, strict_mode=True, audit_recipe=None):
-        self._core = TheusEngineRust()
-        self._registry = {} # name -> func
-        self._audit = None
-        self._interpreter_pool = None # Lazy init
+    """
+    Theus v3.0 Main Engine.
+    Orchestrates Context, Processes, and Rust Core Transaction Manager.
+    
+    Args:
+        context: Initial context data (optional)
+        strict_mode: Enable strict contract enforcement (default: True)
+        strict_cas: Enable Strict CAS mode (default: False)
+            - False (default): Use Rust Smart CAS with Key-Level conflict detection
+              Allows updates when specific keys haven't changed, even if version differs.
+            - True: Use Strict CAS - reject ALL version mismatches regardless of keys.
+        audit_recipe: Audit configuration (optional)
+    """
+    def __init__(self, context=None, strict_mode=True, strict_cas=False, audit_recipe=None):
+        self._context = context  
+        self._registry = {}     
+        self._strict_mode = strict_mode
+        self._strict_cas = strict_cas  # v3.0.4: CAS mode control
+        self._audit = None       
         
-        # v3.1 Managed Memory
-        # Import internally to avoid circular dep at module level if context imports engine (unlikely but safe)
-        from theus.context import HeavyZoneAllocator
-        self._allocator = HeavyZoneAllocator()
+        # Load Audit Config if available
+        # v3.0.2: Standardized ConfigFactory Usage
+        from theus.config import ConfigFactory
+        audit_config = ConfigFactory.load_audit_recipe()
+        if audit_config:
+            from theus.audit import AuditSystem
+            self._audit = AuditSystem(audit_config)
 
-        if audit_recipe:
-             # Unwrap Hybrid Config (if present)
-             rust_recipe = audit_recipe
-             if hasattr(audit_recipe, 'rust_recipe'):
-                 rust_recipe = audit_recipe.rust_recipe
-
-             try:
-                 from theus_core import AuditSystem
-                 self._audit = AuditSystem(rust_recipe)
-             except ImportError:
-                 pass
-        
-        # 3. Wire up Core (Bug Fix)
-        if hasattr(self._core, 'set_strict_mode'):
-            self._core.set_strict_mode(strict_mode)
+        # Initialize Rust Core (Microkernel)
+        if _HAS_RUST_CORE:
+            # Rust takes ownership of the Data Zone
+            init_data = context.to_dict() if context else {}
+            self._core = theus_core.TheusEngine() # No args
             
-        if self._audit and hasattr(self._core, 'set_audit_system'):
-            self._core.set_audit_system(self._audit)
-
-        if context:
-            data = {}
-            if hasattr(context, "domain_ctx"):
-                data["domain"] = context.domain_ctx
-            if hasattr(context, "global_ctx"):
-                data["global"] = context.global_ctx
-            if hasattr(context, "input_ctx"):
-                data["input"] = context.input_ctx
-                
-            if data:
+            # Hydrate state via CAS (Version 0 -> Init)
+            if init_data:
                 try:
-                    self.compare_and_swap(self.state.version, data=data)
-                except Exception:
-                    pass
-
-    def get_pool(self):
-        if self._interpreter_pool is None:
-             import os
-             from theus.parallel import InterpreterPool, INTERPRETERS_SUPPORTED, ParallelContext, ProcessPool
-             
-             use_processes = os.environ.get("THEUS_USE_PROCESSES", "0") == "1"
-             
-             if use_processes or not INTERPRETERS_SUPPORTED:
-                 if not use_processes:
-                      # Warn if falling back automatically?
-                      pass
-                 self._interpreter_pool = ProcessPool(size=2)
-             else:
-                 self._interpreter_pool = InterpreterPool(size=2)
-                 
-             self._ParallelContext = ParallelContext 
-        return self._interpreter_pool
-
-
-    def execute_parallel(self, process_name, **input_args):
-        """
-        Executes a registered process in a true parallel sub-interpreter.
-        """
-        # 1. Resolve function
-        func = self._registry.get(process_name)
-        if not func:
-            raise ValueError(f"Process '{process_name}' not found for parallel execution")
+                    # Version 0 is start.
+                    self._core.compare_and_swap(0, init_data)
+                except Exception as e:
+                    print(f"WARNING: Initial hydration failed: {e}")
             
-        pool = self.get_pool()
-        
-        # 2. Prepare isolated context/args
-        current_domain = self.state.domain.to_dict() if hasattr(self.state.domain, 'to_dict') else {}
-        if input_args:
-            current_domain.update(input_args)
-        
-        # Use global picklable class from parallel module
-        # v3.1: Inject Heavy Zone for Zero-Copy
-        # FIX: Convert FrozenDict to dict for Pickle Process boundary
-        heavy_data = self.state.heavy 
-        if hasattr(heavy_data, 'to_dict'):
-             heavy_data = heavy_data.to_dict()
-        elif not isinstance(heavy_data, dict):
-             heavy_data = dict(heavy_data)
-             
-        ctx_data = self._ParallelContext(current_domain, heavy=heavy_data)
-        
-        # 3. Submit
-        future = pool.submit(func, ctx_data)
-        result = future.result() 
-        
-        return result
+            # v3.1: Heavy Asset Manager (Shared Memory)
+            try:
+                self._allocator = theus_core.ManagedAllocator(
+                     capacity_mb=int(os.environ.get("THEUS_HEAP_SIZE", 512))
+                )
+            except AttributeError:
+                 print("WARNING: ManagedAllocator not supported by current Core.")
+                 self._allocator = None
+        else:
+            raise RuntimeError("Theus v3.0 requires Rust Core!")
 
-
+    def _create_restricted_view(self, ctx):
+        """Create a Read-Only Proxy for Pure Processes."""
+        # Use Rust Core to generate a safe View
+        # v2.2 legacy: Python proxy
+        # v3.0: Rust wrapper
+        return RestrictedStateProxy(self._core.state)
 
     def scan_and_register(self, path):
         import os
@@ -237,8 +165,27 @@ class TheusEngine:
     def transaction(self):
         return self._core.transaction()
         
-    def compare_and_swap(self, *args, **kwargs):
-        return self._core.compare_and_swap(*args, **kwargs)
+    def compare_and_swap(self, expected_version, updates):
+        """
+        Compare-And-Swap with configurable conflict detection.
+        
+        Behavior depends on `strict_cas` setting:
+        - strict_cas=False (default): Rust Smart CAS with Key-Level detection.
+          Allows merge when specific keys haven't changed since expected_version.
+        - strict_cas=True: Strict mode - rejects ALL version mismatches.
+        
+        Returns:
+            None on success, State object on failure (strict mode), 
+            or raises ContextError on conflict (smart mode).
+        """
+        # Strict CAS Mode: Pre-flight Check (Python Side)
+        if self._strict_cas:
+            current_version = self.state.version
+            if current_version != expected_version:
+                return self.state  # Gentle rejection
+        
+        # Delegate to Rust Core (Smart CAS with Key-Level detection)
+        return self._core.compare_and_swap(expected_version, updates)
 
     def register(self, func):
         """
@@ -302,8 +249,6 @@ class TheusEngine:
                          continue
                 
                 # If not retryable or other error, propagate
-                # Also log fail in audit (already handled in nested _attempt_execute? No, I moved it)
-                # Let's move the bulk logic to _attempt_execute
                 raise e
 
     async def _attempt_execute(self, func, *args, **kwargs):
@@ -311,38 +256,45 @@ class TheusEngine:
         
         # v3.0.2: Auto-Dispatch Parallel Processes
         if contract and contract.parallel:
-             # Ensure inputs match what execute_parallel expects
-             # execute_parallel takes **input_args.
-             # We should filter kwargs to match inputs?
-             # execute_parallel merges input_args into domain.
-             # We can basically pass **kwargs.
-             # Wait, execute_parallel is synchronous (blocking/Future).
-             # We are in async execute.
-             # We should wrap it in thread/executor to avoid blocking the loop?
-             # But execute_parallel manages its own pool submission.
-             # However, execute_parallel blocks waiting for result.
-             # We should run it in executor.
              import asyncio
              loop = asyncio.get_running_loop()
              return await loop.run_in_executor(None, lambda: self.execute_parallel(func.__name__, **kwargs))
 
-        # Runtime Semantic Firewall (View Restriction)
+        # Runtime Semantic Firewall (View Restrictions)
+        # BUG FIX (v3.0.3): Rust Core execute_process_async does NOT accept *args, **kwargs.
+        # We must capture them in the clousure 'target_func'.
+        
         target_func = func  
         if contract and contract.semantic == SemanticType.PURE:
-             # Pure Wrapper Logic
+             # Pure Wrapper Logic + Arg Capture
+             # [v3.0.4] Pass contract.inputs to create filtered restricted view
+             allowed_inputs = contract.inputs if contract else []
              import inspect
              if inspect.iscoroutinefunction(func):
-                  async def safe_wrapper(ctx, *a, **k):
-                      restricted = self._create_restricted_view(ctx)
-                      return await func(restricted, *a, **k)
+                  async def safe_wrapper(ctx, *_, **__):
+                       restricted = self._create_restricted_view(ctx, allowed_paths=allowed_inputs)
+                       return await func(restricted, *args, **kwargs)
                   safe_wrapper.__name__ = func.__name__
                   target_func = safe_wrapper
              else:
-                  def safe_wrapper(ctx, *a, **k):
-                      restricted = self._create_restricted_view(ctx)
-                      return func(restricted, *a, **k)
+                  def safe_wrapper(ctx, *_, **__):
+                       restricted = self._create_restricted_view(ctx, allowed_paths=allowed_inputs)
+                       return func(restricted, *args, **kwargs)
                   safe_wrapper.__name__ = func.__name__
                   target_func = safe_wrapper
+        else:
+             # If not PURE (no restricted view needed), we still need to bind arguments!
+             import inspect
+             if inspect.iscoroutinefunction(func):
+                  async def arg_binder(ctx, *_, **__):
+                       return await func(ctx, *args, **kwargs)
+                  arg_binder.__name__ = func.__name__
+                  target_func = arg_binder
+             else:
+                  def arg_binder(ctx, *_, **__):
+                       return func(ctx, *args, **kwargs)
+                  arg_binder.__name__ = func.__name__
+                  target_func = arg_binder
 
         # Capture version for CAS
         start_version = None
@@ -356,6 +308,7 @@ class TheusEngine:
 
         # Execute with Audit Hook
         try:
+            # We revert to passing just (name, target_func) because target_func now holds the args
             result = await self._core.execute_process_async(func.__name__, target_func)
             if self._audit:
                  self._audit.log_success(func.__name__)
@@ -432,15 +385,12 @@ class TheusEngine:
 
             return result
         
-            return result
-        
         return result
     
-    def _create_restricted_view(self, ctx):
-        # Create a restricted view (No Signal) via Rust method + Proxy wrapper
-        # The Rust method clears the signal dict (Defense in check)
-        # The Proxy ensures AttributeError on access attempt (Interface/API Contract)
-        return RestrictedStateProxy(ctx.restrict_view())
+    def _create_restricted_view(self, ctx, allowed_paths=None):
+        # [v3.0.4] Create a restricted view with input filtering
+        # The Proxy ensures AttributeError/ContractViolationError on unauthorized access
+        return RestrictedStateProxy(ctx.restrict_view(), allowed_paths=allowed_paths)
         
     def _check_output_permission(self, update, contract):
         # Check if update keys match contract.outputs glob patterns
@@ -482,3 +432,96 @@ class TheusEngine:
         return getattr(self._core, name)
 
 __all__ = ["TheusEngine", "TransactionError", "SecurityViolationError"]
+
+# Re-defined locally to fix import circularity
+class FilteredDomainProxy:
+    """
+    [v3.0.4] Proxy that filters access to domain keys based on contract inputs.
+    Raises ContractViolationError if accessing a key not declared in inputs.
+    """
+    def __init__(self, domain_data, allowed_keys, zone_name="domain"):
+        self._data = domain_data
+        self._allowed = allowed_keys  # Set of allowed key names (e.g., {'counter'})
+        self._zone = zone_name
+    
+    def __getitem__(self, key):
+        if key not in self._allowed:
+            raise ContractViolationError(
+                f"Access denied: '{self._zone}.{key}' not declared in contract inputs. "
+                f"Allowed: {list(self._allowed)}"
+            )
+        if hasattr(self._data, '__getitem__'):
+            return self._data[key]
+        return getattr(self._data, key)
+    
+    def __getattr__(self, name):
+        if name.startswith('_'):
+            return object.__getattribute__(self, name)
+        return self[name]
+    
+    def get(self, key, default=None):
+        if key not in self._allowed:
+            raise ContractViolationError(
+                f"Access denied: '{self._zone}.{key}' not declared in contract inputs."
+            )
+        if hasattr(self._data, 'get'):
+            return self._data.get(key, default)
+        return getattr(self._data, key, default)
+
+
+class RestrictedStateProxy:
+    """
+    [v3.0.4] Read-only state proxy that enforces contract input restrictions.
+    """
+    def __init__(self, state, allowed_paths=None):
+        self._state = state
+        self._allowed_paths = allowed_paths or []
+        # Parse allowed paths into zone-specific key sets
+        self._domain_keys = set()
+        self._global_keys = set()
+        self._heavy_keys = set()
+        for path in self._allowed_paths:
+            parts = path.split('.')
+            if len(parts) >= 2:
+                zone, key = parts[0], parts[1]
+                if zone == 'domain':
+                    self._domain_keys.add(key)
+                elif zone in ('global', 'global_'):
+                    self._global_keys.add(key)
+                elif zone == 'heavy':
+                    self._heavy_keys.add(key)
+            elif len(parts) == 1:
+                # Root-level access (e.g., 'domain') - allow all keys in that zone
+                zone = parts[0]
+                if zone == 'domain':
+                    self._domain_keys = None  # None = wildcard
+                elif zone in ('global', 'global_'):
+                    self._global_keys = None
+                elif zone == 'heavy':
+                    self._heavy_keys = None
+    
+    @property
+    def data(self):
+        return self._state.data
+        
+    @property
+    def heavy(self):
+        if self._heavy_keys is None:  # Wildcard
+            return self._state.heavy
+        return FilteredDomainProxy(self._state.heavy, self._heavy_keys, "heavy")
+        
+    @property
+    def version(self):
+        return self._state.version
+    
+    @property
+    def domain(self):
+        if self._domain_keys is None:  # Wildcard
+            return self._state.domain
+        return FilteredDomainProxy(self._state.domain, self._domain_keys, "domain")
+        
+    @property
+    def global_(self):  # global is reserved
+        if self._global_keys is None:  # Wildcard
+            return self._state.global_
+        return FilteredDomainProxy(self._state.global_, self._global_keys, "global")
