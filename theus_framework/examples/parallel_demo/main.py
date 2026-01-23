@@ -21,23 +21,22 @@ async def main():
     
     # 3. Setup Data (Producer)
     SIZE = 20_000_000 
+    SHAPE = (SIZE,)
+    DTYPE = 'float32'
     
     # NEW API: Alloc 160MB Managed Memory
     # No explicit SharedMemory import needed!
     print(f"[*] Allocating Managed Memory for {SIZE} floats...")
-    arr_in = engine.heavy.alloc("source_data", shape=(SIZE,), dtype=np.float32)
-    arr_out = engine.heavy.alloc("results_data", shape=(SIZE,), dtype=np.float32)
+    arr_in = engine.heavy.alloc("source_data", shape=SHAPE, dtype=np.float32)
+    arr_out = engine.heavy.alloc("results_data", shape=SHAPE, dtype=np.float32)
+    
+    # Get the SHM names for passing to workers
+    source_shm_name = arr_in._shm_ref.name
+    results_shm_name = arr_out._shm_ref.name
     
     # Populate Input
     print("[*] generating random floats...")
     arr_in[:] = np.random.rand(SIZE)
-    
-    # Inject Data (Zero-Copy)
-    # Note: arr_in IS a ShmArray, so it works directly
-    engine.compare_and_swap(engine.state.version, heavy={
-        'source_data': arr_in,
-        'results_data': arr_out
-    })
     
     try:
         # 4. Dispatch Parallel Tasks (Partitioning)
@@ -56,10 +55,15 @@ async def main():
             start_idx = i * chunk_size
             end_idx = start_idx + chunk_size
             
+            # Pass SHM metadata instead of ctx.heavy
             coro = engine.execute(process_partition, 
                 partition_id=i,
                 start_idx=start_idx,
-                end_idx=end_idx
+                end_idx=end_idx,
+                source_shm_name=source_shm_name,
+                results_shm_name=results_shm_name,
+                shape=SHAPE,
+                dtype=DTYPE
             )
             tasks.append(coro)
             
@@ -96,8 +100,9 @@ async def main():
         print(f"Consensus: {'✅ MATCH' if is_correct else '❌ MISMATCH'}")
         
     finally:
-        # No more manual unlink!
-        pass
+        # Cleanup managed memory
+        if engine.heavy:
+            engine.heavy.cleanup()
 
 if __name__ == "__main__":
     asyncio.run(main())

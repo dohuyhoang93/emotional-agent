@@ -47,6 +47,10 @@ async def main():
                 msgs = list(self._msgs)
                 self._msgs.clear()
                 return msgs
+                
+        def to_dict(self):
+             # Return full state for Engine Init
+             return {"domain": self.domain}
         
     ctx = SimpleContext(domain)
     

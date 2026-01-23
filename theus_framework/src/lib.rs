@@ -14,12 +14,20 @@ mod signals;
 mod shm;
 mod shm_registry;
 mod conflict;
+mod nano;
+mod supervisor;
+mod proxy;
 
 
 /// Theus Core Rust Extension
 #[pymodule]
 fn theus_core(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
-    // Core
+    // v3.1 Supervisor/Proxy
+    supervisor::register(py, m)?;
+    nano::register(py, m)?;
+    proxy::register(py, m)?;
+
+    // Core Engine
     m.add_class::<engine::TheusEngine>()?;
     m.add_class::<engine::Transaction>()?;
     m.add_class::<engine::OutboxCollector>()?;

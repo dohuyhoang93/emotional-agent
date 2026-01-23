@@ -275,7 +275,8 @@ impl TheusEngine {
             local: local_dict.unbind(),
             outbox: crate::structures::Outbox {
                 messages: Arc::new(Mutex::new(Vec::new()))
-            }
+            },
+            tx: None, // v3.1: Explicit transaction handled by engine.py for now
         })?;
 
         let args = (ctx,);
@@ -343,6 +344,22 @@ impl Transaction {
     #[getter]
     fn write_timeout_ms(&self) -> u64 {
         self.write_timeout_ms
+    }
+
+    // Expose pending data for manual commit/CAS
+    #[getter]
+    fn pending_data(&self, py: Python) -> PyObject {
+        self.pending_data.clone_ref(py).into_py(py)
+    }
+
+    #[getter]
+    fn pending_heavy(&self, py: Python) -> PyObject {
+        self.pending_heavy.clone_ref(py).into_py(py)
+    }
+
+    #[getter]
+    fn pending_signal(&self, py: Python) -> PyObject {
+        self.pending_signal.clone_ref(py).into_py(py)
     }
 
     #[pyo3(signature = (data=None, heavy=None, signal=None))]

@@ -77,6 +77,22 @@ print(t.year) # AttributeError!
 ```
 **Solution:** You must handle re-hydration (converting String back to DateTime) manually in your logic, or use the `Pydantic` model's strict typing to force conversion on read.
 
+## 4. The `edit()` Illusion (A Concrete Example)
+The `engine.edit()` method is the perfect example of this Split-Brain problem.
+
+When you do this:
+```python
+with engine.edit() as ctx:
+    ctx.domain.counter = 999
+```
+You are **ONLY** modifying the Python object (`ctx`). The Rust Core (the true owner) has no idea this happened.
+
+To make this work, Theus has to perform a "Magic Sync" behind the scenes when you exit the `with` block:
+1.  **Serialize** the entire affected context (expensive!).
+2.  **Force Push** it to Rust, blindly overwriting the version.
+
+> **Lesson:** `edit()` is convenient for tests, but it is an *illusion* powered by expensive serialization. Never use it in production loops.
+
 ---
 **Next:** How to modify data safely using Transactions.
 -> **[Chapter 03: Transaction Discipline](./Chapter_03.md)**

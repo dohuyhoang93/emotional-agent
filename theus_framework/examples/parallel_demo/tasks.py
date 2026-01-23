@@ -2,38 +2,52 @@
 import numpy as np
 import time
 from theus.contracts import process
+from multiprocessing.shared_memory import SharedMemory
 
 @process(parallel=True)
 def process_partition(ctx):
     """
     Processes a specific partition of the shared data.
+    
     Inputs (merged into ctx.domain/input):
       - 'partition_id': int
       - 'start_idx': int
       - 'end_idx': int
+      - 'source_shm_name': str (SharedMemory name)
+      - 'results_shm_name': str (SharedMemory name)
+      - 'shape': tuple
+      - 'dtype': str
+    
+    NOTE: Workers attach to existing SharedMemory by name.
+    They do NOT receive ctx.heavy (unpicklable).
     """
-    # 1. Get Inputs (Lightweight)
+    # 1. Get Inputs (Lightweight metadata)
     p_id = ctx.input.get('partition_id')
     start = ctx.input.get('start_idx')
     end = ctx.input.get('end_idx')
     
-    # 2. Access Shared Data (Zero-Copy)
-    # Note: ShmArray is backed by memory. Writing to it updates the global view.
-    # We will write to 'results' array at our specific slice.
-    input_data = ctx.heavy['source_data']
-    output_data = ctx.heavy['results_data']
+    source_shm_name = ctx.input.get('source_shm_name')
+    results_shm_name = ctx.input.get('results_shm_name')
+    shape = ctx.input.get('shape')
+    dtype = np.dtype(ctx.input.get('dtype'))
     
-    # 3. Simulate Intensive Work (CPU Bound)
-    # E.g. Apply a transform and sum
+    # 2. Attach to Shared Memory (Zero-Copy)
+    source_shm = SharedMemory(name=source_shm_name, create=False)
+    results_shm = SharedMemory(name=results_shm_name, create=False)
+    
+    input_data = np.ndarray(shape, dtype=dtype, buffer=source_shm.buf)
+    output_data = np.ndarray(shape, dtype=dtype, buffer=results_shm.buf)
+    
+    # 3. Process Partition (CPU Bound)
     chunk = input_data[start:end]
-    
-    # In-Place Write (Visible to all instantly)
-    # We square the values
     processed = np.power(chunk, 2)
     output_data[start:end] = processed
     
-    # 4. Return Delta (Aggregation Metadata)
-    # We return the local sum to challenge the Engine's delta handling
+    # 4. Cleanup SharedMemory handles (close, NOT unlink)
+    source_shm.close()
+    results_shm.close()
+    
+    # 5. Return Delta (Aggregation Metadata)
     local_sum = float(np.sum(processed))
     
     return {
@@ -47,18 +61,22 @@ def process_partition(ctx):
 def saboteur_task(ctx):
     """
     Attempts to destroy the shared memory provided to it.
-    This should FAIL if Theus is working correctly.
+    This should FAIL if Theus lifecycle management is working correctly.
     """
+    source_shm_name = ctx.input.get('source_shm_name')
+    
+    if not source_shm_name:
+        return {"status": "NO_SHM_NAME"}
+    
     try:
-        data = ctx.heavy['source_data']
+        shm = SharedMemory(name=source_shm_name, create=False)
         # Attempt to unlink (Destroy)
-        # Note: data is ShmArray, data.shm is SafeSharedMemory wrapper
-        if hasattr(data, 'shm') and data.shm:
-            data.shm.unlink()
-            return {"status": "DESTROYED"}
-        else:
-            return {"status": "NO_HANDLE"}
+        shm.unlink()
+        shm.close()
+        return {"status": "DESTROYED"}
     except PermissionError:
         return {"status": "BLOCKED"}
+    except FileNotFoundError:
+        return {"status": "NOT_FOUND"}
     except Exception as e:
         return {"status": f"ERROR: {e}"}

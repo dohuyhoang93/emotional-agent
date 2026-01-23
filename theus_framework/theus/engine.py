@@ -62,11 +62,12 @@ class TheusEngine:
             
             # v3.1: Heavy Asset Manager (Shared Memory)
             try:
-                self._allocator = theus_core.ManagedAllocator(
+                from theus.structures import ManagedAllocator
+                self._allocator = ManagedAllocator(
                      capacity_mb=int(os.environ.get("THEUS_HEAP_SIZE", 512))
                 )
-            except AttributeError:
-                 print("WARNING: ManagedAllocator not supported by current Core.")
+            except Exception as e:
+                 print(f"WARNING: ManagedAllocator init failed: {e}")
                  self._allocator = None
         else:
             raise RuntimeError("Theus v3.0 requires Rust Core!")
@@ -165,7 +166,7 @@ class TheusEngine:
     def transaction(self):
         return self._core.transaction()
         
-    def compare_and_swap(self, expected_version, updates):
+    def compare_and_swap(self, expected_version, data=None, heavy=None, signal=None):
         """
         Compare-And-Swap with configurable conflict detection.
         
@@ -185,7 +186,7 @@ class TheusEngine:
                 return self.state  # Gentle rejection
         
         # Delegate to Rust Core (Smart CAS with Key-Level detection)
-        return self._core.compare_and_swap(expected_version, updates)
+        return self._core.compare_and_swap(expected_version, data=data, heavy=heavy, signal=signal)
 
     def register(self, func):
         """
@@ -260,9 +261,10 @@ class TheusEngine:
              loop = asyncio.get_running_loop()
              return await loop.run_in_executor(None, lambda: self.execute_parallel(func.__name__, **kwargs))
 
-        # Runtime Semantic Firewall (View Restrictions)
-        # BUG FIX (v3.0.3): Rust Core execute_process_async does NOT accept *args, **kwargs.
-        # We must capture them in the clousure 'target_func'.
+        # Transaction Management (v3.1 Explicit Lifecycle)
+        # We implicitly create a transaction scope for the execution.
+        start_version = self.state.version
+        tx = theus_core.Transaction(self._core)
         
         target_func = func  
         if contract and contract.semantic == SemanticType.PURE:
@@ -287,31 +289,35 @@ class TheusEngine:
              import inspect
              if inspect.iscoroutinefunction(func):
                   async def arg_binder(ctx, *_, **__):
-                       return await func(ctx, *args, **kwargs)
+                       # v3.1 Guard Wrapping (Admin Mode for Non-Pure)
+                       # Allows full access but enables SupervisorProxy for nested dicts
+                       # INJECT TRANSACTION:
+                       guard = theus_core.ContextGuard(ctx, [], [], None, tx, True, False)
+                       return await func(guard, *args, **kwargs)
                   arg_binder.__name__ = func.__name__
                   target_func = arg_binder
              else:
                   def arg_binder(ctx, *_, **__):
-                       return func(ctx, *args, **kwargs)
+                       # v3.1 Guard Wrapping (Admin Mode for Non-Pure)
+                       guard = theus_core.ContextGuard(ctx, [], [], None, tx, True, False)
+                       return func(guard, *args, **kwargs)
                   arg_binder.__name__ = func.__name__
                   target_func = arg_binder
 
-        # Capture version for CAS
-        start_version = None
-        if hasattr(self._core, "state"):
-             try:
-                 start_version = self.state.version
-                 print(f"DEBUG: Captured start_version: {start_version} for {func.__name__}")
-             except:
-                 print("DEBUG: Failed to capture version")
-                 pass
-
-        # Execute with Audit Hook
+        # Run via Rust Core (Handles Audit, Timing, etc)
         try:
-            # We revert to passing just (name, target_func) because target_func now holds the args
-            result = await self._core.execute_process_async(func.__name__, target_func)
-            if self._audit:
-                 self._audit.log_success(func.__name__)
+             result = await self._core.execute_process_async(func.__name__, target_func)
+             
+             # v3.1 Explicit Commit (Supervisor Mode)
+             # Verify state version to ensure Optimistic Concurrency Control
+             # current_ver = self.state.version (Already captured as start_version)
+             
+             # Commit pending changes from Transaction
+             self._core.compare_and_swap(start_version, data=tx.pending_data, heavy=tx.pending_heavy, signal=tx.pending_signal)
+
+             if self._audit:
+                  self._audit.log_success(func.__name__)
+             
         except Exception as e:
             if self._audit:
                 try:
@@ -319,6 +325,8 @@ class TheusEngine:
                 except Exception as audit_exc:
                      raise audit_exc from e
             raise e
+            
+
         
         # Logic for Output Mapping
         # 1. StateUpdate (Explicit)
@@ -338,10 +346,32 @@ class TheusEngine:
         # 2. POP Output Mapping (Implicit)
         elif contract and contract.outputs:
             outputs = contract.outputs
-            vals = result if len(outputs) > 1 else (result,)
-            if len(outputs) == 1 and not isinstance(result, tuple):
-                 vals = (result,)
             
+            # Decide how to unpack result
+            if isinstance(result, dict):
+                # [v3.1 Fix] ambiguity: Is dict a Map or a Value?
+                # Check if result keys match output names
+                is_map = any(out_key in result for out_key in outputs)
+                
+                if is_map:
+                    vals = []
+                    for out_key in outputs:
+                        if out_key in result:
+                            vals.append(result[out_key])
+                        else:
+                            vals.append(None)
+                elif len(outputs) == 1:
+                     # Treat as Value
+                     vals = (result,)
+                else:
+                     # Heuristic failed, assume Map (strict)
+                     vals = [result.get(k) for k in outputs]
+            else:
+                 # Tuple/List Return (Positional)
+                 vals = result if len(outputs) > 1 else (result,)
+                 if len(outputs) == 1 and not isinstance(result, tuple):
+                      vals = (result,)
+        
             updates_by_root = {} 
             new_heavy = {}
             
@@ -358,8 +388,10 @@ class TheusEngine:
                      if key not in updates_by_root:
                          # Fetch current safely
                          curr_wrapper = getattr(self.state, key, None)
+                         print(f"DEBUG_MAP: Fetching key='{key}' wrapper_type={type(curr_wrapper)}")
                          if hasattr(curr_wrapper, "to_dict"):
                                updates_by_root[key] = curr_wrapper.to_dict()
+                               print(f"DEBUG_MAP: Converted '{key}' to dict via to_dict()")
                          elif isinstance(curr_wrapper, dict):
                                updates_by_root[key] = curr_wrapper.copy()
                          else:
@@ -421,12 +453,97 @@ class TheusEngine:
                      break
              
              if not allowed:
-                  raise SecurityViolationError(f"Write permission denied for path '{check_key}'")
+                  raise PermissionError(f"Write permission denied for path '{check_key}'")
 
     @contextmanager
     def edit(self):
-        """Safe Zone for external mutation (v2 compat stub)."""
-        yield self
+        """
+        Safe Zone for external mutation (v3.0.5 compliant).
+        Yields the SystemContext for direct modification, then syncs to Rust Core.
+        
+        Usage:
+            with engine.edit() as ctx:
+                ctx.domain.counter = 999
+        """
+        # 1. Yield the Context (not self)
+        yield self._context
+        
+        # 2. Sync back to Rust Core (Blind Update with current version)
+        # This emulates a forced 'Batch Transaction'
+        if hasattr(self, '_core'):
+             try:
+                 # We only sync 'domain' and 'global' from context
+                 # This is expensive (serialization) but safe for testing
+                 current_ver = 0
+                 try:
+                      current_ver = self.state.version
+                 except:
+                      pass
+                      
+                 # Construct update payload
+                 # Note: self._context.to_dict() should return {'domain': ..., 'global': ...}
+                 # But we need to check if to_dict exists
+                 updates = {}
+                 if hasattr(self._context, 'to_dict'):
+                      updates = self._context.to_dict()
+                 elif hasattr(self._context, 'domain'):
+                       # Manual extraction for BaseSystemContext
+                       if hasattr(self._context.domain, 'to_dict'):
+                            updates['domain'] = self._context.domain.to_dict()
+                       else:
+                            updates['domain'] = self._context.domain.__dict__
+                 
+                 # Force Push
+                 self._core.compare_and_swap(current_ver, updates)
+                 
+             except Exception as e:
+                 print(f"WARNING: engine.edit() failed to sync to Rust Core: {e}")
+
+    def execute_parallel(self, process_name, **kwargs):
+        """
+        Execute a process in parallel pool (Sub-Interpreter or Process).
+        
+        Uses `THEUS_USE_PROCESSES=1` env var to force ProcessPool (for NumPy compatibility).
+        Uses `THEUS_POOL_SIZE=N` env var to set pool size (default: 4).
+        
+        Args:
+            process_name: Name of the registered process to execute.
+            **kwargs: Arguments to pass to the process (merged into ctx.domain).
+            
+        Returns:
+            Result from the process execution.
+        """
+        from theus.parallel import ProcessPool, ParallelContext
+        import os
+        
+        use_processes = os.environ.get("THEUS_USE_PROCESSES", "0") == "1"
+        pool_size = int(os.environ.get("THEUS_POOL_SIZE", "4"))
+        
+        # Create pool lazily (cached on engine instance)
+        if not hasattr(self, '_parallel_pool') or self._parallel_pool is None:
+            if use_processes:
+                self._parallel_pool = ProcessPool(size=pool_size)
+            else:
+                try:
+                    from theus.parallel import InterpreterPool
+                    self._parallel_pool = InterpreterPool(size=pool_size)
+                except Exception as e:
+                    print(f"WARNING: Sub-Interpreters not available ({e}), falling back to ProcessPool.")
+                    self._parallel_pool = ProcessPool(size=pool_size)
+        
+        # Get registered function
+        func = self._registry.get(process_name)
+        if not func:
+            raise ValueError(f"Process '{process_name}' not found in registry")
+        
+        # Create ParallelContext with domain kwargs
+        # NOTE: We don't pass heavy zone directly (FrozenDict is not picklable).
+        # Workers should access shared memory via engine.heavy.get() with descriptor metadata.
+        ctx = ParallelContext(domain=kwargs, heavy=None)
+        
+        # Submit and wait for result
+        future = self._parallel_pool.submit(func, ctx)
+        return future.result()
 
     def __getattr__(self, name):
         return getattr(self._core, name)

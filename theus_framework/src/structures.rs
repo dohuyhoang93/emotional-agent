@@ -1,11 +1,13 @@
 use pyo3::prelude::*;
 use pyo3::types::{PyDict, PyList};
 use pyo3::create_exception;
+use crate::proxy::SupervisorProxy;
 use im::HashMap;
 use std::sync::{Arc, Mutex};
 use std::collections::VecDeque;
 use std::time::{SystemTime, UNIX_EPOCH};
 use crate::signals::SignalHub;
+use crate::engine::Transaction;
 
 create_exception!(theus.structures, ContextError, pyo3::exceptions::PyException);
 
@@ -45,7 +47,10 @@ impl FrozenDict {
     }
 
     fn __getattr__(&self, py: Python, name: PyObject) -> PyResult<PyObject> {
-        self.__getitem__(py, name)
+        match self.__getitem__(py, name) {
+            Ok(v) => Ok(v),
+            Err(_) => Err(pyo3::exceptions::PyAttributeError::new_err("Attribute not found")),
+        }
     }
 
     fn to_dict(&self, py: Python) -> Py<PyDict> {
@@ -54,6 +59,16 @@ impl FrozenDict {
 
     fn keys(&self, py: Python) -> PyResult<PyObject> {
         Ok(self.data.bind(py).keys().into())
+    }
+
+    fn __deepcopy__(&self, py: Python, memo: PyObject) -> PyResult<PyObject> {
+        let copy_mod = py.import("copy")?;
+        let deepcopy = copy_mod.getattr("deepcopy")?;
+        // Deepcopy internal dict
+        let copied_data = deepcopy.call1((self.data.bind(py), memo))?; 
+        // Return new FrozenDict
+        let new_dict = copied_data.downcast_into::<PyDict>()?.unbind();
+        Ok(Py::new(py, FrozenDict { data: new_dict })?.into_any())
     }
 
     fn values(&self, py: Python) -> PyResult<PyObject> {
@@ -325,16 +340,34 @@ impl State {
     fn domain(&self, py: Python) -> PyResult<PyObject> {
         match self.data.get("domain") {
              Some(val) => {
-                 // If val is a dict, wrap in FrozenDict for dot access
-                 if val.bind(py).is_instance_of::<PyDict>() {
-                     let dict: Py<PyDict> = val.extract(py)?;
-                     let frozen = Py::new(py, FrozenDict::new(dict))?;
-                     Ok(frozen.into_py(py))
-                 } else {
-                     Ok(val.clone_ref(py))
-                 }
+                 // v3.1: Return SupervisorProxy (Read-Only) by default
+                 // This allows ContextGuard to "upgrade" it to Mutable if Transaction exists
+                 // while preserving legacy read-only behavior for direct access.
+                 let proxy = SupervisorProxy::new(
+                     val.clone_ref(py),
+                     "domain".to_string(),
+                     true, // Read-Only
+                     None,
+                 );
+                 Ok(Py::new(py, proxy)?.into_py(py))
              },
              None => Ok(py.None())
+        }
+    }
+
+    /// v3.1: Returns domain wrapped in SupervisorProxy (preserves PyObject idiomatics)
+    fn domain_proxy(&self, py: Python, read_only: Option<bool>) -> PyResult<PyObject> {
+        match self.data.get("domain") {
+            Some(val) => {
+                let proxy = SupervisorProxy::new(
+                    val.clone_ref(py),
+                    "domain".to_string(),
+                    read_only.unwrap_or(false),
+                    None,
+                );
+                Ok(Py::new(py, proxy)?.into_py(py))
+            },
+            None => Ok(py.None())
         }
     }
 
@@ -342,13 +375,13 @@ impl State {
     fn global(&self, py: Python) -> PyResult<PyObject> {
         match self.data.get("global") {
              Some(val) => {
-                 if val.bind(py).is_instance_of::<PyDict>() {
-                     let dict: Py<PyDict> = val.extract(py)?;
-                     let frozen = Py::new(py, FrozenDict::new(dict))?;
-                     Ok(frozen.into_py(py))
-                 } else {
-                     Ok(val.clone_ref(py))
-                 }
+                 let proxy = SupervisorProxy::new(
+                     val.clone_ref(py),
+                     "global".to_string(),
+                     true, // Read-Only
+                     None,
+                 );
+                 Ok(Py::new(py, proxy)?.into_py(py))
              },
              None => Ok(py.None())
         }
@@ -398,16 +431,19 @@ pub struct ProcessContext {
     pub local: Py<PyDict>, // Mutable Ephemeral Scope
     #[pyo3(get)]
     pub outbox: Outbox,
+    #[pyo3(get)]
+    pub tx: Option<Py<Transaction>>, // v3.1: Expose active transaction
 }
 
 #[pymethods]
 impl ProcessContext {
     #[new]
-    fn new(state: Py<State>, local: Py<PyDict>) -> Self {
+    fn new(state: Py<State>, local: Py<PyDict>, tx: Option<Py<Transaction>>) -> Self {
         ProcessContext { 
             state, 
             local,
             outbox: Outbox::new(), 
+            tx,
         }
     }
 

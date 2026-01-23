@@ -45,3 +45,38 @@
 {"name":"theus:69a2acef:8148:key2","pid":8148,"session":"69a2acef","size":40,"ts":0.0}
 {"name":"theus:10c47781:8148:my_secret","pid":8148,"session":"10c47781","size":40,"ts":0.0}
 {"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1768891994.1918135}
+{"name":"theus:b40361f2:19556:test_lifecycle","pid":19556,"session":"b40361f2","size":400,"ts":0.0}
+{"name":"theus:a97911df:19556:key1","pid":19556,"session":"a97911df","size":40,"ts":0.0}
+{"name":"theus:a97911df:19556:key2","pid":19556,"session":"a97911df","size":40,"ts":0.0}
+{"name":"theus:208b853a:19556:my_secret","pid":19556,"session":"208b853a","size":40,"ts":0.0}
+{"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1769148617.4875398}
+{"name":"theus:543996e2:13800:test_lifecycle","pid":13800,"session":"543996e2","size":400,"ts":0.0}
+{"name":"theus:d4c8a158:13800:key1","pid":13800,"session":"d4c8a158","size":40,"ts":0.0}
+{"name":"theus:d4c8a158:13800:key2","pid":13800,"session":"d4c8a158","size":40,"ts":0.0}
+{"name":"theus:ca798352:13800:my_secret","pid":13800,"session":"ca798352","size":40,"ts":0.0}
+{"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1769149136.5695913}
+{"name":"theus:0a28b8da:6360:test_lifecycle","pid":6360,"session":"0a28b8da","size":400,"ts":0.0}
+{"name":"theus:7c4cb965:6360:key1","pid":6360,"session":"7c4cb965","size":40,"ts":0.0}
+{"name":"theus:7c4cb965:6360:key2","pid":6360,"session":"7c4cb965","size":40,"ts":0.0}
+{"name":"theus:d11ef0ff:6360:my_secret","pid":6360,"session":"d11ef0ff","size":40,"ts":0.0}
+{"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1769157011.0404012}
+{"name":"theus:3b7caa25:16808:test_lifecycle","pid":16808,"session":"3b7caa25","size":400,"ts":0.0}
+{"name":"theus:9f1d6e4e:16808:key1","pid":16808,"session":"9f1d6e4e","size":40,"ts":0.0}
+{"name":"theus:9f1d6e4e:16808:key2","pid":16808,"session":"9f1d6e4e","size":40,"ts":0.0}
+{"name":"theus:932ebe15:16808:my_secret","pid":16808,"session":"932ebe15","size":40,"ts":0.0}
+{"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1769157203.2741194}
+{"name":"theus:2006cab5:2984:test_lifecycle","pid":2984,"session":"2006cab5","size":400,"ts":0.0}
+{"name":"theus:918d1af9:2984:key1","pid":2984,"session":"918d1af9","size":40,"ts":0.0}
+{"name":"theus:918d1af9:2984:key2","pid":2984,"session":"918d1af9","size":40,"ts":0.0}
+{"name":"theus:1505df2c:2984:my_secret","pid":2984,"session":"1505df2c","size":40,"ts":0.0}
+{"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1769157300.1981702}
+{"name":"theus:ae9032e1:7016:test_lifecycle","pid":7016,"session":"ae9032e1","size":400,"ts":0.0}
+{"name":"theus:ba67c529:7016:key1","pid":7016,"session":"ba67c529","size":40,"ts":0.0}
+{"name":"theus:ba67c529:7016:key2","pid":7016,"session":"ba67c529","size":40,"ts":0.0}
+{"name":"theus:e90c3e29:7016:my_secret","pid":7016,"session":"e90c3e29","size":40,"ts":0.0}
+{"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1769157511.9705007}
+{"name":"theus:b4252784:13640:test_lifecycle","pid":13640,"session":"b4252784","size":400,"ts":0.0}
+{"name":"theus:79e9efe7:13640:key1","pid":13640,"session":"79e9efe7","size":40,"ts":0.0}
+{"name":"theus:79e9efe7:13640:key2","pid":13640,"session":"79e9efe7","size":40,"ts":0.0}
+{"name":"theus:a4db0ef8:13640:my_secret","pid":13640,"session":"a4db0ef8","size":40,"ts":0.0}
+{"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1769157640.8136716}
