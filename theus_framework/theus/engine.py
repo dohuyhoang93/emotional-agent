@@ -40,10 +40,17 @@ class TheusEngine:
         self._audit = None       
         
         # Load Audit Config if available
-        # v3.0.2: Standardized ConfigFactory Usage
-        from theus.config import ConfigFactory
-        audit_config = ConfigFactory.load_audit_recipe()
+        # v3.0.2: Standardized ConfigFactory Usage (Arg > File)
+        audit_config = audit_recipe
+        if not audit_config:
+            from theus.config import ConfigFactory
+            audit_config = ConfigFactory.load_audit_recipe()
+
         if audit_config:
+            # Unwrap AuditRecipeBook if necessary
+            if hasattr(audit_config, 'rust_recipe'):
+                audit_config = audit_config.rust_recipe
+
             from theus.audit import AuditSystem
             self._audit = AuditSystem(audit_config)
 

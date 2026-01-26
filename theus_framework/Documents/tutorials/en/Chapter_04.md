@@ -53,6 +53,7 @@ When you call `engine.execute(add_product, product_name="TV", price=500)`, what 
     - Process finishes.
     - Checks if outputs match the Contract.
     - Logs success/failure to Audit System.
+    > **Tip:** Inspect logs via `engine._audit.get_logs()` if configured.
 
 7.  **Commit (CAS):**
     - Optimistic Commit: Touched keys are checked for conflicts.

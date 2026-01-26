@@ -110,3 +110,8 @@
 {"name":"theus:75c56670:16416:key2","pid":16416,"session":"75c56670","size":40,"ts":0.0}
 {"name":"theus:eba3c22e:16416:my_secret","pid":16416,"session":"eba3c22e","size":40,"ts":0.0}
 {"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1769412690.2193944}
+{"name":"theus:9427ea93:11140:test_lifecycle","pid":11140,"session":"9427ea93","size":400,"ts":0.0}
+{"name":"theus:6553e8de:11140:key1","pid":11140,"session":"6553e8de","size":40,"ts":0.0}
+{"name":"theus:6553e8de:11140:key2","pid":11140,"session":"6553e8de","size":40,"ts":0.0}
+{"name":"theus:b1033db9:11140:my_secret","pid":11140,"session":"b1033db9","size":40,"ts":0.0}
+{"name": "theus:zombie_sess:99999999:zombie_data", "pid": 99999999, "session": "zombie_sess", "size": 1024, "ts": 1769416323.2980762}
