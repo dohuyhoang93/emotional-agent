@@ -162,6 +162,18 @@ class POPLinter(ast.NodeVisitor):
                         f"Network call '{module_name}.{node.func.attr}' forbidden. Use Outbox."
                     ))
 
+        # POP-E05 (Enhanced): Check for destructive method calls on Context
+        DESTRUCTIVE_METHODS = {'append', 'extend', 'insert', 'remove', 'pop', 'clear', 'update', 'sort', 'reverse'}
+        
+        path = self._resolve_attribute_path(node.func)
+        if path and path.startswith("ctx."):
+            method_name = path.split('.')[-1]
+            if method_name in DESTRUCTIVE_METHODS:
+                self.violations.append(EffectViolation(
+                    self.filename, node.lineno, "POP-E05",
+                    f"Direct mutation via '{method_name}()' on Context is forbidden. Return a new list/dict instead."
+                ))
+
         self.generic_visit(node)
 
     def visit_Global(self, node):

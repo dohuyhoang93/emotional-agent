@@ -1,4 +1,4 @@
-use std::io::Write; // Added for flushing
+
 use pyo3::prelude::*;
 use pyo3::exceptions::PyPermissionError;
 use pyo3::types::{PyList, PyDict};
@@ -78,8 +78,8 @@ impl ContextGuard {
     }
 
     fn apply_guard(&self, py: Python, val: PyObject, full_path: String) -> PyResult<PyObject> {
-        println!("DEBUG: apply_guard called for path: '{}'", full_path);
-        std::io::stdout().flush().unwrap();
+        // println!("DEBUG: apply_guard called for path: '{}'", full_path);
+        // std::io::stdout().flush().unwrap();
         
         let val_bound = val.bind(py);
         let type_name = val_bound.get_type().name()?.to_string();
@@ -99,8 +99,8 @@ impl ContextGuard {
         let tx = match &self.tx {
             Some(t) => t,
             None => {
-                println!("DEBUG: No Transaction for guard path '{}', returning raw value", full_path);
-                std::io::stdout().flush().unwrap();
+                // println!("DEBUG: No Transaction for guard path '{}', returning raw value", full_path);
+                // std::io::stdout().flush().unwrap();
                 return Ok(val); 
             },
         };
@@ -122,8 +122,8 @@ impl ContextGuard {
         }
 
         if type_name == "dict" {
-             println!("DEBUG: Dict detected at '{}'", full_path);
-             std::io::stdout().flush().unwrap();
+             // println!("DEBUG: Dict detected at '{}'", full_path);
+             // std::io::stdout().flush().unwrap();
              let can_write = self.check_permissions(&full_path, true).is_ok();
              let shadow = val; 
              let proxy = SupervisorProxy::new(
@@ -138,8 +138,8 @@ impl ContextGuard {
         // v3.1: Nested SupervisorProxy Upgrade (Object/Dict)
         // If the value is ALREADY a SupervisorProxy (from State.domain), unwrap it and re-wrap with Transaction
         if let Ok(target) = val_bound.getattr("supervisor_target") {
-             println!("DEBUG: SupervisorProxy detected at '{}' (Upgrading)", full_path);
-             std::io::stdout().flush().unwrap();
+             // println!("DEBUG: SupervisorProxy detected at '{}' (Upgrading)", full_path);
+             // std::io::stdout().flush().unwrap();
              
              let inner = target.unbind();
              
@@ -158,8 +158,8 @@ impl ContextGuard {
              );
              return Ok(Py::new(py, proxy)?.into_py(py));
         } else {
-             println!("DEBUG: Regular Object detected at '{}': Type={}", full_path, type_name);
-             std::io::stdout().flush().unwrap();
+             // println!("DEBUG: Regular Object detected at '{}': Type={}", full_path, type_name);
+             // std::io::stdout().flush().unwrap();
         }
         
         let tx_bound = tx.bind(py);
