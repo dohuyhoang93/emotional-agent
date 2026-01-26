@@ -1,16 +1,30 @@
 # Theus v3.0.2 Release Notes
 
-**Date:** 2026-01-20
-**Status:** Production Ready
+**Date:** 2026-01-26
+**Status:** Production Ready (Audited)
+
+## 🛡️ Security & Integrity (CRITICAL)
+
+### Context Guard & Shadow Copy (CVE-Internal-2026-01 Fixed)
+This release addresses a critical integrity vulnerability where legacy context accessors (`ctx.domain_ctx`) could leak raw Rust references, allowing unsafe state mutation.
+- **Shadow Copy Enforcement:** The `ContextGuard` now enforces Copy-On-Write (Shadow Copy) semantics for all object mutations. 
+- **Supervisor Proxy:** All legacy aliases are now wrapped in `SupervisorProxy` to ensure strict transaction isolation.
+- **Safe Side-Effects:** Direct mutation of context objects (e.g., `ctx.domain.x = 1`) is now safe but **transient** (changes are discarded unless explicitly returned via `StateUpdate` or Dict, enforcing Functional Purity).
+
+### Comprehensive Audit
+The codebase has undergone and PASSED a full "Deep Dive" Security & Code Audit (Report: `Documents/AUDIT_V3_0_2.md`).
+- **Integrity Verified:** No reference leaks.
+- **Contract Enforcement:** Verified via Proof-of-Concept.
+- **Zero Warnings:** 100% clean check from `cargo clippy` (Rust) and `ruff` (Python).
 
 ## Key Advancements
 
 ### Thread Safety & Concurrency Control
 This release introduces a robust Conflict Manager implemented in Rust to handle high-concurrency scenarios safely:
 
-- **Exponential Backoff with Jitter:** The system now intelligently manages retry intervals when conflicts occur. Instead of fixed waiting, processes wait for strictly increasing durations (multiplied by 2 on each failure) with added randomized "jitter". This mechanism effectively distributes retries over time, eliminating the "thundering herd" problem where multiple blocked processes retry simultaneously and cause repeated collisions.
-- **VIP Locking (Anti-Starvation):** To ensure fairness, the system employs a priority mechanism. It tracks the number of consecutive failures for each process. If a process fails to commit its transaction 5 times in a row, it is granted a "VIP Ticket". The system then temporarily blocks other writers to guarantee the VIP process can commit its transaction successfully, preventing indefinite resource starvation (livelock).
-- **Atomic Compare-And-Swap (CAS):** Optimistic concurrency control is enforced at the key level. State updates are atomic, ensuring that no data corruption occurs even when multiple parallel processes attempt to modify the same context simultaneously.
+- **Smart CAS (Key-Level Versioning):** Theus v3.0.2 upgrades from Strict CAS to **Smart CAS**. It now detects conflicts at the *Field Level*. If two processes update different keys (e.g., `domain.counter` vs `domain.user_list`), they can commit simultaneously without Version Conflict, significantly boosting throughput.
+- **Exponential Backoff with Jitter:** The system now intelligently manages retry intervals when conflicts occur. Instead of fixed waiting, processes wait for strictly increasing durations (multiplied by 2 on each failure) with added randomized "jitter".
+- **VIP Locking (Anti-Starvation):** To ensure fairness, the system employs a priority mechanism. If a process fails to commit its transaction 5 times, it is granted a "VIP Ticket", temporarily blocking other writers to guarantee progress.
 
 ### True Parallelism
 - **Multi-Process Execution:** Enabled robust support for `ProcessPool`, allowing CPU-bound tasks to bypass the Python GIL explicitly.

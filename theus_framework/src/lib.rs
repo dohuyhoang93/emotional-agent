@@ -14,7 +14,7 @@ mod signals;
 mod shm;
 mod shm_registry;
 mod conflict;
-mod nano;
+
 mod supervisor;
 mod proxy;
 
@@ -24,7 +24,7 @@ mod proxy;
 fn theus_core(py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
     // v3.1 Supervisor/Proxy
     supervisor::register(py, m)?;
-    nano::register(py, m)?;
+
     proxy::register(py, m)?;
 
     // Core Engine
