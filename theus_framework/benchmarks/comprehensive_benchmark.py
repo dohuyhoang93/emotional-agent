@@ -121,7 +121,7 @@ async def proc_heavy_op(ctx: BenchContext):
 
 # --- 3. Benchmark Logic ---
 async def run_comprehensive_benchmark():
-    print(f"--- Theus Comprehensive Benchmark (v3.0) ---")
+    print("--- Theus Comprehensive Benchmark (v3.0) ---")
     print(f"Items: {NUM_SMALL_ITEMS} | Ops: {NUM_OPS} | Array: {LARGE_ARRAY_SIZE} floats")
     
     # 1. Setup Data

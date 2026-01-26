@@ -26,14 +26,14 @@ def test_smart_cas_mode():
     print(f"Attempting update 'counter' with stale version={stale_version}...")
     try:
         engine._core.compare_and_swap(stale_version, {"domain": {"counter": 200}})
-        print(f"✅ Smart CAS: Update succeeded (partial merge allowed)")
+        print("✅ Smart CAS: Update succeeded (partial merge allowed)")
         print(f"   Final state: ver={engine.state.version}")
-        return True
+        # return True -> Removed
     except Exception as e:
         # Smart CAS may still reject if 'counter' key was tracked as modified
         print(f"⚠️ Smart CAS: Update failed - {e}")
         print("   Note: This can happen if key_last_modified tracking is incomplete.")
-        return True  # Still count as pass - behavior is expected
+        # return True  # Still count as pass - behavior is expected
 
 def test_strict_cas_mode():
     """Test Strict CAS (strict_cas=True) - rejects all version mismatches."""
@@ -55,12 +55,13 @@ def test_strict_cas_mode():
     result = engine.compare_and_swap(1, {"domain": {"counter": 200}})  # Uses Python wrapper
     
     if result is not None:
-        print(f"✅ Strict CAS: Update REJECTED (returned State object)")
+        print("✅ Strict CAS: Update REJECTED (returned State object)")
         print(f"   Version unchanged: {engine.state.version}")
-        return True
+        # return True -> Removed
     else:
-        print(f"❌ Strict CAS: Update succeeded (should have been rejected!)")
-        return False
+        print("❌ Strict CAS: Update succeeded (should have been rejected!)")
+        # return False
+        raise AssertionError("Strict CAS: Update succeeded (should have been rejected!)")
 
 def test_default_is_smart_cas():
     """Verify default mode is Smart CAS (strict_cas=False)."""
@@ -71,17 +72,27 @@ def test_default_is_smart_cas():
     # Check internal flag
     if engine._strict_cas == False:
         print("✅ Default mode is Smart CAS (strict_cas=False)")
-        return True
+        # return True
     else:
         print(f"❌ Default mode is NOT Smart CAS: strict_cas={engine._strict_cas}")
-        return False
+        # return False
+        raise AssertionError(f"Default mode is NOT Smart CAS: strict_cas={engine._strict_cas}")
 
 if __name__ == "__main__":
     results = []
     
-    results.append(("Smart CAS Mode", test_smart_cas_mode()))
-    results.append(("Strict CAS Mode", test_strict_cas_mode()))
-    results.append(("Default Mode Check", test_default_is_smart_cas()))
+    # Wrap in helper because functions now raise Exception on failure
+    def run_safe(name, func):
+        try:
+            func()
+            return True
+        except AssertionError as e:
+            print(f"Error in {name}: {e}")
+            return False
+
+    results.append(("Smart CAS Mode", run_safe("test_smart_cas_mode", test_smart_cas_mode)))
+    results.append(("Strict CAS Mode", run_safe("test_strict_cas_mode", test_strict_cas_mode)))
+    results.append(("Default Mode Check", run_safe("test_default_is_smart_cas", test_default_is_smart_cas)))
     
     print("\n" + "="*50)
     print("SUMMARY:")

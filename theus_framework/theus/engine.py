@@ -14,8 +14,9 @@ except ImportError as e:
     print(f"WARNING: 'theus_core' not found. Reason: {e}")
     print("Running in Pure Python Fallback (Slower).")
 
-from theus.context import BaseSystemContext
+from theus.context import BaseSystemContext, TransactionError
 from theus.contracts import SemanticType, ContractViolationError
+SecurityViolationError = ContractViolationError
 
 class TheusEngine:
     """

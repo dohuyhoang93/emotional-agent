@@ -142,10 +142,16 @@ impl ContextGuard {
              std::io::stdout().flush().unwrap();
              
              let inner = target.unbind();
+             
+             // CRITICAL FIX: Must shadow the inner object before wrapping!
+             // Unwrapped proxy points to Original State (Arc). We need a Transaction Copy.
+             let tx_bound = tx.bind(py);
+             let shadow = tx_bound.borrow_mut().get_shadow(py, inner, Some(full_path.clone()))?; 
+             
              let can_write = self.check_permissions(&full_path, true).is_ok();
              
              let proxy = SupervisorProxy::new(
-                 inner, 
+                 shadow, 
                  full_path.clone(),
                  !can_write,
                  if can_write { Some(tx.clone_ref(py).into_py(py)) } else { None },

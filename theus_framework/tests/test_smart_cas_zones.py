@@ -47,15 +47,16 @@ def test_smart_cas_different_zones():
     try:
         engine._core.compare_and_swap(stale_version, {"heavy": {"buffer_size": 2048}})
         result_buffer = engine.state.heavy.get("buffer_size") if engine.state.heavy else "N/A"
-        print(f"\n✅ SMART CAS SUCCESS!")
-        print(f"   'heavy' was updated even though version was stale.")
-        print(f"   Reason: 'heavy' zone was not modified since stale_version.")
+        print("\n✅ SMART CAS SUCCESS!")
+        print("   'heavy' was updated even though version was stale.")
+        print("   Reason: 'heavy' zone was not modified since stale_version.")
         print(f"   Final: ver={engine.state.version}, heavy.buffer_size={result_buffer}")
-        return True
+        # return True -> Removed for pytest compatibility
     except Exception as e:
         print(f"\n❌ Smart CAS REJECTED: {e}")
-        print("   This means key_last_modified is tracking at a different level than expected.")
-        return False
+        # print("   This means key_last_modified is tracking at a different level than expected.")
+        # return False
+        raise AssertionError(f"Smart CAS REJECTED: {e}")
 
 def test_smart_cas_same_zone_different_fields():
     """
@@ -85,10 +86,11 @@ def test_smart_cas_same_zone_different_fields():
     try:
         engine._core.compare_and_swap(stale, {"domain": {"counter": 200}})
         print("✅ Field-Level CAS SUCCESS! (different fields don't conflict)")
-        return True
+        # return True -> Removed for pytest compatibility
     except Exception as e:
         print(f"❌ UNEXPECTED REJECTION: {e}")
-        return False
+        # return False
+        raise AssertionError(f"UNEXPECTED REJECTION: {e}")
 
 if __name__ == "__main__":
     print("="*60)
@@ -96,8 +98,18 @@ if __name__ == "__main__":
     print("="*60)
     
     results = []
-    results.append(("Different Zones", test_smart_cas_different_zones()))
-    results.append(("Same Zone, Different Fields", test_smart_cas_same_zone_different_fields()))
+    
+    # Wrap in helper because functions now raise Exception on failure
+    def run_safe(name, func):
+        try:
+            func()
+            return True
+        except AssertionError as e:
+            print(f"Error in {name}: {e}")
+            return False
+
+    results.append(("Different Zones", run_safe("test_smart_cas_different_zones", test_smart_cas_different_zones)))
+    results.append(("Same Zone, Different Fields", run_safe("test_smart_cas_same_zone_different_fields", test_smart_cas_same_zone_different_fields)))
     
     print("\n" + "="*60)
     print("SUMMARY:")

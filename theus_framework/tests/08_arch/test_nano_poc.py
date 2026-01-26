@@ -63,7 +63,7 @@ class NanoProxy:
         # This is the beauty of Supervisor Model.
         # But for 'set', we prove we can swap the root object safely.
         self._sup.set(self._key, current)
-        print(f"[Python] Write Confirmed.")
+        print("[Python] Write Confirmed.")
 
 # --- Proof Setup ---
 @dataclass

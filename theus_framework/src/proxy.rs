@@ -11,11 +11,7 @@ use pyo3::types::PyDict;
 // 3. Works with existing Transaction rollback mechanism
 // =============================================================================
 
-/// Thread-safe wrapper for Python object reference
-pub struct SafePyRef(pub Py<PyAny>);
-
-unsafe impl Send for SafePyRef {}
-unsafe impl Sync for SafePyRef {}
+// SafePyRef Removed (Unused)
 
 /// SupervisorProxy - The Gatekeeper for Python object access
 /// 
@@ -64,17 +60,35 @@ impl SupervisorProxy {
         // 1. Try generic getattr (methods, object fields)
         let val_result = self.target.getattr(py, name.as_str());
         
-        // 2. Fallback for Dicts: Try getitem (d.key -> d['key'])
         let val = match val_result {
             Ok(v) => v,
-            Err(e) => {
+            Err(_e) => {
                 if self.target.bind(py).is_instance_of::<PyDict>() {
                     match self.target.call_method1(py, "__getitem__", (name.clone(),)) {
                         Ok(v) => v,
-                        Err(_) => return Err(e), // Return original AttributeError/KeyError
+                        Err(_) => {
+                            // If key missing, return original error but enriched
+                            return Err(pyo3::exceptions::PyAttributeError::new_err(
+                                format!(
+                                    "'SupervisorProxy[dict]' object has no attribute '{}'. (Hint: Key '{}' missing in wrapped dict at path '{}')", 
+                                    name, name, self.path
+                                )
+                            ));
+                        }, 
                     }
                 } else {
-                    return Err(e);
+                    // Enrich standard attribute error (e.g. object has no attribute)
+                    // We can just return _e, but enriched is nicer.
+                    // However, to keep it simple and avoid clippy complexity with unused _e:
+                    // If we use _e, we satisfy the compiler.
+                    // But if we want enriched, we ignore _e.
+                    let _ = _e;
+                     return Err(pyo3::exceptions::PyAttributeError::new_err(
+                        format!(
+                            "'SupervisorProxy[{}]' object has no attribute '{}'. (Path: '{}')", 
+                            self.target.bind(py).get_type().name()?, name, self.path
+                        )
+                    ));
                 }
             }
         };
@@ -203,10 +217,21 @@ impl SupervisorProxy {
         Ok(())
     }
 
-    /// String representation
+    /// String representation - More descriptive for debugging
     fn __repr__(&self, py: Python) -> PyResult<String> {
-        let target_repr = self.target.bind(py).repr()?.to_string();
-        Ok(format!("<SupervisorProxy path='{}' target={}>", self.path, target_repr))
+        let type_name = self.target.bind(py).get_type().name()?.to_string();
+        // Don't print full target repr if it's huge, just type and path
+        Ok(format!("<SupervisorProxy[{}] at path='{}'>", type_name, self.path))
+    }
+
+    fn __str__(&self, py: Python) -> PyResult<String> {
+        self.__repr__(py)
+    }
+
+    /// Helper for users confused by type checks
+    /// "isinstance(proxy, dict)" fails, so we provide this hint.
+    fn is_proxy(&self) -> bool {
+        true
     }
 
     /// Check if key exists (for 'in' operator)

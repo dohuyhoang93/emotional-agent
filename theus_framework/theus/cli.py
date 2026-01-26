@@ -12,7 +12,7 @@ import shutil
 import os
 
 # from .templates.registry import TemplateRegistry # DEPRECATED
-# from .config import ConfigFactory
+from .config import ConfigFactory
 
 console = Console()
 
@@ -39,7 +39,7 @@ def init_project(project_name: str, target_dir: Path):
         console.print(f"[bold red]❌ Error copying scaffold: {e}[/bold red]")
         sys.exit(1)
 
-    console.print(f"\n[bold blue]🎉 Project created successfully! (Universal Template)[/bold blue]")
+    console.print("\n[bold blue]🎉 Project created successfully! (Universal Template)[/bold blue]")
     console.print("\nNext steps:")
     if project_name != ".":
         console.print(f"  cd {project_name}")

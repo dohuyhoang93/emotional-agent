@@ -37,7 +37,7 @@ impl NanoSupervisor {
     }
 
     // FEASIBILITY KEY 5: Atomic Write
-    fn set(&self, py: Python, key: String, val: PyObject) -> PyResult<()> {
+    fn set(&self, _py: Python, key: String, val: PyObject) -> PyResult<()> {
         let mut heap = self.heap.write().map_err(|_| {
             pyo3::exceptions::PyRuntimeError::new_err("Lock Poisoned")
         })?;

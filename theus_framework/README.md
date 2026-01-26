@@ -180,9 +180,11 @@ Effect: Disables strict architectural guards (ContextGuard), allowing access to 
 
 ---
 
-## 📚 Documentation
+## 📚 Documentation & Debugging
 
-*   **[POP Manifesto](https://github.com/dohuyhoang93/theus/blob/main/Documents/POP_Manifesto.md):** The philosophy behind Process-Oriented Programming.
+- **[DEBUGGING.md](DEBUGGING.md)**: **Read this first!** Common pitfalls, Type Checking errors, and Pickling issues.
+- **[Spec](specs/)**: Full Architecture Specification.
+- **[POP Manifesto](https://github.com/dohuyhoang93/theus/blob/main/Documents/POP_Manifesto.md):** The philosophy behind Process-Oriented Programming.
 
 ---
 

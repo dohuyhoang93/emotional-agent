@@ -123,79 +123,72 @@ def run_theus_engine(arr):
     
     # 2. Initialize Engine with Mock State
     # Note: We need a context that has 'heavy'
-    class MockContext:
-        def __init__(self):
-            self.domain_ctx = {}
-            self.global_ctx = {}
-            self.input_ctx = {}
-            # We cheat/inject heavy directly into state because init only supports DGI
-            
-    engine = TheusEngine(context=MockContext())
+    # 2. Initialize Engine with Real State
+    from dataclasses import dataclass, field
+    from theus.context import BaseSystemContext, BaseDomainContext, BaseGlobalContext
+
+    @dataclass
+    class BenchDomain(BaseDomainContext):
+        pass
+
+    @dataclass
+    class BenchGlobal(BaseGlobalContext):
+        pass
+
+    @dataclass
+    class BenchContext(BaseSystemContext):
+        domain: BenchDomain
+        global_ctx: BenchGlobal
+
+    
+    # helper to force dictionary hydration including 'heavy'
+    ctx = BenchContext(domain=BenchDomain(), global_ctx=BenchGlobal())
+    init_data = ctx.to_dict()
+    init_data['heavy'] = {} # FORCE ROOT KEY
+
+    # Init Engine with None, then Manual CAS
+    engine = TheusEngine(context=None, strict_mode=False)
+    engine.compare_and_swap(0, init_data)
+
+    
     # Inject Heavy Data using CAS (Correct Way)
     # TheusEngine checks if core state is available
     res = engine.compare_and_swap(engine.state.version, heavy={'matrix': theus_obj})
     print(f"DEBUG: CAS Result: {res}")
     
-    # Check if CAS failed or was skipped
-    # Check if CAS failed or was skipped
-    inject_needed = False
-    try:
-        if engine.state.heavy is None or 'matrix' not in engine.state.heavy:
-            inject_needed = True
-    except Exception:
-        inject_needed = True
+    # Verify Injection locally (Retry loop for convergence)
+    
+    for _ in range(10):
+        try:
+             # Workaround: FrozenDict __contains__ might be buggy or strict
+             if 'matrix' in list(engine.state.heavy.keys()):
+                 break
+        except Exception:
+             pass
+        time.sleep(0.1)
         
-    if inject_needed:
-        # Cheat: Manual Inject if CAS didn't work (Mock environment)
-        # Create a mock Core object
-        class MockCore:
-            def __init__(self):
-                self.state = MockState()
-            def compare_and_swap(self, *args, **kwargs):
-                return True
-            def execute_process_async(self, name, func):
-                 # We need to simulate execution
-                 # But engine.execute calls this.
-                 # Wait, execute_parallel calls registry directly.
-                 # It does NOT call execute_process_async.
-                 pass
+    if 'matrix' not in list(engine.state.heavy.keys()):
+        # Debug: Print available keys
+        print(f"DEBUG: Available Heavy Keys: {list(engine.state.heavy.keys())}")
+        raise RuntimeError("CAS Failed to inject 'matrix' into Heavy Zone")
 
-        class MockState:
-            def __init__(self):
-                self.version = 1
-                self.heavy = {}
-                self.domain = {}
-                self.global_ = {}
-        
-        # Override core completely
-        engine._core = MockCore()
-        engine._core.state.heavy['matrix'] = theus_obj
-        
     print(f"DEBUG: Heavy Keys: {list(engine.state.heavy.keys())}")
     
     # 3. Register Process
     engine.register(process_heavy_task)
     
-    # 4. Execute Parallel (4 times)
-    # TheusEngine.execute_parallel submits to a pool
-    futures = []
-    # Note: engine.execute_parallel is synchronous-wait (future.result()) in current impl 
-    # but uses a thread pool. To verify parallelism, we should use the pool directly or check implementation.
-    # Looking at execute_parallel implementation:
-    # future = pool.submit(func, ctx_data)
-    # result = future.result() 
-    # It waits! So execute_parallel is BLOCKING.
-    # To run 4 workers in PARALLEL via API, we need to call execute_parallel in threads?
-    # OR we rely on the fact that we enter 'parallel' zone.
+    # 4. Execute Parallel
     
-    # Wait, if execute_parallel blocks, then 4 calls in loop will be sequential.
-    # Users are expected to Wrap execute_parallel in asyncio/threads if they want concurrent *requests*.
-    # BUT, the request itself runs in a sub-interp.
-    # For this benchmark, we want to saturate 4 cores.
-    # So we must launch 4 engine.execute_parallel tasks concurrently.
+    # Define Args
+    task_args = {
+        "shm_name": shm.name,
+        "shape": arr.shape,
+        "dtype": str(arr.dtype)
+    }
     
     with ThreadPoolExecutor(max_workers=NUM_WORKERS) as exe:
-        futures = [exe.submit(engine.execute_parallel, "process_heavy_task") for _ in range(NUM_WORKERS)]
+        # Pass kwargs to execute_parallel
+        futures = [exe.submit(engine.execute_parallel, "process_heavy_task", **task_args) for _ in range(NUM_WORKERS)]
         [f.result() for f in futures]
         
     total_time = time.time() - start

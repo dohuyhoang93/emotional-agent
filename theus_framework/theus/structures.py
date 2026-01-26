@@ -58,7 +58,7 @@ class ManagedAllocator:
         except ImportError:
             self._registry = None
     
-    def alloc(self, name: str, shape: tuple, dtype) -> 'ShmArray':
+    def alloc(self, name: str, shape: tuple, dtype) -> Any:
         """
         Allocate a managed shared memory block.
         Returns a NumPy array backed by SharedMemory.
@@ -94,9 +94,8 @@ class ManagedAllocator:
         arr._shm_ref = shm  # Store as class attribute
         return arr
     
-    def get(self, name: str, shape: tuple = None, dtype = None) -> 'ShmArray':
+    def get(self, name: str, shape: tuple = None, dtype = None) -> Any:
         """Get existing shared memory by name (for worker processes)."""
-        import numpy as np
         from multiprocessing.shared_memory import SharedMemory
         
         shm_name = f"theus_{self._session_id}_{name}"
@@ -108,6 +107,7 @@ class ManagedAllocator:
             self._allocations[name] = shm
         
         if shape and dtype:
+            import numpy as np
             dtype = np.dtype(dtype)
             arr = np.ndarray(shape, dtype=dtype, buffer=shm.buf)
             arr._shm = shm

@@ -11,7 +11,7 @@ core = SupervisorCore()
 
 # Write a dict
 core.write("domain", {"counter": 10, "name": "test"})
-print(f"1.1 Write domain: OK")
+print("1.1 Write domain: OK")
 
 # Read back
 data = core.read("domain")
@@ -56,7 +56,7 @@ print("TEST 3: ReadOnly Proxy (PURE semantic)")
 print("=" * 60)
 
 ro_proxy = SupervisorProxy({"a": 1}, "domain", read_only=True)
-print(f"3.1 Created read-only proxy")
+print("3.1 Created read-only proxy")
 
 try:
     ro_proxy["a"] = 999

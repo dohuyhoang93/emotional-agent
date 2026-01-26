@@ -14,6 +14,10 @@ async def heavy_async_job(duration: float):
 
 # --- PROCESSES ---
 
+
+# Ephemeral Registry (Not persisted in State)
+_TASK_REGISTRY = {}
+
 @process(
     inputs=['domain.active_tasks'],
     outputs=['domain.active_tasks'],
@@ -30,10 +34,14 @@ async def p_spawn_background_job(ctx: DemoSystemContext):
     
     # Logic
     task = asyncio.create_task(heavy_async_job(2.0))
+    job_id = "job_1"
+    
+    # Store Task in Ephemeral Registry
+    _TASK_REGISTRY[job_id] = task
     
     # Clone & Modify (Immutable Pattern)
     new_tasks = active_tasks.copy()
-    new_tasks['job_1'] = task
+    new_tasks[job_id] = "RUNNING"
     
     print("[Process] Job spawned. Returning StateUpdate.")
     return new_tasks 
@@ -70,19 +78,27 @@ async def p_await_job(ctx: DemoSystemContext):
     Returns (result, updated_tasks_map).
     """
     active_tasks = ctx.domain.active_tasks
-    task = active_tasks.get('job_1')
+    job_status = active_tasks.get('job_1')
     
-    if task:
-        print("[Process] Joining background job...")
-        result = await task
-        print(f"[Process] Joined. Result: {result}")
-        
-        # Cleanup
-        new_tasks = active_tasks.copy()
-        if 'job_1' in new_tasks:
-            del new_tasks['job_1']
+    if job_status == "RUNNING":
+        task = _TASK_REGISTRY.get('job_1')
+        if task:
+            print("[Process] Joining background job...")
+            result = await task
+            print(f"[Process] Joined. Result: {result}")
             
-        return result, new_tasks
+            # Cleanup
+            if 'job_1' in _TASK_REGISTRY:
+                del _TASK_REGISTRY['job_1']
+            
+            new_tasks = active_tasks.copy()
+            if 'job_1' in new_tasks:
+                del new_tasks['job_1']
+                
+            return result, new_tasks
+        else:
+             print("[Process] Task object missing in registry!")
+             return None, active_tasks
     else:
         print("[Process] No job to join!")
         return None, active_tasks

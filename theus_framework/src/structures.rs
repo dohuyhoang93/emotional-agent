@@ -447,26 +447,19 @@ impl ProcessContext {
         }
     }
 
-    // Legacy Compatibility: global_ctx -> state.data["global"]
+    // v3.2 Safe Alias: global_ctx -> state.getattr("global")
+    // Use this because 'global' is a reserved keyword in Python!
     #[getter]
     fn global_ctx(&self, py: Python) -> PyResult<PyObject> {
         let state_bound = self.state.bind(py);
-        let data = state_bound.getattr("data")?;
-        match data.get_item("global") {
-            Ok(v) => Ok(v.unbind()),
-            Err(_) => Ok(py.None()),
-        }
+        state_bound.getattr("global")?.extract()
     }
 
-    // Legacy Compatibility: domain_ctx -> state.data["domain"]
+    // v3.2 Safe Alias: domain_ctx -> state.getattr("domain")
     #[getter]
     fn domain_ctx(&self, py: Python) -> PyResult<PyObject> {
         let state_bound = self.state.bind(py);
-        let data = state_bound.getattr("data")?;
-        match data.get_item("domain") {
-            Ok(v) => Ok(v.unbind()),
-            Err(_) => Ok(py.None()),
-        }
+        state_bound.getattr("domain")?.extract()
     }
     
     // Forward getter access to state (except local)
