@@ -104,146 +104,100 @@ def run_smart_zerocopy(arr):
 from zc_tasks import process_heavy_task, process_simple_task
 
 def run_theus_engine(arr):
-    """Uses TheusEngine + @process API"""
+    """Sử dụng TheusEngine + @process API (v3.1.2 Idiomatic)"""
     from theus.engine import TheusEngine
-    from theus.context import ShmArray
+    from theus.context import HeavyZoneAllocator, BaseSystemContext, BaseDomainContext, BaseGlobalContext
+    import os
+    
+    # Bắt buộc dùng Multiprocessing vì NumPy hiện tại chưa hỗ trợ Sub-interpreters (Python 3.14)
+    os.environ["THEUS_USE_PROCESSES"] = "1"
     
     start = time.time()
     
-    # FORCE PROCESS BACKEND (NumPy compat)
-    os.environ["THEUS_USE_PROCESSES"] = "1"
-    
-    # 1. Allocate SHM (Producer)
-    shm = multiprocessing.shared_memory.SharedMemory(create=True, size=arr.nbytes)
-    shared_arr = np.ndarray(arr.shape, dtype=arr.dtype, buffer=shm.buf)
-    shared_arr[:] = arr[:]
-    theus_obj = ShmArray(shared_arr, shm=shm)
-    
-    prep_time = time.time() - start
-    
-    # 2. Initialize Engine with Mock State
-    # Note: We need a context that has 'heavy'
-    # 2. Initialize Engine with Real State
+    # 1. Khởi tạo Engine với Context chuẩn
     from dataclasses import dataclass, field
-    from theus.context import BaseSystemContext, BaseDomainContext, BaseGlobalContext
-
     @dataclass
-    class BenchDomain(BaseDomainContext):
-        pass
-
+    class BenchDomain(BaseDomainContext): pass
     @dataclass
-    class BenchGlobal(BaseGlobalContext):
-        pass
-
+    class BenchGlobal(BaseGlobalContext): pass
     @dataclass
     class BenchContext(BaseSystemContext):
         domain: BenchDomain
         global_ctx: BenchGlobal
-
+        # heavy zone được inject tự động bởi Engine
     
-    # helper to force dictionary hydration including 'heavy'
     ctx = BenchContext(domain=BenchDomain(), global_ctx=BenchGlobal())
-    init_data = ctx.to_dict()
-    init_data['heavy'] = {} # FORCE ROOT KEY
-
-    # Init Engine with None, then Manual CAS
-    engine = TheusEngine(context=None, strict_mode=False)
-    engine.compare_and_swap(0, init_data)
-
+    engine = TheusEngine(ctx, strict_mode=False)
     
-    # Inject Heavy Data using CAS (Correct Way)
-    # TheusEngine checks if core state is available
-    res = engine.compare_and_swap(engine.state.version, heavy={'matrix': theus_obj})
-    print(f"DEBUG: CAS Result: {res}")
+    # 2. Inject Managed Memory (Producer side)
+    # v3.1.2: Engine có Managed Allocator trong Core
+    heavy_alloc = HeavyZoneAllocator()
+    # Alloc & Copy
+    shared_arr = heavy_alloc.alloc("matrix", arr.shape, arr.dtype)
+    shared_arr[:] = arr[:]
     
-    # Verify Injection locally (Retry loop for convergence)
+    # Đồng bộ state (Ghi nhận SHM vào core)
+    engine._core.compare_and_swap(engine.state.version, None, {"matrix": shared_arr}, None)
     
-    for _ in range(10):
-        try:
-             # Workaround: FrozenDict __contains__ might be buggy or strict
-             if 'matrix' in list(engine.state.heavy.keys()):
-                 break
-        except Exception:
-             pass
-        time.sleep(0.1)
-        
-    if 'matrix' not in list(engine.state.heavy.keys()):
-        # Debug: Print available keys
-        print(f"DEBUG: Available Heavy Keys: {list(engine.state.heavy.keys())}")
-        raise RuntimeError("CAS Failed to inject 'matrix' into Heavy Zone")
-
-    print(f"DEBUG: Heavy Keys: {list(engine.state.heavy.keys())}")
+    prep_time = time.time() - start
     
-    # 3. Register Process
+    # 3. Register & Execute Parallel
     engine.register(process_heavy_task)
     
-    # 4. Execute Parallel
-    
-    # Define Args
-    task_args = {
-        "shm_name": shm.name,
-        "shape": arr.shape,
-        "dtype": str(arr.dtype)
-    }
-    
+    # Case: Đo hiệu năng parallel execution
+    output("Bắt đầu chạy Parallel Tasks qua Engine...")
     with ThreadPoolExecutor(max_workers=NUM_WORKERS) as exe:
-        # Pass kwargs to execute_parallel
-        futures = [exe.submit(engine.execute_parallel, "process_heavy_task", **task_args) for _ in range(NUM_WORKERS)]
+        # execute_parallel sử dụng InterpreterPool hoặc ProcessPool tùy cấu hình
+        futures = [exe.submit(engine.execute_parallel, "process_heavy_task") for _ in range(NUM_WORKERS)]
         [f.result() for f in futures]
         
     total_time = time.time() - start
     
-    # Cleanup
-    shm.close()
-    shm.unlink()
+    # Cleanup SHM
+    heavy_alloc.cleanup()
     
     return total_time, prep_time
 
 # --- Main ---
 
 if __name__ == "__main__":
-    # Ensure project root is in path for imports
     import sys
     import os
     sys.path.append(os.getcwd())
 
-    print("=== Comprehensive Benchmark (Smart Wiring) ===")
-    print(f"Matrix: {MATRIX_SIZE}x{MATRIX_SIZE} | Workers: {NUM_WORKERS}")
+    print("=== THEUS V3.1.2 ZERO-COPY BENCHMARK ===")
+    print(f"Ma trận: {MATRIX_SIZE}x{MATRIX_SIZE} | Số luồng: {NUM_WORKERS}")
     
     # Create Heavy Data
     data = np.random.rand(MATRIX_SIZE, MATRIX_SIZE)
-    print(f"Data Size: {data.nbytes / 1024 / 1024:.2f} MB")
+    print(f"Kích thước dữ liệu: {data.nbytes / 1024 / 1024:.2f} MB")
     print("-" * 30)
 
     # 1. Sequential
     t_seq = run_sequential(data)
-    print(f"1. Sequential:      {t_seq:.4f}s (Baseline)")
+    print(f"1. Chạy tuần tự:    {t_seq:.4f}s (Gốc)")
 
     # 2. Threaded
     t_thread = run_threaded(data)
-    print(f"2. Threaded (GIL):  {t_thread:.4f}s (Speedup: {t_seq/t_thread:.2f}x)")
+    print(f"2. Đa luồng (GIL):  {t_thread:.4f}s (Nhanh hơn: {t_seq/t_thread:.2f}x)")
 
     # 3. MP (Pickle)
     t_mp = run_multiprocessing_pickle(data)
-    print(f"3. MP (Pickle):     {t_mp:.4f}s (Speedup: {t_seq/t_mp:.2f}x)")
+    print(f"3. MP (Pickle):     {t_mp:.4f}s (Nhanh hơn: {t_seq/t_mp:.2f}x)")
 
-    # 4. Zero Copy (Smart)
+    # 4. Zero Copy (Theus Core)
     t_zc, t_prep = run_smart_zerocopy(data)
-    print(f"4. Theus Smart-ZC:  {t_zc:.4f}s (Speedup: {t_seq/t_zc:.2f}x)")
-    print(f"   (Prep/Copy Time: {t_prep:.4f}s included)")
+    print(f"4. Theus Core ZC:   {t_zc:.4f}s (Nhanh hơn: {t_seq/t_zc:.2f}x)")
+    print(f"   (Thời gian copy: {t_prep:.4f}s đã bao gồm)")
     
     print("-" * 30)
-    if t_zc < t_mp:
-        print(f"✅ SUCCESS: Smart-Pickle is {t_mp/t_zc:.2f}x faster than Pickle MP!")
-    else:
-        print("⚠️ RESULT: Smart-Pickle did not optimize. Check __reduce__ logic.")
-
+    
     # 5. Full API
     try:
         t_api, t_prep_api = run_theus_engine(data)
-        print(f"5. Theus API:       {t_api:.4f}s (Speedup: {t_seq/t_api:.2f}x)")
-        print(f"   (Overhead vs Core: {t_api - t_zc:.4f}s)")
+        print(f"5. Theus Engine API: {t_api:.4f}s (Nhanh hơn: {t_seq/t_api:.2f}x)")
+        print(f"   (Overhead so với Core: {t_api - t_zc:.4f}s)")
     except Exception as e:
         import traceback
         traceback.print_exc()
-        print(f"5. Theus API:       FAILED ({e})")
+        print(f"5. Theus API:       THẤT BẠI ({e})")

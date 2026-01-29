@@ -40,14 +40,16 @@ def test_strict_cas_mode():
     print("\n=== TEST 2: Strict CAS Mode (strict_cas=True) ===")
     
     engine = TheusEngine(strict_cas=True)
+    print(f"DEBUG: Engine initialized. strict_cas={engine._strict_cas}")
     
     # Hydrate with initial state  
     engine._core.compare_and_swap(0, {"domain": {"counter": 100, "name": "Alice"}})
     print(f"Initial: ver={engine.state.version}")
     
     # Update via the wrapped compare_and_swap to get ver 2
-    tx = engine.transaction()
-    tx.update({"domain": {"name": "Bob"}})
+    # Update via the wrapped compare_and_swap to get ver 2
+    with engine.transaction() as tx:
+        tx.update({"domain": {"name": "Bob"}})
     print(f"After name update: ver={engine.state.version}")
     
     # Try to update with stale version through Python wrapper

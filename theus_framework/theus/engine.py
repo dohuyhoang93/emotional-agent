@@ -57,7 +57,16 @@ class TheusEngine:
         # Initialize Rust Core (Microkernel)
         if _HAS_RUST_CORE:
             # Rust takes ownership of the Data Zone
-            init_data = context.to_dict() if context else {}
+            init_data = {}
+            if context:
+                if hasattr(context, "to_dict"):
+                    init_data = context.to_dict()
+                elif isinstance(context, dict):
+                    init_data = context.copy()
+                else:
+                    # Fallback
+                    init_data = dict(context)
+                
             self._core = theus_core.TheusEngine() # No args
             
             # Hydrate state via CAS (Version 0 -> Init)
@@ -148,6 +157,19 @@ class TheusEngine:
     def _run_process_sync(self, name: str, **kwargs):
         """Run a process synchronously (blocking). Called by Rust Flux Engine."""
         import asyncio
+        import warnings
+        
+        # [DX Check] Warn if called from Event Loop
+        try:
+            asyncio.get_running_loop()
+            warnings.warn(
+                f"Blocking execution of '{name}' detected inside Async Event Loop! "
+                "This will cause a DEADLOCK. Use 'await asyncio.to_thread(engine.execute_workflow, ...)'", 
+                RuntimeWarning
+            )
+        except RuntimeError:
+            pass
+
         try:
             loop = asyncio.get_event_loop()
         except RuntimeError:
@@ -191,6 +213,7 @@ class TheusEngine:
         if self._strict_cas:
             current_version = self.state.version
             if current_version != expected_version:
+                # print(f"DEBUG: Strict CAS Rejected. Cur={current_version}, Exp={expected_version}")
                 return self.state  # Gentle rejection
         
         # Delegate to Rust Core (Smart CAS with Key-Level detection)
@@ -314,17 +337,28 @@ class TheusEngine:
 
         # Run via Rust Core (Handles Audit, Timing, etc)
         try:
-             result = await self._core.execute_process_async(func.__name__, target_func)
+             result = await self._core.execute_process_async(func.__name__, target_func, tx)
              
              # v3.1 Explicit Commit (Supervisor Mode)
              # Verify state version to ensure Optimistic Concurrency Control
              # current_ver = self.state.version (Already captured as start_version)
              
-             # Commit pending changes from Transaction
-             self._core.compare_and_swap(start_version, data=tx.pending_data, heavy=tx.pending_heavy, signal=tx.pending_signal)
+             
+             # v3.1 Zero Trust Memory: Delta Replay Commit
+             # Instead of shadow copy, replay delta_log onto fresh dict for CAS
+             
+             # [Fix v3.1.2] Functional Pattern (Output Mapping): Apply return value to state
+             if result is not None and contract and contract.outputs:
+                  self._apply_return_value(result, contract.outputs, tx)
 
-             if self._audit:
-                  self._audit.log_success(func.__name__)
+             pending_data = tx.build_pending_from_deltas()
+             
+             # [v3.1.1] Audit Gatekeeper: Validate Contract BEFORE Commit
+             # This ensures strict spec compliance (Zero Trust).
+             if contract and self._strict_mode:
+                  self._validate_contract_compliance(func.__name__, contract, pending_data, tx)
+
+             self._core.compare_and_swap(start_version, data=pending_data, heavy=tx.pending_heavy, signal=tx.pending_signal)
              
         except Exception as e:
             if self._audit:
@@ -336,95 +370,6 @@ class TheusEngine:
             
 
         
-        # Logic for Output Mapping
-        # 1. StateUpdate (Explicit)
-        if StateUpdate and isinstance(result, StateUpdate):
-            if contract:
-                self._check_output_permission(result, contract)
-            
-            expected = result.assert_version
-            if expected is not None:
-                data = result.data or {}
-                if result.key is not None:
-                    data[result.key] = result.val
-                
-                self._core.compare_and_swap(expected, data, result.heavy, result.signal)
-            return result
-        
-        # 2. POP Output Mapping (Implicit)
-        elif contract and contract.outputs:
-            outputs = contract.outputs
-            
-            # Decide how to unpack result
-            if isinstance(result, dict):
-                # [v3.1 Fix] ambiguity: Is dict a Map or a Value?
-                # Check if result keys match output names
-                is_map = any(out_key in result for out_key in outputs)
-                
-                if is_map:
-                    vals = []
-                    for out_key in outputs:
-                        if out_key in result:
-                            vals.append(result[out_key])
-                        else:
-                            vals.append(None)
-                elif len(outputs) == 1:
-                     # Treat as Value
-                     vals = (result,)
-                else:
-                     # Heuristic failed, assume Map (strict)
-                     vals = [result.get(k) for k in outputs]
-            else:
-                 # Tuple/List Return (Positional)
-                 vals = result if len(outputs) > 1 else (result,)
-                 if len(outputs) == 1 and not isinstance(result, tuple):
-                      vals = (result,)
-        
-            updates_by_root = {} 
-            new_heavy = {}
-            
-            for path, val in zip(outputs, vals):
-                parts = path.split('.')
-                root = parts[0]
-                rest = parts[1:]
-                
-                if root in ["heavy"]:
-                    if len(rest) > 0:
-                        new_heavy[rest[0]] = val
-                elif root in ["domain", "global", "global_"]:
-                     key = "global" if root == "global_" else root
-                     if key not in updates_by_root:
-                         # Fetch current safely
-                         curr_wrapper = getattr(self.state, key, None)
-                         print(f"DEBUG_MAP: Fetching key='{key}' wrapper_type={type(curr_wrapper)}")
-                         if hasattr(curr_wrapper, "to_dict"):
-                               updates_by_root[key] = curr_wrapper.to_dict()
-                               print(f"DEBUG_MAP: Converted '{key}' to dict via to_dict()")
-                         elif isinstance(curr_wrapper, dict):
-                               updates_by_root[key] = curr_wrapper.copy()
-                         else:
-                               # Preserve Object Identity/State for Pydantic/Dataclasses
-                               updates_by_root[key] = curr_wrapper
-                     
-                     if len(rest) > 0:
-                         target = updates_by_root[key]
-                         field = rest[0]
-                         if isinstance(target, dict):
-                             target[field] = val
-                         else:
-                             # Object Mutation
-                             setattr(target, field, val)
-            
-            if start_version is not None:
-                 final_heavy = new_heavy if new_heavy else None
-                 print(f"DEBUG: Attempting CAS for {func.__name__} version {start_version} updates: {updates_by_root.keys()}")
-                 res = self._core.compare_and_swap(start_version, updates_by_root, final_heavy, None, func.__name__)
-                 print(f"DEBUG: CAS Result for {func.__name__}: {res}")
-            else:
-                 print(f"DEBUG: CAS Skipped for {func.__name__} (start_version is None)")
-
-            return result
-        
         return result
     
     def _create_restricted_view(self, ctx, allowed_paths=None):
@@ -432,36 +377,118 @@ class TheusEngine:
         # The Proxy ensures AttributeError/ContractViolationError on unauthorized access
         return RestrictedStateProxy(ctx.restrict_view(), allowed_paths=allowed_paths)
         
-    def _check_output_permission(self, update, contract):
-        # Check if update keys match contract.outputs glob patterns
-        # Simple glob match
+    def _validate_contract_compliance(self, func_name, contract, pending_data, tx):
+        """
+        [v3.1.1] Audit Gatekeeper: Check pending changes against contract.
+        Raises ContractViolationError if unlabeled side-effects are detected.
+        Uses Granular Delta Log paths for precision.
+        """
         import fnmatch
         
-        keys_to_check = []
-        if update.key:
-             # Heuristic: if key is dotted path e.g. "domain.system.config"
-             keys_to_check.append(update.key)
+        # Get raw paths that were modified (e.g. "domain.user.score")
+        try:
+            modified_paths = tx.get_delta_log()
+        except:
+             # Fallback if method missing (should not happen with v3.1.1 Core)
+             modified_paths = []
         
-        if update.data:
-             for k in update.data.keys():
-                 keys_to_check.append(f"data.{k}") 
+        # 1. PURE processes must not have side effects
+        if contract.semantic == SemanticType.PURE:
+            if modified_paths:
+                raise ContractViolationError(
+                    f"Process '{func_name}' is PURE but produced side-effects: {modified_paths}"
+                )
+            return
+
+        # 2. Check Outputs compliance (Granular)
+        allowed_patterns = contract.outputs or []
         
+        for path in modified_paths:
+            # [Fix v3.1.2] Ignore local/ephemeral scope changes
+            if path.startswith("local.") or path.startswith("local["):
+                continue
+
+            is_allowed = False
+            for pattern in allowed_patterns:
+                # Sub-path match: pattern="domain.data", path="domain.data.x" OR "domain.data[x]"
+                p_len = len(pattern)
+                if path.startswith(pattern):
+                    if len(path) == p_len: 
+                        is_allowed = True
+                        break
+                    # Check next char is separator
+                    next_char = path[p_len]
+                    if next_char in ('.', '['):
+                        is_allowed = True
+                        break
+                # Wildcard match: pattern="domain.*"
+                if fnmatch.fnmatch(path, pattern):
+                    is_allowed = True
+                    break
+            
+            if not is_allowed:
+                 raise ContractViolationError(
+                    f"Process '{func_name}' modified '{path}' which is NOT declared in outputs."
+                    f"\nAllowed: {allowed_patterns}"
+                    f"\nViolation: Access Denied to '{path}'"
+                )
+
+    def _apply_return_value(self, result, outputs, tx):
+        """
+        [v3.1.2] Helper to map function return value to output paths (Output Mapping).
+        Supports:
+        1. Single Output: result is applied directly to the only path in 'outputs'.
+        2. Multiple Outputs: result MUST be a dict where keys match output paths.
+        """
+        if not outputs:
+            return
+
+        # Case 1: Single Output Mapping (Identity)
+        if len(outputs) == 1:
+            tx.log_delta(outputs[0], None, result)
+            return
+
+        # Case 2: Multi-Output Mapping (Dictionary-based)
+        if isinstance(result, dict):
+            for path in outputs:
+                # We check for exact match or suffix match if keys in dict are short-names
+                # Priority 1: Exact Match
+                if path in result:
+                    tx.log_delta(path, None, result[path])
+                else:
+                    # Priority 2: Leaf-node match (e.g. 'data' matches 'domain.data')
+                    leaf = path.split('.')[-1]
+                    if leaf in result:
+                         tx.log_delta(path, None, result[leaf])
+        elif isinstance(result, (list, tuple)) and len(result) == len(outputs):
+            # Case 3: Positional Mapping (Tuple/List)
+            for path, val in zip(outputs, result):
+                tx.log_delta(path, None, val)
+
+    def _check_output_permission(self, update, contract):
+        """
+        [Legacy/Audit] Verify that an update payload respects output contracts.
+        NOTE: In v3.1+, this is mostly superseded by _validate_contract_compliance.
+        """
+        if not contract or not contract.outputs:
+             return
+             
+        import fnmatch
         valid_patterns = contract.outputs
         
-        for key in keys_to_check:
-             # Normalization
-             check_key = key
-             if key.startswith("data."):
-                 check_key = key[5:]
-             
-             allowed = False
-             for pattern in valid_patterns:
-                 if fnmatch.fnmatch(check_key, pattern):
-                     allowed = True
-                     break
-             
-             if not allowed:
-                  raise PermissionError(f"Write permission denied for path '{check_key}'")
+        # Check updates in 'domain'/'global' zones
+        for zone in ['domain', 'global']:
+            data = getattr(update, zone, {})
+            if isinstance(data, dict):
+                for key in data.keys():
+                    path = f"{zone}.{key}"
+                    allowed = False
+                    for pattern in valid_patterns:
+                        if fnmatch.fnmatch(path, pattern):
+                            allowed = True
+                            break
+                    if not allowed:
+                         raise ContractViolationError(f"Access Denied: Process modified '{path}' without declaration.")
 
     @contextmanager
     def edit(self):
@@ -544,10 +571,16 @@ class TheusEngine:
         if not func:
             raise ValueError(f"Process '{process_name}' not found in registry")
         
-        # Create ParallelContext with domain kwargs
-        # NOTE: We don't pass heavy zone directly (FrozenDict is not picklable).
-        # Workers should access shared memory via engine.heavy.get() with descriptor metadata.
-        ctx = ParallelContext(domain=kwargs, heavy=None)
+        # [Fix v3.1.2] Pass heavy zone metadata to workers
+        # NOTE: We convert to dict as FrozenDict might not be picklable across pools
+        heavy_data = {}
+        try:
+            if hasattr(self.state, "heavy") and self.state.heavy:
+                heavy_data = dict(self.state.heavy)
+        except Exception:
+            pass
+            
+        ctx = ParallelContext(domain=kwargs, heavy=heavy_data)
         
         # Submit and wait for result
         future = self._parallel_pool.submit(func, ctx)
@@ -650,3 +683,8 @@ class RestrictedStateProxy:
         if self._global_keys is None:  # Wildcard
             return self._state.global_
         return FilteredDomainProxy(self._state.global_, self._global_keys, "global")
+
+    def log(self, *args, **kwargs):
+        """DX: Standard logging stub to satisfy Linter."""
+        import sys
+        print(*args, file=sys.stderr, **kwargs)

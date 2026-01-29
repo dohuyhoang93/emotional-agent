@@ -354,4 +354,26 @@ When generating TheusEngine code:
 
 ---
 
+## 14. Interoperability & Serialization
+
+> **AI Rule:** Theus Proxies are Mappings, NOT Dicts.
+
+### 14.1 Pydantic Integration
+Always use `model_config = ConfigDict(from_attributes=True)` in your Pydantic models to allow them to validate directly against Theus Proxies.
+
+### 14.2 JSON Serialization
+Do NOT pass `ctx.domain` directly to `json.dumps` without an encoder.
+
+**Best Practice:** Use `TheusEncoder`.
+
+```python
+from theus import TheusEncoder
+json.dumps(ctx.domain, cls=TheusEncoder)
+```
+
+**Alternative:** Cast to dict if just passing data around.
+- `json.dumps(dict(ctx.domain))`
+
+---
+
 *Next: [04_WORKFLOW_FLUX_DSL.md](./04_WORKFLOW_FLUX_DSL.md)*

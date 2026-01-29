@@ -55,7 +55,9 @@ class ManagedAllocator:
         try:
             from theus_core.shm import MemoryRegistry
             self._registry = MemoryRegistry(self._session_id)
-        except ImportError:
+            print("[ManagedAllocator] Registry initialized successfully.")
+        except ImportError as e:
+            print(f"[ManagedAllocator] WARNING: MemoryRegistry Import Failed: {e}")
             self._registry = None
     
     def alloc(self, name: str, shape: tuple, dtype) -> Any:

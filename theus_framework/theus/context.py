@@ -104,6 +104,14 @@ class HeavyZoneWrapper:
                  return None
         return val
     
+    def __getattr__(self, name):
+        if name.startswith('_'):
+             return object.__getattribute__(self, name)
+        try:
+            return self[name]
+        except KeyError:
+             raise AttributeError(f"'HeavyZoneWrapper' object has no attribute '{name}'")
+    
     def __setitem__(self, key, value):
         # Write-Through to underlying dict (Transaction Logic handles the rest)
         self._data[key] = value

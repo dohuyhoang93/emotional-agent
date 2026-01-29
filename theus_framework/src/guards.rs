@@ -125,7 +125,13 @@ impl ContextGuard {
              // println!("DEBUG: Dict detected at '{}'", full_path);
              // std::io::stdout().flush().unwrap();
              let can_write = self.check_permissions(&full_path, true).is_ok();
-             let shadow = val; 
+             
+             let shadow = {
+                 let tx_bound = tx.bind(py);
+                 // Fixed: Get Shadow Copy for Dict too!
+                 tx_bound.borrow_mut().get_shadow(py, val.clone_ref(py), Some(full_path.clone()))?
+             };
+
              let proxy = SupervisorProxy::new(
                  shadow, 
                  full_path,
@@ -356,5 +362,11 @@ impl ContextGuard {
     fn __iter__(&self, py: Python) -> PyResult<PyObject> {
         let iter = self.target.bind(py).call_method0("__iter__")?;
         Ok(iter.unbind())
+    }
+
+    /// DX Log method: ctx.log("msg")
+    /// Writes to standard output for now (or could use meta logs if accessible)
+    fn log(&self, message: String) {
+        println!("[CTX LOG] {}", message);
     }
 }

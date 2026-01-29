@@ -1,5 +1,6 @@
 from .engine import TheusEngine
 from .contracts import process, ContractViolationError
+from .context import BaseSystemContext, BaseGlobalContext, BaseDomainContext
 # context module might be broken too if I touched it? (I didn't).
 # But locks module?
 # Let's keep minimal valid imports.
@@ -16,4 +17,13 @@ except ImportError:
     CORE_AVAILABLE = False
     SignalHub, SignalReceiver, SchemaViolationError = None, None, None
 
-__version__ = "3.0.2"
+
+__version__ = "3.1.22"
+
+# Register SupervisorProxy as a Mapping for Interoperability (e.g., Pydantic < v2, FastAPI)
+if CORE_AVAILABLE:
+    import collections.abc
+    from theus_core import SupervisorProxy
+    collections.abc.Mapping.register(SupervisorProxy)
+
+from .interop import TheusEncoder
