@@ -10,7 +10,6 @@ pub mod audit;
 mod fsm;
 
 mod guards;
-mod tracked;
 mod zones;
 mod signals;
 mod shm;

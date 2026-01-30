@@ -56,7 +56,7 @@ impl MemoryRegistry {
         let reader = BufReader::new(file);
 
         let mut active_records = Vec::new();
-        let mut zombies_cleaned = 0;
+        let mut _zombies_cleaned = 0;
         let mut records_dropped = 0;
         let mut lines_read = 0;
 
@@ -80,7 +80,7 @@ impl MemoryRegistry {
                     // Even if Open fails (already gone), we drop the record.
                     if let Ok(mut shm) = ShmemConf::new().os_id(&record.name).open() {
                         shm.set_owner(true);
-                        zombies_cleaned += 1;
+                        _zombies_cleaned += 1;
                     }
                     records_dropped += 1;
                 } else {

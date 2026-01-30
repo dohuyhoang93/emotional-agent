@@ -91,6 +91,7 @@ impl TheusEngine {
             delta_log: Arc::new(Mutex::new(Vec::new())),
             shadow_cache: Arc::new(Mutex::new(std::collections::HashMap::new())),
             path_to_shadow: Arc::new(Mutex::new(std::collections::HashMap::new())),
+            full_path_map: Arc::new(Mutex::new(std::collections::HashMap::new())),
         })
 
     }
@@ -261,7 +262,7 @@ impl TheusEngine {
         // [v3.1.2] Schema Enforcement for CAS (Critical Gatekeeper)
         // Ensure new state is valid before replacing self.state
         {
-             let mut schema_mutex = self.schema.lock().unwrap(); // Use separate var to avoid borrow conflict
+             let schema_mutex = self.schema.lock().unwrap(); // Use separate var to avoid borrow conflict
              if let Some(ref schema) = *schema_mutex {
                  // Validate Resulting State
                  let frozen_data = new_state_obj.getattr("data")?;
@@ -342,7 +343,8 @@ pub struct Transaction {
     // [v3.1 Zero Trust] Unified Delta Log
     pub delta_log: Arc<Mutex<Vec<crate::delta::DeltaEntry>>>, 
     pub shadow_cache: Arc<Mutex<std::collections::HashMap<usize, (PyObject, PyObject)>>>, // id -> (original, shadow)
-    pub path_to_shadow: Arc<Mutex<std::collections::HashMap<String, PyObject>>>, // path -> shadow for commit
+    pub path_to_shadow: Arc<Mutex<std::collections::HashMap<String, PyObject>>>, // root -> shadow (for legacy commit)
+    pub full_path_map: Arc<Mutex<std::collections::HashMap<String, PyObject>>>, // full_path -> shadow (for diff merging)
 }
 
 
@@ -370,6 +372,7 @@ impl Transaction {
             delta_log: Arc::new(Mutex::new(Vec::new())),
             shadow_cache: Arc::new(Mutex::new(std::collections::HashMap::new())),
             path_to_shadow: Arc::new(Mutex::new(std::collections::HashMap::new())),
+            full_path_map: Arc::new(Mutex::new(std::collections::HashMap::new())),
         })
 
     }
@@ -464,6 +467,9 @@ impl Transaction {
 
     /// [v3.1 Delta Replay] Build pending_data from delta_log by replaying mutations
     fn build_pending_from_deltas(&self, py: Python) -> PyResult<PyObject> {
+        // [v3.1.2] Differential Shadow Merging: Infer Deltas from unlogged mutations
+        self.infer_shadow_deltas(py)?;
+
         let result = PyDict::new_bound(py);
         let delta_log = self.delta_log.lock().unwrap();
         let result_py = result.clone().unbind().into_py(py);
@@ -526,6 +532,12 @@ impl Transaction {
         let engine = self.engine.bind(py);
         let current_state_obj = engine.getattr("state")?;
         
+        // [v3.1.2] Differential Shadow Merging:
+        // 1. Infer mutations from shadows
+        self.infer_shadow_deltas(py)?;
+        // 2. Apply delta_log to pending_data
+        self.commit(py)?;
+
         // Optimistic Update: Create new state version
         let new_state_obj = current_state_obj.call_method(
             "update", 
@@ -568,6 +580,52 @@ impl Transaction {
         Ok(())
     }
 
+    /// [v3.1.2] Infer Deltas from Shadow Mutations (Differential Merging)
+    fn infer_shadow_deltas(&self, py: Python) -> PyResult<()> {
+        // println!("DEBUG: infer_shadow_deltas EXECUTED"); 
+        let path_map = self.full_path_map.lock().unwrap();
+        let cache = self.shadow_cache.lock().unwrap();
+        let mut new_deltas = Vec::new();
+
+        for (path, shadow) in path_map.iter() {
+            let shadow_id = shadow.bind(py).as_ptr() as usize;
+            
+            if let Some((original, _)) = cache.get(&shadow_id) {
+                 if original.bind(py).as_ptr() == shadow.bind(py).as_ptr() {
+                     continue;
+                 }
+                 
+                 let are_equal = match original.bind(py).rich_compare(shadow.bind(py), pyo3::basic::CompareOp::Eq) {
+                     Ok(res) => {
+                         match res.is_truthy() {
+                             Ok(b) => b,
+                             Err(_) => {
+                                 // Fallback for NumPy arrays: (a == b).all()
+                                 res.call_method0("all").is_ok_and(|x| x.is_truthy().unwrap_or(false))
+                             }
+                         }
+                     },
+                     Err(_) => false // specific error handling skipped for brevity
+                 };
+                 
+                 if !are_equal {
+                     new_deltas.push(crate::delta::DeltaEntry {
+                         path: path.clone(),
+                         op: "SET".to_string(),
+                         value: Some(shadow.clone_ref(py)),
+                         old_value: Some(original.clone_ref(py)),
+                         target: None,
+                         key: None,
+                     });
+                 }
+            }
+        }
+        
+        let mut log = self.delta_log.lock().unwrap();
+        log.extend(new_deltas);
+        Ok(())
+    }
+
     /// Internal: Get shadow copy for CoW/Tracking
     pub fn get_shadow(&self, py: Python, val: PyObject, path: Option<String>) -> PyResult<PyObject> {
         let id = val.bind(py).as_ptr() as usize;
@@ -600,7 +658,7 @@ impl Transaction {
         };
         
         
-        let shadow_id = shadow.bind(py).as_ptr() as usize;
+
 
         // Disable Legacy Lock Manager on Shadow
         let _ = shadow.bind(py).setattr("_lock_manager", py.None());
@@ -614,11 +672,14 @@ impl Transaction {
         // v3.1: Also store ROOT path -> shadow for commit retrieval
         if let Some(ref p) = path {
             let root = p.split(['.', '[']).next().unwrap_or(p).to_string();
-            let mut path_map = self.path_to_shadow.lock().unwrap();
-            // Only insert if root not already present (preserve deeper shadows if multiple accesses)
-            if !path_map.contains_key(&root) {
-                path_map.insert(root, shadow.clone_ref(py));
+            {
+                let mut path_map = self.path_to_shadow.lock().unwrap();
+                // Only insert if root not already present (preserve deeper shadows if multiple accesses)
+                path_map.entry(root).or_insert_with(|| shadow.clone_ref(py));
             }
+            // v3.1.2: Store FULL path for Differential Shadow Merging
+            let mut full_map = self.full_path_map.lock().unwrap();
+            full_map.insert(p.clone(), shadow.clone_ref(py));
         }
 
         
@@ -637,7 +698,7 @@ impl Transaction {
             }
             
             let orig_bind = original.bind(py);
-            let type_name = orig_bind.get_type().name()?.to_string();
+            let _type_name = orig_bind.get_type().name()?.to_string();
             
             // Merge Shadow back to Original?
             // NO! We merge Shadow into PENDING buffers (which are copies of state).

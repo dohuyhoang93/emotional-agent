@@ -1,21 +1,23 @@
-
 import pytest
 from theus import TheusEngine
+
 
 def test_proxy_containment_leak():
     print("\n--- Testing Proxy Containment (The Naked Object Problem) ---")
     eng = TheusEngine(context={"domain": {"nested": {"secret": "data"}}})
     proxy = eng.state.domain
-    
+
     # 1. Test .get()
     # Expectation: .get("nested") should return a SupervisorProxy, NOT a dict
     val = proxy.get("nested")
     print(f"Type of proxy.get('nested'): {type(val)}")
-    
+
     if isinstance(val, dict):
         # Allow if it's FrozenDict (immutable), but Strict Proxy uses SupervisorProxy
         # SupervisorProxy is NOT a dict, it's a Mapping.
-        pytest.fail("LEAK DETECTED: .get() returned raw dict! Future mutations won't be tracked.")
+        pytest.fail(
+            "LEAK DETECTED: .get() returned raw dict! Future mutations won't be tracked."
+        )
     else:
         print(f"[PASS] .get() returned wrapped object: {type(val)}")
 
@@ -25,7 +27,9 @@ def test_proxy_containment_leak():
     values = list(proxy.values())
     first_val = values[0]
     print(f"Type of first value from .values(): {type(first_val)}")
-    assert not isinstance(first_val, dict), "LEAK DETECTED: .values() yielded raw dicts."
+    assert not isinstance(first_val, dict), (
+        "LEAK DETECTED: .values() yielded raw dicts."
+    )
 
     # 3. Test .items()
     print("\nTesting .items() iteration:")
@@ -36,13 +40,13 @@ def test_proxy_containment_leak():
 
     # 4. Test __len__
     print("\nTesting len(proxy):")
-    l = len(proxy)
-    assert l == 1
-    print(f"[PASS] len(proxy) = {l}")
+    length = len(proxy)
+    assert length == 1
+    print(f"[PASS] len(proxy) = {length}")
 
     # 5. Test Equality
     print("\nTesting Equality:")
     # Note: SupervisorProxy compares against dict by content
-    is_eq = (proxy == {"nested": {"secret": "data"}}) 
+    is_eq = proxy == {"nested": {"secret": "data"}}
     assert is_eq, "Proxy logic equality failed"
     print(f"[PASS] proxy == dict: {is_eq}")

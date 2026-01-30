@@ -200,10 +200,7 @@ pub fn deep_merge_cow(py: Python, target: PyObject, updates: &Bound<'_, PyDict>)
     }
 }
 
-/// Deep Update In-Place (Recursive Merge):
-/// - Modifies the target dict directly.
-/// - Recursively merges nested dicts.
-/// - Overwrites non-dict values.
+
 /// Deep Update In-Place (Recursive Merge):
 /// - Modifies the target dict directly.
 /// - Recursively merges nested dicts.
@@ -294,12 +291,10 @@ fn deep_update_at_path(py: Python, root: &Bound<'_, PyDict>, path: &str, value: 
                                   while list.len() <= *idx { list.append(py.None())?; }
                                   list.set_item(*idx, value)?;
                              }
+                        } else if *idx < list.len() {
+                             current = list.get_item(*idx)?.unbind();
                         } else {
-                             if *idx < list.len() {
-                                 current = list.get_item(*idx)?.unbind();
-                             } else {
-                                 return Err(pyo3::exceptions::PyIndexError::new_err(format!("Index [{}] out of range", idx)));
-                             }
+                             return Err(pyo3::exceptions::PyIndexError::new_err(format!("Index [{}] out of range", idx)));
                         }
                   } else {
                        // Support numeric dict keys too?

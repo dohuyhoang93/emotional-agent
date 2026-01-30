@@ -11,7 +11,7 @@ use crate::engine::Transaction;
 
 create_exception!(theus.structures, ContextError, pyo3::exceptions::PyException);
 
-#[pyclass(module = "theus_core")]
+#[pyclass(subclass)]
 pub struct FrozenDict {
     data: Py<PyDict>,
 }
@@ -99,7 +99,7 @@ impl MetaLogEntry {
 }
 
 /// Theus v3 Immutable State
-#[pyclass(module = "theus_core")]
+#[pyclass(subclass)]
 #[derive(Clone)]
 pub struct State {
     pub data: HashMap<String, Arc<PyObject>>,

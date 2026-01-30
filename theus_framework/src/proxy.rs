@@ -1,8 +1,10 @@
+// Import at top of file
 use pyo3::prelude::*;
-use pyo3::types::{PyDict, PyList, PyTuple};
+use pyo3::types::{PyDict, PyList, PyTuple, PyAny, PyModule};
 
-// =============================================================================
-// SupervisorProxy - Wraps Python object references for mutation tracking
+// use crate::engine::Transaction;
+
+
 // =============================================================================
 // 
 // Purpose: Replace FrozenDict with a Proxy that:
@@ -443,13 +445,7 @@ impl SupervisorProxy {
         }
 
         // Execute pop
-        let res = self.target.call_method1(py, "pop", (key, default));
-        // We do NOT wrap the result of pop() usually, as it removes it from the graph.
-        // But for consistency let's return it as is or wrapped? 
-        // Logic: Once popped, it is detached from the graph. It is effectively a "new" independent object.
-        // So we return it raw (or wrapped but without transaction/path?).
-        // Raw is safer to avoid confusion about it still being part of the state.
-        res
+        self.target.call_method1(py, "pop", (key, default))
     }
 
     fn popitem(&self, py: Python) -> PyResult<PyObject> {
@@ -569,24 +565,50 @@ impl SupervisorProxy {
             key_or_path
         } else {
             format!("{}.{}", self.path, key_or_path) 
-            // Note: For .get(), the key might not be suitable for dot notation if complex.
-            // But for now assumes string keys.
         };
 
-        let is_dict = val.bind(py).is_instance_of::<PyDict>();
-        let has_dict = val.bind(py).hasattr("__dict__")?;
+        let val_bound = val.bind(py);
+        let is_dict = val_bound.is_instance_of::<PyDict>();
+        let has_dict = val_bound.hasattr("__dict__")?;
+        let is_list = val_bound.is_instance_of::<PyList>();
 
+        // 1. Handle Dicts and Objects (Existing Logic)
         if is_dict || has_dict {
             let tx_clone = self.transaction.as_ref().map(|t| t.clone_ref(py));
-            Ok(SupervisorProxy::new(
-                val,
+            // CoW: Get Shadow
+            let val_shadow = if let Some(ref tx) = self.transaction {
+                let tx_bound = tx.bind(py);
+                match tx_bound.call_method1("get_shadow", (val.clone_ref(py), Some(nested_path.clone()))) {
+                    Ok(s) => s.unbind(),
+                    Err(_) => val
+                }
+            } else {
+                val
+            };
+
+            return Ok(SupervisorProxy::new(
+                val_shadow,
                 nested_path,
                 self.read_only,
                 tx_clone,
-            ).into_py(py))
-        } else {
-            Ok(val)
+            ).into_py(py));
         }
+        
+        // 2. [NEW] Handle Lists (Passive Inference Registration)
+        if is_list {
+             if let Some(ref tx) = self.transaction {
+                 // Get Shadow for List to ensure it is registered in full_path_map
+                 let tx_bound = tx.bind(py);
+                 let val_shadow = match tx_bound.call_method1("get_shadow", (val.clone_ref(py), Some(nested_path.clone()))) {
+                     Ok(s) => s.unbind(),
+                     Err(_) => val.clone_ref(py)
+                 };
+                 // Return Raw Shadow List (no Proxy wrapper)
+                 return Ok(val_shadow.into_py(py));
+             }
+        }
+
+        Ok(val)
     }
     fn path(&self) -> &str {
         &self.path
