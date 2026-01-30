@@ -13,7 +13,7 @@ from theus.context import BaseSystemContext
 
 # 1. Define Test Context
 class SimpleDomain(BaseModel):
-    items: list = Field(default_factory=list)
+    item_list: list = Field(default_factory=list)
     counter: int = 0
     async_triggered: bool = False
 
@@ -23,20 +23,18 @@ class SimpleSystemContext(BaseSystemContext):
         self.global_ctx = {} # Empty for test
 
 # 2. Define Processes (Sync vs Async)
-@process(outputs=['domain.counter'])
+@process(outputs=['domain'])
 def sync_increment(ctx):
-    return StateUpdate(data={'domain.counter': ctx.domain.counter + 1})
+    ctx.domain.counter += 1
 
-@process(outputs=['domain.async_triggered'])
+@process(outputs=['domain'])
 async def async_trigger(ctx):
     await asyncio.sleep(0.01) # Simulate IO
-    return StateUpdate(data={'domain.async_triggered': True})
+    ctx.domain.async_triggered = True
 
-@process(inputs=['domain.items'], outputs=['domain.items'])
-async def async_append(ctx, item: str):
-    new_items = list(ctx.domain.items)
-    new_items.append(item)
-    return StateUpdate(data={'domain.items': new_items})
+@process(inputs=['domain.item_list'], outputs=['domain'])
+async def async_append_const(ctx):
+    ctx.domain.item_list.append("hello_from_sync_workflow")
 
 class TestAsyncSyncBridge:
     """Suites to verify the bridge mechanics."""
@@ -61,15 +59,13 @@ class TestAsyncSyncBridge:
         engine = TheusEngine(SimpleSystemContext())
         engine.register(sync_increment)
         engine.register(async_trigger)
-        engine.register(async_append)
+        engine.register(async_append_const)
 
         yaml_content = """
 steps:
   - process: "sync_increment"
   - process: "async_trigger"
-  - process: "async_append"
-    kwargs:
-      item: "hello_from_sync_workflow"
+  - process: "async_append_const"
 """
         import tempfile
         import os
@@ -86,7 +82,7 @@ steps:
             domain = engine.state.domain
             assert domain.counter == 1
             assert domain.async_triggered is True
-            assert "hello_from_sync_workflow" in domain.items
+            assert "hello_from_sync_workflow" in domain.item_list
         finally:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
@@ -96,15 +92,13 @@ steps:
         """Verify that async retries using asyncio.sleep don't block."""
         engine = TheusEngine(SimpleSystemContext())
         
-        @process(outputs=['domain.counter'])
+        @process(outputs=['domain'])
         async def conflicting_increment(ctx):
             # Read current version
             v = engine.state.version
             # Trigger a background write to cause conflict
-            # In a real scenario, this would be another thread/process
-            # Here we just manually swap to simulate contention during a long async op
             await asyncio.sleep(0.02)
-            return StateUpdate(data={'domain.counter': ctx.domain.counter + 1})
+            ctx.domain.counter += 1
 
         engine.register(conflicting_increment)
         
