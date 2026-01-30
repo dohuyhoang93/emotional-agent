@@ -2,9 +2,15 @@ import pytest
 import threading
 import os
 import time
-from theus.parallel import InterpreterPool
+from theus.parallel import InterpreterPool, INTERPRETERS_SUPPORTED
 
 from theus.parallel import shared_test_task, parallel_cpu_task, slow_cpu_task
+
+# Module-level skip for unsupported Python versions (Pytest 9+ compliance)
+pytestmark = pytest.mark.skipif(
+    not INTERPRETERS_SUPPORTED, 
+    reason="Sub-interpreters not supported on this Python version"
+)
 
 
 @pytest.fixture
