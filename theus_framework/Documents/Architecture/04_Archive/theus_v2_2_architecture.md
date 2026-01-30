@@ -1,7 +1,10 @@
+> [!NOTE]
+> Tài liệu này là **Architecture Heritage** (Di sản kiến trúc). 
+> Nó phản ánh quá trình thiết kế và ra quyết định của các phiên bản cũ. Để sử dụng API thực tế, hãy xem [API Reference](../01_Specs/THEUS_API_REFERENCE.md).
+
+---
+
 # [LEGACY] Theus V2.2 Architecture Specification
-> **⚠️ WARNING: DEPRECATED**
-> This document describes the legacy V2.2 architecture. Theus is now on **v3.0** which uses an **Immutable Snapshot Isolation** model.
-> Please refer to [theus_framework/Documents/tutorials/en/](../tutorials/en/) for current V3 documentation.
 
 ## 1. Vision
 Transition from a "Hybrid Framework" to a **"Process-Oriented Operating System"**.

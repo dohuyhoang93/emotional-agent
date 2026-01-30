@@ -1,3 +1,9 @@
+> [!NOTE]
+> Tài liệu này là **Architecture Heritage** (Di sản kiến trúc). 
+> Nó phản ánh quá trình thiết kế và ra quyết định của các phiên bản cũ. Để sử dụng API thực tế, hãy xem [API Reference](../01_Specs/THEUS_API_REFERENCE.md).
+
+---
+
 # Theus V3.0.2 Architecture: The Process-Oriented Operating System
 
 **Date:** Jan 2026
@@ -120,14 +126,14 @@ sequenceDiagram
 
 ---
 
-## 4. POP Linter Integration (v3.1)
+## 4. POP Linter Integration (v3.0.2)
 
 The Linter acts as the "Compiler" for architectural rules, running before the code even executes.
 
 ```mermaid
 graph LR
     Code[Source Code .py] --> AST[AST Parser]
-    AST --> Linter[POP Linter v3.1]
+    AST --> Linter[POP Linter v3.0.2]
     
     Linter -->|Check| Rule1[POP-E01 - No Print]
     Linter -->|Check| Rule2[POP-E03 - No Network]

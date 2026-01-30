@@ -1,3 +1,9 @@
+> [!NOTE]
+> Tài liệu này là **Architecture Heritage** (Di sản kiến trúc). 
+> Nó phản ánh quá trình thiết kế và ra quyết định. Để sử dụng API thực tế, hãy xem [API Reference](../01_Specs/THEUS_API_REFERENCE.md).
+
+---
+
 # 🧠 PHÂN TÍCH & CHIẾN LƯỢC: ZERO-COPY PARALLELISM (REVISED)
 
 **Bối cảnh:** Theus V3 chưa đạt được "True Parallelism" do hạn chế của Python GIL và sự thiếu tương thích giữa Sub-Interpreters với các object phức tạp.

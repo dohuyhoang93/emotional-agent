@@ -1,3 +1,9 @@
+> [!NOTE]
+> Tài liệu này là **Architecture Heritage** (Di sản kiến trúc). 
+> Nó phản ánh quá trình thiết kế và ra quyết định của các phiên bản cũ. Để sử dụng API thực tế, hãy xem [API Reference](../01_Specs/THEUS_API_REFERENCE.md).
+
+---
+
 # Theus V3.0.1 Architecture Specification: The Immutable Core
 
 ## 1. Vision: Zero-Trust Process-Oriented Operating System

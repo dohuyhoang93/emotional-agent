@@ -1,6 +1,6 @@
-# Theus Framework v3.0.2 - API Reference
+# Theus Framework v3.0.22 - API Reference
 
-This document provides a comprehensive reference for the public APIs of the Theus Framework.
+This document provides a comprehensive reference for the public APIs of the Theus Framework v3.0.22.
 
 ---
 
@@ -164,7 +164,7 @@ The root container.
 @dataclass
 class MyContext(BaseSystemContext):
     global_ctx: MyGlobal
-    domain_ctx: MyDomain
+    domain: MyDomain
 ```
 
 ### Class `BaseDomainContext` / `BaseGlobalContext`

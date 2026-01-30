@@ -66,10 +66,10 @@ engine = TheusEngine(sys_ctx, strict_mode=False)
 ```python
 from theus.contracts import process
 
-@process(inputs=['domain_ctx.x'], outputs=['domain_ctx.y'])
+@process(inputs=['domain.x'], outputs=['domain.y'])
 def my_process(ctx):
     # Pure Logic: Read -> Compute -> Return
-    new_y = ctx.domain_ctx.x * 2
+    new_y = ctx.domain.x * 2
     return new_y
 
 # Register single process
@@ -178,8 +178,8 @@ with engine.edit() as ctx:
 
 ```python
 # Execute YAML workflow using Rust Flux DSL Engine
-# Note: This is synchronous (blocking)
-engine.execute_workflow("workflows/main_workflow.yaml")
+# Note: This is asynchronous
+await engine.execute_workflow("workflows/main_workflow.yaml")
 ```
 
 See [04_WORKFLOW_FLUX_DSL.md](./04_WORKFLOW_FLUX_DSL.md) for workflow syntax.

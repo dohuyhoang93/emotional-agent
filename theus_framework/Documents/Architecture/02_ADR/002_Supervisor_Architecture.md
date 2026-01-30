@@ -1,4 +1,10 @@
-# ADR: Supervisor Architecture v3.1
+> [!NOTE]
+> Tài liệu này là **Architecture Heritage** (Di sản kiến trúc). 
+> Nó phản ánh quá trình thiết kế và ra quyết định. Để sử dụng API thực tế, hãy xem [API Reference](../01_Specs/THEUS_API_REFERENCE.md).
+
+---
+
+# ADR: Supervisor Architecture v3.0.22
 
 **Date**: 2026-01-23
 **Status**: Implemented (Phase 1)

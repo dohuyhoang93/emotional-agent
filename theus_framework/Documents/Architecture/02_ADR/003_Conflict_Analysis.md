@@ -1,3 +1,9 @@
+> [!NOTE]
+> Tài liệu này là **Architecture Heritage** (Di sản kiến trúc). 
+> Nó phản ánh quá trình thiết kế và ra quyết định. Để sử dụng API thực tế, hãy xem [API Reference](../01_Specs/THEUS_API_REFERENCE.md).
+
+---
+
 # 🛡️ Phân Tích Phản Biện: Optimistic Locking (Global CAS)
 
 **Đối tượng thẩm định:** Cơ chế "Ai đến trước thắng trước" (Global CAS) trong `V3_ZeroCopy_Strategy.md`
