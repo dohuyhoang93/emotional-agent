@@ -845,6 +845,16 @@ class TheusEngine:
         future = self._parallel_pool.submit(func, ctx)
         return future.result()
 
+    def shutdown(self):
+        """Cleanly shuts down internal resources (Pools, Heavies)."""
+        if hasattr(self, "_parallel_pool") and self._parallel_pool:
+            self._parallel_pool.shutdown()
+            self._parallel_pool = None
+            
+        if hasattr(self, "_allocator") and self._allocator:
+            self._allocator.cleanup()
+            self._allocator = None
+
     def __getattr__(self, name):
         return getattr(self._core, name)
 
