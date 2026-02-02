@@ -42,7 +42,9 @@ When you pass this array to a worker (via `await engine.execute`), Theus is smar
 ```python
 # Main Process
 arr = engine.heavy.alloc("input_data", shape=(1000,1000), dtype=np.float32)
-engine.compare_and_swap(..., heavy={'input': arr})
+
+# Heavy zone requires explicit CAS to avoid expensive full-state serialization
+engine.compare_and_swap(engine.state.version, heavy={'input': arr})
 
 # Worker Process
 @process(parallel=True)

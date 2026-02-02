@@ -87,6 +87,8 @@ class TheusWorker:
         while True:
             workflow = await self.queue.get()
             try:
+                # v3.0.22: engine.execute_workflow is Async.
+                # It internally handles offloading to blocking threads if needed.
                 await self.engine.execute_workflow(workflow)
             except Exception as e:
                 print(f"Workflow Error: {e}")

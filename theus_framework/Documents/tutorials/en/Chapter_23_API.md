@@ -39,6 +39,15 @@ Executes process in separate Interpreter/Process.
 *   Requires `@process(parallel=True)`.
 *   See Chapter 19 for Zero-Copy data passing.
 
+#### `edit()` (Context Manager)
+Safe Zone for external mutation.
+```python
+with engine.edit() as ctx:
+    ctx.domain.counter = 999
+```
+*   **Safety:** Automates serialization and provides `SupervisorProxy`.
+*   **Rollback:** Auto-rolls back state if an exception occurs.
+
 #### `compare_and_swap(expected_version, data=None, heavy=None, signal=None)`
 Atomic state update.
 *   `expected_version`: Current `engine.state.version`.
@@ -110,3 +119,28 @@ See Chapter 15 for full CLI reference.
 *   `py -m theus.cli init`
 *   `py -m theus.cli check`
 *   `py -m theus.cli audit gen-spec`
+
+---
+
+## 6. SignalHub (`theus_core.SignalHub`)
+High-performance async broadcasting.
+*   **Constructor:** `SignalHub()` (No arguments).
+*   **Methods:**
+    *   `publish(topic: str, data: Any)`: Broadcast event.
+    *   `subscribe()` -> `SignalReceiver`: Subscribe to all events.
+
+### SignalReceiver
+*   `recv()`: Blocking receive.
+*   `recv_async()`: Awaitable receive.
+
+---
+
+## 7. Design Patterns
+*   **Outbox Pattern:** Use `domain.outbox_queue` + Async Relay Loop (See Chapter 25).
+*   **Pipeline Pattern:** Use pure Python functions inside a single `@process` to avoid nested execution deadlocks (See Chapter 6).
+
+---
+
+## 8. Navigation
+- [Chapter 24: SignalHub & Events](./Chapter_24_SignalHub.md)
+- [Chapter 25: The Outbox Pattern](./Chapter_25_Outbox_Pattern.md)

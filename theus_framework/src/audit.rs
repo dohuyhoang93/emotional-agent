@@ -57,7 +57,10 @@ impl AuditLogEntry {
 // Ring Buffer (Append-Only, Fixed Capacity)
 // ============================================================================
 
-struct RingBuffer {
+// Ring Buffer (Append-Only, Fixed Capacity)
+// ============================================================================
+
+pub struct RingBuffer {
     buffer: Vec<AuditLogEntry>,
     capacity: usize,
     write_pos: usize,
@@ -65,7 +68,7 @@ struct RingBuffer {
 }
 
 impl RingBuffer {
-    fn new(capacity: usize) -> Self {
+    pub fn new(capacity: usize) -> Self {
         RingBuffer {
             buffer: Vec::with_capacity(capacity),
             capacity,
@@ -74,7 +77,7 @@ impl RingBuffer {
         }
     }
 
-    fn push(&mut self, entry: AuditLogEntry) {
+    pub fn push(&mut self, entry: AuditLogEntry) {
         if self.buffer.len() < self.capacity {
             self.buffer.push(entry);
         } else {
@@ -84,7 +87,7 @@ impl RingBuffer {
         self.count += 1;
     }
 
-    fn get_all(&self) -> Vec<AuditLogEntry> {
+    pub fn get_all(&self) -> Vec<AuditLogEntry> {
         if self.buffer.len() < self.capacity {
             // Not yet wrapped around
             self.buffer.clone()
@@ -99,7 +102,7 @@ impl RingBuffer {
         }
     }
 
-    fn len(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.buffer.len()
     }
 }
@@ -158,10 +161,17 @@ impl AuditSystem {
             reset_on_success: true,
         });
         
+        use crate::globals::GLOBAL_AUDIT_BUFFER;
+        
+        // Connect to Process-Global Buffer (One Brain)
+        let buffer = GLOBAL_AUDIT_BUFFER.get_or_init(|| {
+            Arc::new(Mutex::new(RingBuffer::new(capacity)))
+        }).clone();
+        
         AuditSystem {
             recipe: r,
             counts: HashMap::new(),
-            ring_buffer: Arc::new(Mutex::new(RingBuffer::new(capacity))),
+            ring_buffer: buffer,
         }
     }
 

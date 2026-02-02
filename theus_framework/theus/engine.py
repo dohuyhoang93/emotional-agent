@@ -132,24 +132,29 @@ class TheusEngine:
                         except Exception as e:
                             print(f"Failed to load module {file}: {e}")
 
-    def execute_workflow(self, yaml_path, **kwargs):
-        """Execute Workflow YAML using Rust Flux DSL Engine."""
+    async def execute_workflow(self, yaml_path, **kwargs):
+        """
+        Execute Workflow YAML using Rust Flux DSL Engine.
+        Runs in a separate thread to prevent blocking the asyncio event loop (INC-008).
+        """
         from theus_core import WorkflowEngine
         import os
+        import asyncio
 
+        # Read YAML properly
         with open(yaml_path, "r", encoding="utf-8") as f:
             yaml_content = f.read()
 
         max_ops = int(os.environ.get("THEUS_MAX_LOOPS", 10000))
         debug = os.environ.get("THEUS_FLUX_DEBUG", "0").lower() in ("1", "true", "yes")
 
+        # Create Engine instance (lightweight)
         wf_engine = WorkflowEngine(yaml_content, max_ops, debug)
 
         # Build context dict for condition evaluation
         data = self.state.data
 
-        # v3.3: Inject Signal Snapshot (Fix Binding Blindness)
-        # We need to expose transient signals to the Flux condition evaluator
+        # v3.3: Inject Signal Snapshot
         signals = {}
         if hasattr(self.state, "signals"):
             signals = self.state.signals
@@ -158,11 +163,14 @@ class TheusEngine:
             "domain": data.get("domain", None),
             "global": data.get("global", None),
             "signal": signals,
-            "cmd": signals,  # Alias for convenience
+            "cmd": signals,
         }
 
-        # Execute workflow with process executor callback
-        executed = wf_engine.execute(ctx, self._run_process_sync)
+        # Offload the blocking Rust execution to a thread
+        # The callback _run_process_sync will be called from that thread.
+        executed = await asyncio.to_thread(
+            wf_engine.execute, ctx, self._run_process_sync
+        )
 
         return executed
 
@@ -307,80 +315,94 @@ class TheusEngine:
         contract = getattr(func, "_pop_contract", None)
 
         # v3.0.2: Auto-Dispatch Parallel Processes
-        if contract and contract.parallel:
-            import asyncio
-
-            loop = asyncio.get_running_loop()
-            return await loop.run_in_executor(
-                None, lambda: self.execute_parallel(func.__name__, **kwargs)
-            )
-
         # Transaction Management (v3.1 Explicit Lifecycle)
         # We implicitly create a transaction scope for the execution.
         start_version = self.state.version
         tx = theus_core.Transaction(self._core)
+        
+        result = None
+        ran_locally = True
 
-        target_func = func
-        if contract and contract.semantic == SemanticType.PURE:
-            # Pure Wrapper Logic + Arg Capture
-            # [v3.0.4] Pass contract.inputs to create filtered restricted view
-            allowed_inputs = contract.inputs if contract else []
-            import inspect
-
-            if inspect.iscoroutinefunction(func):
-
-                async def safe_wrapper(ctx, *_, **__):
-                    restricted = self._create_restricted_view(
-                        ctx, allowed_paths=allowed_inputs
-                    )
-                    return await func(restricted, *args, **kwargs)
-
-                safe_wrapper.__name__ = func.__name__
-                target_func = safe_wrapper
-            else:
-
-                def safe_wrapper(ctx, *_, **__):
-                    restricted = self._create_restricted_view(
-                        ctx, allowed_paths=allowed_inputs
-                    )
-                    return func(restricted, *args, **kwargs)
-
-                safe_wrapper.__name__ = func.__name__
-                target_func = safe_wrapper
-        else:
-            # If not PURE (no restricted view needed), we still need to bind arguments!
-            import inspect
-
-            if inspect.iscoroutinefunction(func):
-
-                async def arg_binder(ctx, *_, **__):
-                    # v3.1 Guard Wrapping (Admin Mode for Non-Pure)
-                    # Allows full access but enables SupervisorProxy for nested dicts
-                    # INJECT TRANSACTION:
-                    native_guard = theus_core.ContextGuard(
-                        ctx, [], [], None, tx, True, False
-                    )
-                    return await func(native_guard, *args, **kwargs)
-
-                arg_binder.__name__ = func.__name__
-                target_func = arg_binder
-            else:
-
-                def arg_binder(ctx, *_, **__):
-                    # v3.1 Guard Wrapping (Admin Mode for Non-Pure)
-                    native_guard = theus_core.ContextGuard(
-                        ctx, [], [], None, tx, True, False
-                    )
-                    return func(native_guard, *args, **kwargs)
-
-                arg_binder.__name__ = func.__name__
-                target_func = arg_binder
-
-        # Run via Rust Core (Handles Audit, Timing, etc)
-        try:
-            result = await self._core.execute_process_async(
-                func.__name__, target_func, tx
+        # v3.0.2: Auto-Dispatch Parallel Processes
+        if contract and contract.parallel:
+            import asyncio
+            
+            loop = asyncio.get_running_loop()
+            result = await loop.run_in_executor(
+                None, lambda: self.execute_parallel(func.__name__, **kwargs)
             )
+            ran_locally = False
+            
+        if ran_locally:
+            target_func = func
+            if contract and contract.semantic == SemanticType.PURE:
+                # Pure Wrapper Logic + Arg Capture
+                # [v3.0.4] Pass contract.inputs to create filtered restricted view
+                allowed_inputs = contract.inputs if contract else []
+                import inspect
+
+                if inspect.iscoroutinefunction(func):
+
+                    async def safe_wrapper(ctx, *_, **__):
+                        restricted = self._create_restricted_view(
+                            ctx, allowed_paths=allowed_inputs
+                        )
+                        return await func(restricted, *args, **kwargs)
+
+                    safe_wrapper.__name__ = func.__name__
+                    target_func = safe_wrapper
+                else:
+
+                    def safe_wrapper(ctx, *_, **__):
+                        restricted = self._create_restricted_view(
+                            ctx, allowed_paths=allowed_inputs
+                        )
+                        return func(restricted, *args, **kwargs)
+
+                    safe_wrapper.__name__ = func.__name__
+                    target_func = safe_wrapper
+            else:
+                # If not PURE (no restricted view needed), we still need to bind arguments!
+                import inspect
+
+                if inspect.iscoroutinefunction(func):
+
+                    async def arg_binder(ctx, *_, **__):
+                        # v3.1 Guard Wrapping (Admin Mode for Non-Pure)
+                        # Allows full access but enables SupervisorProxy for nested dicts
+                        # INJECT TRANSACTION:
+                        native_guard = theus_core.ContextGuard(
+                            ctx, [], [], None, tx, True, False
+                        )
+                        return await func(native_guard, *args, **kwargs)
+
+                    arg_binder.__name__ = func.__name__
+                    target_func = arg_binder
+                else:
+
+                    def arg_binder(ctx, *_, **__):
+                        # v3.1 Guard Wrapping (Admin Mode for Non-Pure)
+                        native_guard = theus_core.ContextGuard(
+                            ctx, [], [], None, tx, True, False
+                        )
+                        return func(native_guard, *args, **kwargs)
+
+                    arg_binder.__name__ = func.__name__
+                    target_func = arg_binder
+
+            # Run via Rust Core (Handles Audit, Timing, etc)
+            try:
+                result = await self._core.execute_process_async(
+                    func.__name__, target_func, tx
+                )
+            except Exception as e:
+                # Local execution failure
+                # If we have audit, log fail? 
+                # Currently standard flow catches exception at line 563
+                raise e
+
+        # Common Path: Commit Logic (Local or Parallel Result)
+        try:
 
             # v3.1 Explicit Commit (Supervisor Mode)
             # Verify state version to ensure Optimistic Concurrency Control
@@ -842,29 +864,69 @@ class FilteredDomainProxy:
         self._allowed = allowed_keys  # Set of allowed key names (e.g., {'counter'})
         self._zone = zone_name
 
+    def get(self, key, default=None):
+        if key not in self._allowed:
+            raise ContractViolationError(
+                f"Access denied: '{self._zone}.{key}' not declared in contract inputs."
+            )
+        
+        val = default
+        if hasattr(self._data, "get"):
+            val = self._data.get(key, default)
+        else:
+            val = getattr(self._data, key, default)
+        return self._wrap_deep_guard(val)
+
     def __getitem__(self, key):
         if key not in self._allowed:
             raise ContractViolationError(
                 f"Access denied: '{self._zone}.{key}' not declared in contract inputs. "
                 f"Allowed: {list(self._allowed)}"
             )
+        
+        val = None
         if hasattr(self._data, "__getitem__"):
-            return self._data[key]
-        return getattr(self._data, key)
+            val = self._data[key]
+        else:
+            val = getattr(self._data, key)
+        return self._wrap_deep_guard(val)
+
+    def _wrap_deep_guard(self, val):
+        """Recursively protect return values from mutation."""
+        if val is None:
+            return None
+        if isinstance(val, (str, int, float, bool, bytes)):
+            return val
+        if isinstance(val, list):
+            return tuple(val) # Make immutable copy
+        if isinstance(val, dict):
+            from types import MappingProxyType
+            return MappingProxyType(val) # Zero-copy immutable view
+        if hasattr(val, "copy"):
+            # Try to return a copy if we don't know the type (e.g. Set)
+            # Or should we be strict?
+            pass
+        return val
 
     def __getattr__(self, name):
         if name.startswith("_"):
             return object.__getattribute__(self, name)
         return self[name]
 
-    def get(self, key, default=None):
-        if key not in self._allowed:
-            raise ContractViolationError(
-                f"Access denied: '{self._zone}.{key}' not declared in contract inputs."
-            )
-        if hasattr(self._data, "get"):
-            return self._data.get(key, default)
-        return getattr(self._data, key, default)
+    def __setitem__(self, key, value):
+        raise ContractViolationError(f"PURE Process cannot mutate state: '{self._zone}.{key}'")
+
+    def __setattr__(self, name, value):
+        if name.startswith("_"):
+            object.__setattr__(self, name, value)
+        else:
+            raise ContractViolationError(f"PURE Process cannot mutate state: '{self._zone}.{name}'")
+
+    def __delitem__(self, key):
+        raise ContractViolationError(f"PURE Process cannot delete state: '{self._zone}.{key}'")
+
+    def __delattr__(self, name):
+        raise ContractViolationError(f"PURE Process cannot delete state: '{self._zone}.{name}'")
 
 
 class RestrictedStateProxy:
