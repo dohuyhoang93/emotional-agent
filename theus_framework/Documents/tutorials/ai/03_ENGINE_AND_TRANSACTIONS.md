@@ -376,4 +376,22 @@ json.dumps(ctx.domain, cls=TheusEncoder)
 
 ---
 
+## 15. Engine Lifecycle Management
+
+For high-performance applications (especially servers like FastAPI), managing the engine's lifecycle is critical to prevent resource leaks and zombie processes.
+
+### 15.1 Shutdown
+When using Parallel Execution (ProcessPools), you **MUST** call `shutdown()` before exiting.
+
+```python
+engine.shutdown() # Cleans up ProcessPools, Interpreters, and Shared Memory
+```
+
+### 15.2 Windows Deployment Notes
+On Windows, `ProcessPoolExecutor` can cause terminal hangs if not handled correctly.
+*   **Run Command:** Always use the direct venv python executable: `venv\Scripts\python.exe server.py`. Avoid `py.exe`.
+*   **Force Exit:** In async servers (Uvicorn), use `os._exit(0)` after `engine.shutdown()` to ensure immediate termination of background threads.
+
+---
+
 *Next: [04_WORKFLOW_FLUX_DSL.md](./04_WORKFLOW_FLUX_DSL.md)*

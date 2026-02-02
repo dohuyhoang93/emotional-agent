@@ -84,3 +84,21 @@ Current versions of NumPy do not fully support Sub-interpreters. If your work in
 
 ## 5. Heavy Data (Zero-Copy)
 For massive datasets (Images, Tensors), use the `ctx.heavy` Shared Memory feature (see **Chapter 10**) to avoid pickling overhead. The "Hand" receives a pointer to the memory, reads it, computes, and returns a small `StateUpdate`.
+
+## 5. Deployment Considerations
+
+### 5.1 Windows Support & "The Zombie Hang"
+When running Theus with `THEUS_USE_PROCESSES=1` on Windows, you may encounter terminal hangs upon shutdown. This is due to `ProcessPoolExecutor` waiting for children to exit while the event loop is already closing.
+
+**Solution:**
+1.  **Always Call Shutdown:** Ensure `engine.shutdown()` is called in your `lifespan` or cleanup hook.
+2.  **Use Direct Python Path:** Run `venv\Scripts\python.exe app.py` instead of `py app.py`. The `py` launcher can swallow kill signals.
+3.  **Force Exit:** If using Uvicorn/FastAPI, add `os._exit(0)` to your shutdown handler to kill lingering loop threads.
+
+```python
+# server.py shutdown logic
+if hasattr(engine, "shutdown"):
+    engine.shutdown()
+import os
+os._exit(0) # Force kill windows processes
+```
