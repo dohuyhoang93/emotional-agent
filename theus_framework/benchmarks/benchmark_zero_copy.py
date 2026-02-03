@@ -150,7 +150,7 @@ def run_theus_engine(arr):
         # heavy zone được inject tự động bởi Engine
 
     ctx = BenchContext(domain=BenchDomain(), global_ctx=BenchGlobal())
-    engine = TheusEngine(ctx, strict_mode=False)
+    engine = TheusEngine(ctx, strict_guards=False)
 
     # 2. Inject Managed Memory (Producer side)
     # v3.1.2: Engine có Managed Allocator trong Core
