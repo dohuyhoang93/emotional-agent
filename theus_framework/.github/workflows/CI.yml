@@ -27,12 +27,21 @@ jobs:
         uses: Swatinem/rust-cache@v2
       - name: Install dependencies
         run: |
-          pip install .
           pip install pytest numpy pytest-asyncio
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
+      - name: Install Theus
+        run: pip install .
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
       - name: Run Clippy
         run: cargo clippy -- -D warnings
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
       - name: Run Rust Tests
         run: cargo test
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
       - name: Run Python Tests
         run: pytest tests/
 
@@ -54,6 +63,8 @@ jobs:
           args: --release --out dist --interpreter python3.12 python3.13 python3.14 --manifest-path Cargo.toml
           sccache: 'true'
           manylinux: auto
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -78,6 +89,8 @@ jobs:
           target: x86_64-pc-windows-msvc
           args: --release --out dist --interpreter python3.12 python3.13 python3.14 --manifest-path Cargo.toml
           sccache: 'true'
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:
@@ -101,6 +114,8 @@ jobs:
           target: ${{ matrix.target }}-apple-darwin
           args: --release --out dist --interpreter python3.12 python3.13 python3.14 --manifest-path Cargo.toml
           sccache: 'true'
+        env:
+          PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
       - name: Upload wheels
         uses: actions/upload-artifact@v4
         with:

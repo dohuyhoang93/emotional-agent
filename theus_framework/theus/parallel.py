@@ -78,9 +78,17 @@ class InterpreterPool:
         Submit a task to run in a sub-interpreter.
         Uses pickle to marshal function and arguments.
         """
-        # Pickle the payload
+        # Pickle the payload with sys.path to ensure module resolution in sub-interpreter
+        import sys
         try:
-            payload = pickle.dumps((func, args, kwargs))
+            # Chicken-and-egg fix:
+            # We must pickle the function payload SEPARATELY from the paths.
+            # Otherwise, unpickling the tuple (paths, func) will try to import module of 'func'
+            # BEFORE we have a chance to restore 'paths'.
+            inner_payload = pickle.dumps((func, args, kwargs))
+            
+            # Outer payload only contains built-in types (list of strings, bytes), so it unpickles safely anywhere.
+            payload = pickle.dumps((sys.path[:], inner_payload))
         except Exception as e:
             f = Future()
             f.set_exception(e)
@@ -147,7 +155,19 @@ def _unpickle_runner(payload_bytes):
     """
     import pickle
 
-    func, args, kwargs = pickle.loads(payload_bytes)
+    import sys
+
+    # Unpack paths first (safe, only built-ins)
+    paths, inner_payload = pickle.loads(payload_bytes)
+    
+    # Restore sys.path (append missing paths to avoid duplication)
+    for p in paths:
+        if p not in sys.path:
+            sys.path.append(p)
+            
+    # Now that sys.path is correct, we can safely unpickle the actual function
+    func, args, kwargs = pickle.loads(inner_payload)
+    
     return func(*args, **kwargs)
 
 
