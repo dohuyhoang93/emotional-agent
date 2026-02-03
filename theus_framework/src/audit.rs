@@ -176,7 +176,9 @@ impl AuditSystem {
     }
 
     /// Log a failure event. Behavior depends on AuditLevel.
-    pub fn log_fail(&mut self, py: Python, key: String) -> PyResult<()> {
+    /// Can override global level and threshold per-call.
+    #[pyo3(signature = (key, level=None, threshold_max=None))]
+    pub fn log_fail(&mut self, py: Python, key: String, level: Option<AuditLevel>, threshold_max: Option<u32>) -> PyResult<()> {
         // First: update count (mutable borrow)
         let current_count: u32 = {
             let count = self.counts.entry(key.clone()).or_insert(0);
@@ -188,10 +190,12 @@ impl AuditSystem {
         // Log to ring buffer
         self.log_internal(&key, &format!("Fail #{}", current_count));
 
-        let threshold_max = self.recipe.threshold_max;
+        // Use Overrides (Granular) OR Fallback to Global (Defcon)
+        let effective_level = level.unwrap_or(self.recipe.level.clone());
+        let effective_threshold = threshold_max.unwrap_or(self.recipe.threshold_max);
         let threshold_min = self.recipe.threshold_min;
 
-        match self.recipe.level {
+        match effective_level {
             AuditLevel::Stop => {
                 // S-Level: Immediate halt on first failure
                 return Err(AuditStopError::new_err(format!(
@@ -206,25 +210,25 @@ impl AuditSystem {
             }
             AuditLevel::Block => {
                 // B-Level: Block after threshold exceeded
-                if current_count > threshold_max {
+                if current_count > effective_threshold {
                     return Err(AuditBlockError::new_err(format!(
                         "Audit Blocked: {} exceeded threshold {}", 
-                        key, threshold_max
+                        key, effective_threshold
                     )));
                 }
-                // Check warning threshold
+                // Check warning threshold (Global only for now)
                 if threshold_min > 0 && current_count >= threshold_min {
                     // Emit warning to Python
                     pyo3::PyErr::warn_bound(
                         py,
                         &py.get_type_bound::<AuditWarning>(),
-                        &format!("WARNING: Approaching threshold ({}/{})", current_count, threshold_max),
+                        &format!("WARNING: Approaching threshold ({}/{})", current_count, effective_threshold),
                         0
                     )?;
                     
                     // Also log to ring buffer
                     self.log_internal(&key, &format!("WARN: Approaching threshold ({}/{})", 
-                        current_count, threshold_max));
+                        current_count, effective_threshold));
                 }
             }
             AuditLevel::Count => {

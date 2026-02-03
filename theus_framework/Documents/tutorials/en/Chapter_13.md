@@ -29,7 +29,7 @@ def get_engine() -> TheusEngine:
         ctx = SystemContext(...)
         _engine = TheusEngine(
             ctx,
-            strict_mode=True,
+            strict_guards=True,
             audit_recipe="audit.yaml"
         )
         _engine.scan_and_register("src/processes")

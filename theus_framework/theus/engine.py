@@ -37,11 +37,11 @@ class TheusEngine:
     """
 
     def __init__(
-        self, context=None, strict_mode=True, strict_cas=False, audit_recipe=None
+        self, context=None, strict_guards=True, strict_cas=False, audit_recipe=None
     ):
         self._context = context
         self._registry = {}
-        self._strict_mode = strict_mode
+        self._strict_guards = strict_guards # Renamed from strict_mode
         self._strict_cas = strict_cas  # v3.0.4: CAS mode control
         self._audit = None
         self._schema = None  # v3.1.2: Schema Validation
@@ -56,11 +56,27 @@ class TheusEngine:
 
         if audit_config:
             # Unwrap AuditRecipeBook if necessary
+            if isinstance(audit_config, str):
+                from theus.config import ConfigFactory
+                try:
+                    book = ConfigFactory.load_recipe(audit_config)
+                    audit_config = book.rust_recipe
+                except Exception:
+                     # Fallback if file not found or invalid?
+                     # Let's assume it works or fail hard
+                     pass
+
             if hasattr(audit_config, "rust_recipe"):
                 audit_config = audit_config.rust_recipe
+            elif isinstance(audit_config, dict):
+                # [v3.1.2] Automatic Dict -> AuditRecipe conversion
+                from theus.config import AuditRecipe
+                target = audit_config.get("audit", audit_config)
+                t_max = target.get("threshold_max", 3)
+                reset = target.get("reset_on_success", True)
+                audit_config = AuditRecipe(threshold_max=int(t_max), reset_on_success=bool(reset))
 
             from theus.audit import AuditSystem
-
             self._audit = AuditSystem(audit_config)
 
         # Initialize Rust Core (Microkernel)
@@ -77,6 +93,12 @@ class TheusEngine:
                     init_data = dict(context)
 
             self._core = theus_core.TheusEngine()  # No args
+            
+            # [POP v3.1] Explicit Decoupling of Strictness Flags
+            self._core.set_strict_guards(strict_guards)
+            
+            # strict_cas -> Concurrency (Version Mismatch)
+            self._core.set_strict_cas(strict_cas)
 
             # Hydrate state via CAS (Version 0 -> Init)
             if init_data:
@@ -98,6 +120,38 @@ class TheusEngine:
                 self._allocator = None
         else:
             raise RuntimeError("Theus v3.0 requires Rust Core!")
+
+        # [v3.1.2] Audit & Validator Wiring
+        if self._audit:
+            # 1. Connect Python Audit System to Rust Core (One Brain)
+            # This ensures Rust-side CAS events log to the same RingBuffer
+            if hasattr(self._core, "set_audit_system"):
+                 self._core.set_audit_system(self._audit)
+
+            # 2. Initialize Active Validator (Gates)
+            # We need to re-parse definitions because AuditSystem only holds the Rust Recipe (Thresholds)
+            from theus.config import ConfigFactory
+            from theus.validator import AuditValidator
+            
+            definitions = {}
+            # Re-read config source
+            src = audit_recipe 
+            if not src:
+                 # If implied via None -> load default
+                 src = "audit_recipe.yaml"
+            
+            if isinstance(src, str):
+                 try:
+                     book = ConfigFactory.load_recipe(src)
+                     definitions = book.definitions
+                 except Exception:
+                     pass # Ignore if file missing during implicit load
+            elif isinstance(src, dict):
+                 definitions = src.get("process_recipes", {})
+
+            self._validator = AuditValidator(definitions, self._audit)
+        else:
+            self._validator = None
 
     def _create_restricted_view(self, ctx):
         """Create a Read-Only Proxy for Pure Processes."""
@@ -231,11 +285,9 @@ class TheusEngine:
             None on success, State object on failure (strict mode),
             or raises ContextError on conflict (smart mode).
         """
-        # Strict CAS Mode: Pre-flight Check (Python Side)
-        if self._strict_cas:
-            current_version = self.state.version
-            if current_version != expected_version:
-                return self.state  # Gentle rejection
+        # [REMOVED] Python-side Pre-flight check.
+        # We delegate strictness entirely to Rust Core (v3.0).
+        # if self._strict_cas: ...
 
         # Delegate to Rust Core (Smart CAS with Key-Level detection)
         return self._core.compare_and_swap(
@@ -312,6 +364,10 @@ class TheusEngine:
                 raise e
 
     async def _attempt_execute(self, func, *args, **kwargs):
+        # [v3.1.2] Input Gate: Active Validation
+        if self._validator:
+             self._validator.validate_inputs(func.__name__, kwargs)
+
         contract = getattr(func, "_pop_contract", None)
 
         # v3.0.2: Auto-Dispatch Parallel Processes
@@ -417,12 +473,20 @@ class TheusEngine:
 
             # [v3.1.2] Schema Validation (Python Side)
             # Enforce Pydantic constraints before CAS
-            if self._schema and self._strict_mode:
+            if self._schema and self._strict_guards:
                 self._validate_schema(pending_data)
+
+            # [v3.1.2] Output Gate: Active Validation (Schema/RuleSpec)
+            if self._validator:
+                self._validator.validate_outputs(func.__name__, pending_data)
+
+            # [v3.1.2] Output Gate: Active Validation (Schema/RuleSpec)
+            if self._validator:
+                self._validator.validate_outputs(func.__name__, pending_data)
 
             # [v3.1.1] Audit Gatekeeper: Validate Contract BEFORE Commit
             # This ensures strict spec compliance (Zero Trust).
-            if contract and self._strict_mode:
+            if contract and self._strict_guards:
                 self._validate_contract_compliance(
                     func.__name__, contract, pending_data, tx
                 )
@@ -468,6 +532,37 @@ class TheusEngine:
                             # But usually safe to avoid overwriting with None if not intended
                             if result.val is not None:
                                 setattr(target, last, result.val)
+
+                # [v3.1.5 FIX] Handle Bulk Data Update
+                if result.data:
+                    for path, val in result.data.items():
+                        parts = path.split(".")
+                        root = parts[0]
+                        if root not in pending_data:
+                            # [v3.1.5] Smart CAS Optimization: 
+                            # Do NOT clone full state. Use empty dict to trigger Rust Deep Merge.
+                            # This avoids false conflicts on untouched keys.
+                            pending_data[root] = {}
+
+                        if len(parts) == 1:
+                            pending_data[root] = val
+                        else:
+                            target = pending_data[root]
+                            if target is None:
+                                target = {}
+                                pending_data[root] = target
+
+                            for part in parts[1:-1]:
+                                if isinstance(target, dict):
+                                    target = target.setdefault(part, {})
+                                else:
+                                    target = getattr(target, part)
+                            
+                            last = parts[-1]
+                            if isinstance(target, dict):
+                                target[last] = val
+                            else:
+                                setattr(target, last, val)
 
             # 2. POP Output Mapping (Implicit)
             elif contract and contract.outputs:

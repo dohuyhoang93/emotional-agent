@@ -10,14 +10,14 @@
 ```python
 engine = TheusEngine(
     context: Optional[BaseSystemContext] = None,
-    strict_mode: bool = True,
+    strict_guards: bool = True,
     strict_cas: bool = False,
     audit_recipe: Optional[dict] = None
 )
 ```
 *   `context`: Initial system context.
-*   `strict_mode`: Enforces Contract I/O (See Chapter 5).
-*   `strict_cas`: `True`=Strict Versioning, `False`=Smart Conflict Resolution (See Chapter 20).
+*   `strict_guards`: Enforces Contract I/O & Policies (Default: True).
+*   `strict_cas`: `True`=Strict Versioning (Zero Trust), `False`=Smart Conflict Resolution (Available).
 
 ### Core Methods
 

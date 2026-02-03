@@ -123,7 +123,7 @@ steps:
 ```python
 from theus import TheusEngine
 
-engine = TheusEngine(sys_ctx, strict_mode=True)
+engine = TheusEngine(sys_ctx, strict_guards=True)
 engine.scan_and_register("src/processes")
 
 # Execute workflow

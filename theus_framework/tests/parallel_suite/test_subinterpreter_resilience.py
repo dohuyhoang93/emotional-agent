@@ -21,7 +21,7 @@ class TestSubInterpreterResilience:
         d = BaseDomainContext()
         
         ctx = BaseSystemContext(global_ctx=g, domain=d)
-        engine = TheusEngine(ctx, strict_mode=False) # Disable strict to simplify test setup
+        engine = TheusEngine(ctx, strict_guards=False) # Disable strict to simplify test setup
         # Register tasks
         engine.register(tasks.task_standard_echo)
         engine.register(tasks.task_heavy_compute)

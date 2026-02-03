@@ -15,8 +15,9 @@ config = WarehouseConfig(max_capacity=500)
 domain = WarehouseDomain()
 sys_ctx = WarehouseContext(global_ctx=config, domain=domain)
 
-# Initialize Engine (Strict Mode is default on v3.0, good for Dev)
-engine = TheusEngine(sys_ctx, strict_mode=True)
+# Initialize Engine (Strict Guards is default on v3.0, good for Dev)
+# Note: strict_cas default is False (Smart Mode)
+engine = TheusEngine(sys_ctx, strict_guards=True)
 ```
 
 ## 2. New API in v3.0
@@ -96,9 +97,11 @@ The `@process` decorator accepts a `semantic` argument to define the execution c
 
 | Semantic | Purpose | Constraints | Behavior |
 | :--- | :--- | :--- | :--- |
-| **`default`** | General Logic | None | Standard read/write access. Protected by Rust Core transaction. |
-| **`pure`** | Calculation | **Read-Only** | **Zero Trust:** Cannot modify state. Returns immutable views. |
-| **`strict`** | Critical IO | Audit Log only | Reserved for Banking/Audit logic (v3.1). |
+| **`effect`** (Default) | General Logic | None | Standard read/write access. Protected by Rust Core transaction. |
+| **`pure`** | Calculation | **Read-Only** | **Zero Trust:** Cannot modify state. Cannot accept `signal.*` inputs. Returns immutable views. |
+| **`guide`** | Orchestration | None | **Future Feature:** Currently behaves like `effect`. Reserved for Workflow Orchestrator v4. |
+
+> **Note:** Functionally, there are only two modes in v3.0: **PURE** (Restricted) and **EFFECT** (Unrestricted). The `guide` type is currently just a marker.
 
 ### 🛑 Zero Trust Warning: PURE Processes
 

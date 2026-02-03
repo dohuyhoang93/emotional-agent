@@ -10,13 +10,14 @@
 from theus import TheusEngine
 
 class TheusEngine:
-    def __init__(self, context=None, strict_mode=True, audit_recipe=None):
+    def __init__(self, context=None, strict_guards=True, strict_cas=False, audit_recipe=None):
         """
         Initialize Theus Engine.
         
         Args:
             context: SystemContext instance
-            strict_mode: Enable strict architectural guards (default: True)
+            strict_guards: Enable architectural guards and input policies (default: True)
+            strict_cas: Enable strict version checking (default: False for availability)
             audit_recipe: Path to audit YAML or dict
         """
 ```
@@ -33,29 +34,32 @@ sys_ctx = MySystemContext()
 # 2. Initialize engine
 engine = TheusEngine(
     context=sys_ctx,
-    strict_mode=True,  # Production: True, Training: False
+    strict_guards=True,  # Security: ON
+    strict_cas=False,    # Concurrency: Smart Merge (Recommended)
     audit_recipe="specs/audit_recipe.yaml"  # Optional
 )
 ```
 
 ---
 
-## 2. strict_mode Explained
+## 2. Strictness Flags Explained (POP v3.1)
 
-| Mode | Value | Use Case | Behavior |
-|:-----|:------|:---------|:---------|
-| **Production** | `True` | Deployment | Full architectural safety, Private access blocked |
-| **Research/Hack** | `False` | Debugging/Experiments | Disables limits/checks (e.g. private attrs), but Transactions still active |
+Theus v3.1 decouples strictness into two flags for explicit control.
+
+| Flag | Scope | `True` (Strict) | `False` (Lenient) |
+|:---|:---|:---|:---|
+| **`strict_guards`** | **Security** | Blocks `signal`/`meta` inputs. Enforces Audit Contract. Errors on Schema mismatch. | Allows `_private` access. Warnings instead of Blocks. |
+| **`strict_cas`** | **Data** | **Zero Trust:** Fails on ANY version mismatch (`ContextError`). | **Smart Merge:** Auto-merges if keys don't conflict. |
 
 ```python
-# Production (Safe)
-engine = TheusEngine(sys_ctx, strict_mode=True)
+# Production (Banking Class Security)
+engine = TheusEngine(sys_ctx, strict_guards=True, strict_cas=True)
 
-# Training (Fast)
-engine = TheusEngine(sys_ctx, strict_mode=False)
+# Development (Safe but Flexible) - DEFAULT
+engine = TheusEngine(sys_ctx, strict_guards=True, strict_cas=False)
 ```
 
-> **AI Rule:** Default to `strict_mode=True`. Use `False` only for debugging or when you need to bypass architectural constraints (e.g. access private `_` attributes).
+> **AI Rule:** Default to `strict_guards=True`. Use `strict_cas=False` unless the user specifically asks for "Strict CAS" or "Banking consistency".
 
 ---
 
