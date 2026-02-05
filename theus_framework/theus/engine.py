@@ -273,10 +273,10 @@ class TheusEngine:
         """v3.1 Managed Memory Allocator"""
         return self._allocator
 
-    def transaction(self):
-        return self._core.transaction()
+    def transaction(self, write_timeout_ms=5000):
+        return self._core.transaction(write_timeout_ms=write_timeout_ms)
 
-    def compare_and_swap(self, expected_version, data=None, heavy=None, signal=None):
+    def compare_and_swap(self, expected_version, data=None, heavy=None, signal=None, requester=None):
         """
         Compare-And-Swap with configurable conflict detection.
 
@@ -284,6 +284,9 @@ class TheusEngine:
         - strict_cas=False (default): Rust Smart CAS with Key-Level detection.
           Allows merge when specific keys haven't changed since expected_version.
         - strict_cas=True: Strict mode - rejects ALL version mismatches.
+
+        Args:
+            requester (str, optional): Name of process/worker. Required for Priority Ticket (VIP) access.
 
         Returns:
             None on success, State object on failure (strict mode),
@@ -295,7 +298,7 @@ class TheusEngine:
 
         # Delegate to Rust Core (Smart CAS with Key-Level detection)
         return self._core.compare_and_swap(
-            expected_version, data=data, heavy=heavy, signal=signal
+            expected_version, data=data, heavy=heavy, signal=signal, requester=requester
         )
 
         return self._core.compare_and_swap(
@@ -333,16 +336,26 @@ class TheusEngine:
         else:
             func = func_or_name
 
-        # Helper for Loop
-        start_version = None
+        # [v3.3] Extract Retry Config
+        # Fixes TypeError: func() got unexpected keyword argument 'retries'
+        max_retries = kwargs.pop("retries", 0)
+        current_retries = 0
+
+        # [v3.3 FIX] Hoist Transaction to preserve Outbox across CAS retries
+        # Previously tx was created inside _attempt_execute, causing message loss on retry.
+        tx = theus_core.Transaction(self._core)
 
         while True:
             try:
-                result = await self._attempt_execute(func, *args, **kwargs)
+                result = await self._attempt_execute(func, tx, *args, **kwargs)
 
                 # If success, clear conflict counter
                 if hasattr(self._core, "report_success"):
                     self._core.report_success(func.__name__)
+
+                # [v3.3] Manual Flush for Flux Engine (Fix for Outbox msg loss)
+                if hasattr(self._core, "flush_outbox"):
+                    self._core.flush_outbox()
 
                 return result
 
@@ -351,23 +364,54 @@ class TheusEngine:
                 err_msg = str(e)
                 is_cas_error = "CAS Version Mismatch" in err_msg
                 is_busy_error = "System Busy" in err_msg
+                
+                # [DEBUG] Forensic print
+                import sys
+                print(f"[DEBUG] Execute Exception: {err_msg!r} | CAS={is_cas_error} | Busy={is_busy_error}", file=sys.stderr)
+                sys.stderr.flush()
 
                 if is_busy_error:
-                    await asyncio.sleep(0.05)
-                    continue
+                    # Treat same as CAS error for retry purposes, maybe slightly shorter wait?
+                    # Actually, let's use the same backoff logic to avoid Thundering Herd on lock.
+                    is_cas_error = True 
 
-                if is_cas_error and hasattr(self._core, "report_conflict"):
-                    decision = self._core.report_conflict(func.__name__)
-                    if decision.should_retry:
-                        print(
-                            f"[*] Conflict detected for {func.__name__}. Retrying in {decision.wait_ms}ms..."
-                        )
-                        await asyncio.sleep(decision.wait_ms / 1000.0)
-                        continue
+                # [v3.3] Manual Fallback Retry Logic
+                # Since Rust Core 'report_conflict' binding might be missing or limited
+                should_retry = False
+                backoff_ms = 50
+
+                if is_cas_error:
+                    # 1. Try Rust Core Logic first
+                    if hasattr(self._core, "report_conflict"):
+                        decision = self._core.report_conflict(func.__name__)
+                        if decision.should_retry:
+                            should_retry = True
+                            backoff_ms = decision.wait_ms
+                    
+                    # 2. Fallback to Python Manual Retry with CAPPED Backoff + Full Jitter
+                    if not should_retry and current_retries < max_retries:
+                        should_retry = True
+                        current_retries += 1
+                        
+                        # [Forensic Fix] Cap backoff to prevent "Exponential Explosion"
+                        # Max wait = 1000ms (1s) to avoid 14-hour sleeps
+                        MAX_BACKOFF_MS = 1000
+                        raw_backoff = 50 * (2 ** (current_retries - 1))
+                        
+                        # Full Jitter: Uniform(0, min(Cap, Exp))
+                        import random
+                        actual_backoff = random.uniform(0, min(MAX_BACKOFF_MS, raw_backoff))
+                        
+                        backoff_ms = actual_backoff
+                        print(f"[*] CAS/Busy Conflict for {func.__name__}. Retry {current_retries}/{max_retries} in {backoff_ms:.2f}ms...")
+
+                if should_retry:
+                    await asyncio.sleep(backoff_ms / 1000.0)
+                    continue
 
                 raise e
 
-    async def _attempt_execute(self, func, *args, **kwargs):
+    async def _attempt_execute(self, func, tx, *args, **kwargs):
         # [v3.1.2] Input Gate: Active Validation
         if self._validator:
              self._validator.validate_inputs(func.__name__, kwargs)
@@ -376,9 +420,8 @@ class TheusEngine:
 
         # v3.0.2: Auto-Dispatch Parallel Processes
         # Transaction Management (v3.1 Explicit Lifecycle)
-        # We implicitly create a transaction scope for the execution.
+        # Transaction is now passed from execute() to preserve Outbox across retries.
         start_version = self.state.version
-        tx = theus_core.Transaction(self._core)
         
         result = None
         ran_locally = True
@@ -431,9 +474,19 @@ class TheusEngine:
                         # v3.1 Guard Wrapping (Admin Mode for Non-Pure)
                         # Allows full access but enables SupervisorProxy for nested dicts
                         # INJECT TRANSACTION:
+                        print(f"[PY-DEBUG] arg_binder called for {func.__name__}, ctx type: {type(ctx)}", flush=True)
+                        
+                        # [v3.3 FIX] Extract outbox BEFORE creating ContextGuard
+                        # ProcessContext.outbox is a #[pyo3(get)] read-only attribute
+                        raw_outbox = ctx.outbox
+                        
                         native_guard = theus_core.ContextGuard(
                             ctx, [], [], None, tx, True, False
                         )
+                        
+                        # Assign to ContextGuard's __dict__ (enabled by #[pyclass(dict)])
+                        object.__setattr__(native_guard, 'outbox', raw_outbox)
+                        print(f"[PY-DEBUG] ContextGuard created with outbox={type(native_guard.outbox)}", flush=True)
                         return await func(native_guard, *args, **kwargs)
 
                     arg_binder.__name__ = func.__name__
@@ -442,9 +495,14 @@ class TheusEngine:
 
                     def arg_binder(ctx, *_, **__):
                         # v3.1 Guard Wrapping (Admin Mode for Non-Pure)
+                        # [v3.3 FIX] Extract outbox BEFORE creating ContextGuard
+                        raw_outbox = ctx.outbox
+                        
                         native_guard = theus_core.ContextGuard(
                             ctx, [], [], None, tx, True, False
                         )
+                        # Assign to ContextGuard's __dict__ (enabled by #[pyclass(dict)])
+                        object.__setattr__(native_guard, 'outbox', raw_outbox)
                         return func(native_guard, *args, **kwargs)
 
                     arg_binder.__name__ = func.__name__
@@ -676,6 +734,19 @@ class TheusEngine:
                 signal=tx.pending_signal,
             )
 
+            # [v3.3] Flush Outbox Messages (Post-Commit)
+            # NOTE: PyO3 fails to expose Transaction.flush_outbox(), so we implement flush in Python
+            # This drains messages from tx.outbox (OutboxCollector with shared Arc buffer)
+            # and extends the engine's outbox for process_outbox() to dispatch
+            try:
+                pending_msgs = tx.outbox.drain()
+                if pending_msgs:
+                    print(f"[DEBUG] Python-side flush: transferring {len(pending_msgs)} msgs to engine", flush=True)
+                    for msg in pending_msgs:
+                        self._core.outbox.add(msg)
+            except Exception as flush_err:
+                print(f"[WARN] Outbox flush error: {flush_err}", flush=True)
+
             if self._audit:
                 self._audit.log_success(func.__name__)
 
@@ -689,14 +760,14 @@ class TheusEngine:
                     raise audit_exc from e
             raise e
 
-    def set_schema(self, schema_cls):
+    def set_schema(self, schema):
         """
         [v3.1.2] Register a Pydantic Schema for Strict Validation.
         """
-        self._schema = schema_cls
+        self._schema = schema
         if hasattr(self._core, "set_schema"):
             try:
-                self._core.set_schema(schema_cls)
+                self._core.set_schema(schema)
             except Exception as e:
                 print(f"WARNING: Rust Core set_schema failed: {e}")
 
@@ -898,47 +969,25 @@ class TheusEngine:
     def execute_parallel(self, process_name, **kwargs):
         """
         Execute a process in parallel pool (Sub-Interpreter or Process).
-
         Uses `THEUS_USE_PROCESSES=1` env var to force ProcessPool (for NumPy compatibility).
         Uses `THEUS_POOL_SIZE=N` env var to set pool size (default: 4).
 
         Args:
-            process_name: Name of the registered process to execute.
+            process_name: Name of process to run.
             **kwargs: Arguments to pass to the process (merged into ctx.domain).
 
         Returns:
             Result from the process execution.
         """
-        from theus.parallel import ProcessPool, ParallelContext
         import os
-
-        use_processes = os.environ.get("THEUS_USE_PROCESSES", "0") == "1"
-        pool_size = int(os.environ.get("THEUS_POOL_SIZE", "4"))
-
-        # Create pool lazily (cached on engine instance)
-        if not hasattr(self, "_parallel_pool") or self._parallel_pool is None:
-            if use_processes:
-                self._parallel_pool = ProcessPool(size=pool_size)
-            else:
-                try:
-                    from theus.parallel import InterpreterPool
-
-                    self._parallel_pool = InterpreterPool(size=pool_size)
-                except Exception as e:
-                    print(
-                        f"WARNING: Sub-Interpreters not available ({e}), falling back to ProcessPool."
-                    )
-                    self._parallel_pool = ProcessPool(size=pool_size)
-
-        # Get registered function
-        func = self._registry.get(process_name)
-        if not func:
-            raise ValueError(f"Process '{process_name}' not found in registry")
-
         # Create ParallelContext with domain kwargs
-        # NOTE: We don't pass heavy zone directly (FrozenDict is not picklable).
-        # Workers should access shared memory via engine.heavy.get() with descriptor metadata.
-        ctx = ParallelContext(domain=kwargs, heavy=None)
+        # v3.2 FIXED: Use centralized factory for safe hydration (INC-014)
+        from theus.parallel import ParallelContext, ProcessPool
+        
+        # Ensure imports are clean (ProcessPool might already be imported if lazy init ran)
+        # But ParallelContext is needed here.
+        
+        ctx = ParallelContext.from_state(self.state, **kwargs)
 
         # Submit and wait for result
         future = self._parallel_pool.submit(func, ctx)
@@ -1098,4 +1147,22 @@ class RestrictedStateProxy:
 
     def log(self, *args, **kwargs):
         """DX: Standard logging stub to satisfy Linter."""
+        import sys
         print(*args, file=sys.stderr, **kwargs)
+
+    def attach_worker(self, worker_func):
+        """
+        [v3.3] Register a Relay Worker for Outbox Processing.
+        The worker function receives OutboxMsg objects.
+        """
+        self._worker_ref = worker_func
+        if hasattr(self._core, "attach_worker"):
+            self._core.attach_worker(worker_func)
+
+    def process_outbox(self):
+        """
+        [v3.3] Trigger manual processing of the Outbox queue.
+        Dispatches all pending messages to the attached worker.
+        """
+        if hasattr(self._core, "process_outbox"):
+            self._core.process_outbox()

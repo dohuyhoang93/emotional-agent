@@ -216,6 +216,29 @@ impl ContextGuard {
         Self::new_internal(target, inputs_vec, outputs_vec, prefix, tx, is_admin, strict_guards)
     }
 
+    /// [v3.3 FIX] Native getter for outbox to bypass __getattr__ shadowing from #[pyclass(dict)]
+    /// CRITICAL: Must return raw Outbox object, NOT wrapped in ContextGuard.
+    /// The Outbox struct has its own Arc<Mutex> buffer that is shared with Transaction.
+    /// Wrapping it in ContextGuard would cause add() to fail silently.
+    #[getter]
+    fn outbox(&self, py: Python) -> PyResult<PyObject> {
+        // NOTE: Try to extract ProcessContext and return raw Outbox directly
+        // This bypasses any ContextGuard wrapping that would happen via __getattr__
+        let target_bound = self.target.bind(py);
+        
+        // Check if target is ProcessContext (direct access)
+        if let Ok(pc) = target_bound.extract::<Py<crate::structures::ProcessContext>>() {
+            eprintln!("DEBUG: ContextGuard.outbox getter - extracting from ProcessContext");
+            let pc_ref = pc.borrow(py);
+            return Ok(Py::new(py, pc_ref.outbox.clone())?.into_py(py));
+        }
+        
+        // Fallback: target is not ProcessContext (shouldn't happen in normal flow)
+        // Try direct getattr as last resort
+        eprintln!("DEBUG: ContextGuard.outbox getter - fallback getattr");
+        target_bound.getattr("outbox").map(|v| v.unbind())
+    }
+
     fn __getattr__(&self, py: Python, name: String) -> PyResult<PyObject> {
         if self.strict_guards && name.starts_with('_') {
              return Err(PyPermissionError::new_err(format!("Access to private attribute '{}' denied in Strict Mode", name)));
@@ -230,6 +253,11 @@ impl ContextGuard {
         } else {
             format!("{}.{}", self.path_prefix, name)
         };
+
+        // DEBUG: Trace outbox access
+        if name == "outbox" {
+            eprintln!("DEBUG: ContextGuard.__getattr__ path='{}' is_admin={}", full_path, self.is_admin);
+        }
 
         self.check_permissions(&full_path, false)?;
 

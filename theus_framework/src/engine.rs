@@ -19,6 +19,16 @@ impl OutboxCollector {
     fn add(&self, msg: OutboxMsg) {
         self.buffer.lock().unwrap().push(msg);
     }
+    
+    /// [v3.3] Drain all messages from the buffer for Python-side flush
+    fn drain(&self) -> Vec<OutboxMsg> {
+        self.buffer.lock().unwrap().drain(..).collect()
+    }
+    
+    /// [v3.3] Get current message count
+    fn len(&self) -> usize {
+        self.buffer.lock().unwrap().len()
+    }
 }
 
 #[pyclass(module = "theus_core", subclass)]
@@ -300,24 +310,27 @@ impl TheusEngine {
         let inspect = py.import("inspect")?;
         let is_coroutine = inspect.call_method1("iscoroutinefunction", (&func,))?.is_truthy()?;
         
-        // Create Ephemeral Context (RAII)
+        // if tx.is_some() { println!("DEBUG: execute_process_async with TX"); } else { println!("DEBUG: execute_process_async NO TX"); }
+
         // Create Ephemeral Context (RAII)
         let local_dict = PyDict::new_bound(py);
         
-        // Fix: Use ProcessContext::new() constructor which handles Outbox init
-        // Or init struct manually if ::new() is not accessible (it is private in structures.rs).
-        // Since structures.rs has `pub struct ProcessContext`, fields are pub? 
-        // No, in structures.rs fields are pub, but Outbox field added.
-        // Let's check structures.rs again... yes `pub outbox: Outbox`.
-        // So we can init manually.
+        let py_tx: Option<Py<Transaction>> = tx.map(|t| t.extract(py)).transpose()?;
         
+        // [v3.3 Fix] Share Outbox Buffer with Transaction if present
+        let outbox_buffer = if let Some(ref t) = py_tx {
+            t.borrow(py).pending_outbox.clone()
+        } else {
+            Arc::new(Mutex::new(Vec::new()))
+        };
+
         let ctx = Py::new(py, crate::structures::ProcessContext {
             state: self.state.clone_ref(py),
             local: local_dict.unbind(),
             outbox: crate::structures::Outbox {
-                messages: Arc::new(Mutex::new(Vec::new()))
+                messages: outbox_buffer 
             },
-            tx: tx.map(|t| t.extract(py)).transpose()?, 
+            tx: py_tx, 
         })?;
 
         let args = (ctx,);
@@ -499,12 +512,27 @@ impl Transaction {
         Ok(result.unbind().into_py(py))
     }
 
-    /// [v3.1.1] Expose raw delta log for strict contract validation
+    /// [v3.1.2] Expose raw delta log for strict contract validation
     fn get_delta_log(&self, _py: Python) -> PyResult<Vec<String>> {
         let delta_log = self.delta_log.lock().unwrap();
         // Return only paths, values not needed for validation usually
         let paths: Vec<String> = delta_log.iter().map(|e| e.path.clone()).collect();
         Ok(paths)
+    }
+
+    /// [v3.3] Manual Flush for Flux Engine / execute()
+    fn flush_outbox(&self, py: Python) -> PyResult<()> {
+        let mut pending = self.pending_outbox.lock().unwrap();
+        eprintln!("DEBUG: Transaction::flush_outbox pending_count={}", pending.len());
+        if pending.is_empty() { return Ok(()); }
+        
+        let msgs = pending.drain(..).collect::<Vec<_>>();
+        
+        let engine = self.engine.bind(py);
+        let engine_ref = engine.borrow();
+        eprintln!("DEBUG: Transaction::flush_outbox transferring {} msgs to engine", msgs.len());
+        engine_ref.outbox.lock().unwrap().extend(msgs);
+        Ok(())
     }
 
 
@@ -659,7 +687,7 @@ impl Transaction {
         let shadow = match copy_mod.call_method1("deepcopy", (&val,)) { 
             Ok(s) => s.unbind(),
             Err(e) => {
-                 eprintln!("[Theus] WARNING: Cannot copy object at {:?}: {}", path, e);
+                 eprintln!("[Theus] WARNING (DEBUG): Cannot copy object at {:?}: {}", path, e);
                  cache.insert(id, (val.clone_ref(py), val.clone_ref(py)));
                  return Ok(val);
             }

@@ -461,7 +461,9 @@ impl Outbox {
         }
     }
 
-    fn add(&self, msg: OutboxMsg) {
+    #[pyo3(signature = (msg))]
+    fn add(&mut self, msg: OutboxMsg) {
+        eprintln!("DEBUG: Outbox::add topic={}", msg.topic);
         self.messages.lock().unwrap().push(msg);
     }
     
