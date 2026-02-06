@@ -4,7 +4,7 @@ import threading
 from theus import process
 
 # CPU-bound task
-def cpu_heavy(n=50000000):
+def cpu_heavy(n=20000000):
     start = time.time()
     count = 0
     while n > 0:
