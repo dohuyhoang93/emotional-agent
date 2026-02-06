@@ -95,6 +95,14 @@ impl TheusEngine {
         self.state.clone_ref(py)
     }
 
+    /// [v3.3] Expose Engine Outbox for manual flushing
+    #[getter]
+    fn outbox(&self) -> OutboxCollector {
+        OutboxCollector {
+            buffer: self.outbox.clone(),
+        }
+    }
+
     // Return Transaction.
     #[pyo3(signature = (write_timeout_ms=5000))]
     fn transaction(slf: Py<TheusEngine>, py: Python, write_timeout_ms: u64) -> PyResult<Transaction> {
@@ -778,7 +786,6 @@ impl Transaction {
                  let target_dict = if is_heavy { &self.pending_heavy } else { &self.pending_data };
                  
                  // Apply to target_dict at path
-                 // We need a helper to set nested path in PyDict.
                  set_nested_value(py, target_dict, &entry.path, new_val)?;
             }
         }

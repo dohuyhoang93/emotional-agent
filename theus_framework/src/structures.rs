@@ -8,6 +8,7 @@ use std::collections::VecDeque;
 use std::time::{SystemTime, UNIX_EPOCH};
 use crate::signals::SignalHub;
 use crate::engine::Transaction;
+use crate::zones::CAP_READ;
 
 create_exception!(theus.structures, ContextError, pyo3::exceptions::PyException);
 
@@ -395,6 +396,7 @@ impl State {
                      true, // Read-Only
                      None,
                      false, // is_shadow
+                     CAP_READ, // [RFC-001] Read-Only Capability
                  );
                  Ok(Py::new(py, proxy)?.into_py(py))
              },
@@ -406,12 +408,14 @@ impl State {
     fn domain_proxy(&self, py: Python, read_only: Option<bool>) -> PyResult<PyObject> {
         match self.data.get("domain") {
             Some(val) => {
+                let ro = read_only.unwrap_or(true);
                 let proxy = SupervisorProxy::new(
                     val.clone_ref(py),
                     "domain".to_string(),
-                    read_only.unwrap_or(false),
+                    ro,
                     None,
                     false, // is_shadow
+                    CAP_READ,
                 );
                 Ok(Py::new(py, proxy)?.into_py(py))
             },
@@ -429,6 +433,7 @@ impl State {
                      true, // Read-Only
                      None,
                      false, // is_shadow
+                     CAP_READ,
                  );
                  Ok(Py::new(py, proxy)?.into_py(py))
              },

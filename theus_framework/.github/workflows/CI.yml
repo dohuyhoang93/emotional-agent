@@ -48,6 +48,8 @@ jobs:
           PYO3_USE_ABI3_FORWARD_COMPATIBILITY: "1"
       - name: Run Python Tests
         run: pytest tests/
+      - name: Run Manual Suite (Integration)
+        run: python tests/manual/run_suite.py
 
   linux:
     needs: lint_and_test

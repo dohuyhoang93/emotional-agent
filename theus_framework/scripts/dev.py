@@ -67,12 +67,23 @@ def cmd_verify():
     run([sys.executable, "tests/verify_api_parity.py"], env=env)
     print("✅ Parity Check Passed.")
 
+def cmd_test():
+    print("\n🧪 Running Automated Suite (Pytest)...")
+    env = os.environ.copy()
+    env["PYTHONPATH"] = os.getcwd()
+    run([sys.executable, "-m", "pytest", "tests/"], env=env)
+    
+    print("\n🧪 Running Manual Suite (Integration)...")
+    run([sys.executable, "tests/manual/run_suite.py"], env=env)
+    print("✅ All Tests Passed.")
+
 def print_help():
     print("Theus Cross-Platform Dev Tool")
     print("Usage: python scripts/dev.py <command>")
     print("Commands:")
     print("  build   : Compile Rust & Generate Stubs")
     print("  verify  : Run API Parity Check")
+    print("  test    : Run Pytest + Manual Suite")
     print("  all     : Build + Verify")
 
 def main():
@@ -86,6 +97,8 @@ def main():
         cmd_build()
     elif command == "verify":
         cmd_verify()
+    elif command == "test":
+        cmd_test()
     elif command == "all":
         cmd_build()
         cmd_verify()

@@ -130,7 +130,8 @@ async def test_outbox_conflict_resolution():
     
     # 2. Run Fast (bumps version to 2)
     await engine.execute("fast_interrupter")
-    assert engine.state.version == 2
+    # v3.3 Note: slow_producer might have already retried and finished if fast_interrupter took long
+    assert engine.state.version in [2, 3]
     
     # 3. Await Slow
     # It should fail CAS and retry (Theus default behavior is retry?)

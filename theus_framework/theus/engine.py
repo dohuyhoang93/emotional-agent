@@ -103,7 +103,8 @@ class TheusEngine:
             # Hydrate state via CAS (Version 0 -> Init)
             if init_data:
                 try:
-                    # Version 0 is start.
+                    # [v3.1 FIX] Rust Core initializes State at Version 0 (Empty)
+                    # We MUST use expected_version=0 to hydrate it successfully.
                     self._core.compare_and_swap(0, init_data)
                 except Exception as e:
                     print(f"WARNING: Initial hydration failed: {e}")
@@ -152,6 +153,28 @@ class TheusEngine:
             self._validator = AuditValidator(definitions, self._audit)
         else:
             self._validator = None
+
+        self._parallel_pool = None
+
+    @property
+    def strict_guards(self):
+        return self._strict_guards
+    
+    @strict_guards.setter
+    def strict_guards(self, enabled: bool):
+        self._strict_guards = enabled
+        if hasattr(self._core, "set_strict_guards"):
+            self._core.set_strict_guards(enabled)
+
+    @property
+    def strict_cas(self):
+        return self._strict_cas
+
+    @strict_cas.setter
+    def strict_cas(self, enabled: bool):
+        self._strict_cas = enabled
+        if hasattr(self._core, "set_strict_cas"):
+            self._core.set_strict_cas(enabled)
 
     def _create_restricted_view(self, ctx):
         """Create a Read-Only Proxy for Pure Processes."""
@@ -343,73 +366,73 @@ class TheusEngine:
 
         # [v3.3 FIX] Hoist Transaction to preserve Outbox across CAS retries
         # Previously tx was created inside _attempt_execute, causing message loss on retry.
-        tx = theus_core.Transaction(self._core)
-
         while True:
-            try:
-                result = await self._attempt_execute(func, tx, *args, **kwargs)
+            with theus_core.Transaction(self._core) as tx:
+                try:
+                    result = await self._attempt_execute(func, tx, *args, **kwargs)
 
-                # If success, clear conflict counter
-                if hasattr(self._core, "report_success"):
-                    self._core.report_success(func.__name__)
+                    # If success, clear conflict counter
+                    if hasattr(self._core, "report_success"):
+                        self._core.report_success(func.__name__)
 
-                # [v3.3] Manual Flush for Flux Engine (Fix for Outbox msg loss)
-                if hasattr(self._core, "flush_outbox"):
-                    self._core.flush_outbox()
+                    # [v3.3] Manual Flush for Flux Engine (Fix for Outbox msg loss)
+                    if hasattr(self._core, "flush_outbox"):
+                        self._core.flush_outbox()
 
-                return result
+                    print(f"[PY-DEBUG] execute returning result={result!r}", flush=True)
+                    return result
 
-            except Exception as e:
-                # Check for CAS Conflict (ContextError)
-                err_msg = str(e)
-                is_cas_error = "CAS Version Mismatch" in err_msg
-                is_busy_error = "System Busy" in err_msg
-                
-                # [DEBUG] Forensic print
-                import sys
-                print(f"[DEBUG] Execute Exception: {err_msg!r} | CAS={is_cas_error} | Busy={is_busy_error}", file=sys.stderr)
-                sys.stderr.flush()
-
-                if is_busy_error:
-                    # Treat same as CAS error for retry purposes, maybe slightly shorter wait?
-                    # Actually, let's use the same backoff logic to avoid Thundering Herd on lock.
-                    is_cas_error = True 
-
-                # [v3.3] Manual Fallback Retry Logic
-                # Since Rust Core 'report_conflict' binding might be missing or limited
-                should_retry = False
-                backoff_ms = 50
-
-                if is_cas_error:
-                    # 1. Try Rust Core Logic first
-                    if hasattr(self._core, "report_conflict"):
-                        decision = self._core.report_conflict(func.__name__)
-                        if decision.should_retry:
-                            should_retry = True
-                            backoff_ms = decision.wait_ms
+                except Exception as e:
+                    # Check for CAS Conflict (ContextError)
+                    err_msg = str(e)
+                    is_cas_error = "CAS Version Mismatch" in err_msg
+                    is_busy_error = "System Busy" in err_msg
                     
-                    # 2. Fallback to Python Manual Retry with CAPPED Backoff + Full Jitter
-                    if not should_retry and current_retries < max_retries:
-                        should_retry = True
-                        current_retries += 1
-                        
-                        # [Forensic Fix] Cap backoff to prevent "Exponential Explosion"
-                        # Max wait = 1000ms (1s) to avoid 14-hour sleeps
-                        MAX_BACKOFF_MS = 1000
-                        raw_backoff = 50 * (2 ** (current_retries - 1))
-                        
-                        # Full Jitter: Uniform(0, min(Cap, Exp))
-                        import random
-                        actual_backoff = random.uniform(0, min(MAX_BACKOFF_MS, raw_backoff))
-                        
-                        backoff_ms = actual_backoff
-                        print(f"[*] CAS/Busy Conflict for {func.__name__}. Retry {current_retries}/{max_retries} in {backoff_ms:.2f}ms...")
+                    # [RE-ENABLED FOR DIAGNOSIS]
+                    import sys
+                    print(f"[DEBUG] Execute Exception: {err_msg!r} | CAS={is_cas_error} | Busy={is_busy_error}", file=sys.stderr)
+                    sys.stderr.flush()
 
-                if should_retry:
-                    await asyncio.sleep(backoff_ms / 1000.0)
-                    continue
+                    if is_busy_error:
+                        # Treat same as CAS error for retry purposes, maybe slightly shorter wait?
+                        # Actually, let's use the same backoff logic to avoid Thundering Herd on lock.
+                        is_cas_error = True 
 
-                raise e
+                    # [v3.3] Manual Fallback Retry Logic
+                    # Since Rust Core 'report_conflict' binding might be missing or limited
+                    should_retry = False
+                    backoff_ms = 50
+
+                    if is_cas_error:
+                        # 1. Try Rust Core Logic first
+                        if hasattr(self._core, "report_conflict"):
+                            decision = self._core.report_conflict(func.__name__)
+                            if decision.should_retry:
+                                should_retry = True
+                                backoff_ms = decision.wait_ms
+                        
+                        # 2. Fallback to Python Manual Retry with CAPPED Backoff + Full Jitter
+                        if not should_retry and current_retries < max_retries:
+                            should_retry = True
+                            current_retries += 1
+                            
+                            # [Forensic Fix] Cap backoff to prevent "Exponential Explosion"
+                            # Max wait = 1000ms (1s) to avoid 14-hour sleeps
+                            MAX_BACKOFF_MS = 1000
+                            raw_backoff = 50 * (2 ** (current_retries - 1))
+                            
+                            # Full Jitter: Uniform(0, min(Cap, Exp))
+                            import random
+                            actual_backoff = random.uniform(0, min(MAX_BACKOFF_MS, raw_backoff))
+                            
+                            backoff_ms = actual_backoff
+                            print(f"[*] CAS/Busy Conflict for {func.__name__}. Retry {current_retries}/{max_retries} in {backoff_ms:.2f}ms...")
+
+                    if should_retry:
+                        await asyncio.sleep(backoff_ms / 1000.0)
+                        continue
+
+                    raise e
 
     async def _attempt_execute(self, func, tx, *args, **kwargs):
         # [v3.1.2] Input Gate: Active Validation
@@ -481,11 +504,18 @@ class TheusEngine:
                         raw_outbox = ctx.outbox
                         
                         native_guard = theus_core.ContextGuard(
-                            ctx, [], [], None, tx, True, False
+                            ctx, 
+                            contract.inputs if contract else [], 
+                            contract.outputs if contract else [], 
+                            None, 
+                            tx, 
+                            not self.strict_guards, 
+                            False
                         )
                         
                         # Assign to ContextGuard's __dict__ (enabled by #[pyclass(dict)])
-                        object.__setattr__(native_guard, 'outbox', raw_outbox)
+                        # [v3.3] Now that Rust getter is fixed, we don't need this manual assignment?
+                        # object.__setattr__(native_guard, 'outbox', raw_outbox)
                         print(f"[PY-DEBUG] ContextGuard created with outbox={type(native_guard.outbox)}", flush=True)
                         return await func(native_guard, *args, **kwargs)
 
@@ -499,10 +529,16 @@ class TheusEngine:
                         raw_outbox = ctx.outbox
                         
                         native_guard = theus_core.ContextGuard(
-                            ctx, [], [], None, tx, True, False
+                            ctx, 
+                            contract.inputs if contract else [], 
+                            contract.outputs if contract else [], 
+                            None, 
+                            tx, 
+                            not self.strict_guards, 
+                            False
                         )
                         # Assign to ContextGuard's __dict__ (enabled by #[pyclass(dict)])
-                        object.__setattr__(native_guard, 'outbox', raw_outbox)
+                        # object.__setattr__(native_guard, 'outbox', raw_outbox)
                         return func(native_guard, *args, **kwargs)
 
                     arg_binder.__name__ = func.__name__
@@ -662,9 +698,16 @@ class TheusEngine:
                         # Or strict: if keys missing and len > 1, assume map failed -> None
                         vals = [None] * len(outputs)
                 else:
-                    vals = result if len(outputs) > 1 else (result,)
-                    if len(outputs) == 1 and not isinstance(result, tuple):
-                        vals = (result,)
+                    # [RFC-001 FIX] Allow None return for multi-output processes.
+                    # This allows proxy-based mutations to be the sole source of truth.
+                    if result is None:
+                        vals = [None] * len(outputs)
+                    else:
+                        if len(outputs) > 1 and not isinstance(result, (list, tuple)):
+                             raise TypeError(f"Process defined multiple outputs {outputs} but returned single value: {result}. Expected tuple/list.")
+                        vals = result if len(outputs) > 1 else (result,)
+                        if len(outputs) == 1 and not isinstance(result, tuple):
+                            vals = (result,)
 
                 for path, val in zip(outputs, vals):
                     # [FIX v3.1.3] Skip if val is None (Do not overwrite Proxy mutations)
@@ -726,26 +769,10 @@ class TheusEngine:
                                 else:
                                     setattr(target, last_field, val)
 
-            # Perform SINGLE Atomic CAS
-            self._core.compare_and_swap(
-                start_version,
-                data=pending_data,
-                heavy=tx.pending_heavy,
-                signal=tx.pending_signal,
-            )
-
-            # [v3.3] Flush Outbox Messages (Post-Commit)
-            # NOTE: PyO3 fails to expose Transaction.flush_outbox(), so we implement flush in Python
-            # This drains messages from tx.outbox (OutboxCollector with shared Arc buffer)
-            # and extends the engine's outbox for process_outbox() to dispatch
-            try:
-                pending_msgs = tx.outbox.drain()
-                if pending_msgs:
-                    print(f"[DEBUG] Python-side flush: transferring {len(pending_msgs)} msgs to engine", flush=True)
-                    for msg in pending_msgs:
-                        self._core.outbox.add(msg)
-            except Exception as flush_err:
-                print(f"[WARN] Outbox flush error: {flush_err}", flush=True)
+            # [v3.3 FIX] RELY ON Transaction.__exit__ for Atomic Commit
+            # Do NOT call self._core.compare_and_swap here, as it causes double-bumps
+            # instead, ensure all collected updates are in the Transaction object.
+            tx.update(data=pending_data)
 
             if self._audit:
                 self._audit.log_success(func.__name__)
@@ -984,6 +1011,15 @@ class TheusEngine:
         # v3.2 FIXED: Use centralized factory for safe hydration (INC-014)
         from theus.parallel import ParallelContext, ProcessPool
         
+        # Lazy Initialization
+        if self._parallel_pool is None:
+            pool_size = int(os.environ.get("THEUS_POOL_SIZE", 4))
+            self._parallel_pool = ProcessPool(size=pool_size)
+
+        func = self._registry.get(process_name)
+        if not func:
+             raise ValueError(f"Process '{process_name}' not found")
+
         # Ensure imports are clean (ProcessPool might already be imported if lazy init ran)
         # But ParallelContext is needed here.
         
@@ -1002,6 +1038,28 @@ class TheusEngine:
         if hasattr(self, "_allocator") and self._allocator:
             self._allocator.cleanup()
             self._allocator = None
+
+    def log(self, *args, **kwargs):
+        """DX: Standard logging stub to satisfy Linter."""
+        import sys
+        print(*args, file=sys.stderr, **kwargs)
+
+    def attach_worker(self, worker):
+        """
+        [v3.3] Register a Relay Worker for Outbox Processing.
+        The worker function receives OutboxMsg objects.
+        """
+        self._worker_ref = worker
+        if hasattr(self._core, "attach_worker"):
+            self._core.attach_worker(worker)
+
+    def process_outbox(self):
+        """
+        [v3.3] Trigger manual processing of the Outbox queue.
+        Dispatches all pending messages to the attached worker.
+        """
+        if hasattr(self._core, "process_outbox"):
+            self._core.process_outbox()
 
     def __getattr__(self, name):
         return getattr(self._core, name)
@@ -1145,24 +1203,3 @@ class RestrictedStateProxy:
             return self._state.global_
         return FilteredDomainProxy(self._state.global_, self._global_keys, "global")
 
-    def log(self, *args, **kwargs):
-        """DX: Standard logging stub to satisfy Linter."""
-        import sys
-        print(*args, file=sys.stderr, **kwargs)
-
-    def attach_worker(self, worker_func):
-        """
-        [v3.3] Register a Relay Worker for Outbox Processing.
-        The worker function receives OutboxMsg objects.
-        """
-        self._worker_ref = worker_func
-        if hasattr(self._core, "attach_worker"):
-            self._core.attach_worker(worker_func)
-
-    def process_outbox(self):
-        """
-        [v3.3] Trigger manual processing of the Outbox queue.
-        Dispatches all pending messages to the attached worker.
-        """
-        if hasattr(self._core, "process_outbox"):
-            self._core.process_outbox()
