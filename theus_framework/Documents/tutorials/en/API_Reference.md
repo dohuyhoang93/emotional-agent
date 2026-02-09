@@ -35,7 +35,7 @@ engine.register(my_process)
 
 #### `execute(func_or_name, *args, **kwargs)` -> `Any`
 Executes process synchronously or awaits async process.
-*   Supports automatic retry with exponential backoff on CAS conflicts (v3.3+).
+*   Supports automatic retry with exponential backoff on CAS conflicts (v3.0+).
 *   See Chapter 4 for execution pipeline details.
 
 ```python
@@ -290,7 +290,7 @@ print(data["topic"], data["value"])
 
 ---
 
-#### `recv_async()` -> `Awaitable[str]` ⭐ **Recommended** (v3.1+)
+#### `recv_async()` -> `Awaitable[str]` ⭐ **Recommended** (v3.0+)
 **Native async** receive. Returns Python awaitable.
 *   **Non-blocking:** Can be cancelled and timed out properly.
 *   **Performance:** ~13x faster than `asyncio.to_thread(recv())`.
@@ -350,10 +350,3 @@ Use pure Python functions inside a single `@process` to avoid nested execution d
 - [Back to Tutorial Index](./README.md)
 
 ---
-
-## 9. Version History
-
-*   **v3.0:** Initial API stabilization.
-*   **v3.1:** Added Managed Memory (`HeavyZoneAllocator`).
-*   **v3.2:** Refined CAS with `requester` parameter for Priority Tickets.
-*   **v3.3:** Automatic retry with exponential backoff in `execute()`.

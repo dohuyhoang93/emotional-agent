@@ -32,7 +32,7 @@ if hasattr(req, "get"): # It behaves like a dict
 
 **Option B: Explicit Conversion (Safe)**
 ```python
-# SupervisorProxy v3.1+ has a helper
+# SupervisorProxy v3.0+ has a helper
 req_dict = req.to_dict() 
 if isinstance(req_dict, dict): # ✅ PASS
     ...

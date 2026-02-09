@@ -1,4 +1,4 @@
-# Chapter 12: Zone Architecture - Clean Architecture v3.3
+# Chapter 12: Zone Architecture - Clean Architecture v3
 
 This chapter summarizes Zone knowledge to help you build Scalable Systems.
 
@@ -56,7 +56,7 @@ In v3.0:
 Everything is now clearer and Orthogonal.
 
 ## 5. Path vs Prefix: The Flexible Router
-As of v3.3, Theus Core (Rust) supports a **Flexible Router** that recognizes both flat naming and structural paths:
+As of v3, Theus Core (Rust) supports a **Flexible Router** that recognizes both flat naming and structural paths:
 
 1.  **Prefix-based (Legacy/Flat):** Using `ctx.domain.heavy_model`. Rust detects the `heavy_` prefix in the variable name.
 2.  **Structural-based (Modern/Structural):** Using `ctx.heavy['payload']`. Rust detects the `heavy` segment in the structural path.

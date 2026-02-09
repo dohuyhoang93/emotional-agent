@@ -71,7 +71,7 @@ print(f"Sensor: {event['sensor']}, Value: {event['value']}{event['unit']}")
 SignalHub provides **two methods** for async integration:
 
 1. **`recv()`** - Blocking method (use with `asyncio.to_thread()`)
-2. **`recv_async()`** - Native async method ⭐ **Recommended** (v3.1+)
+2. **`recv_async()`** - Native async method ⭐ **Recommended** (v3.0+)
 
 ### Comparison
 
@@ -82,7 +82,7 @@ SignalHub provides **two methods** for async integration:
 | **Timeout** | ⚠️ Unreliable | ✅ Works with `wait_for()` |
 | **Simplicity** | Requires wrapper | Direct await |
 
-**Recommendation:** Use `recv_async()` for all async code (available since v3.1).
+**Recommendation:** Use `recv_async()` for all async code (available since v3.0).
 
 ### Example: Async Listener (Legacy - using to_thread)
 
@@ -335,7 +335,7 @@ For critical events, use the **Outbox Pattern** (Chapter 24).
 | `publish(msg: str)` | -> `int` | Broadcast message, returns subscriber count |
 | `subscribe()` | -> `SignalReceiver` | Create new receiver |
 | **`recv()`** | -> `str` | **Blocking** receive (use with `asyncio.to_thread()`) |
-| **`recv_async()`** ⭐ | -> `Awaitable[str]` | **Native async** receive (v3.1+, cancellable, timeout support) |
+| **`recv_async()`** ⭐ | -> `Awaitable[str]` | **Native async** receive (v3.0+, cancellable, timeout support) |
 
 ---
 
