@@ -24,11 +24,11 @@ def repro():
 
     # 4. Test LIST protection (Passive Inference Gap?)
     print("\nTesting List Protection...")
-    l = proxy.my_list
-    print(f"List object from proxy: {l} (Type: {type(l)})")
+    list_from_proxy = proxy.my_list
+    print(f"List object from proxy: {list_from_proxy} (Type: {type(list_from_proxy)})")
     
     try:
-        l.append(999)
+        list_from_proxy.append(999)
         print("⚠️  List mutation call SUCCEEDED in Python.")
     except Exception as e:
         print(f"✅ List mutation BLOCKED in Python: {e}")

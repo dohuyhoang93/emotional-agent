@@ -38,7 +38,7 @@ class TestAPIParity(unittest.TestCase):
             if not hasattr(py_cls, name):
                 # It's okay if wrapper hides some low-level stuff, but warn.
                 # Actually, for TheusEngine, we expect nearly 1:1 mapping for public API.
-                print(f" ⚠️ Missing in Python Wrapper (Intentional?)")
+                print(" ⚠️ Missing in Python Wrapper (Intentional?)")
                 continue
 
             py_method = getattr(py_cls, name)
@@ -67,7 +67,7 @@ class TestAPIParity(unittest.TestCase):
             missing_params = [p for p in rust_params if p not in py_params]
             
             if missing_params:
-                print(f" ❌ FAILED!")
+                print(" ❌ FAILED!")
                 print(f"      Rust:   {rust_params}")
                 print(f"      Python: {py_params}")
                 print(f"      Missing in Python: {missing_params}")

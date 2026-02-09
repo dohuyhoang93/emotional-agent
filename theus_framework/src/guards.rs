@@ -1,7 +1,7 @@
 
 use pyo3::prelude::*;
 use pyo3::exceptions::PyPermissionError;
-use pyo3::types::{PyList, PyDict};
+use pyo3::types::PyDict;
 use crate::engine::Transaction;
 
 use crate::proxy::SupervisorProxy;
@@ -143,8 +143,7 @@ impl ContextGuard {
             } else {
                  CAP_READ
             };
-            let res = zone_physics & process_license;
-            res
+            zone_physics & process_license
         };
 
 

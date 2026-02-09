@@ -720,8 +720,17 @@ class TheusEngine:
 
                     if root in ["heavy"]:
                         if len(rest) > 0:
+                            print(f"[DEBUG-ENGINE] Checking pending_heavy. Current: {type(tx.pending_heavy)}", flush=True)
                             if tx.pending_heavy is None:
                                 tx.pending_heavy = {}
+                                print(f"[DEBUG-ENGINE] Init pending_heavy to dict: {id(tx.pending_heavy)}", flush=True)
+                            
+                            # Check if it is frozen
+                            if isinstance(tx.pending_heavy, (dict,)):
+                                 pass
+                            else:
+                                 print(f"[DEBUG-ENGINE] WARNING: pending_heavy is {type(tx.pending_heavy)}", flush=True)
+
                             tx.pending_heavy[rest[0]] = val
                     elif root in ["domain", "global", "global_"]:
                         key = "global" if root == "global_" else root
@@ -1041,7 +1050,6 @@ class TheusEngine:
 
     def log(self, *args, **kwargs):
         """DX: Standard logging stub to satisfy Linter."""
-        import sys
         print(*args, file=sys.stderr, **kwargs)
 
     def attach_worker(self, worker):

@@ -148,7 +148,7 @@ async def main():
     if speedup > 10:
         print(f"✅ recv_async() much faster than to_thread() ({speedup:.1f}x)")
     else:
-        print(f"⚠️  recv_async() not significantly faster than to_thread()")
+        print("⚠️  recv_async() not significantly faster than to_thread()")
 
 
 if __name__ == "__main__":

@@ -683,7 +683,7 @@ impl Transaction {
         // Heavy Zone Check (Skip copy if configured)
         if let Some(ref p) = path {
             let leaf = p.split('.').next_back().unwrap_or(p);
-            if crate::zones::resolve_zone(leaf) == crate::zones::ContextZone::Heavy {
+            if crate::zones::resolve_zone(p) == crate::zones::ContextZone::Heavy {
                   println!("[Theus] get_shadow HEAVY SKIP: {}", p);
                   cache.insert(id, (val.clone_ref(py), val.clone_ref(py)));
                   return Ok(val);
@@ -785,8 +785,17 @@ impl Transaction {
                  let is_heavy = crate::zones::resolve_zone(&entry.path) == crate::zones::ContextZone::Heavy;
                  let target_dict = if is_heavy { &self.pending_heavy } else { &self.pending_data };
                  
+                 // [v3.3 Fix] Heavy Zone Namespace Mapping
+                 // state.heavy is a flat map {key: val}, but path is "heavy.key".
+                 // We must strip the prefix to avoid nesting.
+                 let final_path = if is_heavy {
+                     entry.path.strip_prefix("heavy.").unwrap_or(&entry.path)
+                 } else {
+                     &entry.path
+                 };
+
                  // Apply to target_dict at path
-                 set_nested_value(py, target_dict, &entry.path, new_val)?;
+                 set_nested_value(py, target_dict, final_path, new_val)?;
             }
         }
         

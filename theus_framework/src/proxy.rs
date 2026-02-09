@@ -203,7 +203,7 @@ impl SupervisorProxy {
         // Actually set the attribute/item
         // [v3.1.3 SECURITY FIX] Block mutations if no transaction is present!
         // Every state change in Theus MUST be tied to a transaction for audit and rollback.
-        if let Some(_) = &self.transaction {
+        if self.transaction.is_some() {
             if is_dict {
                  self.target.call_method1(py, "__setitem__", (name, value))?;
             } else {

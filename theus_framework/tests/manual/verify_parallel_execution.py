@@ -5,7 +5,7 @@ import sys
 import asyncio
 
 # Ensure project root is in path
-sys.path.insert(0, os.getcwd())
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '../../')))
 
 from theus import TheusEngine, process
 from theus.parallel import INTERPRETERS_SUPPORTED

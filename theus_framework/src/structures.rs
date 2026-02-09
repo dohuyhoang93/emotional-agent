@@ -58,6 +58,14 @@ impl FrozenDict {
         self.data.clone_ref(py)
     }
 
+    fn __len__(&self, py: Python) -> usize {
+        self.data.bind(py).len()
+    }
+
+    fn __contains__(&self, py: Python, key: PyObject) -> PyResult<bool> {
+        self.data.bind(py).contains(key)
+    }
+
     fn keys(&self, py: Python) -> PyResult<PyObject> {
         Ok(self.data.bind(py).keys().into())
     }
@@ -78,6 +86,89 @@ impl FrozenDict {
 
     fn items(&self, py: Python) -> PyResult<PyObject> {
         Ok(self.data.bind(py).items().into())
+    }
+
+    fn __eq__(&self, other: &Bound<'_, PyAny>) -> PyResult<bool> {
+        Python::with_gil(|py| {
+            // 1. Fast Path: Identity Check
+            if let Ok(other_frozen) = other.extract::<Py<FrozenDict>>() {
+                 let self_ptr = self.data.as_ptr();
+                 let other_ref = other_frozen.borrow(py);
+                 let other_ptr = other_ref.data.as_ptr();
+                 
+                 if self_ptr == other_ptr {
+                     return Ok(true);
+                 }
+                 
+                 // 2. Slow Path: Manual Content Compare
+                 // We cannot use self.data == other.data because of NumPy arrays.
+                 let self_dict = self.data.bind(py);
+                 let other_dict = other_ref.data.bind(py);
+                 
+                 if self_dict.len() != other_dict.len() {
+                     return Ok(false);
+                 }
+                 
+                 for (k, v_self) in self_dict {
+                     match other_dict.get_item(k) {
+                         Ok(Some(v_other)) => {
+                             // Compare v_self vs v_other
+                             let eq_res = v_self.rich_compare(v_other, pyo3::basic::CompareOp::Eq)?;
+                             
+                             // Handle NumPy array truthiness
+                             let is_eq = if let Ok(is_truthy) = eq_res.is_truthy() {
+                                 is_truthy
+                             } else {
+                                 // Likely an array. Try .all()
+                                 if let Ok(all_res) = eq_res.call_method0("all") {
+                                     all_res.is_truthy()?
+                                 } else {
+                                     // Fallback: If neither truthy nor .all(), assume not equal?
+                                     // Or re-raise error?
+                                     return Ok(false);
+                                 }
+                             };
+                             
+                             if !is_eq {
+                                 return Ok(false);
+                             }
+                         },
+                         _ => return Ok(false), // Key missing
+                     }
+                 }
+                 Ok(true)
+            } else if other.is_instance_of::<PyDict>() {
+                 // Symmetrical check for dict
+                 let self_dict = self.data.bind(py);
+                 let other_dict = other.downcast::<PyDict>()?;
+                 
+                 if self_dict.len() != other_dict.len() {
+                     return Ok(false);
+                 }
+                 
+                 for (k, v_self) in self_dict {
+                     match other_dict.get_item(k) {
+                         Ok(Some(v_other)) => {
+                             let eq_res = v_self.rich_compare(v_other, pyo3::basic::CompareOp::Eq)?;
+                             let is_eq = if let Ok(is_truthy) = eq_res.is_truthy() {
+                                 is_truthy
+                             } else {
+                                 if let Ok(all_res) = eq_res.call_method0("all") {
+                                     all_res.is_truthy()?
+                                 } else {
+                                     return Ok(false);
+                                 }
+                             };
+                             if !is_eq { return Ok(false); }
+                         },
+                         _ => return Ok(false),
+                     }
+                 }
+                 Ok(true)
+            } else {
+                 Ok(false)
+            }
+        })
     }
 }
 

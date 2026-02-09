@@ -14,23 +14,23 @@ pub const CAP_READ: u8   = 1 << 0; // 1
 pub const CAP_APPEND: u8 = 1 << 1; // 2
 pub const CAP_UPDATE: u8 = 1 << 2; // 4
 pub const CAP_DELETE: u8 = 1 << 3; // 8
-pub const CAP_ADMIN: u8  = 1 << 4; // 16 (Bypass Physics)
+// pub const CAP_ADMIN: u8  = 1 << 4; // 16 (Bypass Physics) - Unused
 
 pub fn resolve_zone(key: &str) -> ContextZone {
     // Structural Support: Check all segments
     let segments: Vec<&str> = key.split('.').collect();
     
     for segment in segments {
-        if segment.starts_with("sig_") || segment.starts_with("cmd_") {
+        if segment.starts_with("sig_") || segment.starts_with("cmd_") || segment == "sig" {
             return ContextZone::Signal;
         }
-        if segment.starts_with("meta_") {
+        if segment.starts_with("meta_") || segment == "meta" {
             return ContextZone::Meta;
         }
-        if segment.starts_with("heavy_") {
+        if segment.starts_with("heavy_") || segment == "heavy" {
             return ContextZone::Heavy;
         }
-        if segment.starts_with("log_") || segment.starts_with("audit_") {
+        if segment.starts_with("log_") || segment.starts_with("audit_") || segment == "log" {
             return ContextZone::Log;
         }
     }

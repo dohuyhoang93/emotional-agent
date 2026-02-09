@@ -172,11 +172,11 @@ async def main():
             engine.compare_and_swap(current_ver_2, data={"domain": {"other_key": 777}})
             
             # If we reach here, it failed to block
-            print(f"   ❌ Conflict Detection Failed! (Should have raised ContextError)")
+            print("   ❌ Conflict Detection Failed! (Should have raised ContextError)")
             
         except Exception as e:
             # We expect ContextError or similar
-            print(f"   ✅ Conflict Detection: Blocked overlapping stale update.")
+            print("   ✅ Conflict Detection: Blocked overlapping stale update.")
             print(f"      Caught expected error: {e}")
 
     except Exception as e:

@@ -47,12 +47,7 @@ def verify_smart_cas_logic():
         
     return True
 
-def verify_vip_ticket_logic():
-    print("\n--- TEST 2: Priority Ticket (VIP System) ---")
-    engine = TheusEngine()
-    engine.compare_and_swap(0, data={"hot_key": 0})
-    
-    process_name = "struggling_worker"
+
     
 def verify_vip_ticket_logic():
     print("\n--- TEST 2: Priority Ticket (VIP System) ---")
