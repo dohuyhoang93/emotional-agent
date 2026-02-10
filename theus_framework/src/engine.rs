@@ -682,7 +682,6 @@ impl Transaction {
 
         // Heavy Zone Check (Skip copy if configured)
         if let Some(ref p) = path {
-            let leaf = p.split('.').next_back().unwrap_or(p);
             if crate::zones::resolve_zone(p) == crate::zones::ContextZone::Heavy {
                   println!("[Theus] get_shadow HEAVY SKIP: {}", p);
                   cache.insert(id, (val.clone_ref(py), val.clone_ref(py)));

@@ -152,12 +152,10 @@ impl FrozenDict {
                              let eq_res = v_self.rich_compare(v_other, pyo3::basic::CompareOp::Eq)?;
                              let is_eq = if let Ok(is_truthy) = eq_res.is_truthy() {
                                  is_truthy
+                             } else if let Ok(all_res) = eq_res.call_method0("all") {
+                                 all_res.is_truthy()?
                              } else {
-                                 if let Ok(all_res) = eq_res.call_method0("all") {
-                                     all_res.is_truthy()?
-                                 } else {
-                                     return Ok(false);
-                                 }
+                                 return Ok(false);
                              };
                              if !is_eq { return Ok(false); }
                          },
