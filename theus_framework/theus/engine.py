@@ -7,6 +7,14 @@ from typing import Any, Dict, List, Optional, Union, Callable
 # Load Core Rust Module
 try:
     import theus_core
+    # [Fix] Handle namespace package structure (theus_core.theus_core) being installed by maturin
+    if not hasattr(theus_core, "TheusEngine"):
+        try:
+            from theus_core import theus_core as _core_impl
+            theus_core = _core_impl
+        except ImportError:
+            pass
+            
     from theus.structures import StateUpdate, FunctionResult
 
     _HAS_RUST_CORE = True
@@ -814,6 +822,8 @@ class TheusEngine:
         """
         if not self._schema:
             return
+        
+        print(f"[DEBUG-SCHEMA] Validating pending data: {data}", flush=True)
 
         # [v3.1.5] Strict Validation: Force re-validation of instances
         # Pydantic (v1/v2) often trusts existing model instances.

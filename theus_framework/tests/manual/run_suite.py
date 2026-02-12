@@ -7,7 +7,8 @@ import time
 def main():
     # Find all verify_*.py scripts in the same directory
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    scripts = glob.glob("verify_*.py")
+    # Support both verify_*.py and test_*.py in manual suite
+    scripts = glob.glob("verify_*.py") + glob.glob("test_*.py")
     scripts.sort()
 
     print(f"Found {len(scripts)} verification scripts.")
