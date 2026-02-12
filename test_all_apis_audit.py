@@ -102,7 +102,6 @@ async def audit_state_update_fields():
 async def audit_heavy_alloc():
     print("\n--- AUDIT: engine.heavy.alloc ---")
     engine = TheusEngine(MySystemContext())
-    import numpy as np
     
     # ManagedAllocator.alloc(self, name, shape, dtype)
     try:
