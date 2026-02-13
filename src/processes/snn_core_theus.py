@@ -25,10 +25,11 @@ def process_integrate(ctx: SystemContext):
     Step 1: Integration (Decay + Sum Inputs).
     """
     try:
-        _integrate_impl(ctx)
+        delta = _integrate_impl(ctx)
+        return delta
     except Exception:
         import traceback
-        print(f"CRASH in process_integrate: {traceback.format_exc()}")
+        ctx.log(f"CRASH in process_integrate: {traceback.format_exc()}", level="error")
         raise
 
 
@@ -127,91 +128,8 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
     # 6. Sync Back to Objects (Audit Compatibility)
     if sync:
         sync_from_heavy_tensors(snn_ctx)
-
-
-@process(
-    inputs=['domain_ctx', 
-        'domain_ctx.snn_context',
-        'domain_ctx.snn_context.domain_ctx.metrics'
-    ],
-    outputs=[],
-    side_effects=[]
-)
-def process_fire(ctx: SystemContext):
-    """Quy trình bắn xung (Vectorized). Wraps _fire_impl."""
-    _fire_impl(ctx, sync=True)
-
-# ... (omitted)
-
-
-
-    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
-    snn_ctx = ctx
-    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
-        snn_ctx = ctx.domain_ctx.snn_context
-    if snn_ctx is None:
-        return
-    
-    # 1. Prepare Tensors
-    ensure_heavy_tensors_initialized(snn_ctx)
-    t = snn_ctx.domain_ctx.heavy_tensors
-    
-    # Unpack tensors
-    pots = t['potentials']      # (N,)
-    p_vecs = t['potential_vectors'] # (N, D)
-    weights = t['weights']      # (N, N)
-    protos = t['prototypes']    # (N, D)
-    
-    tau_decay = 0.9
-    
-    # 2. Vectorized Decay
-    pots *= tau_decay
-    p_vecs *= tau_decay
-    
-    # 3. Handle Spikes
-    current_time = snn_ctx.domain_ctx.current_time
-    current_spikes = snn_ctx.domain_ctx.spike_queue.get(current_time, [])
-    
-    if current_spikes:
-        # Convert spikes to indices
-        spike_indices = np.array(current_spikes, dtype=int)
-        # Filter out invalid indices
-        N = len(pots)
-        spike_indices = spike_indices[spike_indices < N]
         
-        if len(spike_indices) > 0:
-            # Gather Firing Prototypes: (K, D)
-            firing_protos = protos[spike_indices]
-            
-            # Compute Similarity Matrix: (K, N)
-            # Sim[k, j] = dot(Proto_k, Proto_j)
-            # Assumes protos are normalized!
-            sim_matrix = np.matmul(firing_protos, protos.T)
-            
-            # ReLU (Similarity > 0)
-            sim_matrix = np.maximum(0, sim_matrix)
-            
-            # Gather Weights: (K, N) - Row k corresponds to weights FROM spike_k TO all j
-            # Connectivity matrix W[i, j] is weight i->j
-            firing_weights = weights[spike_indices, :]
-            
-            # Effective Weights: (K, N)
-            eff_weights = firing_weights * sim_matrix
-            
-            # 4. Integrate Scalar Potential: (N,)
-            # Sum contributions from all K spikes for each neuron j
-            delta_pots = np.sum(eff_weights, axis=0) # Sum over K (rows) -> (N,)
-            pots += delta_pots
-            
-            # 5. Integrate Vector Potential: (N, D)
-            # delta_V[j] += sum_k (eff_weights[k, j] * firing_protos[k])
-            # This is: eff_weights.T (N, K) @ firing_protos (K, D) -> (N, D)
-            delta_vecs = np.matmul(eff_weights.T, firing_protos)
-            p_vecs += delta_vecs
-            
-    # 6. Sync Back to Objects (Audit Compatibility)
-    if sync:  # noqa: F821
-        sync_from_heavy_tensors(snn_ctx)
+    return {'heavy_tensors': t}
 
 
 @process(
@@ -219,16 +137,17 @@ def process_fire(ctx: SystemContext):
         'domain_ctx.snn_context',
         'domain_ctx.snn_context.domain_ctx.metrics'
     ],
-    outputs=[],
+    outputs=['domain_ctx.snn_context.domain_ctx.metrics', 'domain_ctx.snn_context.domain_ctx.heavy_tensors'],
     side_effects=[]
 )
 def process_fire(ctx: SystemContext):  # noqa: F811
     """Quy trình bắn xung (Vectorized). Wraps _fire_impl."""
     try:
-        _fire_impl(ctx, sync=True)
+        delta = _fire_impl(ctx, sync=True)
+        return delta
     except Exception:
         import traceback
-        print(f"CRASH in process_fire: {traceback.format_exc()}")
+        ctx.log(f"CRASH in process_fire: {traceback.format_exc()}", level="error")
         raise
 
 def _fire_impl(ctx: SystemContext, sync: bool = True):
@@ -307,11 +226,6 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
                 snn_ctx.domain_ctx.spike_queue[next_time] = []
             snn_ctx.domain_ctx.spike_queue[next_time].extend(future_spikes)
         
-    # 4. Sync Back (LastFire, Pots, PVecs changed)
-    if sync:
-        sync_from_heavy_tensors(snn_ctx)
-    
-    # Metrics
     # Metrics
     fire_rate = len(fired_indices) / len(pots) if len(pots) > 0 else 0.0
     
@@ -327,15 +241,23 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
         metrics['avg_firing_rate'] = metrics['accumulated_spikes'] / (metrics['accumulated_ticks'] * len(pots))
     else:
         metrics['avg_firing_rate'] = 0.0
+
+    # Final Delta construction
+    delta = {
+        'heavy_tensors': t,
+        'metrics': metrics
+    }
+    
+    return delta
     
 @process(
     inputs=['domain_ctx', 'domain_ctx.snn_context'],
-    outputs=[],
+    outputs=['domain_ctx.snn_context.domain_ctx.current_time'],
     side_effects=[]
 )
 def process_tick(ctx: SystemContext):
     """Quy trình tăng thời gian (1ms per step). Wraps _tick_impl."""
-    _tick_impl(ctx)
+    return _tick_impl(ctx)
 
 def _tick_impl(ctx: SystemContext):
     """Internal tick implementation."""
@@ -344,16 +266,12 @@ def _tick_impl(ctx: SystemContext):
     if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
         snn_ctx = ctx.domain_ctx.snn_context
     if snn_ctx is None:
-        return
+        return {}
     
     # Safe increment
     now = int(snn_ctx.domain_ctx.current_time)
-    snn_ctx.domain_ctx.current_time = now + 1
     
     # === MEMORY LEAK FIX: Cleanup old spike_queue entries ===
-    # NOTE: spike_queue dict grows unbounded if we don't remove consumed entries.
-    # After processing time T, entry spike_queue[T] is no longer needed.
-    # We clean up entries older than (now - buffer_window) to be safe.
     spike_queue = snn_ctx.domain_ctx.spike_queue
     buffer_window = 10  # Keep last 10 time steps for safety
     
@@ -361,4 +279,6 @@ def _tick_impl(ctx: SystemContext):
     old_times = [t for t in spike_queue.keys() if t < now - buffer_window]
     for t in old_times:
         del spike_queue[t]
+        
+    return {'current_time': now + 1}
 

@@ -108,20 +108,27 @@ def combine_rewards(ctx: SystemContext):
     confidence = (ema_alpha * confidence_inst) + ((1.0 - ema_alpha) * prev_conf)
     confidence = np.clip(confidence, 0.0, 1.0)
     
-    # 5. Update Context
-    if not isinstance(domain.last_reward, dict):
-        domain.last_reward = {'extrinsic': extrinsic}
+    # 5. Prepare Result Delta
+    reward_dict = {
+        'extrinsic': extrinsic,
+        'intrinsic': intrinsic_total,
+        'intrinsic_novelty': novelty,
+        'intrinsic_surprise': surprise,
+        'total': total_reward
+    }
     
-    domain.last_reward['intrinsic'] = intrinsic_total
-    domain.last_reward['intrinsic_novelty'] = novelty
-    domain.last_reward['intrinsic_surprise'] = surprise
-    domain.last_reward['total'] = total_reward
+    metrics_update = dict(domain.metrics)
+    metrics_update.update({
+        'confidence': confidence,
+        'novelty': novelty,
+        'surprise': surprise,
+        'total_reward': total_reward
+    })
     
-    # Update Metrics
-    domain.metrics['confidence'] = confidence
-    domain.metrics['novelty'] = novelty
-    domain.metrics['surprise'] = surprise
-    domain.metrics['total_reward'] = total_reward
+    return {
+        'last_reward': reward_dict,
+        'metrics': metrics_update
+    }
 
 
 
@@ -171,12 +178,14 @@ def execute_action_with_env(ctx: SystemContext):
     # NOTE: Đây là external call, không thể rollback
     next_obs, reward, done, info = env_adapter.step(agent_id, domain.selected_action)
     
-    # Update context
-    domain.current_observation = next_obs
-    domain.last_reward = {
-        'extrinsic': reward,
-        'intrinsic': 0.0,  # Will be computed by SNN
-        'total': reward
+    # Update context via return
+    return {
+        'current_observation': next_obs,
+        'last_reward': {
+            'extrinsic': reward,
+            'intrinsic': 0.0,  # Will be computed by SNN
+            'total': reward
+        }
     }
     
     # Store done flag
@@ -218,5 +227,7 @@ def reset_environment(ctx: SystemContext):
     # Reset environment (SIDE EFFECT!)
     initial_obs = env_adapter.reset()
     
-    # Update context
-    domain.current_observation = initial_obs
+    # Update context via return
+    return {
+        'current_observation': initial_obs
+    }

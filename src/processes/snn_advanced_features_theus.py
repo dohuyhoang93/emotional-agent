@@ -17,26 +17,13 @@ from typing import List
 # Phase 9: Hysteria Dampener
 # ============================================================================
 
-@process(
-    inputs=['domain_ctx', 
-        'domain_ctx.snn_context', 
-        'domain_ctx.snn_context.domain_ctx.neurons',
-        'domain_ctx.snn_context.domain_ctx.metrics', 
-        'domain_ctx.snn_context.domain_ctx.emotion_saturation_level',
-        'domain_ctx.snn_context.domain_ctx.dampening_active',
-        'domain_ctx.snn_context.global_ctx.saturation_threshold',
-        'domain_ctx.snn_context.global_ctx.dampening_factor',
-        'domain_ctx.snn_context.global_ctx.recovery_rate'
-    ],
-    outputs=[],
+    outputs=['domain_ctx.snn_context.domain_ctx.emotion_saturation_level',
+             'domain_ctx.snn_context.domain_ctx.dampening_active',
+             'domain_ctx.snn_context.domain_ctx.heavy_tensors',
+             'domain_ctx.snn_context.domain_ctx.metrics'],
     side_effects=[]
 )
-def process_hysteria_dampener(ctx: SystemContext):
-    """
-    Prevent runaway emotions (saturation). Wraps _hysteria_impl.
-    """
-    try:
-        _hysteria_impl(ctx)
+    return _hysteria_impl(ctx)
     except Exception:
         import traceback
         print(f"CRASH in process_hysteria_dampener: {traceback.format_exc()}")
@@ -71,20 +58,21 @@ def _hysteria_impl(ctx: SystemContext):
         damp_factor = 0.5
 
     # Detect saturation
+    dampening_active = domain.dampening_active
     if fire_rate > sat_threshold:
-        domain.dampening_active = True
+        dampening_active = True
         current_level += 0.1
     else:
         # Recovery
         current_level -= rec_rate
     
-    domain.emotion_saturation_level = np.clip(
+    emotion_saturation_level = np.clip(
         current_level, 0.0, 1.0
     )
     
-    # Apply dampening
     # Apply dampening (Vectorized)
-    if domain.dampening_active:
+    heavy_tensors = domain.heavy_tensors
+    if dampening_active:
         from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
         
         # Ensure tensors on the SNN context
@@ -101,40 +89,38 @@ def _hysteria_impl(ctx: SystemContext):
             global_ctx.threshold_max,
             out=t['thresholds']
         )
+        heavy_tensors = t
         
         # Sync back
         sync_from_heavy_tensors(snn_ctx)
         
         # Deactivate if recovered
-        if domain.emotion_saturation_level < 0.1:
-            domain.dampening_active = False
+        if emotion_saturation_level < 0.1:
+            dampening_active = False
     
-    # Update metrics
-    domain.metrics['saturation_level'] = domain.emotion_saturation_level
-    domain.metrics['dampening_active'] = 1 if domain.dampening_active else 0
+    # Update metrics and return delta
+    new_metrics = dict(domain.metrics)
+    new_metrics['saturation_level'] = emotion_saturation_level
+    new_metrics['dampening_active'] = 1 if dampening_active else 0
+    
+    return {
+        'emotion_saturation_level': emotion_saturation_level,
+        'dampening_active': dampening_active,
+        'heavy_tensors': heavy_tensors,
+        'metrics': new_metrics
+    }
 
 
 # ============================================================================
 # Phase 10: Lateral Inhibition
 # ============================================================================
 
-@process(
-    inputs=['domain_ctx', 
-        'domain_ctx.snn_context', 
-        'domain_ctx.snn_context.domain_ctx.neurons',
-        'domain_ctx.snn_context.domain_ctx.spike_queue',
-        'domain_ctx.snn_context.domain_ctx.current_time',
-        'domain_ctx.snn_context.domain_ctx.metrics',
-        'domain_ctx.snn_context.global_ctx.inhibition_strength',
-        'domain_ctx.snn_context.global_ctx.wta_k'
-    ],
-    outputs=[],
+    outputs=['domain_ctx.snn_context.domain_ctx.heavy_tensors', 'domain_ctx.snn_context.domain_ctx.metrics'],
     side_effects=[]
 )
 def process_lateral_inhibition(ctx: SystemContext):
     """
-    """
-    """
+    Apply lateral inhibition.
     """
     try:
         from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
@@ -144,11 +130,12 @@ def process_lateral_inhibition(ctx: SystemContext):
             snn_ctx = ctx.domain_ctx.snn_context
             
         ensure_heavy_tensors_initialized(snn_ctx)
-        _lateral_inhibition_vectorized(ctx)
+        delta = _lateral_inhibition_vectorized(ctx)
         sync_from_heavy_tensors(snn_ctx)
+        return delta
     except Exception:
         import traceback
-        print(f"CRASH in process_lateral_inhibition: {traceback.format_exc()}")
+        ctx.log(f"CRASH in process_lateral_inhibition: {traceback.format_exc()}", level="error")
         raise
 
 def _lateral_inhibition_vectorized(ctx: SystemContext):
@@ -162,7 +149,7 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
     global_ctx = snn_ctx.global_ctx
     
     if snn_ctx is None:
-        return
+        return {}
         
     t = domain.heavy_tensors
     if t is None: # Should be ensured
@@ -185,9 +172,10 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
 
     if len(current_spikes) <= wta_k:
         # Not enough spikes to inhibit
-        domain.metrics['wta_winners'] = len(current_spikes)
-        domain.metrics['wta_losers'] = 0
-        return
+        new_metrics = dict(domain.metrics)
+        new_metrics['wta_winners'] = len(current_spikes)
+        new_metrics['wta_losers'] = 0
+        return {'metrics': new_metrics, 'heavy_tensors': t}
 
     # To vectorize sorting on a subset (spikes):
     # 1. Get potentials of firing neurons
@@ -276,25 +264,22 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
     # Original Logic: Iterates 'current_spikes'.
     # So I vectorizing that logic is correct (faithful translation).
     
-    # FIX: Safe len via Core Patch
-    domain.metrics['wta_winners'] = len(current_spikes) - len(loser_global_indices)
-    domain.metrics['wta_losers'] = len(loser_global_indices)
+    # Return deltas
+    new_metrics = dict(domain.metrics)
+    new_metrics['wta_winners'] = len(current_spikes) - len(loser_global_indices)
+    new_metrics['wta_losers'] = len(loser_global_indices)
+    
+    return {'metrics': new_metrics, 'heavy_tensors': t}
 
 
 # ============================================================================
 # Phase 11: Neural Darwinism
 # ============================================================================
 
-@process(
-    inputs=['domain_ctx', 
-        'domain_ctx.snn_context',
-        'domain_ctx.td_error',
-        'domain_ctx.snn_context.domain_ctx.synapses',
-        'domain_ctx.snn_context.domain_ctx',
-        'domain_ctx.snn_context.domain_ctx.metrics',
-        'domain_ctx.snn_context.global_ctx'
-    ],
-    outputs=[],
+    outputs=['domain_ctx.snn_context.domain_ctx.synapses', 
+             'domain_ctx.snn_context.domain_ctx.neurons',
+             'domain_ctx.snn_context.domain_ctx.heavy_tensors',
+             'domain_ctx.snn_context.domain_ctx.metrics'],
     side_effects=[]
 )
 def process_neural_darwinism(
@@ -336,7 +321,7 @@ def process_neural_darwinism(
 
     # Check interval
     if domain.current_time % darwinism_interval != 0:
-        return
+        return {}
     
     error = abs(rl_ctx.domain_ctx.td_error)
     
@@ -459,18 +444,22 @@ def process_neural_darwinism(
         domain.synapses = list(sorted_synapses[:MAX_SYNAPSES])
     
     # Update metrics
-    domain.metrics['darwinism_survivors'] = len(survivors)
-    # domain.metrics['darwinism_offspring'] = len(offspring)  # Variable not defined in this scope
-    domain.metrics['recycled_neurons'] = recycled_count
-    domain.metrics['new_synapses_generated'] = len(new_synapses)
+    new_metrics = dict(domain.metrics)
+    new_metrics['darwinism_survivors'] = len(survivors)
+    new_metrics['recycled_neurons'] = recycled_count
+    new_metrics['new_synapses_generated'] = len(new_synapses)
 
-    # === SYNC FIX (Phase 16) ===
-    # Darwinism changes Topology (Pruning/Recycling) and Fitness (Object attributes).
-    # Heavy Tensors are ignorant of these changes and will OVERWRITE objects on next sync.
-    # We must INVALIDATE the cache to force Re-initialization from Objects next step.
-    if hasattr(domain, 'heavy_tensors') and domain.heavy_tensors:
-         # Fix: TrackedDict (v2.2.5 Rust) now supports .clear() efficiently
-         domain.heavy_tensors.clear()
+    # Invalidate cache if needed
+    heavy_tensors = dict(domain.heavy_tensors)
+    if heavy_tensors:
+         heavy_tensors.clear()
+
+    return {
+        'synapses': survivors + new_synapses, # Note: update_synapses_generated? No, just the list
+        'neurons': domain.neurons, # Updated in loop
+        'metrics': new_metrics,
+        'heavy_tensors': heavy_tensors
+    }
 
 
 
@@ -491,7 +480,12 @@ def process_neural_darwinism(
         'global_ctx.top_elite_percent',
         'global_ctx.current_episode'  # For cooldown check
     ],
-    outputs=[],
+    outputs=['domain_ctx.snn_context.domain_ctx.metrics',
+             'domain_ctx.snn_context.domain_ctx.revolution_triggered',
+             'domain_ctx.snn_context.domain_ctx.last_revolution_episode',
+             'domain_ctx.snn_context.domain_ctx.ancestor_weights',
+             'domain_ctx.snn_context.domain_ctx.population_performance',
+             'domain_ctx.snn_context.domain_ctx.ancestor_baseline_reward'],
     side_effects=[]
 )
 def process_revolution_protocol(
@@ -501,28 +495,16 @@ def process_revolution_protocol(
 ):
     """
     Cultural Evolution: Update ancestor khi quần thể vượt trội.
-    
-    Logic (from spec 9.2.3):
-    1. Track performance của tất cả agents
-    2. Check nếu >60% outperform ancestor trong 1000 cycles
-    3. Vote từ top 10% agents
-    4. Update ancestor weights
-    
-    NOTE: Cần multi-agent context. Single-agent mode sẽ skip.
-    
-    Args:
-        snn_ctx: Current agent context
-        rl_ctx: RL context
-        population_contexts: All agents (optional)
     """
+    return _revolution_impl(snn_ctx, rl_ctx, population_contexts)
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
     
     # Single-agent mode: Skip
-    # FIX: Safe len
     if population_contexts is None or len(list(population_contexts)) <= 1:
-        domain.metrics['revolution_skipped'] = 1
-        return
+        new_metrics = dict(domain.metrics)
+        new_metrics['revolution_skipped'] = 1
+        return {'metrics': new_metrics}
     
     
     # 1. Collect performance
@@ -531,7 +513,7 @@ def process_revolution_protocol(
     
     # Check if we have enough history
     if not domain.population_performance:
-        return
+        return {}
     
     # 2. COOLDOWN CHECK (Prevent rapid re-triggering)
     # Safe Cast
@@ -546,23 +528,23 @@ def process_revolution_protocol(
         top_elite = 0.1
 
     if (current_episode - domain.last_revolution_episode) < rev_window:
-        domain.metrics['revolution_skipped'] = 1
-        domain.metrics['revolution_cooldown_remaining'] = global_ctx.revolution_window - (current_episode - domain.last_revolution_episode)
-        return  # Still in cooldown period
+        new_metrics = dict(domain.metrics)
+        new_metrics['revolution_skipped'] = 1
+        new_metrics['revolution_cooldown_remaining'] = rev_window - (current_episode - domain.last_revolution_episode)
+        return {'metrics': new_metrics}
     
     # 3. Check revolution condition
-    # FIX: Safe len for TrackedList
     if len(list(domain.population_performance)) < rev_window:
-        return  # Not enough data
+        return {}
     
     # Compute ancestor performance
     if not domain.ancestor_weights:
         # Initialize ancestor
-        domain.ancestor_weights = {
+        ancestor_weights = {
             s.synapse_id: s.weight
             for s in domain.synapses[:100]  # Sample
         }
-        return
+        return {'ancestor_weights': ancestor_weights}
     
     # 3. Trigger revolution
     # FIX: Compare Reward vs Reward (Baseline), NOT Reward vs Weight
@@ -570,13 +552,10 @@ def process_revolution_protocol(
     
     # Auto-initialize baseline if first run
     if current_baseline == 0.0:
-        # Use current population mean as the first baseline
-        # (Ignore ancestor_weights as they correspond to synaptic weights < 1.0, not reward)
         if len(list(domain.population_performance)) > 0:
             current_baseline = np.mean(domain.population_performance)
-            domain.ancestor_baseline_reward = current_baseline
-        # If no performance data yet, we wait.
-        return
+            return {'ancestor_baseline_reward': float(current_baseline)}
+        return {}
 
     # Count outperformers against BASELINE
     outperform_count = sum(
@@ -586,8 +565,8 @@ def process_revolution_protocol(
     outperform_ratio = outperform_count / len(list(domain.population_performance))
 
     if outperform_ratio > rev_threshold:
-        domain.revolution_triggered = True
-        domain.last_revolution_episode = current_episode  # Update cooldown timestamp
+        revolution_triggered = True
+        last_revolution_episode = current_episode  
         
         # 4. Voting: Top 10% elite
         all_perfs = [
@@ -614,24 +593,26 @@ def process_revolution_protocol(
                 if elite_weights:
                     new_ancestor[syn_id] = np.mean(elite_weights)
             
-            # 6. Update ancestor
+            # Update metrics
+            new_metrics = dict(domain.metrics)
             if new_ancestor:
-                domain.ancestor_weights = new_ancestor
-                domain.metrics['revolution_count'] = \
-                    domain.metrics.get('revolution_count', 0) + 1
+                new_metrics['revolution_count'] = new_metrics.get('revolution_count', 0) + 1
             
-            # 7. FIX: Reset History & Update Baseline
-            # Clear performance history to prevent continuous triggering
-            domain.population_performance = [] 
-            
-            # Update baseline to the average of the ELITE that triggered this revolution
-            # This forces the next generation to beat the NEW standard
+            # 7. Update Baseline
             elite_perfs = [p for i, p in all_perfs[:elite_count]]
             new_baseline = np.mean(elite_perfs)
-            domain.ancestor_baseline_reward = new_baseline
+            new_metrics['revolution_new_baseline'] = float(new_baseline)
+
+            return {
+                'revolution_triggered': revolution_triggered,
+                'last_revolution_episode': last_revolution_episode,
+                'ancestor_weights': new_ancestor if new_ancestor else domain.ancestor_weights,
+                'population_performance': [],
+                'ancestor_baseline_reward': float(new_baseline),
+                'metrics': new_metrics
+            }
             
-            # Log for debugging (via metrics since we can't print easily)
-            domain.metrics['revolution_new_baseline'] = new_baseline
+    return {}
 
 # Helper function for direct invocation (bypasses Theus decorator)
 def _revolution_impl(
@@ -660,7 +641,7 @@ def _revolution_impl(
         'domain_ctx.snn_context.global_ctx.assimilation_rate', # New param
         'domain_ctx.snn_context.global_ctx.diversity_noise'    # New param
     ],
-    outputs=[],
+    outputs=['domain_ctx.snn_context.domain_ctx.synapses', 'domain_ctx.snn_context.domain_ctx.metrics'],
     side_effects=[]
 )
 def process_assimilate_ancestor(ctx: SystemContext):
@@ -686,7 +667,7 @@ def process_assimilate_ancestor(ctx: SystemContext):
     
     ancestor = domain.ancestor_weights
     if not ancestor:
-        return
+        return {}
         
     # Default params if not in config
     # Safe Cast
@@ -697,12 +678,11 @@ def process_assimilate_ancestor(ctx: SystemContext):
         alpha = 0.05
         noise_std = 0.02
     
-    assimilated_count = 0
-    
+    new_synapses = []
     for synapse in domain.synapses:
         # PROTECT SOLID KNOWLEDGE
-        # Diversity Preservation Rule #1: Do not overwrite specialized knowledge
         if synapse.commit_state == COMMIT_STATE_SOLID:
+            new_synapses.append(synapse)
             continue
             
         if synapse.synapse_id in ancestor:
@@ -715,8 +695,12 @@ def process_assimilate_ancestor(ctx: SystemContext):
             noise = np.random.randn() * noise_std
             new_w += noise
             
-            # Clip
-            synapse.weight = np.clip(new_w, 0.0, 1.0)
+            # Update object (vially acceptable in current POP if returned)
+            synapse.weight = float(np.clip(new_w, 0.0, 1.0))
             assimilated_count += 1
+        new_synapses.append(synapse)
             
-    domain.metrics['assimilated_synapses'] = assimilated_count
+    new_metrics = dict(domain.metrics)
+    new_metrics['assimilated_synapses'] = assimilated_count
+    
+    return {'synapses': new_synapses, 'metrics': new_metrics}

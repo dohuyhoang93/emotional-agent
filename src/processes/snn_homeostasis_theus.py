@@ -137,9 +137,14 @@ def process_homeostasis(ctx: SNNSystemContext):
         sync_from_heavy_tensors(snn_ctx)
         
     except Exception as e:
-        log_error(ctx, f"CRITICAL ERROR in process_homeostasis: {e}")
-        log_error(ctx, traceback.format_exc())
+        ctx.log(f"CRITICAL ERROR in process_homeostasis: {e}", level="error")
         raise e
+
+    # 11. Prepare Result Delta
+    return {
+        'heavy_tensors': t,
+        'metrics': snn_domain.metrics
+    }
 
 
 def pid_controller_with_antiwindup(
@@ -168,7 +173,7 @@ def pid_controller_with_antiwindup(
     
     # Derivative
     d_term = kd * (error - state['error_prev'])
-    state['error_prev'] = error
+    new_error_prev = error
     
     # PID output
     output = p_term + i_term + d_term
@@ -177,12 +182,11 @@ def pid_controller_with_antiwindup(
     output_saturated = np.clip(output, -max_output, max_output)
     
     # Back-calculation anti-windup
-    # Nếu output bị saturate, giảm integral
     if abs(output) > max_output:
         saturation_error = output - output_saturated
         state['error_integral'] -= saturation_error / ki if ki != 0 else 0
     
-    return output_saturated
+    return output_saturated, {'error_integral': state['error_integral'], 'error_prev': new_error_prev}
 
 
 @process(
@@ -232,7 +236,7 @@ def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
         fire_rate_error = target_fire_rate - current_fire_rate
         
         # === PID CONTROLLER CHO THRESHOLD ===
-        threshold_adjustment = pid_controller_with_antiwindup(
+        threshold_adjustment, new_pid_substate = pid_controller_with_antiwindup(
             error=fire_rate_error,
             kp=float(global_ctx.pid_kp),
             ki=float(global_ctx.pid_ki),
@@ -263,14 +267,22 @@ def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
         sync_from_heavy_tensors(snn_ctx)
         
         # Cập nhật metrics để audit
-        domain.metrics['meta_threshold_adj'] = threshold_adjustment
-        domain.metrics['meta_integral'] = domain.pid_state['threshold']['error_integral']
-        domain.metrics['meta_fire_rate_error'] = fire_rate_error
+        new_metrics = dict(domain.metrics)
+        new_metrics.update({
+            'meta_threshold_adj': threshold_adjustment,
+            'meta_integral': new_pid_substate['error_integral'],
+            'meta_fire_rate_error': fire_rate_error
+        })
+        
+        new_pid_state = dict(domain.pid_state)
+        new_pid_state['threshold'] = new_pid_substate
+
+        return {
+            'heavy_tensors': t,
+            'pid_state': new_pid_state,
+            'metrics': new_metrics
+        }
         
     except Exception as e:
-        import traceback
-        # print(f"CRASH in process_meta_homeostasis_fixed: {e}")
-        # traceback.print_exc()
-        pass # Suppress to keep agent alive logic? Or re-raise?
-        # Re-raising has killed us 10 times. Let's Log and Suppress for Sanity Run.
-        domain.metrics['meta_homeostasis_error'] = 1
+        ctx.log(f"CRASH in process_meta_homeostasis_fixed: {e}", level="error")
+        return {'meta_homeostasis_error': 1}

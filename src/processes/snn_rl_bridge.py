@@ -21,17 +21,14 @@ from src.core.snn_context_theus import sync_to_heavy_tensors
 
 @process(
     inputs=['domain_ctx', 'domain_ctx.snn_context'],
-    outputs=['domain_ctx', 
-        'domain_ctx.heavy_snn_emotion_vector',
-        'domain_ctx.heavy_previous_snn_emotion_vector'
-    ],
+    outputs=['domain_ctx.heavy_snn_emotion_vector', 'domain_ctx.heavy_previous_snn_emotion_vector'],
     side_effects=[]
 )
 def encode_emotion_vector(ctx: SystemContext):
     """
-    Encode SNN neuron activity → Emotion vector cho RL. Wraps _encode_emotion_vector_impl.
+    Encode SNN neuron activity → Emotion vector cho RL. 
     """
-    _encode_emotion_vector_impl(ctx)
+    return _encode_emotion_vector_impl(ctx)
 
 def _encode_emotion_vector_impl(ctx: SystemContext):
     """Internal implementation."""
@@ -111,15 +108,20 @@ def _encode_emotion_vector_impl(ctx: SystemContext):
         emotion_vector = emotion_vector / norm
     
     # Shift current to previous (for RL learning)
+    prev_emo = None
     if ctx.domain_ctx.heavy_snn_emotion_vector is not None:
-        # Use detach().clone() to ensure we don't carry over graph history
-        ctx.domain_ctx.heavy_previous_snn_emotion_vector = ctx.domain_ctx.heavy_snn_emotion_vector.detach().clone()
+        prev_emo = ctx.domain_ctx.heavy_snn_emotion_vector.detach().clone()
     
-    # Convert to tensor
-    ctx.domain_ctx.heavy_snn_emotion_vector = torch.tensor(
+    # Convert current to tensor
+    current_emo = torch.tensor(
         emotion_vector,
         dtype=torch.float32
     ).detach()
+
+    return {
+        'heavy_snn_emotion_vector': current_emo,
+        'heavy_previous_snn_emotion_vector': prev_emo
+    }
 
 
 # ============================================================================
@@ -128,14 +130,14 @@ def _encode_emotion_vector_impl(ctx: SystemContext):
 
 @process(
     inputs=['domain_ctx', 'domain_ctx.current_observation', 'domain_ctx.snn_context'],
-    outputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=['domain_ctx.snn_context.domain_ctx.heavy_tensors'],
     side_effects=[]
 )
 def encode_state_to_spikes(ctx: SystemContext):
     """
-    Inject sensor vector từ môi trường vào SNN. Wraps _encode_state_to_spikes_impl.
+    Inject sensor vector từ môi trường vào SNN.
     """
-    _encode_state_to_spikes_impl(ctx)
+    return _encode_state_to_spikes_impl(ctx)
 
 def _encode_state_to_spikes_impl(ctx: SystemContext):
     """Internal implementation."""
@@ -177,32 +179,26 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
         
         sensor_vector = pattern
     
-    # Inject vào input neurons (0-15)
-    input_end = min(16, len(snn_ctx.domain_ctx.neurons))
-    # DEBUG INPUT
-    # if isinstance(sensor_vector, np.ndarray):
-    #     print(f"DEBUG BRIDGE: Max Input: {np.max(sensor_vector):.4f}, Norm: {np.linalg.norm(sensor_vector):.4f}")
-    # print(f"DEBUG ENCODE: Neurons: {len(snn_ctx.domain_ctx.neurons)}, Input End: {input_end}")
+    # v3 POP FIX: Use heavy_tensors directly instead of looping over objects
+    from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
+    ensure_heavy_tensors_initialized(snn_ctx)
+    t = snn_ctx.domain_ctx.heavy_tensors
     
-    for i in range(input_end):
-        neuron = snn_ctx.domain_ctx.neurons[i]
-        
-        # Amplify để vượt threshold
-        # NOTE: Tăng từ 2.0 → 5.0 để neurons có thể bắn (Configurable)
-        # Sensor values [0, 1], threshold = 1.0
-        amplification = float(snn_ctx.global_ctx.input_amplification_factor)
-        val = sensor_vector[i]
-        
-        # DEBUG: Print first non-zero input
-        # if val > 0: print(f"DEBUG INPUT: Neuron {i} got {val}")
-        
-        neuron.potential = val * amplification
-        
-        # Full context cho vector matching
-        neuron.potential_vector = sensor_vector
-
-    # Sync to Tensors (CRITICAL FIX: Bridge -> Core)
-    sync_to_heavy_tensors(snn_ctx)
+    pots = t['potentials']
+    pvecs = t['potential_vectors']
+    N = len(pots)
+    
+    amplification = float(snn_ctx.global_ctx.input_amplification_factor)
+    input_end = min(16, N)
+    
+    # Apply to tensors (Vectorized)
+    pots[:input_end] = sensor_vector[:input_end] * amplification
+    pvecs[:input_end] = sensor_vector[:input_end]
+    
+    # Sync back for audit/object compatibility
+    sync_from_heavy_tensors(snn_ctx)
+    
+    return {'heavy_tensors': t}
 
 
 # ============================================================================
@@ -322,9 +318,10 @@ def modulate_snn_attention(ctx: SystemContext):
     # Clip to safety minimum (Prevent collapse)
     np.clip(thresh, snn_ctx.global_ctx.threshold_min, snn_ctx.global_ctx.threshold_max, out=thresh)
     
-    # 4. Sync Back (Optional here if next step is Tensor-based SNN Cycle, 
-    # but safe to sync for audit)
+    # Sync Back
     sync_from_heavy_tensors(snn_ctx)
+    
+    return {'heavy_tensors': t}
 
 
 @process(
@@ -367,6 +364,8 @@ def restore_snn_attention(ctx: SystemContext):
     
     # 4. Sync Back
     sync_from_heavy_tensors(snn_ctx)
+    
+    return {'heavy_tensors': t}
 
 
 # ============================================================================
@@ -375,7 +374,7 @@ def restore_snn_attention(ctx: SystemContext):
 
 @process(
     inputs=['domain_ctx', 'domain_ctx.snn_context'],
-    outputs=['domain_ctx', 'domain_ctx.intrinsic_reward'],
+    outputs=['domain_ctx.intrinsic_reward'],
     side_effects=[]
 )
 def compute_intrinsic_reward_snn(ctx: SystemContext):
@@ -390,8 +389,7 @@ def compute_intrinsic_reward_snn(ctx: SystemContext):
     snn_ctx = ctx.domain_ctx.snn_context
     
     if snn_ctx is None:
-        ctx.domain_ctx.intrinsic_reward = 0.0
-        return
+        return {'intrinsic_reward': 0.0}
     
     neurons = snn_ctx.domain_ctx.neurons
     
@@ -403,8 +401,7 @@ def compute_intrinsic_reward_snn(ctx: SystemContext):
     
     if not active_vectors:
         # No activity → neutral novelty
-        ctx.domain_ctx.intrinsic_reward = 0.5
-        return
+        return {'intrinsic_reward': 0.5}
     
     current_pattern = np.mean(active_vectors, axis=0)
     
@@ -420,4 +417,4 @@ def compute_intrinsic_reward_snn(ctx: SystemContext):
     novelty = 1.0 - max_sim
     
     # Clip to [0, 1]
-    ctx.domain_ctx.intrinsic_reward = np.clip(novelty, 0.0, 1.0)
+    return {'intrinsic_reward': float(np.clip(novelty, 0.0, 1.0))}

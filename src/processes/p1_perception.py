@@ -25,24 +25,26 @@ def perception(ctx: SystemContext, env_adapter: EnvironmentAdapter = None, agent
         
     if env_adapter is None:
         # Cannot proceed without adapter
-        return
-    # 1. Lưu observation cũ
-    ctx.domain_ctx.previous_observation = ctx.domain_ctx.current_observation
+        ctx.log("Perception Error: env_adapter not found in context.", level="error")
+        return {}
+
+    # 1. Prepare Delta
+    delta = {}
     
-    # 2. Lấy observation mới qua Adapter
+    # 2. Lưu observation cũ
+    delta['previous_observation'] = ctx.domain_ctx.current_observation
+    
+    # 3. Lấy observation mới qua Adapter
     agent_id = int(agent_id) # Force cast to int to fix KeyError '0' if it's string
     
     # Try sensor vector first (new system), fallback to dict (legacy)
-    # CRITICAL FIX: Always use get_observation to get the full dict (Metadata + Sensor)
-    # environment.py has been updated to include 'sensor_vector' in this dict.
     try:
         full_obs = env_adapter.get_observation(agent_id)
-        ctx.domain_ctx.current_observation = full_obs
-        
-        # Validation (Optional)
-        # if 'sensor_vector' not in full_obs:
-        #     print("WARNING: Sensor vector missing in observation!")
+        delta['current_observation'] = full_obs
     except Exception as e:
-        print(f"Perception Error: {e}")
-        # Fallback? No, crash if essential.
+        ctx.log(f"Perception Error: {e}", level="error")
+        # Return empty delta on failure to avoid corrupted state
+        return {}
+
+    return delta
 

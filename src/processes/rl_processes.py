@@ -154,9 +154,10 @@ def select_action_gated(ctx: SystemContext):
             q_values = ctx.domain_ctx.heavy_q_table.get(state_key, [0.0] * 8)
             action = int(np.argmax(q_values))
         
-        ctx.domain_ctx.last_action = action
-        ctx.domain_ctx.heavy_last_q_values = torch.tensor([0.0] * 8).detach()
-        return
+        return {
+            'last_action': action,
+            'heavy_last_q_values': torch.tensor([0.0] * 8).detach()
+        }
     
     # 2. Emotion Magnitude Calculation
     # Compliant check: 'emotion' usually is list or tensor
@@ -198,8 +199,10 @@ def select_action_gated(ctx: SystemContext):
     else:
         action = int(np.argmax(q_values_list))
     
-    ctx.domain_ctx.last_action = action
-    ctx.domain_ctx.heavy_last_q_values = torch.tensor(q_values_list, dtype=torch.float32).detach()
+    return {
+        'last_action': action,
+        'heavy_last_q_values': torch.tensor(q_values_list, dtype=torch.float32).detach()
+    }
 
 
 @process(
@@ -226,8 +229,7 @@ def update_q_learning(ctx: SystemContext):
     """
     # 0. Check Initialization
     if ctx.domain_ctx.previous_observation is None:
-        ctx.domain_ctx.td_error = 0.0
-        return
+        return {'td_error': 0.0}
 
     # 1. State Keys
     prev_obs = ctx.domain_ctx.previous_observation
@@ -248,33 +250,35 @@ def update_q_learning(ctx: SystemContext):
         except:
             reward = 0.0
     
-    # 3. Tabular Q-Learning (Heavy Q-Table)
-    # DEFENSIVE LOGIC: Ensure we have a List, not a Float (Corruption/Legacy fix)
+    # Creation of entries is still "mutation" if done on ctx.domain_ctx directly
+    # But often we can't avoid it for large structures unless we return the whole structure.
+    # However, for POP, we should ideally treat the table as a dict to be updated.
     
+    delta_q_table = {} # We'll return updates to the table
+
     # Check Prev State
     if prev_state_key not in ctx.domain_ctx.heavy_q_table:
-        ctx.domain_ctx.heavy_q_table[prev_state_key] = [0.0] * 8
+        delta_q_table[prev_state_key] = [0.0] * 8
     else:
         # Self-Healing: If it's not a list (e.g. float corruption), Reset it.
         val = ctx.domain_ctx.heavy_q_table[prev_state_key]
-        # Allow MutableSequence (TrackedList) via name check to be robust
         is_valid = isinstance(val, (list, tuple)) or (hasattr(val, '__class__') and val.__class__.__name__ == 'TrackedList')
         if not is_valid: 
-             print(f"WARNING: Q-Table Corruption detected at {prev_state_key}. Expected List, got {type(val)}. Resetting.")
-             ctx.domain_ctx.heavy_q_table[prev_state_key] = [0.0] * 8
+             ctx.log(f"WARNING: Q-Table Corruption detected at {prev_state_key}. Resetting.", level="warn")
+             delta_q_table[prev_state_key] = [0.0] * 8
 
     # Check Next State (for max_q)
     if next_state_key not in ctx.domain_ctx.heavy_q_table:
-        ctx.domain_ctx.heavy_q_table[next_state_key] = [0.0] * 8
+        delta_q_table[next_state_key] = [0.0] * 8
     else:
         val = ctx.domain_ctx.heavy_q_table[next_state_key]
         is_valid = isinstance(val, (list, tuple)) or (hasattr(val, '__class__') and val.__class__.__name__ == 'TrackedList')
         if not is_valid:
-             ctx.domain_ctx.heavy_q_table[next_state_key] = [0.0] * 8
+             delta_q_table[next_state_key] = [0.0] * 8
     
     # Calculation
-    current_q_list = ctx.domain_ctx.heavy_q_table[prev_state_key]
-    next_q_list = ctx.domain_ctx.heavy_q_table[next_state_key]
+    current_q_list = delta_q_table.get(prev_state_key, ctx.domain_ctx.heavy_q_table[prev_state_key])
+    next_q_list = delta_q_table.get(next_state_key, ctx.domain_ctx.heavy_q_table[next_state_key])
     
     current_q = current_q_list[action]
     max_next_q = max(next_q_list)
@@ -283,17 +287,20 @@ def update_q_learning(ctx: SystemContext):
     td_error = reward + gamma * max_next_q - current_q
     
     alpha = 0.1
-    # Update In-Place (Safe now because we verified it's a list)
+    # Update In-Place on a COPIED list for the Delta
+    updated_q_list = list(current_q_list)
     try:
-        ctx.domain_ctx.heavy_q_table[prev_state_key][action] += alpha * td_error
-    except TypeError as e:
-        # Emergency Log
-        val_now = ctx.domain_ctx.heavy_q_table[prev_state_key]
-        print(f"CRITICAL ERROR: {e}. Key: {prev_state_key}. Val: {val_now}. Resetting.")
-        # Force Reset again
-        ctx.domain_ctx.heavy_q_table[prev_state_key] = [0.0] * 8
+        updated_q_list[action] += alpha * td_error
+        delta_q_table[prev_state_key] = updated_q_list
+    except Exception as e:
+        ctx.log(f"CRITICAL ERROR: {e}. Key: {prev_state_key}. Resetting.", level="error")
+        delta_q_table[prev_state_key] = [0.0] * 8
     
-    ctx.domain_ctx.td_error = td_error
+    # Final Result
+    result_delta = {
+        'td_error': td_error,
+        'heavy_q_table': delta_q_table
+    }
     
     # 4. Neural Network Training (Deep RL)
     if ctx.domain_ctx.heavy_gated_network is not None and ctx.domain_ctx.heavy_gated_optimizer is not None:
@@ -327,3 +334,5 @@ def update_q_learning(ctx: SystemContext):
             opt.zero_grad()
             loss.backward()
             opt.step()
+
+    return result_delta

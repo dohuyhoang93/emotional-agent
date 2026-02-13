@@ -12,20 +12,20 @@ from theus.contracts import process
 
 @process(
     inputs=['domain_ctx', 'domain_ctx.snn_context'],
-    outputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=['domain_ctx.snn_context.domain_ctx.heavy_tensors'],
     side_effects=[]
 )
 def process_clustering(ctx):
     """
-    Quy trình học không gian (Unsupervised Clustering). Wraps _clustering_impl.
+    Quy trình học không gian (Unsupervised Clustering).
     """
-    _clustering_impl(ctx)
+    return _clustering_impl(ctx)
 
 def _clustering_impl(ctx):
     """
     Internal Clustering implementation (Vectorized Wrapper).
     """
-    _clustering_impl_vectorized(ctx)
+    return _clustering_impl_vectorized(ctx)
 
 def _clustering_impl_vectorized(ctx):
     """
@@ -57,14 +57,14 @@ def _clustering_impl_vectorized(ctx):
     
     current_spikes = domain.spike_queue.get(cur_time, [])
     if not current_spikes:
-        return # No sync needed if no change
+        return {'heavy_tensors': t}
         
     spike_indices = np.array(current_spikes, dtype=int)
     N = len(weights)
     spike_indices = spike_indices[(spike_indices >= 0) & (spike_indices < N)]
     
     if len(spike_indices) == 0:
-        return
+        return {'heavy_tensors': t}
         
     # Hebbian Learning: For each spike, update connected post-neurons
     # Since spikes are few (sparsity), iterating spikes is acceptable.
@@ -101,25 +101,26 @@ def _clustering_impl_vectorized(ctx):
     
     # Sync Back
     sync_from_heavy_tensors(snn_ctx)
+    
+    return {'heavy_tensors': t}
 
 
 @process(
     inputs=['domain_ctx', 'domain_ctx.snn_context'],
-    outputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=['domain_ctx.snn_context.domain_ctx.heavy_tensors'],
     side_effects=[]
 )
 def process_stdp(ctx):
     """
-    Quy trình STDP (Spike-Timing-Dependent Plasticity). Wraps _stdp_impl.
+    Quy trình STDP (Spike-Timing-Dependent Plasticity).
     """
-    _stdp_impl(ctx)
+    return _stdp_impl(ctx)
 
 def _stdp_impl(ctx):
     """
     Internal STDP implementation (Vectorized Wrapper).
-    Logic gốc đã được thay thế bằng _stdp_impl_vectorized.
     """
-    _stdp_impl_vectorized(ctx)
+    return _stdp_impl_vectorized(ctx)
 
 def _stdp_impl_vectorized(ctx):
     """
@@ -161,7 +162,7 @@ def _stdp_impl_vectorized(ctx):
     current_spikes = domain.spike_queue.get(cur_time, [])
     if not current_spikes:
         sync_from_heavy_tensors(snn_ctx)
-        return
+        return {'heavy_tensors': t}
 
     # Filter valid spikes
     N = len(weights)
@@ -170,7 +171,7 @@ def _stdp_impl_vectorized(ctx):
     
     if len(spike_indices) == 0:
         sync_from_heavy_tensors(snn_ctx)
-        return
+        return {'heavy_tensors': t}
         
     # 3. Update Traces (Pre-synaptic spikes increase trace)
     # traces[i, :] += 1.0 for all i in spike_indices
@@ -252,4 +253,6 @@ def _stdp_impl_vectorized(ctx):
     
     # 7. Sync Back
     sync_from_heavy_tensors(snn_ctx)
+    
+    return {'heavy_tensors': t}
 
