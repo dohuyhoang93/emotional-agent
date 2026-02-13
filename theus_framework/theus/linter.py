@@ -340,11 +340,16 @@ class POPLinter(ast.NodeVisitor):
                     is_covered = True
                     break
 
-            # Allow 'domain' access if checking existence?
-            # For now strict: If you touch it, declare it.
-            # BUT: We only flag if we are fairly sure.
-            # Only check 'domain' layer for now as it's the main data zone.
-            if clean_path.startswith("domain"):
+            # [RFC-002] Namespace-Aware Contract Check
+            # We allow access if it's the default 'domain' OR a registered Namespace
+            from .context import NamespaceRegistry
+            registry = NamespaceRegistry()
+            
+            # Check if the root part of the clean_path is a namespace (e.g., 'trading' in 'trading.balance')
+            root_part = clean_path.split(".")[0]
+            is_namespaced = root_part == "domain" or root_part in registry._namespaces
+
+            if is_namespaced:
                 if not is_covered:
                     self.violations.append(
                         EffectViolation(
@@ -417,6 +422,8 @@ class POPLinter(ast.NodeVisitor):
                     "Process must return a value (Delta/Dict). Found empty return.",
                 )
             )
+
+        self.generic_visit(node)
 
 
 def run_lint(target_dir: Path, output_format: str = "table") -> bool:

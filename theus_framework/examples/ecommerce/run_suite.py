@@ -141,13 +141,7 @@ async def run_scenario_b(engine):
     print(">> [1] Executing Workflow 'agent_loop.yaml'...")
     wf_path = os.path.join(BASE_DIR, "workflows", "agent_loop.yaml")
 
-    try:
-        # Run sync workflow engine in a separate thread to allow it to run its own loop
-        import concurrent.futures
-
-        loop = asyncio.get_running_loop()
-        with concurrent.futures.ThreadPoolExecutor() as pool:
-            await loop.run_in_executor(pool, engine.execute_workflow, wf_path)
+        await engine.execute_workflow(wf_path)
 
     except Exception as e:
         print(f"❌ Workflow Error: {e}")
@@ -193,7 +187,7 @@ async def main():
     )
 
     sys_ctx = DemoSystemContext()
-    engine = TheusEngine(sys_ctx, strict_mode=True, audit_recipe=recipe)
+    engine = TheusEngine(sys_ctx, strict_guards=True, audit_recipe=recipe)
 
     engine.register(ecommerce.create_order)
     engine.register(ecommerce.process_payment)
