@@ -5,7 +5,7 @@ use pyo3::types::PyDict;
 use crate::engine::Transaction;
 
 use crate::proxy::SupervisorProxy;
-use crate::zones::{resolve_zone, ContextZone, get_zone_physics, CAP_READ, CAP_UPDATE, CAP_APPEND, CAP_DELETE};
+use crate::zones::{resolve_zone, ContextZone, get_zone_physics, is_absolute_ceiling, CAP_READ, CAP_UPDATE, CAP_APPEND, CAP_DELETE};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use once_cell::sync::Lazy;
@@ -133,11 +133,20 @@ impl ContextGuard {
         let zone = resolve_zone(&full_path);
         let zone_physics = get_zone_physics(&zone);
         
+        // [RFC-001 Handbook §1.1] PRIVATE zone: non-admin cannot read at all.
+        // Return Python None to hide the field completely.
+        if zone == ContextZone::Private && !self.is_admin {
+            return Ok(py.None());
+        }
+        
         let can_write = self.check_permissions(&full_path, true).is_ok();
         
-        let final_caps = if self.is_admin {
-            31u8 // 15 | CAP_ADMIN: Admin bypasses EVERYTHING
+        let final_caps = if self.is_admin && !is_absolute_ceiling(&zone) {
+            // Admin bypasses zone physics, EXCEPT for CONSTANT zones (is_absolute_ceiling)
+            CAP_READ | CAP_APPEND | CAP_UPDATE | CAP_DELETE
         } else {
+            // NOTE: For CONSTANT zone, get_zone_physics returns CAP_READ,
+            // so even admin is clamped to read-only here.
             let process_license = if can_write {
                  CAP_READ | CAP_UPDATE | CAP_APPEND | CAP_DELETE 
             } else {
@@ -344,6 +353,19 @@ impl ContextGuard {
         
         let zone = resolve_zone(&name);
         
+        // [RFC-001 §5] Check Zone Physics on write
+        let zone_physics = get_zone_physics(&zone);
+        let mut mutation_caps = zone_physics;
+        if self.is_admin && !is_absolute_ceiling(&zone) {
+            mutation_caps = 31u8; // Full caps
+        }
+        
+        if (mutation_caps & CAP_UPDATE) == 0 {
+             return Err(PyPermissionError::new_err(
+                format!("Permission Denied: UPDATE capability required for '{}' (Zone Physics blocked it).", full_path)
+            ));
+        }
+        
         if zone != ContextZone::Heavy {
             if let Some(tx) = &self.tx {
                 let tx_ref = tx.bind(py).borrow_mut();
@@ -426,6 +448,19 @@ impl ContextGuard {
         } else {
              ContextZone::Data // Integer index -> default Data 
         };
+
+        // [RFC-001 §5] Check Zone Physics on item write
+        let zone_physics = get_zone_physics(&zone);
+        let mut mutation_caps = zone_physics;
+        if self.is_admin && !is_absolute_ceiling(&zone) {
+            mutation_caps = 31u8; // Full caps
+        }
+        
+        if (mutation_caps & CAP_UPDATE) == 0 {
+             return Err(PyPermissionError::new_err(
+                format!("Permission Denied: UPDATE capability required for '{}' (Zone Physics blocked it).", full_path)
+            ));
+        }
 
         if zone != ContextZone::Heavy {
             if let Some(tx) = &self.tx {

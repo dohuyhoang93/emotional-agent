@@ -41,6 +41,7 @@ class POPLinter(ast.NodeVisitor):
     - POP-E05: No Direct Context Mutation (Use Copy-on-Write).
     - POP-E06: Explicit Return Required (Must return Delta/Dict).
     - POP-E07: Paradox Check (Contradiction between Prefix and Annotation).
+    - POP-E08: Refactor Risk (Aliasing restricted fields to non-restricted ones).
     - POP-C01: Contract Integrity (Declared vs Used Inputs).
     """
 
@@ -371,7 +372,34 @@ class POPLinter(ast.NodeVisitor):
 
     def visit_Assign(self, node):
         self._check_mutation(node.targets)
+        self._check_policy_relaxation_alias(node)
         self.generic_visit(node)
+
+    def _check_policy_relaxation_alias(self, node):
+        """POP-E08: Check for aliasing restricted fields to non-restricted variables."""
+        if not self.in_process: return
+        
+        rhs_path = self._resolve_attribute_path(node.value)
+        if not rhs_path: return
+        
+        rhs_leaf = rhs_path.split(".")[-1]
+        restricted_prefixes = ("log_", "audit_", "meta_", "const_", "internal_", "sig_", "cmd_")
+        if not rhs_leaf.startswith(restricted_prefixes): return
+        
+        for target in node.targets:
+            lhs_path = self._resolve_attribute_path(target)
+            if not lhs_path: continue
+            
+            lhs_leaf = lhs_path.split(".")[-1]
+            if not lhs_leaf.startswith(restricted_prefixes):
+                self.violations.append(
+                    EffectViolation(
+                        self.filename,
+                        node.lineno,
+                        "POP-E08",
+                        f"Refactor Risk: Aliasing restricted field '{rhs_leaf}' to non-restricted '{lhs_leaf}' relaxes policy.",
+                    )
+                )
 
     def visit_AugAssign(self, node):
         self._check_mutation([node.target])

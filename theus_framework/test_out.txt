@@ -1,0 +1,62 @@
+[THEUS-CORE] Loaded Version: 3.0.22 (Target Env Build)
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[DEBUG] Execute Exception: "Permission Denied: UPDATE capability required for item assignment at 'domain.const_data[updated]'. (Current Lens: 0001)" | CAS=False | Busy=False
+DEBUG: TheusEngine __init__ called. _context hasattr: True
+[DEBUG PARSE] obj_type=<class 'theus.context.BaseSystemContext'>, path=
+[DEBUG PARSE] annotations keys: ['global_ctx', 'domain']
+[DEBUG PARSE] obj_type=<class 'dict'>, path=domain
+[DEBUG PARSE] annotations keys: []
+[ManagedAllocator] Registry initialized successfully.
+ALL ZONE PHYSICS TESTS PASSED
+DEBUG: TheusEngine __init__ called. _context hasattr: True
+[DEBUG PARSE] obj_type=<class '__main__.OverrideSystem'>, path=
+[DEBUG PARSE] annotations keys: ['domain']
+[DEBUG PARSE] obj_type=<class '__main__.OverrideDomain'>, path=domain
+[DEBUG PARSE] annotations keys: ['log_events', 'const_data']
+[DEBUG OVERRIDE] domain.log_events -> 15 (Mutable)
+[DEBUG PARSE] obj_type=<class '__main__.OverrideDomain'>, path=domain
+[DEBUG PARSE] annotations keys: ['log_events', 'const_data']
+[DEBUG OVERRIDE] domain.log_events -> 15 (Mutable)
+[ManagedAllocator] Registry initialized successfully.
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\tests\test_rfc_001_zones.py", line 131, in <module>
+    asyncio.run(test_annotated_overrides())
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\tests\test_rfc_001_zones.py", line 125, in test_annotated_overrides
+    await engine.execute(p_mutate_override)
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 647, in execute
+    raise e
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 592, in execute
+    result = await self._attempt_execute(func, tx, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 759, in _attempt_execute
+    raise e
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 752, in _attempt_execute
+    result = await self._core.execute_process_async(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func.__name__, target_func, tx
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 729, in arg_binder
+    return await func(native_guard, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 159, in wrapper
+    raise e
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 156, in wrapper
+    return await func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\tests\test_rfc_001_zones.py", line 115, in p_mutate_override
+    ctx.domain.const_data["updated"] = True
+    ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^
+PermissionError: Permission Denied: UPDATE capability required for item assignment at 'domain.const_data[updated]'. (Current Lens: 0001)

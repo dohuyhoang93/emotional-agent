@@ -14,8 +14,19 @@ try:
              _RustContextGuard = object
     else:
         _RustContextGuard = theus_core.ContextGuard
+    # [RFC-001 §10] Import SupervisorProxy for __dict__ proxying wrapping check
+    _RustSupervisorProxy = getattr(theus_core, "SupervisorProxy", type(None))
 except ImportError:
     _RustContextGuard = object
+    _RustSupervisorProxy = type(None)
+
+
+class _PrivateZoneReadAccess(Exception):
+    """[RFC-001 Handbook §1.1] Sentinel raised by _check_zone_physics when a non-admin
+    process reads an 'internal_' (PRIVATE zone) field. The caller should return None
+    instead of propagating the exception, thereby hiding the field completely."""
+    pass
+
 
 class ContextGuard:
     """
@@ -118,48 +129,92 @@ class ContextGuard:
                 strict_guards=strict_guards,
             )
 
+    def _check_zone_physics(self, path: str, mode: str) -> None:
+        """[RFC-001 §5] Enforce Zone Physics at Python layer."""
+        # Extract last segment for prefix check
+        # path may be 'domain.const_config', 'domain.nested.const_value', etc.
+        segments = path.replace("[", ".").replace("]", "").split(".")
+        for segment in segments:
+            # [RFC-001 §5] CONSTANT zone — unbreakable ceiling
+            if segment.startswith("const_"):
+                if mode in ("write", "append", "delete"):
+                    # [RFC-001 §7] Check if an explicit Annotated override exists
+                    # NOTE: If the user explicitly annotated a const_ field as Mutable,
+                    # the override takes precedence over the const_ prefix.
+                    # Check both exact path and parent path (for dict key access like domain.const_data[key])
+                    has_override = False
+                    try:
+                        from theus.context import PYTHON_PHYSICS_OVERRIDES
+                        import re
+                        # Strip [key] suffixes to get the base field path
+                        base_path = re.sub(r'\[.*?\]', '', path)
+                        if path in PYTHON_PHYSICS_OVERRIDES or base_path in PYTHON_PHYSICS_OVERRIDES:
+                            has_override = True
+                    except Exception:
+                        pass
+                    if not has_override:
+                        raise PermissionError(
+                            f"Illegal {mode.capitalize()}: 'const_' field '{path}' is CONSTANT. "
+                            "No process, including Admin, can mutate a CONSTANT field (RFC-001 §5)."
+                        )
+            # [RFC-001 Handbook §1.1] PRIVATE zone — hidden from non-admin
+            if segment.startswith("internal_"):
+                if mode == "read" and not self._local_is_admin:
+                    # NOTE: Raise special sentinel to tell caller to return None.
+                    raise _PrivateZoneReadAccess()
+
     def _is_allowed(self, path: str, mode: str = "read") -> bool:
-        """[v3.2] Granular check for path access (supports wildcards)."""
+        """[v3.2] Granular check for path access (supports wildcards).
+        
+        NOTE: This only enforces restrictions on paths belonging to REGISTERED namespaces.
+        System paths (outbox, policy_id, etc.) are always allowed through to the Rust guard.
+        """
+        import fnmatch
         if self._local_is_admin: return True
-        # If whitelists are None (e.g. legacy/manual mode), allow all
+        
         # Use getattr to avoid recursion in __getattr__
         inputs = getattr(self, "allowed_inputs", None)
         outputs = getattr(self, "allowed_outputs", None)
         
         # [v3.1.1 Legacy] If no whitelists provided (None), we are in permissive mode.
-        # But if they are EMPTY set(), we are in strict mode.
         if inputs is None and mode == "read": return True
         if outputs is None and mode == "write": return True
         
+        # [RFC-002 KEY INSIGHT] Only enforce isolation for paths that belong to a registered namespace.
+        # If the top-level segment of the path is NOT a registered namespace, allow through.
+        from .context import NamespaceRegistry
+        registry = NamespaceRegistry()
+        
+        norm_path = path.replace("[", ".").replace("]", "")
+        top_level = norm_path.split(".")[0]
+        
+        if top_level not in registry._namespaces:
+            # Not a registered namespace path → pass through freely to Rust guard.
+            return True
+        
+        # --- PATH IS IN A REGISTERED NAMESPACE --- enforce whitelist ---
+        all_patterns = (inputs or set()) | (outputs or set())
+        
         if mode == "read":
-            # [v3.2] READ DISCOVERY: Allow access to parent paths if ANY sub-path is in inputs OR outputs.
-            # This is necessary for write-chains like ctx.domain.key = val where ctx.domain must be reachable.
-            all_patterns = (inputs or set()) | (outputs or set())
+            # READ DISCOVERY: allow if path matches any input OR any output sub-path
             if "*" in all_patterns: return True
-            
-            import fnmatch
-            norm_path = path.replace("[", ".").replace("]" , "")
             for pattern in all_patterns:
-                 norm_pattern = pattern.replace("[", ".").replace("]" , "")
-                 if fnmatch.fnmatch(norm_path, norm_pattern): return True
-                 if norm_path.startswith(norm_pattern + "."): return True
-                 if norm_pattern.startswith(norm_path + "."): return True
+                norm_pattern = pattern.replace("[", ".").replace("]", "")
+                if fnmatch.fnmatch(norm_path, norm_pattern): return True
+                # Allow parent-path discovery (ctx.domain is needed to write ctx.domain.key)
+                if norm_path.startswith(norm_pattern + "."): return True
+                if norm_pattern.startswith(norm_path + "."): return True
             return False
             
-        # WRITE MODE: Strict check against outputs only
+        # WRITE MODE: strict check against outputs only
         targets = outputs
-        if targets is None: return True # Permissive if not set
+        if targets is None: return True
         if "*" in targets: return True
-        
-        import fnmatch
-        norm_path = path.replace("[", ".").replace("]" , "")
         for pattern in targets:
-             norm_pattern = pattern.replace("[", ".").replace("]" , "")
-             if fnmatch.fnmatch(norm_path, norm_pattern): return True
-             if norm_path.startswith(norm_pattern + "."): return True
-             # We generally DON'T allow parent-path discovery for WRITE if it's not the exact target
-             # because writing to 'domain' would overwrite everything. 
-             # But setattr(ctx.domain, "key", val) is a write to "domain.key".
+            norm_pattern = pattern.replace("[", ".").replace("]", "")
+            if fnmatch.fnmatch(norm_path, norm_pattern): return True
+            # Allow sub-path writes (writing domain.key.sub when domain.key is declared)
+            if norm_path.startswith(norm_pattern + "."): return True
         return False
 
     @property
@@ -188,12 +243,29 @@ class ContextGuard:
         # because that triggers ContractViolationError if the proxy-path is not in outputs.
         # Instead, we use Parent-Level Overwrite in destructive methods (clear/pop/remove).
 
+    def __getattribute__(self, name: str) -> Any:
+        # [RFC-001 §10] Block __dict__ access to prevent bypassing Zone Physics.
+        # NOTE: __dict__ is a data descriptor on type, so Python resolves it
+        # via type.__getattribute__ BEFORE __getattr__ is ever called.
+        # We must intercept it here.
+        if name == "__dict__":
+            raise PermissionError(
+                "Direct access to '__dict__' is forbidden. "
+                "Use the Context API to read/write fields safely."
+            )
+        return object.__getattribute__(self, name)
+
     def __getattr__(self, name: str) -> Any:
         # 1. Immediate bypass for whitelisted Python-side attributes
         if name in ("_inner", "_local_is_admin", "log", "_elevate", "is_admin", "is_proxy", "_outbox", "path_prefix", "allowed_inputs", "allowed_outputs", "transaction", "strict_guards"):
             return object.__getattribute__(self, name)
 
         full_path = name if self.path_prefix == "" else f"{self.path_prefix}.{name}"
+        # [RFC-001 §5] Zone physics check first (const_/internal_)
+        try:
+            self._check_zone_physics(full_path, "read")
+        except _PrivateZoneReadAccess:
+            return None  # internal_ field: return None silently for non-admin
         if not self._is_allowed(full_path, "read"):
              # For discovery, we allow 'domain' or 'global' prefixes even if not explicitly in inputs, 
              # provided a sub-path IS allowed. _is_allowed already handles this parent-path check.
@@ -250,10 +322,14 @@ class ContextGuard:
         
         if self._local_is_admin:
             # 1. Aggressive Propagate Elevation to Rust Proxy
-            for attr in ["capabilities", "_capabilities", "caps"]:
-                 if hasattr(val, attr):
-                      try: setattr(val, attr, 31)
-                      except: pass
+            if hasattr(val, "_set_capabilities"):
+                 try: val._set_capabilities(31)
+                 except: pass
+            else:
+                 for attr in ["capabilities", "_capabilities", "caps"]:
+                      if hasattr(val, attr):
+                           try: setattr(val, attr, 31)
+                           except: pass
 
             # 2. Return elevated wrapper
             if not isinstance(val, ContextGuard) and not isinstance(val, (int, float, str, bool, type(None))):
@@ -273,11 +349,14 @@ class ContextGuard:
                  return new_guard
         
         # 4. Nested Guard wrapping (Normal flow)
-        if isinstance(val, _RustContextGuard):
+        # [RFC-001 §10] Also wrap SupervisorProxy so ContextGuard.__getattribute__
+        # can intercept __dict__ access that PyO3 resolves at C level.
+        if isinstance(val, (_RustContextGuard, _RustSupervisorProxy)):
             return ContextGuard(
                 target_obj=None,
-                allowed_inputs=set(),
-                allowed_outputs=set(),
+                allowed_inputs=self.allowed_inputs,
+                allowed_outputs=self.allowed_outputs,
+                path_prefix=full_path,
                 _inner=val,
                 process_name=self.log.extra.get("process_name", "Unknown"),
                 transaction=self.transaction,
@@ -344,10 +423,34 @@ class ContextGuard:
 
         return val
 
-    # [RFC-001] SHADOW METHODS FOR ADMIN BYPASS
-    # We must intercept methods that check capabilities internally in Rust.
+    # [RFC-001] SHADOW METHODS FOR ADMIN BYPASS + ZONE PHYSICS ENFORCEMENT
+    # We must intercept these methods because they do NOT go through __setattr__.
+    # The flow: ctx.domain.const_list.append(x)
+    #   -> __getattr__("const_list") returns nested ContextGuard with path_prefix="domain.const_list"
+    #   -> .append(x) calls THIS method (not __setattr__)
+    # So we enforce zone physics here too.
+
+    def append(self, *args, **kwargs):
+        """[RFC-001 §5] Check CONSTANT zone before append."""
+        self._check_zone_physics(self.path_prefix or "?", "append")
+        if hasattr(self._inner, "append"):
+            return self._inner.append(*args, **kwargs)
+
+    def extend(self, *args, **kwargs):
+        """[RFC-001 §5] Check CONSTANT zone before extend."""
+        self._check_zone_physics(self.path_prefix or "?", "append")
+        if hasattr(self._inner, "extend"):
+            return self._inner.extend(*args, **kwargs)
+
+    def insert(self, *args, **kwargs):
+        """[RFC-001 §5] Check CONSTANT zone before insert."""
+        self._check_zone_physics(self.path_prefix or "?", "append")
+        if hasattr(self._inner, "insert"):
+            return self._inner.insert(*args, **kwargs)
 
     def clear(self):
+        """[RFC-001 §5] Check CONSTANT zone before clear (delete)."""
+        self._check_zone_physics(self.path_prefix or "?", "delete")
         if hasattr(self._inner, "clear"):
             try:
                 return self._inner.clear()
@@ -367,6 +470,8 @@ class ContextGuard:
         return None
 
     def pop(self, *args, **kwargs):
+        """[RFC-001 §5] Check CONSTANT zone before pop (delete)."""
+        self._check_zone_physics(self.path_prefix or "?", "delete")
         if hasattr(self._inner, "pop"):
             try:
                 return self._inner.pop(*args, **kwargs)
@@ -386,6 +491,8 @@ class ContextGuard:
         return None
 
     def remove(self, *args, **kwargs):
+        """[RFC-001 §5] Check CONSTANT zone before remove (delete)."""
+        self._check_zone_physics(self.path_prefix or "?", "delete")
         if hasattr(self._inner, "remove"):
             try:
                 return self._inner.remove(*args, **kwargs)
@@ -406,6 +513,8 @@ class ContextGuard:
             return
 
         full_path = name if self.path_prefix == "" else f"{self.path_prefix}.{name}"
+        # [RFC-001 §5] Zone physics check (const_ blocked even for admin)
+        self._check_zone_physics(full_path, "write")
         if not self._is_allowed(full_path, "write"):
              raise PermissionError(f"Illegal Write: Path '{full_path}' is restricted by Process Contract.")
 
@@ -421,6 +530,9 @@ class ContextGuard:
 
     def __setitem__(self, key: Any, value: Any) -> None:
         full_path = str(key) if self.path_prefix == "" else f"{self.path_prefix}[{key}]"
+        # [RFC-001 §5] Zone physics check (const_ blocked even for admin)
+        if isinstance(key, str):
+            self._check_zone_physics(full_path, "write")
         if isinstance(key, str) and not self._is_allowed(full_path, "write"):
              raise PermissionError(f"Illegal Write: Path '{full_path}' is restricted by Process Contract.")
 

@@ -1,0 +1,7 @@
+[THEUS-CORE] Loaded Version: 3.0.22 (Target Env Build)
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[ManagedAllocator] Registry initialized successfully.
+ALL ZONE PHYSICS TESTS PASSED
+[ManagedAllocator] Registry initialized successfully.
+ALL ANNOTATED OVERRIDE TESTS PASSED

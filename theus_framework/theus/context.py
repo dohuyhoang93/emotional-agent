@@ -553,7 +553,26 @@ class HeavyZoneAllocator:
 
 class Mutable:
     """
-    Semantic marker for the POP Linter. 
+    Semantic marker for the POP Linter and Zone Physics. 
     Indicates that a field is intended to be mutable despite its prefix.
     """
     pass
+
+class AppendOnly:
+    """
+    Semantic marker for the POP Linter and Zone Physics.
+    Restricts a field to Append-Only operations (CAP_READ | CAP_APPEND).
+    """
+    pass
+
+class Immutable:
+    """
+    Semantic marker for the POP Linter and Zone Physics.
+    Restricts a field to Read-Only operations (CAP_READ).
+    """
+    pass
+
+# [RFC-001 §7] Python-side mirror of Rust PHYSICS_OVERRIDES.
+# Populated by engine.py during _parse_physics_overrides().
+# Queried by guards.py _check_zone_physics() to respect Annotated overrides.
+PYTHON_PHYSICS_OVERRIDES: dict[str, int] = {}

@@ -1,0 +1,8 @@
+[THEUS-CORE] Loaded Version: 3.0.22 (Target Env Build)
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[ManagedAllocator] Registry initialized successfully.
+type(ctx) = <class 'theus.guards.ContextGuard'>
+type(ctx.domain) = <class 'theus.guards.ContextGuard'>
+BLOCKED __dict__ access: Direct access to '__dict__' is forbidden. Use the Context API to read/write fields safely.
+status: PASS
+__DICT__ PROXYING TEST PASSED

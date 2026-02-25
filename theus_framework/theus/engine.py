@@ -102,6 +102,57 @@ class TheusEngine:
             if isinstance(dumped, dict):
                 init_data.update(dumped)
 
+        # [RFC-001] Parse explicit Zone Physics overrides from type annotations
+        def _parse_physics_overrides(obj, path_prefix=""):
+            if obj is None: return
+            
+            # Pydantic v2
+            fields = getattr(obj, "model_fields", getattr(obj, "__fields__", None))
+            annotations = {}
+            if fields:
+                for name, field_info in fields.items():
+                    annotations[name] = getattr(field_info, "annotation", field_info.type_)
+            elif hasattr(obj, "__annotations__"):
+                annotations = obj.__annotations__
+            else:
+                # Fallback to class annotations
+                annotations = getattr(type(obj), "__annotations__", {})
+
+            for name, ann in annotations.items():
+                if hasattr(ann, "__metadata__"):
+                    from theus.context import Mutable, AppendOnly, Immutable, PYTHON_PHYSICS_OVERRIDES
+                    full_path = f"{path_prefix}.{name}" if path_prefix else name
+                    for meta in ann.__metadata__:
+                        if meta is Mutable or isinstance(meta, Mutable):
+                            # Data CAP: READ | APPEND | UPDATE | DELETE = 15
+                            if _HAS_RUST_CORE: theus_core.register_physics_override(full_path, 15)
+                            PYTHON_PHYSICS_OVERRIDES[full_path] = 15
+                        elif meta is AppendOnly or isinstance(meta, AppendOnly):
+                            # CAP_READ | CAP_APPEND = 3
+                            if _HAS_RUST_CORE: theus_core.register_physics_override(full_path, 3)
+                            PYTHON_PHYSICS_OVERRIDES[full_path] = 3
+                        elif meta is Immutable or isinstance(meta, Immutable):
+                            # CAP_READ = 1
+                            if _HAS_RUST_CORE: theus_core.register_physics_override(full_path, 1)
+                            PYTHON_PHYSICS_OVERRIDES[full_path] = 1
+                
+                # Recurse
+                val = getattr(obj, name, None)
+                if val is not None and not isinstance(val, (int, float, str, bool, list, dict)):
+                    _parse_physics_overrides(val, f"{path_prefix}.{name}" if path_prefix else name)
+
+        if _HAS_RUST_CORE and hasattr(theus_core, "register_physics_override"):
+            theus_core.clear_physics_overrides() # Reset on engine init
+            if hasattr(self, "_context"):
+                # Top-level is usually BaseSystemContext
+                _parse_physics_overrides(self._context, "")
+                # Also explicitly parse common namespaces to ensure path prefixes like 'domain.X' match
+                for ns_name in ["domain", "global_ctx", "global"]:
+                    if hasattr(self._context, ns_name):
+                        val = getattr(self._context, ns_name)
+                        if val is not None:
+                             _parse_physics_overrides(val, "domain" if ns_name == "domain" else "global")
+
         self._registry = {} # Legacy internal registry (processes)
 
         # Load Audit Config if available
@@ -360,14 +411,24 @@ class TheusEngine:
                         # 1. Try Pydantic/Object from Context
                         val = getattr(instance._context, key, None)
                         if val is not None:
-                             if not isinstance(val, (int, float, str, bool, list, dict, type(None), ContextGuard)):
-                                  # Wrap in permissive ContextGuard to support hybrid access (dict-style on objects)
+                             # Decide whether to wrap in ContextGuard for hybrid subscript support.
+                             # Only wrap objects that lack native __getitem__ AND are not Pydantic models.
+                             # Return Pydantic models and primitives directly to preserve isinstance() checks.
+                             is_primitive = isinstance(val, (int, float, str, bool, list, dict, type(None), ContextGuard))
+                             try:
+                                 from pydantic import BaseModel as PydanticBase
+                                 is_pydantic = isinstance(val, PydanticBase)
+                             except ImportError:
+                                 is_pydantic = False
+                             has_subscript = hasattr(type(val), "__getitem__") and not is_pydantic
+                             if not is_primitive and not is_pydantic and not has_subscript:
                                   proxy = getattr(val, "_theus_proxy", None)
+                                  # NOTE: _inner must be non-None to skip Rust guard construction.
                                   return ContextGuard(
                                       val, 
                                       allowed_inputs={"*"}, 
                                       allowed_outputs={"*"},
-                                      _inner=proxy, 
+                                      _inner=proxy or val,
                                       process_name="StateView"
                                   )
                              return val
