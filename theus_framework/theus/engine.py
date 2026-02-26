@@ -106,17 +106,22 @@ class TheusEngine:
         def _parse_physics_overrides(obj, path_prefix=""):
             if obj is None: return
             
-            # Pydantic v2
-            fields = getattr(obj, "model_fields", getattr(obj, "__fields__", None))
+            # NOTE: Pydantic v2.11+ deprecates accessing model_fields on instances.
+            # Access on the CLASS instead to avoid DeprecationWarning.
+            obj_class = type(obj) if not isinstance(obj, type) else obj
+            fields = getattr(obj_class, "model_fields", None) or getattr(obj_class, "__fields__", None)
             annotations = {}
             if fields:
                 for name, field_info in fields.items():
-                    annotations[name] = getattr(field_info, "annotation", field_info.type_)
-            elif hasattr(obj, "__annotations__"):
-                annotations = obj.__annotations__
+                    # NOTE: Pydantic v2 uses `annotation`, v1 uses `type_`.
+                    # Use getattr with None fallback to handle both versions safely.
+                    ann = getattr(field_info, "annotation", None) or getattr(field_info, "type_", None)
+                    if ann is not None:
+                        annotations[name] = ann
+            elif hasattr(obj_class, "__annotations__"):
+                annotations = obj_class.__annotations__
             else:
-                # Fallback to class annotations
-                annotations = getattr(type(obj), "__annotations__", {})
+                annotations = getattr(obj_class, "__annotations__", {})
 
             for name, ann in annotations.items():
                 if hasattr(ann, "__metadata__"):

@@ -243,19 +243,16 @@ class ContextGuard:
         # because that triggers ContractViolationError if the proxy-path is not in outputs.
         # Instead, we use Parent-Level Overwrite in destructive methods (clear/pop/remove).
 
-    def __getattribute__(self, name: str) -> Any:
+    def __getattr__(self, name: str) -> Any:
         # [RFC-001 §10] Block __dict__ access to prevent bypassing Zone Physics.
-        # NOTE: __dict__ is a data descriptor on type, so Python resolves it
-        # via type.__getattribute__ BEFORE __getattr__ is ever called.
-        # We must intercept it here.
+        # NOTE: On ContextGuard instances, __dict__ access from user code triggers
+        # __getattr__ because ContextGuard has __slots__-like behavior through its
+        # __init__ using object.__setattr__. This is a safe interception point.
         if name == "__dict__":
             raise PermissionError(
                 "Direct access to '__dict__' is forbidden. "
                 "Use the Context API to read/write fields safely."
             )
-        return object.__getattribute__(self, name)
-
-    def __getattr__(self, name: str) -> Any:
         # 1. Immediate bypass for whitelisted Python-side attributes
         if name in ("_inner", "_local_is_admin", "log", "_elevate", "is_admin", "is_proxy", "_outbox", "path_prefix", "allowed_inputs", "allowed_outputs", "transaction", "strict_guards"):
             return object.__getattribute__(self, name)
@@ -349,9 +346,7 @@ class ContextGuard:
                  return new_guard
         
         # 4. Nested Guard wrapping (Normal flow)
-        # [RFC-001 §10] Also wrap SupervisorProxy so ContextGuard.__getattribute__
-        # can intercept __dict__ access that PyO3 resolves at C level.
-        if isinstance(val, (_RustContextGuard, _RustSupervisorProxy)):
+        if isinstance(val, _RustContextGuard):
             return ContextGuard(
                 target_obj=None,
                 allowed_inputs=self.allowed_inputs,

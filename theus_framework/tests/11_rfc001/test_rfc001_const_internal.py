@@ -163,10 +163,10 @@ class TestConstantAndPrivateZones(unittest.IsolatedAsyncioTestCase):
     async def test_internal_data_unchanged(self):
         """[internal_] internal_ field must remain in state, only hidden from non-admin."""
         engine = self.make_engine()
-        # Direct state inspection (admin-level) should show the data
-        state = engine.state
-        # The data should exist in the underlying context
-        ctx_val = getattr(engine._context.domain, "internal_secret", "NOT_FOUND")
+        # NOTE: Direct state inspection via engine.state.data to verify
+        # the field exists in the raw data — only READ is blocked via proxy.
+        state_data = engine.state.data["domain"]
+        ctx_val = state_data.get("internal_secret", "NOT_FOUND")
         self.assertEqual(ctx_val, "top_secret_42",
                          "internal_ field should still exist in context — only read is blocked")
 

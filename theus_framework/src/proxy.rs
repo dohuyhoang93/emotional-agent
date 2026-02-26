@@ -19,7 +19,11 @@ use crate::zones::{CAP_APPEND, CAP_UPDATE, CAP_DELETE};
 /// 
 /// Unlike FrozenDict which returns copies, SupervisorProxy returns
 /// the original Python object while intercepting mutations.
-#[pyclass(module = "theus_core", subclass)]
+// [RFC-001 §10] Removed `subclass` to eliminate __dict__ allocation.
+// No Python code subclasses SupervisorProxy — verified by grep.
+// Without `subclass`, PyO3 does not create per-instance __dict__,
+// closing the __dict__ bypass attack surface at the C level.
+#[pyclass(module = "theus_core")]
 pub struct SupervisorProxy {
     /// The wrapped Python object
     // [INC-019] Renamed to 'inner' to ensure NO binding to '_target'
@@ -61,7 +65,38 @@ impl SupervisorProxy {
         }
     }
 
-
+    /// [RFC-001 §10] Intercept ALL attribute access at C level.
+    /// __getattribute__ runs BEFORE getset_descriptors (including __dict__).
+    /// Without this, PyO3's auto-generated __dict__ descriptor bypasses __getattr__.
+    fn __getattribute__(slf: &Bound<'_, Self>, name: &str) -> PyResult<PyObject> {
+        if name == "__dict__" {
+            // NOTE: Return empty dict instead of PermissionError.
+            // Blocking with PermissionError breaks deepcopy() and any internal Python 
+            // mechanism that probes __dict__ (AdminTransaction, pickle, etc.).
+            // Returning empty dict is safe because:
+            // 1. No real data is exposed
+            // 2. Any mutation on the empty dict doesn't propagate (severity = LOW, proven)
+            // 3. PyObject_GenericGetAttr won't re-trigger __getattribute__ recursion
+            let dict = pyo3::types::PyDict::new(slf.py());
+            return Ok(dict.into_any().unbind());
+        }
+        // NOTE: Delegate to default tp_getattro for all other attributes.
+        // This preserves normal attribute resolution (methods, properties, etc.)
+        // and falls through to __getattr__ for dynamic lookups.
+        let py = slf.py();
+        let name_obj = pyo3::types::PyString::new(py, name);
+        unsafe {
+            let result = pyo3::ffi::PyObject_GenericGetAttr(
+                slf.as_ptr(),
+                name_obj.as_ptr(),
+            );
+            if result.is_null() {
+                Err(pyo3::PyErr::fetch(py))
+            } else {
+                Ok(PyObject::from_owned_ptr(py, result))
+            }
+        }
+    }
 
     /// Get attribute - Returns original object (or nested Proxy)
     /// v3.1: Supports Dict dot-access (d.key) fallback

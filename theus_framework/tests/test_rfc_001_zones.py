@@ -82,6 +82,9 @@ async def p_admin_access(ctx):
     ctx.domain.test_status = "OK_ADMIN"
     return None
 
+import pytest
+
+@pytest.mark.asyncio
 async def test_zones():
     engine = TheusEngine(context={
         "domain": {
@@ -115,6 +118,7 @@ async def p_mutate_override(ctx):
     ctx.domain.const_data["updated"] = True
     return None
 
+@pytest.mark.asyncio
 async def test_annotated_overrides():
     domain_obj = OverrideDomain()
     domain_obj.const_data = {"a": 1}

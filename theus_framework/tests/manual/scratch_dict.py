@@ -1,3 +1,4 @@
+"""Verify __dict__ proxying: should return empty dict (no data exposed)."""
 import asyncio
 from theus.engine import TheusEngine
 from theus.contracts import process
@@ -9,7 +10,6 @@ class MyDomain(BaseDomainContext):
 
 @process(inputs=["domain"], outputs=["domain.status"])
 async def p_mutate_dict(ctx):
-    # Debug: What type is ctx.domain?
     print(f"type(ctx) = {type(ctx)}")
     print(f"type(ctx.domain) = {type(ctx.domain)}")
     
@@ -22,6 +22,14 @@ async def p_mutate_dict(ctx):
         ctx.domain.status = 'PASS'
         return None
     
+    # If we get here, __dict__ returned something
+    # With empty-dict approach: d should be empty
+    if len(d) == 0:
+        print("__dict__ returned empty dict — data not exposed")
+        ctx.domain.status = 'PASS'
+        return None
+    
+    # If dict has data, try to mutate
     try:
         d['const_config'] = {'hacked': True}
         ctx.domain.status = 'FAIL_CONST_WRITTEN'
