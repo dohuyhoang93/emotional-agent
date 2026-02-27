@@ -1,4 +1,2 @@
-{"name":"theus:81bd541c:14252:test_lifecycle","pid":14252,"session":"81bd541c","size":400,"ts":0.0}
-{"name":"theus:1ff105d0:14252:key1","pid":14252,"session":"1ff105d0","size":40,"ts":0.0}
-{"name":"theus:1ff105d0:14252:key2","pid":14252,"session":"1ff105d0","size":40,"ts":0.0}
-{"name":"theus:026090d0:14252:my_secret","pid":14252,"session":"026090d0","size":40,"ts":0.0}
+{"name":"theus_theus_14172_3f1044ca_source_data","pid":14172,"session":"theus_14172_3f1044ca","size":40000000,"ts":0.0}
+{"name":"theus_theus_14172_3f1044ca_results_data","pid":14172,"session":"theus_14172_3f1044ca","size":40000000,"ts":0.0}

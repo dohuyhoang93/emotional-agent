@@ -303,7 +303,15 @@ impl ContextGuard {
 
     fn __getattr__(&self, py: Python, name: String) -> PyResult<PyObject> {
         if self.policy.strict_guards && name.starts_with('_') {
-             return Err(PyPermissionError::new_err(format!("Access to private attribute '{}' denied in Strict Mode", name)));
+            // NOTE: Dunder attributes (__xxx__) must raise AttributeError, not PermissionError.
+            // Libraries like NumPy probe __array_struct__, __array_interface__ etc.
+            // and need AttributeError to gracefully fallback. Only block single-underscore privates.
+            if name.starts_with("__") && name.ends_with("__") {
+                return Err(pyo3::exceptions::PyAttributeError::new_err(
+                    format!("'ContextGuard' object has no attribute '{}'", name)
+                ));
+            }
+            return Err(PyPermissionError::new_err(format!("Access to private attribute '{}' denied in Strict Mode", name)));
         }
 
         if name.starts_with("_") {
