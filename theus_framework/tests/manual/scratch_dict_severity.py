@@ -28,7 +28,7 @@ async def p_dict_attack(ctx):
     
     try:
         raw_dict['const_config'] = 'HACKED_VIA_DICT'
-        print(f"[ATTACK] Mutation succeeded in raw_dict!")
+        print("[ATTACK] Mutation succeeded in raw_dict!")
         print(f"[ATTACK] raw_dict['const_config'] = {raw_dict['const_config']}")
     except Exception as e:
         print(f"[BLOCKED] Mutation blocked: {e}")

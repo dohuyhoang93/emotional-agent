@@ -141,6 +141,7 @@ async def run_scenario_b(engine):
     print(">> [1] Executing Workflow 'agent_loop.yaml'...")
     wf_path = os.path.join(BASE_DIR, "workflows", "agent_loop.yaml")
 
+    try:
         await engine.execute_workflow(wf_path)
 
     except Exception as e:
