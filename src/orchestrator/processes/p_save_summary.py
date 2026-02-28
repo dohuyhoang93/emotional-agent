@@ -21,4 +21,4 @@ def save_summary(ctx: OrchestratorSystemContext):
         f.write(domain.final_report)
     
     log(ctx, "info", f"  [Orchestration] Final summary report saved to: {summary_file_path}")
-
+    return {}

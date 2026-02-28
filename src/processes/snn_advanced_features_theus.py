@@ -17,17 +17,24 @@ from typing import List
 # Phase 9: Hysteria Dampener
 # ============================================================================
 
-    outputs=['domain_ctx.snn_context.domain_ctx.emotion_saturation_level',
+@process(
+    inputs=['domain_ctx.snn_context.domain_ctx.emotion_saturation_level',
              'domain_ctx.snn_context.domain_ctx.dampening_active',
              'domain_ctx.snn_context.domain_ctx.heavy_tensors',
              'domain_ctx.snn_context.domain_ctx.metrics'],
     side_effects=[]
 )
-    return _hysteria_impl(ctx)
+def process_hysteria_dampener(ctx: SystemContext):
+    """
+    Apply Hysteria Dampener.
+    """
+    try:
+        return _hysteria_impl(ctx)
     except Exception:
         import traceback
         print(f"CRASH in process_hysteria_dampener: {traceback.format_exc()}")
         raise
+    return {}
 
 def _hysteria_impl(ctx: SystemContext):
     """Internal Hysteria implementation (Object-based)."""
@@ -115,6 +122,9 @@ def _hysteria_impl(ctx: SystemContext):
 # Phase 10: Lateral Inhibition
 # ============================================================================
 
+@process(
+    inputs=['domain_ctx.snn_context.domain_ctx.spike_queue',
+            'domain_ctx.snn_context.domain_ctx.metrics'],
     outputs=['domain_ctx.snn_context.domain_ctx.heavy_tensors', 'domain_ctx.snn_context.domain_ctx.metrics'],
     side_effects=[]
 )
@@ -137,6 +147,7 @@ def process_lateral_inhibition(ctx: SystemContext):
         import traceback
         ctx.log(f"CRASH in process_lateral_inhibition: {traceback.format_exc()}", level="error")
         raise
+    return {}
 
 def _lateral_inhibition_vectorized(ctx: SystemContext):
     """Internal Vectorized Lateral Inhibition."""
@@ -276,6 +287,11 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
 # Phase 11: Neural Darwinism
 # ============================================================================
 
+@process(
+    inputs=['domain_ctx.snn_context.domain_ctx.synapses',
+            'domain_ctx.snn_context.domain_ctx.neurons',
+            'domain_ctx.snn_context.domain_ctx.heavy_tensors',
+            'domain_ctx.td_error'],
     outputs=['domain_ctx.snn_context.domain_ctx.synapses', 
              'domain_ctx.snn_context.domain_ctx.neurons',
              'domain_ctx.snn_context.domain_ctx.heavy_tensors',

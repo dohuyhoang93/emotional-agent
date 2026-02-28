@@ -22,7 +22,7 @@ def log_episode_metrics(ctx: OrchestratorSystemContext):
     experiments = get_attr(domain, 'experiments', [])
     
     if active_idx >= len(experiments):
-        return
+        return {}
     
     exp_def = experiments[active_idx]
     exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
@@ -32,7 +32,7 @@ def log_episode_metrics(ctx: OrchestratorSystemContext):
     runner = get_runner(exp_name)
     
     if not runner:
-        return
+        return {}
 
     # Check for duplicates in DOMAIN HISTORY
     existing = [m['episode'] for m in metrics_history]
@@ -54,3 +54,4 @@ def log_episode_metrics(ctx: OrchestratorSystemContext):
         
         # Store in history (v2 mutation pattern)
         metrics_history.append(metrics_entry)
+    return {}

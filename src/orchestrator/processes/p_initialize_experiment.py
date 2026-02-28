@@ -162,4 +162,4 @@ def initialize_active_experiment(ctx: OrchestratorSystemContext):
     set_attr(domain, 'active_experiment_episode_idx', 0) # Legacy sync
     
     # Return nothing
-    return
+    return {}

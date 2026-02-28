@@ -43,4 +43,4 @@ def adjust_exploration(ctx: SystemContext):
     final_rate = min(1.0, final_rate)
     
     domain.current_exploration_rate = final_rate
-
+    return {}

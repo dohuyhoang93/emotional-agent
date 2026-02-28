@@ -29,8 +29,9 @@ def process_inject_dream_stimulus(ctx: SystemContext):
         _inject_impl(ctx)
     except Exception:
         import traceback
-        print(f"CRASH in process_inject_dream_stimulus: {traceback.format_exc()}")
+        ctx.log('error', f"CRASH in process_inject_dream_stimulus: {traceback.format_exc()}")
         raise
+    return {}
 
 def _inject_impl(ctx: SystemContext):
     snn_ctx = ctx.domain_ctx.snn_context
@@ -38,13 +39,12 @@ def _inject_impl(ctx: SystemContext):
     global_ctx = snn_ctx.global_ctx
     
     val = getattr(global_ctx, 'dream_noise_level', 0.1)
-    # print(f"DEBUG: noise_level val type: {type(val)}")
     
     try:
         noise_level = float(val)
     except Exception as e:
-        print(f"DEBUG: noise_level float cast failed: {e}")
-        print(f"DEBUG: noise_level dir: {dir(val)}")
+        ctx.log('debug', f"DEBUG: noise_level float cast failed: {e}")
+        ctx.log('debug', f"DEBUG: noise_level dir: {dir(val)}")
         noise_level = 0.1 # Fallback
         
     active_count = 0
@@ -117,9 +117,12 @@ def apply_dream_reward(ctx: SystemContext):
         state = "NIGHTMARE"
         
     # Inject into intrinsic reward (for STDP to pick up)
-    ctx.domain_ctx.intrinsic_reward = reward
     
     # Metrics
     domain.metrics['dream_coherence_state'] = state
     domain.metrics['dream_firing_rate'] = firing_rate
     domain.metrics['dream_reward'] = reward
+    
+    return {
+        'domain_ctx.intrinsic_reward': reward
+    }

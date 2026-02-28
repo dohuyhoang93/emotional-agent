@@ -50,4 +50,4 @@ def advance_episode_index(ctx: OrchestratorSystemContext):
     set_attr(domain, 'active_experiment_episode_idx', new_idx_legacy) # Keep legacy sync
     
     # Return nothing
-    return
+    return {}

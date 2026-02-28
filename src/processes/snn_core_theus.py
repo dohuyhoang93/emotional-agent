@@ -31,6 +31,7 @@ def process_integrate(ctx: SystemContext):
         import traceback
         ctx.log(f"CRASH in process_integrate: {traceback.format_exc()}", level="error")
         raise
+    return {}
 
 
 def _integrate_impl(ctx: SystemContext, sync: bool = True):
@@ -149,6 +150,7 @@ def process_fire(ctx: SystemContext):  # noqa: F811
         import traceback
         ctx.log(f"CRASH in process_fire: {traceback.format_exc()}", level="error")
         raise
+    return {}
 
 def _fire_impl(ctx: SystemContext, sync: bool = True):
     """Internal fire implementation."""

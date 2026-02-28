@@ -29,6 +29,7 @@ def process_dream_coherence_reward(ctx: SystemContext):
         import traceback
         print(f"CRASH in process_dream_coherence_reward: {traceback.format_exc()}")
         raise
+    return {}
 
 def _coherence_impl(ctx: SystemContext):
     """Internal coherence implementation."""

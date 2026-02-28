@@ -49,6 +49,7 @@ def process_extract_top_synapses(ctx: SNNSystemContext):
     top_ids = [s.synapse_id for s in sorted_synapses[:top_k]]
     domain.metrics['top_synapse_ids'] = top_ids
     domain.metrics['top_synapse_count'] = len(top_ids)
+    return {}
 
 
 @process(
@@ -82,6 +83,7 @@ def process_inject_viral_synapses(ctx: SNNSystemContext):
     # Update metrics
     domain.metrics['viral_injected'] = viral_count
     domain.metrics['total_viral_received'] = domain.viral_synapses_received
+    return {}
 
 
 @process(
@@ -164,3 +166,4 @@ def process_sandbox_evaluation(ctx: SNNSystemContext):
     domain.metrics['viral_takeover_count'] = \
         domain.metrics.get('viral_takeover_count', 0) + takeover_count
     domain.metrics['shadow_count'] = len(domain.shadow_synapses)
+    return {}

@@ -35,6 +35,7 @@ def process_stdp_3factor(ctx: SystemContext):
         import traceback
         print(f"CRASH in process_stdp_3factor: {traceback.format_exc()}")
         raise
+    return {}
 
 def _stdp_3factor_impl(ctx: SystemContext):
     """Internal 3-factor learning implementation."""

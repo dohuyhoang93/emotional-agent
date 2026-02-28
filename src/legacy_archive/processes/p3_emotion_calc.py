@@ -29,7 +29,7 @@ def calculate_emotions(ctx: SystemContext):
     # Check observation availability
     if not domain.current_observation:
         print("Warning: P3 found no observation. Skipping.")
-        return
+        return {}
 
     pos_tensor = torch.tensor(domain.current_observation['agent_pos'], dtype=torch.float32)
     
@@ -63,3 +63,4 @@ def calculate_emotions(ctx: SystemContext):
     else:
         # Fallback if no model (e.g. testing)
         pass # Keep old E_vector or set to zero?
+    return {}

@@ -31,6 +31,7 @@ def process_decode_dream(ctx: SystemContext):
         import traceback
         print(f"CRASH in process_decode_dream: {traceback.format_exc()}")
         raise
+    return {}
 
 def _decode_impl(ctx: SystemContext):
     domain = ctx.domain_ctx

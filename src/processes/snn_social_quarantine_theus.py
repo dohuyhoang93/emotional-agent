@@ -161,6 +161,7 @@ def process_quarantine_validation(
         domain.metrics.get('quarantine_rejected', 0) + rejected
     domain.metrics['blacklisted_sources'] = len(domain.blacklisted_sources)
     domain.metrics['in_quarantine'] = len(domain.shadow_synapses)
+    return {}
 
 
 @process(
@@ -199,3 +200,4 @@ def process_inject_viral_with_quarantine(ctx: SystemContext):
     # Update metrics
     domain.metrics['blacklist_blocked'] = \
         domain.metrics.get('blacklist_blocked', 0) + blocked
+    return {}

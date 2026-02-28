@@ -22,7 +22,7 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
     experiments = get_attr(domain, 'experiments', [])
     
     if active_idx >= len(experiments):
-        return
+        return {}
     
     exp_def = experiments[active_idx]
     exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
@@ -32,7 +32,7 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
     runner = get_runner(exp_name)
     
     if not runner or not runner.coordinator.agents:
-        return
+        return {}
 
     # 1. Maturity (Epsilon) from Agent 0
     agent0 = runner.coordinator.agents[0]
@@ -117,3 +117,4 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
     
     # Update domain.metrics (v2 mutation pattern)
     set_attr(domain, 'metrics', metrics)
+    return {}

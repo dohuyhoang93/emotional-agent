@@ -22,7 +22,7 @@ def save_periodic_checkpoint(ctx: OrchestratorSystemContext):
     experiments = get_attr(domain, 'experiments', [])
     
     if active_idx >= len(experiments):
-        return
+        return {}
     
     exp_def = experiments[active_idx]
     exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
@@ -31,7 +31,7 @@ def save_periodic_checkpoint(ctx: OrchestratorSystemContext):
     from src.orchestrator.runtime_registry import get_runner
     runner = get_runner(exp_name)
     
-    if not runner: return
+    if not runner: return {}
 
     current_episode = runner.current_episode_count
     

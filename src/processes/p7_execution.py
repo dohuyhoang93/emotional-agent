@@ -63,3 +63,4 @@ def execute_action(ctx: SystemContext, env_adapter: EnvironmentAdapter, agent_id
     # But for compatibility with legacy workflow list, we do it here.
     new_obs = env_adapter.get_observation(agent_id)
     domain.current_observation = new_obs
+    return {}

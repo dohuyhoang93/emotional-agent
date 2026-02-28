@@ -29,7 +29,7 @@ def select_action(ctx: SystemContext):
     if random.random() < domain.current_exploration_rate:
         action = random.choice(actions)
         domain.selected_action = action
-        return
+        return {}
 
     # 2. Exploitation (Max Q)
     # Re-calculate composite state key
@@ -65,3 +65,4 @@ def select_action(ctx: SystemContext):
             best_action = a
             
     domain.selected_action = best_action
+    return {}

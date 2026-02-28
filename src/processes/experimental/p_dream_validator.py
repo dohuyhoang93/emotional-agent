@@ -45,7 +45,7 @@ def process_validate_and_reward(ctx: SystemContext):
     y = snn_domain.metrics.get('dream_state_y')
     
     if x is None or y is None:
-        return
+        return {}
 
     # 2. Validation Logic (The World Model)
     # ---------------------------------------------------------
@@ -93,3 +93,4 @@ def process_validate_and_reward(ctx: SystemContext):
     # Log validity
     snn_domain.metrics['dream_validity'] = 1.0 if is_valid else 0.0
     snn_domain.metrics['dream_reward'] = synthetic_error
+    return {}

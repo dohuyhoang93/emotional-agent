@@ -1,0 +1,972 @@
+[THEUS-CORE] Loaded Version: 3.0.22 (Target Env Build)
+🔍 Running POP Linter Check (v3.1) on ....
+⚠️ Could not parse scripts\legacy_trash\enhanced_fix.py: unterminated string 
+literal (detected at line 33); perhaps you escaped the end quote? (<unknown>, 
+line 33)
+                             🚨 Linter Violations                              
+┌─────────────────────────────────┬─────────┬─────────────────────────────────┐
+│ Location                        │ Code    │ Message                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ audit_processes.py:8            │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.counter' is         │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ audit_processes.py:8            │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.counter'. Add to        │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ audit_processes.py:9            │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.counter'. Add to        │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ audit_processes.py:13           │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.counter' is         │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ audit_processes.py:13           │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.counter'. Add to        │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ audit_processes.py:14           │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.counter'. Add to        │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ audit_processes.py:24           │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.counter' is         │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ audit_processes.py:24           │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.counter'. Add to        │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ audit_processes.py:28           │ POP-E06 │ Process 'test_errors_metadata'  │
+│                                 │         │ must have an explicit return    │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\benchmarks\zc_… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain'. Add to                │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\benchmarks\zc_… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\theus\scaffold… │ POP-E08 │ Refactor Risk: Aliasing         │
+│                                 │         │ restricted field 'log_outbox'   │
+│                                 │         │ to non-restricted               │
+│                                 │         │ 'current_queue' relaxes policy. │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\theus\scaffold… │ POP-E08 │ Refactor Risk: Aliasing         │
+│                                 │         │ restricted field 'log_orders'   │
+│                                 │         │ to non-restricted               │
+│                                 │         │ 'current_orders' relaxes        │
+│                                 │         │ policy.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\theus\scaffold… │ POP-E08 │ Refactor Risk: Aliasing         │
+│                                 │         │ restricted field 'log_orders'   │
+│                                 │         │ to non-restricted 'orders'      │
+│                                 │         │ relaxes policy.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\theus\scaffold… │ POP-E08 │ Refactor Risk: Aliasing         │
+│                                 │         │ restricted field                │
+│                                 │         │ 'log_processed' to              │
+│                                 │         │ non-restricted 'processed'      │
+│                                 │         │ relaxes policy.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.status' is          │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.status' is          │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.status' is          │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.status' is          │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.status' is          │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.__dict__'. Add to       │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.status' is          │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.status' is          │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E08 │ Refactor Risk: Aliasing         │
+│                                 │         │ restricted field 'const_config' │
+│                                 │         │ to non-restricted 'via_proxy'   │
+│                                 │         │ relaxes policy.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\s… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.status' is          │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E07 │ Assignment Paradox: Direct      │
+│                                 │         │ assignment to restricted zone   │
+│                                 │         │ 'log_history' is forbidden.     │
+│                                 │         │ These paths are managed by Core │
+│                                 │         │ Physics or specialized methods. │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E07 │ Behavioral Paradox: Method      │
+│                                 │         │ 'pop()' is forbidden for Log    │
+│                                 │         │ Zone 'log_history'. Logs are    │
+│                                 │         │ Append-Only.                    │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E07 │ Behavioral Paradox: Method      │
+│                                 │         │ 'clear()' is forbidden for Log  │
+│                                 │         │ Zone 'log_history'. Logs are    │
+│                                 │         │ Append-Only.                    │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E06 │ Process 'task_log_violations'   │
+│                                 │         │ must have an explicit return    │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E07 │ Behavioral Paradox: Mutation    │
+│                                 │         │ 'update()' is forbidden for     │
+│                                 │         │ Read-Only Meta Zone             │
+│                                 │         │ 'meta_config'.                  │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E07 │ Assignment Paradox: Direct      │
+│                                 │         │ assignment to restricted zone   │
+│                                 │         │ 'meta_config' is forbidden.     │
+│                                 │         │ These paths are managed by Core │
+│                                 │         │ Physics or specialized methods. │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E06 │ Process 'task_meta_violations'  │
+│                                 │         │ must have an explicit return    │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E05 │ Direct mutation via 'append()'  │
+│                                 │         │ on Context 'data_user' is       │
+│                                 │         │ forbidden. Return a new         │
+│                                 │         │ list/dict instead (CoW).        │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.data_user' is       │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E07 │ Assignment Paradox: Direct      │
+│                                 │         │ assignment to restricted zone   │
+│                                 │         │ 'sig_system' is forbidden.      │
+│                                 │         │ These paths are managed by Core │
+│                                 │         │ Physics or specialized methods. │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E06 │ Process                         │
+│                                 │         │ 'task_signal_violations' must   │
+│                                 │         │ have an explicit return         │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.balance' is         │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.balance'. Add to        │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E06 │ Process 'bad_assignment' must   │
+│                                 │         │ have an explicit return         │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.counter' is         │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.counter'. Add to        │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E06 │ Process 'bad_augmentation' must │
+│                                 │         │ have an explicit return         │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E05 │ Direct mutation via 'append()'  │
+│                                 │         │ on Context 'items' is           │
+│                                 │         │ forbidden. Return a new         │
+│                                 │         │ list/dict instead (CoW).        │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.items.append'. Add to   │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E06 │ Process 'bad_method_call' must  │
+│                                 │         │ have an explicit return         │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E07 │ Paradox Detected: Field         │
+│                                 │         │ 'log_v1' has a Append-Only      │
+│                                 │         │ (Log) prefix but is marked      │
+│                                 │         │ 'Mutable'. Rename it or remove  │
+│                                 │         │ the Mutable tag to avoid        │
+│                                 │         │ semantic confusion.             │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E07 │ Paradox Detected: Field         │
+│                                 │         │ 'audit_events' has a            │
+│                                 │         │ Append-Only (Log) prefix but is │
+│                                 │         │ marked 'Mutable'. Rename it or  │
+│                                 │         │ remove the Mutable tag to avoid │
+│                                 │         │ semantic confusion.             │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E07 │ Paradox Detected: Field         │
+│                                 │         │ 'sig_control' has a Ephemeral   │
+│                                 │         │ (Signal) prefix but is marked   │
+│                                 │         │ 'Mutable'. Rename it or remove  │
+│                                 │         │ the Mutable tag to avoid        │
+│                                 │         │ semantic confusion.             │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\t… │ POP-E07 │ Paradox Detected: Field         │
+│                                 │         │ 'meta_config' has a Read-Only   │
+│                                 │         │ (Meta) prefix but is marked     │
+│                                 │         │ 'Mutable'. Rename it or remove  │
+│                                 │         │ the Mutable tag to avoid        │
+│                                 │         │ semantic confusion.             │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.counter' is         │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.nested'. Add to         │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.nested'. Add to         │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.counter' is         │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.nested'. Add to         │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.counter' is         │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.secret'. Add to         │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E05 │ Direct mutation via 'append()'  │
+│                                 │         │ on Context 'data_items' is      │
+│                                 │         │ forbidden. Return a new         │
+│                                 │         │ list/dict instead (CoW).        │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E05 │ Direct mutation via 'append()'  │
+│                                 │         │ on Context 'data_list' is       │
+│                                 │         │ forbidden. Return a new         │
+│                                 │         │ list/dict instead (CoW).        │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-E05 │ Direct mutation via 'append()'  │
+│                                 │         │ on Context 'data_list' is       │
+│                                 │         │ forbidden. Return a new         │
+│                                 │         │ list/dict instead (CoW).        │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\tests\manual\v… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.get'. Add to            │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\async… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\async… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\async… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\async… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\async… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\async… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\async… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\async… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\async… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\async… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\async… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\paral… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.get'. Add to            │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\paral… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.get'. Add to            │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\temp_… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.balance' is         │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\temp_… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.balance'. Add to        │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\temp_… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain.counter' is         │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\temp_… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.counter'. Add to        │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\temp_… │ POP-E05 │ Direct mutation via 'append()'  │
+│                                 │         │ on Context 'items' is           │
+│                                 │         │ forbidden. Return a new         │
+│                                 │         │ list/dict instead (CoW).        │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\temp_… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.items.append'. Add to   │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\fasta… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.orders'. Add to         │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain_ctx.status' is      │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain_ctx.status' is      │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain_ctx.processed_coun… │
+│                                 │         │ is forbidden. Use Copy-on-Write │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E05 │ Direct mutation via 'append()'  │
+│                                 │         │ on Context 'items' is           │
+│                                 │         │ forbidden. Return a new         │
+│                                 │         │ list/dict instead (CoW).        │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain_ctx.status' is      │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain'. Add to                │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.get'. Add to            │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain'. Add to                │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.get'. Add to            │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.get'. Add to            │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E06 │ Process 'trigger_rollback_test' │
+│                                 │         │ must have an explicit return    │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.get'. Add to            │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.get'. Add to            │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.get'. Add to            │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E06 │ Process 'p_crash_test' must     │
+│                                 │         │ have an explicit return         │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain_ctx.processed_coun… │
+│                                 │         │ is forbidden. Use Copy-on-Write │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E06 │ Process 'p_transaction_test'    │
+│                                 │         │ must have an explicit return    │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ theus_framework\examples\ecomm… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain_ctx.status' is      │
+│                                 │         │ forbidden. Use Copy-on-Write    │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\p8_consequence.p… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\p8_consequence.p… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\p_dream_decoder.… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_advanced_fea… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_dream_proces… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_dream_proces… │ POP-E05 │ Direct mutation of Context      │
+│                                 │         │ 'ctx.domain_ctx.intrinsic_rewa… │
+│                                 │         │ is forbidden. Use Copy-on-Write │
+│                                 │         │ pattern (return a Delta).       │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_dream_safety… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_learning_3fa… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_recorder_pro… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_resync_theus… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_rl_bridge.py… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_rl_bridge.py… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_rl_bridge.py… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_rl_bridge.py… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\snn_rl_bridge.py… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\experimental\p_d… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\experimental\p_d… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\experimental\snn… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\processes\experimental\snn… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_a… │ POP-E02 │ Direct file I/O 'open()' is     │
+│                                 │         │ forbidden. Use Context or       │
+│                                 │         │ Outbox.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_a… │ POP-E02 │ Direct file I/O 'open()' is     │
+│                                 │         │ forbidden. Use Context or       │
+│                                 │         │ Outbox.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_a… │ POP-E02 │ Direct file I/O 'open()' is     │
+│                                 │         │ forbidden. Use Context or       │
+│                                 │         │ Outbox.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_c… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_c… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_d… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_d… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_e… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_e… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_e… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_e… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_e… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_e… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_l… │ POP-E02 │ Direct file I/O 'open()' is     │
+│                                 │         │ forbidden. Use Context or       │
+│                                 │         │ Outbox.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_l… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_l… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_p… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_p… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_p… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_r… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_s… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_s… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_s… │ POP-E02 │ Direct file I/O 'open()' is     │
+│                                 │         │ forbidden. Use Context or       │
+│                                 │         │ Outbox.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_s… │ POP-E06 │ Process 'save_summary' must     │
+│                                 │         │ have an explicit return         │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_s… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\orchestrator\processes\p_s… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\legacy_archive\adapters\sn… │ POP-E06 │ Process 'encode_emotion_vector' │
+│                                 │         │ must have an explicit return    │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\legacy_archive\adapters\sn… │ POP-E06 │ Process                         │
+│                                 │         │ 'encode_state_to_spikes' must   │
+│                                 │         │ have an explicit return         │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\legacy_archive\adapters\sn… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\legacy_archive\adapters\sn… │ POP-E06 │ Process                         │
+│                                 │         │ 'compute_intrinsic_reward' must │
+│                                 │         │ have an explicit return         │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\legacy_archive\processes\p… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\legacy_archive\processes\p… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\legacy_archive\processes\p… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\legacy_archive\processes\p… │ POP-E06 │ Process 'adjust_exploration'    │
+│                                 │         │ must have an explicit return    │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\legacy_archive\processes\p… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\legacy_archive\processes\p… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ src\legacy_archive\processes\p… │ POP-E06 │ Process must return a value     │
+│                                 │         │ (Delta/Dict). Found empty       │
+│                                 │         │ return.                         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_gua… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_gua… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_gua… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_gua… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_gua… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_gua… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_gua… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_gua… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_gua… │ POP-E06 │ Process 'debug_nested_process'  │
+│                                 │         │ must have an explicit return    │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_neu… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_neu… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_neu… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_neu… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_neu… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_neu… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_neu… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_neu… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_neu… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_neu… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ scripts\legacy_trash\debug_neu… │ POP-E06 │ Process 'debug_neurons' must    │
+│                                 │         │ have an explicit return         │
+│                                 │         │ statement (Delta).              │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\asyn… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\asyn… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\asyn… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\asyn… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\asyn… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\asyn… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\asyn… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\asyn… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\asyn… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\asyn… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\ecom… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.orders'. Add to         │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\ecom… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\ecom… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.balance'. Add to        │
+│                                 │         │ @process(inputs=[...]).         │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\ecom… │ POP-C01 │ Undeclared Context Access       │
+│                                 │         │ 'domain.processed_orders'. Add  │
+│                                 │         │ to @process(inputs=[...]).      │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\ecom… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+├─────────────────────────────────┼─────────┼─────────────────────────────────┤
+│ demo_client\src\processes\ecom… │ POP-E01 │ Avoid 'print()'. Use 'logging'  │
+│                                 │         │ or 'ctx.log()'.                 │
+└─────────────────────────────────┴─────────┴─────────────────────────────────┘
+
+❌ Found 252 violations.

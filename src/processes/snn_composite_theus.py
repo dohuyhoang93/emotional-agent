@@ -118,3 +118,4 @@ def process_snn_cycle(ctx: SystemContext):
 
     # 5. TICK (Advance Time)
     _tick_impl(ctx)
+    return {}

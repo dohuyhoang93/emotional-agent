@@ -49,6 +49,7 @@ def process_partition(ctx):
         }
     except Exception as e:
          return {"error": str(e), "pid": os.getpid()}
+    return {}
 
 @process(parallel=True)
 def saboteur_task(ctx):
@@ -71,3 +72,4 @@ def saboteur_task(ctx):
         return {"status": "NOT_FOUND"}
     except Exception as e:
         return {"status": f"ERROR: {e}"}
+    return {}

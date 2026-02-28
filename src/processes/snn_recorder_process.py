@@ -36,7 +36,7 @@ def process_record_snn_step(ctx: SystemContext):
     # Check config
     config = getattr(domain, 'recorder_config', None)
     if config is None:
-        return # Recorder not configured/enabled
+        return {} # Recorder not configured/enabled
         
     neurons = snn_ctx.domain_ctx.neurons
     
@@ -66,6 +66,7 @@ def process_record_snn_step(ctx: SystemContext):
     buffer_size = config.get('buffer_size', 1000)
     if len(buffer) >= buffer_size:
         _flush_buffer_safely(buffer, config)
+    return {}
 
 
 def _flush_buffer_safely(buffer: list, config: dict):

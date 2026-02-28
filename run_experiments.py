@@ -128,11 +128,11 @@ def main(argv=None):
             log_error(global_ctx, f"Failed to load Audit Recipe: {e}")
 
     # 2. Initialize Engine
-    # V3 Migration: strict_mode is native to Rust Core (Process Isolation).
+    # V3 Migration: strict_guards is native to Rust Core (Process Isolation).
     # Memory Leak issues from V2 are resolved by Arc<T> Zero-Copy.
     engine = TheusEngine(
         context=system_ctx, 
-        strict_mode=True, # Explicitly Enable Transactional Checks
+        strict_guards=True, # Explicitly Enable Transactional Checks
         audit_recipe=audit_recipe
     )
     
@@ -149,7 +149,8 @@ def main(argv=None):
     # 4. Execute Workflow (Declarative Flux)
     try:
         log(system_ctx, "info", "▶️ Loading Orchestrator Workflow: workflows/orchestrator_flux.yaml")
-        engine.execute_workflow("workflows/orchestrator_flux.yaml")
+        import asyncio
+        asyncio.run(engine.execute_workflow("workflows/orchestrator_flux.yaml"))
         
         # Check Final Report
         if "LỖI" in system_ctx.domain_ctx.final_report:

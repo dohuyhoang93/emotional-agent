@@ -27,7 +27,7 @@ def process_dream_sanity_check(ctx: SystemContext):
     snn_ctx = domain.snn_context
     
     if snn_ctx is None:
-        return
+        return {}
 
     snn_domain = snn_ctx.domain_ctx
     
@@ -43,3 +43,4 @@ def process_dream_sanity_check(ctx: SystemContext):
         snn_domain.spike_queue.clear()
         
     pass
+    return {}

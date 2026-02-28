@@ -6,7 +6,7 @@ from src.logger import log
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.experiments', 'domain.output_dir', 'log_level'],
-    outputs=[],  # v2 compatible - no output mapping
+    outputs=['domain.final_report'],  # Allowed to mutate final_report
     side_effects=[],
     errors=[]
 )
@@ -106,3 +106,4 @@ def analyze_data(ctx: OrchestratorSystemContext):
     final_report = "\n".join(summary_report_lines)
     set_attr(domain, 'final_report', final_report)
     log(ctx, "info", "  [Orchestration] Analysis complete.")
+    return {}

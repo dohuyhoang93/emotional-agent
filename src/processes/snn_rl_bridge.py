@@ -223,13 +223,13 @@ def modulate_snn_attention(ctx: SystemContext):
     
     snn_ctx = ctx.domain_ctx.snn_context
     if snn_ctx is None:
-        return
+        return {}
         
     action = ctx.domain_ctx.last_action
     
     # Needs action to modulate
     if action is None or action < 0:
-        return
+        return {}
         
     snn_domain = ctx.domain_ctx.snn_context.domain_ctx
     safety = snn_domain.safety_state
@@ -240,12 +240,12 @@ def modulate_snn_attention(ctx: SystemContext):
     if safety['emergency_override_steps'] > 0:
         # Block Top-Down Modulation
         # And potentially force restoration? (Handled by restore_snn_attention implicitly)
-        return
+        return {}
         
     # 2. Curiosity Veto
     if safety['veto_active']:
         # Block Top-Down Modulation
-        return
+        return {}
         
     # 1. Ensure Tensors (Critical for Sync)
     ensure_heavy_tensors_initialized(snn_ctx)
@@ -343,7 +343,7 @@ def restore_snn_attention(ctx: SystemContext):
     
     snn_ctx = ctx.domain_ctx.snn_context
     if snn_ctx is None:
-        return
+        return {}
         
     # 1. Ensure Tensors
     ensure_heavy_tensors_initialized(snn_ctx)

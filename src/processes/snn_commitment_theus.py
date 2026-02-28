@@ -196,6 +196,7 @@ def process_commitment(
     domain.metrics['fluid_synapses'] = int(fluid_count)
     domain.metrics['solid_synapses'] = int(solid_count)
     domain.metrics['revoked_synapses'] = int(revoked_count)
+    return {}
 
 
 @process(
@@ -233,3 +234,4 @@ def process_pruning(ctx: SNNSystemContext):
     domain.metrics['pruned_count'] = \
         domain.metrics.get('pruned_count', 0) + pruned
     domain.metrics['active_synapses'] = len(domain.synapses)
+    return {}

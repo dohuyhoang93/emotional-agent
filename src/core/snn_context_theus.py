@@ -322,8 +322,8 @@ class SNNSystemContext(BaseSystemContext):
     
     Kế thừa từ BaseSystemContext để tương thích với Theus Engine.
     """
-    global_ctx: SNNGlobalContext
-    domain_ctx: SNNDomainContext
+    global_ctx: Optional[SNNGlobalContext] = None
+    domain_ctx: Optional[SNNDomainContext] = None
     
     # System Runtime State
     cycle_count: int = 0

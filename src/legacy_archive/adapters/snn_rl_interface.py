@@ -93,6 +93,7 @@ class SNNRLInterface:
         
         # Update RL context
         rl_ctx.domain_ctx.snn_emotion_vector = emotion_tensor
+        return {}
     
     # ===================================================================
     # RL → SNN: State Encoding (Observation → Spikes)
@@ -147,6 +148,7 @@ class SNNRLInterface:
             neuron.potential_vector = pattern * 2.0
             # Set scalar potential (vượt threshold để bắn)
             neuron.potential = 2.0
+        return {}
     
     # ===================================================================
     # RL → SNN: Top-down Modulation (Attention Control)
@@ -190,7 +192,7 @@ class SNNRLInterface:
         }
         
         if region not in region_map:
-            return
+            return {}
         
         start, end = region_map[region]
         
@@ -275,3 +277,4 @@ class SNNRLInterface:
         
         # Update RL context
         rl_ctx.domain_ctx.intrinsic_reward = novelty
+        return {}

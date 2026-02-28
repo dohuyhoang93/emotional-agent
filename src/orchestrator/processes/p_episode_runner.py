@@ -65,7 +65,7 @@ def run_single_episode(ctx: OrchestratorSystemContext):
     # Get Active Experiment
     if active_exp_idx >= len(experiments):
         if bus: bus.emit("ALL_EXPERIMENTS_DONE")
-        return
+        return {}
     
     exp_def = experiments[active_exp_idx]
     
@@ -84,7 +84,7 @@ def run_single_episode(ctx: OrchestratorSystemContext):
     if not runner:
         log_error(ctx, f"Experiment {exp_name} not initialized (Runner not found in Registry)!")
         if bus: bus.emit("ERROR")
-        return
+        return {}
 
     # Support resume: Skip episodes before start_episode
     start_episode = getattr(runner, 'start_episode', 0)
@@ -93,7 +93,7 @@ def run_single_episode(ctx: OrchestratorSystemContext):
         if not is_dict:
             domain.active_experiment_episode_idx += 1
         if bus: bus.emit("EPISODE_DONE")
-        return
+        return {}
     
     if current_episode >= total_episodes:
         # Experiment Finished
@@ -105,7 +105,7 @@ def run_single_episode(ctx: OrchestratorSystemContext):
         if not is_dict:
             domain.active_experiment_idx += 1
             domain.active_experiment_episode_idx = 0
-        return
+        return {}
 
     # --- EXECUTE EPISODE ---
     try:
@@ -136,3 +136,4 @@ def run_single_episode(ctx: OrchestratorSystemContext):
         import traceback
         traceback.print_exc()
         if bus: bus.emit("ERROR")
+    return {}

@@ -83,4 +83,5 @@ def monitor_safety_triggers(ctx: SystemContext):
         safety['veto_active'] = True
     else:
         safety['veto_active'] = False
+    return {}
 

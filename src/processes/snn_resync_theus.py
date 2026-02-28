@@ -43,7 +43,7 @@ def process_periodic_resync(ctx: SNNSystemContext):
     # Chỉ chạy mỗi 1000 steps
     # Cast to int for safety
     if int(domain.current_time) % 1000 != 0:
-        return
+        return {}
     
     resync_count = 0
     
@@ -77,3 +77,4 @@ def process_periodic_resync(ctx: SNNSystemContext):
     domain.metrics['resync_count'] = \
         domain.metrics.get('resync_count', 0) + 1
     domain.metrics['resync_neurons'] = resync_count
+    return {}

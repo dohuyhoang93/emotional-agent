@@ -26,7 +26,7 @@ def update_belief(ctx: SystemContext):
     global_cfg = ctx.global_ctx
     
     if not domain.short_term_memory:
-        return
+        return {}
 
     last_experience = domain.short_term_memory[-1]
     # last_experience structure assumed: {'state':..., 'action':..., 'reward':..., 'next_state':..., 'done':...}

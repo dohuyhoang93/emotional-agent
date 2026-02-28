@@ -22,7 +22,7 @@ def perform_revolution_protocol(ctx: OrchestratorSystemContext):
     
     if active_idx >= len(experiments):
         if bus: bus.emit("REVOLUTION_SKIP")
-        return
+        return {}
     
     exp_def = experiments[active_idx]
     exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
@@ -34,7 +34,7 @@ def perform_revolution_protocol(ctx: OrchestratorSystemContext):
     # Check if multi-agent coordinator exists
     if not runner or not hasattr(runner, 'coordinator') or not runner.coordinator:
         if bus: bus.emit("REVOLUTION_SKIP")
-        return
+        return {}
     
     log(ctx, "info", "✊ Checking Revolution Protocol...")
     

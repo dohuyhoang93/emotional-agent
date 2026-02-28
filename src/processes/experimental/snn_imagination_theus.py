@@ -42,14 +42,14 @@ def process_imagination_loop(ctx: SNNSystemContext):
     # Check interval
     time_since_last = domain.current_time - domain.last_imagination_time
     if time_since_last < ctx.global_ctx.imagination_interval:
-        return  # Not time yet
+        return {}  # Not time yet
     
     # Update last imagination time
     domain.last_imagination_time = domain.current_time
     
     # Chọn ngẫu nhiên một neuron để replay
     if not domain.neurons:
-        return
+        return {}
     
     seed_neuron_id = np.random.randint(0, len(domain.neurons))
     seed_neuron = domain.neurons[seed_neuron_id]
@@ -67,6 +67,7 @@ def process_imagination_loop(ctx: SNNSystemContext):
     # Update metrics
     domain.metrics['imagination_count'] = \
         domain.metrics.get('imagination_count', 0) + 1
+    return {}
 
 
 @process(
@@ -129,4 +130,5 @@ def process_dream_learning(ctx: SNNSystemContext):
         
         domain.metrics['nightmare_triggered'] = 0
         domain.metrics['dream_type'] = 'boredom'
+    return {}
 

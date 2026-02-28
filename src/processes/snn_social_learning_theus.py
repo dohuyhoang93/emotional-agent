@@ -41,6 +41,7 @@ def process_social_learning_protocol(
         rankings,
         global_snn_ctx.global_ctx
     )
+    return {}
 
 def process_social_learning_with_rankings(
     population_contexts: List[SNNSystemContext],

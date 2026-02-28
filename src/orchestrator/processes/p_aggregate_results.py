@@ -7,7 +7,7 @@ from src.logger import log, log_error
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.experiments', 'log_level', 'domain.output_dir'],
-    outputs=[],  # v2 compatible - no output mapping
+    outputs=['domain'],  # Fixed ContractViolationError
     side_effects=['filesystem.read', 'filesystem.write'],
     errors=['json.JSONDecodeError']
 )
@@ -138,3 +138,4 @@ def aggregate_results(ctx: OrchestratorSystemContext):
                 exp_def.aggregated_data = []
 
     log(ctx, "info", "  [Orchestration] Aggregation complete.")
+    return {}

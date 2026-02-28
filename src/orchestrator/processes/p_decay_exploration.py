@@ -40,7 +40,7 @@ def decay_exploration_all_agents(ctx: OrchestratorSystemContext):
     experiments = get_attr(domain, 'experiments', [])
     
     if active_idx >= len(experiments):
-        return
+        return {}
     
     exp_def = experiments[active_idx]
     exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
@@ -50,7 +50,7 @@ def decay_exploration_all_agents(ctx: OrchestratorSystemContext):
     runner = get_runner(exp_name)
     
     if not runner or not hasattr(runner, 'coordinator'):
-        return
+        return {}
     
     coordinator = runner.coordinator
     
@@ -68,3 +68,4 @@ def decay_exploration_all_agents(ctx: OrchestratorSystemContext):
     if coordinator.agents:
         sample_eps = coordinator.agents[0].rl_ctx.domain_ctx.current_exploration_rate
         log(ctx, "debug", f"Epsilon decayed to {sample_eps:.4f}")
+    return {}

@@ -41,11 +41,11 @@ def social_learning(ctx: SystemContext, neighbors: List[SystemContext], agent_id
     
     # 0. Check Stagnation
     if not _is_stagnated(domain):
-        return
+        return {}
 
     # Check Control Group
     if global_cfg.assimilation_rate <= 0:
-        return
+        return {}
 
     # 1. Find Best Agent
     best_agent_ctx = None

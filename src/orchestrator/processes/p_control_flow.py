@@ -34,7 +34,7 @@ def advance_experiment_index(ctx: OrchestratorSystemContext):
     log(ctx, "info", f"⏩ Advanced to Experiment Index: {new_sig_idx}")
     
     # Return nothing
-    return
+    return {}
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'domain.metrics', 'domain.active_experiment_episode_idx'],
@@ -46,7 +46,7 @@ def save_metrics_snapshot(ctx: OrchestratorSystemContext):
     """
     DEPRECATED: Saves current metrics to JSON checkpoint.
     """
-    return
+    return {}
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'log_level'],
@@ -64,7 +64,7 @@ def execute_social_learning_if_needed(ctx: OrchestratorSystemContext):
     experiments = get_attr(domain, 'experiments', [])
     
     if active_idx >= len(experiments): 
-        return
+        return {}
 
     exp_def = experiments[active_idx]
     exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
@@ -73,7 +73,7 @@ def execute_social_learning_if_needed(ctx: OrchestratorSystemContext):
     from src.orchestrator.runtime_registry import get_runner
     runner = get_runner(exp_name)
     
-    if not runner: return
+    if not runner: return {}
     
     log(ctx, "info", f"Executing Social Learning at Episode {runner.current_episode_count}")
         
@@ -88,3 +88,4 @@ def execute_social_learning_if_needed(ctx: OrchestratorSystemContext):
             pop_contexts,
             rankings
         )
+    return {}

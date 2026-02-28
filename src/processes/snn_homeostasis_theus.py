@@ -286,3 +286,4 @@ def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
     except Exception as e:
         ctx.log(f"CRASH in process_meta_homeostasis_fixed: {e}", level="error")
         return {'meta_homeostasis_error': 1}
+    return {}

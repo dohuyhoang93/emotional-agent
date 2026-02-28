@@ -160,8 +160,8 @@ class SystemContext(BaseSystemContext):
     # BaseSystemContext has: global_ctx: BaseGlobalContext, domain_ctx: BaseDomainContext
     
     # Casting for intellisense
-    global_ctx: GlobalContext
-    domain_ctx: DomainContext
+    global_ctx: Optional[GlobalContext] = None
+    domain_ctx: Optional[DomainContext] = None
     
     # System Runtime State (not domain logic)
     cycle_count: int = 0

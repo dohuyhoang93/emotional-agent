@@ -10,31 +10,50 @@ from typing import Any, Tuple
 
 def get_domain_ctx(ctx) -> Tuple[Any, bool]:
     """
-    Extract domain context from either:
-    - Python OrchestratorSystemContext (ctx.domain_ctx -> object)
-    - Rust State (ctx.state.data["domain"] -> dict)
-    
-    Returns:
-        Tuple of (domain_context, is_dict)
+    Extract domain context from ContextGuard
+    Returns: Tuple of (domain_context, is_dict)
     """
-    # Try Python dataclass style first (preferred)
-    # Check if it has 'experiments' attribute to confirm it's the Object, not a Dict
-    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'experiments'):
-        return ctx.domain_ctx, False
-    
-    # Try Rust State style
-    if hasattr(ctx, 'state') and hasattr(ctx.state, 'data'):
-        data = ctx.state.data
-        domain = data.get('domain') if hasattr(data, 'get') else getattr(data, 'domain', None)
-        if domain is not None:
-            return domain, isinstance(domain, dict)
-    
-    # Fallback: ctx.domain_ctx exists but might be a dict (if modified by Engine)
-    if hasattr(ctx, 'domain_ctx'):
-        d = ctx.domain_ctx
-        return d, isinstance(d, dict)
-    
-    raise AttributeError(f"Cannot extract domain context from {type(ctx)}")
+    if hasattr(ctx, '__getitem__'):
+        try:
+            domain = ctx['domain']
+            if domain is not None:
+                return domain, True
+        except (KeyError, PermissionError):
+            pass
+            
+        try:
+            domain_ctx = ctx['domain_ctx']
+            if domain_ctx is not None:
+                return domain_ctx, True
+        except (KeyError, PermissionError):
+            pass
+
+    if hasattr(ctx, '_inner'):
+        # We are inside a ContextGuard
+        try:
+            target = getattr(ctx._inner, '_target', None)
+            if target:
+                if hasattr(target, 'domain_ctx') and getattr(target, 'domain_ctx') is not None:
+                    return getattr(target, 'domain_ctx'), isinstance(getattr(target, 'domain_ctx'), dict)
+                if hasattr(target, 'domain') and getattr(target, 'domain') is not None:
+                    return getattr(target, 'domain'), isinstance(getattr(target, 'domain'), dict)
+        except Exception:
+            pass
+
+    # Standard python dataclass
+    try:
+        if hasattr(ctx, 'domain_ctx') and ctx.domain_ctx is not None:
+            return ctx.domain_ctx, isinstance(ctx.domain_ctx, dict)
+    except PermissionError:
+        pass
+        
+    try:
+        if hasattr(ctx, 'domain') and ctx.domain is not None:
+            return ctx.domain, isinstance(ctx.domain, dict)
+    except PermissionError:
+        pass
+
+    raise ValueError(f"CRITICAL: Cannot extract domain context from {type(ctx)}.")
 
 
 def get_attr(obj: Any, key: str, default: Any = None) -> Any:
@@ -72,27 +91,47 @@ def set_attr(obj: Any, key: str, value: Any) -> None:
 
 def get_global_ctx(ctx) -> Tuple[Any, bool]:
     """
-    Extract global context from either:
-    - Python OrchestratorSystemContext (ctx.global_ctx -> object)
-    - Rust State (ctx.state.data["global"] -> dict)
-    
-    Returns:
-        Tuple of (global_context, is_dict)
+    Extract global context from ContextGuard
+    Returns: Tuple of (global_context, is_dict)
     """
-    # Try Python dataclass style first
-    if hasattr(ctx, 'global_ctx') and hasattr(ctx.global_ctx, 'config_path'):
-        return ctx.global_ctx, False
-    
-    # Try Rust State style
-    if hasattr(ctx, 'state') and hasattr(ctx.state, 'data'):
-        data = ctx.state.data
-        global_ctx = data.get('global') if hasattr(data, 'get') else getattr(data, 'global', None)
-        if global_ctx is not None:
-            return global_ctx, isinstance(global_ctx, dict)
-    
-    # Fallback
-    if hasattr(ctx, 'global_ctx'):
-        d = ctx.global_ctx
-        return d, isinstance(d, dict)
-    
-    raise AttributeError(f"Cannot extract global context from {type(ctx)}")
+    if hasattr(ctx, '__getitem__'):
+        try:
+            global_ctx = ctx['global']
+            if global_ctx is not None:
+                return global_ctx, True
+        except (KeyError, PermissionError):
+            pass
+            
+        try:
+            global_ctx_prop = ctx['global_ctx']
+            if global_ctx_prop is not None:
+                return global_ctx_prop, True
+        except (KeyError, PermissionError):
+            pass
+
+    if hasattr(ctx, '_inner'):
+        # We are inside a ContextGuard
+        try:
+            target = getattr(ctx._inner, '_target', None)
+            if target:
+                if hasattr(target, 'global_ctx') and getattr(target, 'global_ctx') is not None:
+                    return getattr(target, 'global_ctx'), isinstance(getattr(target, 'global_ctx'), dict)
+                if hasattr(target, 'global') and getattr(target, 'global') is not None:
+                    return getattr(target, 'global'), isinstance(getattr(target, 'global'), dict)
+        except Exception:
+            pass
+
+    # Standard python dataclass
+    try:
+        if hasattr(ctx, 'global_ctx') and getattr(ctx, 'global_ctx') is not None:
+            return getattr(ctx, 'global_ctx'), isinstance(getattr(ctx, 'global_ctx'), dict)
+    except PermissionError:
+        pass
+        
+    try:
+        if hasattr(ctx, 'global') and getattr(ctx, 'global') is not None:
+            return getattr(ctx, 'global'), isinstance(getattr(ctx, 'global'), dict)
+    except PermissionError:
+        pass
+
+    raise ValueError(f"CRITICAL: Cannot extract global context from {type(ctx)}.")

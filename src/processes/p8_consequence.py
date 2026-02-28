@@ -96,14 +96,14 @@ def record_consequences(ctx: SystemContext):
 
     if domain.previous_observation is None or domain.current_observation is None:
         # print("Warning: Missing observation trace. Skipping P8.")
-        return
+        return {}
     
     # Skip if observation is numpy array (sensor system) - this process expects dict format
     import numpy as np
     if isinstance(domain.current_observation, np.ndarray) or isinstance(domain.previous_observation, np.ndarray):
         # Sensor system active - skip legacy consequence recording
         # Q-learning is handled by update_q_learning process in workflow
-        return
+        return {}
 
     # 1. State & Next State
     prev_pos = domain.previous_observation['agent_pos']

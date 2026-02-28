@@ -77,8 +77,8 @@ class OrchestratorSystemContext(BaseSystemContext):
     """
     Wrapper System Context cho lớp Orchestration.
     """
-    global_ctx: OrchestratorGlobalContext
-    domain_ctx: OrchestratorDomainContext
+    global_ctx: Optional[OrchestratorGlobalContext] = None
+    domain_ctx: Optional[OrchestratorDomainContext] = None
     
     @property
     def log_level(self) -> str:
@@ -87,3 +87,12 @@ class OrchestratorSystemContext(BaseSystemContext):
     @log_level.setter
     def log_level(self, value: str):
         self.domain_ctx.effective_log_level = value
+        
+    def to_dict(self) -> dict:
+        """Serialize for Rust Core Compatibility, coercing ctx keys down to expected base names"""
+        base = super().to_dict()
+        if self.domain_ctx:
+            base['domain'] = self.domain_ctx
+        if self.global_ctx:
+            base['global'] = self.global_ctx
+        return base

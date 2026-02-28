@@ -17,13 +17,22 @@ def recursive_update(d, u):
 
 @process(
     inputs=[
-        'global_ctx', 
-        'global_ctx.config_path',
-        'global_ctx.cli_log_level',
-        'global_ctx.settings_override',
-        'domain_ctx'
+        'global', 
+        'global.config_path',
+        'global.cli_log_level',
+        'global.settings_override',
+        'domain',
+        'log_level'
     ],
-    outputs=[],
+    outputs=[
+        'domain.raw_config',
+        'domain.output_dir',
+        'domain.effective_log_level',
+        'domain.experiments',
+        'domain.sig_total_experiments',
+        'domain.sig_experiment_active_idx',
+        'domain.final_report'
+    ],
     side_effects=['filesystem.read', 'filesystem.mkdir'],
     errors=['config_not_found']
 )
@@ -32,17 +41,16 @@ def load_config(ctx: OrchestratorSystemContext):
     Process: Load experiment configuration from JSON file.
     Initializes Signals for Flux Control Flow.
     """
-    config_path = ctx.global_ctx.config_path
+    config_path = ctx['global'].config_path
     log(ctx, "info", f"  [Orchestration] Loading experiment configuration from {config_path}...")
-    
-    domain, is_dict = get_domain_ctx(ctx)
     
     # Error case
     if not os.path.exists(config_path):
         error_msg = f"Config file not found: {config_path}"
         log_error(ctx, error_msg)
-        set_attr(domain, 'final_report', f"ERROR: {error_msg}")
-        return 0, 0
+        return {
+             'domain.final_report': f"ERROR: {error_msg}"
+        }
     
     try:
         with open(config_path, "r", encoding="utf-8") as f:
@@ -50,23 +58,22 @@ def load_config(ctx: OrchestratorSystemContext):
     except Exception as e:
         error_msg = f"JSON parse error: {e}"
         log_error(ctx, error_msg)
-        set_attr(domain, 'final_report', f"ERROR: {error_msg}")
-        return 0, 0
-    
-    # Update domain context (Python Object)
-    set_attr(domain, 'raw_config', raw_config)
-    set_attr(domain, 'output_dir', raw_config.get("output_dir", "results"))
-    
-    cli_level = ctx.global_ctx.cli_log_level
+        return {
+             'domain.final_report': f"ERROR: {error_msg}"
+        }
+        
+    output_dir = raw_config.get("output_dir", "results")
+    cli_level = ctx['global'].cli_log_level
     config_level = raw_config.get("log_level", "info")
-    set_attr(domain, 'effective_log_level', cli_level if cli_level else config_level)
+    effective_log_level = cli_level if cli_level else config_level
     
-    os.makedirs(raw_config.get("output_dir", "results"), exist_ok=True)
+    os.makedirs(output_dir, exist_ok=True)
     
     settings_override = {}
-    if ctx.global_ctx.settings_override:
+    settings_override_str = ctx['global'].settings_override
+    if settings_override_str:
         try:
-            settings_override = json.loads(ctx.global_ctx.settings_override)
+            settings_override = json.loads(settings_override_str)
         except:
             pass
             
@@ -90,14 +97,17 @@ def load_config(ctx: OrchestratorSystemContext):
         )
         experiments.append(exp_def)
     
-    set_attr(domain, 'experiments', experiments)
-    
     # Initialize Signals
     total_experiments = len(experiments)
-    set_attr(domain, 'sig_total_experiments', total_experiments)
-    set_attr(domain, 'sig_experiment_active_idx', 0)
     
     log(ctx, "info", f"  [Orchestration] Loaded {total_experiments} experiments.")
     
-    # Return nothing (Mutation pattern)
-    return
+    # Return Delta dict instead of mutating (POP Copy-on-Write)
+    return {
+        'domain.raw_config': raw_config,
+        'domain.output_dir': output_dir,
+        'domain.effective_log_level': effective_log_level,
+        'domain.experiments': experiments,
+        'domain.sig_total_experiments': total_experiments,
+        'domain.sig_experiment_active_idx': 0
+    }
