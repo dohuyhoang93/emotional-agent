@@ -37,6 +37,12 @@ class OrchestratorGlobalContext(BaseGlobalContext):
     cli_log_level: Optional[str] = None
     settings_override: Optional[str] = None
 
+    def __getitem__(self, item):
+        return getattr(self, item)
+        
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
+
 @dataclass
 class OrchestratorDomainContext(BaseDomainContext):
     """
@@ -58,6 +64,10 @@ class OrchestratorDomainContext(BaseDomainContext):
     sig_episode_counter: int = 0
     sig_max_episodes: int = 0
     
+    # Sleep Cycle Signals
+    sig_sleep_step: int = 0
+    sig_sleep_duration: int = 0
+    
     # Run Metrics (Exposed to Dashboard)
     metrics: Dict[str, Any] = field(default_factory=dict)
     
@@ -71,6 +81,12 @@ class OrchestratorDomainContext(BaseDomainContext):
     # Runtime
     effective_log_level: str = "info"
     event_bus: Optional[Any] = None  # Reference to SignalBus
+
+    def __getitem__(self, item):
+        return getattr(self, item)
+        
+    def __setitem__(self, key, value):
+        setattr(self, key, value)
 
 @dataclass
 class OrchestratorSystemContext(BaseSystemContext):
@@ -92,7 +108,7 @@ class OrchestratorSystemContext(BaseSystemContext):
         """Serialize for Rust Core Compatibility, coercing ctx keys down to expected base names"""
         base = super().to_dict()
         if self.domain_ctx:
-            base['domain'] = self.domain_ctx
+            base['domain'] = self.domain_ctx.to_dict() if hasattr(self.domain_ctx, 'to_dict') else self.domain_ctx
         if self.global_ctx:
-            base['global'] = self.global_ctx
+            base['global'] = self.global_ctx.to_dict() if hasattr(self.global_ctx, 'to_dict') else self.global_ctx
         return base

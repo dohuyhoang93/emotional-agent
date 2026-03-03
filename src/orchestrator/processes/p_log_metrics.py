@@ -6,7 +6,7 @@ import datetime
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.metrics', 'domain.metrics_history', 'domain.active_experiment_episode_idx'],
-    outputs=[],  # v2 compatible - no output mapping
+    outputs=['domain.metrics_history'],
     side_effects=['io.write'],
     errors=[]
 )
@@ -52,6 +52,10 @@ def log_episode_metrics(ctx: OrchestratorSystemContext):
         # Write to disk via Runner's logger
         runner.logger.log_episode(current_episode, clean_metrics) 
         
-        # Store in history (v2 mutation pattern)
+        # Store in history 
+        # (Append creates a new list via +=, returned to ContextUpdate mapper)
         metrics_history.append(metrics_entry)
+        return {
+            'domain.metrics_history': metrics_history
+        }
     return {}

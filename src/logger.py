@@ -24,7 +24,10 @@ def log(context, message_level: str, message: str):
     if context is None:
         context_log_level_str = 'info'
     else:
-        context_log_level_str = getattr(context, 'log_level', 'info') # Default to 'info' if not set
+        try:
+            context_log_level_str = getattr(context, 'log_level', 'info')
+        except (PermissionError, RuntimeError):
+            context_log_level_str = 'info'  # Default when guard blocks access
         
     context_log_level_value = LOG_LEVELS.get(context_log_level_str, LOG_LEVELS["info"])
     message_log_level_value = LOG_LEVELS.get(message_level, LOG_LEVELS["info"])

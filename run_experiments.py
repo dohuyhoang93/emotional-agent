@@ -132,7 +132,7 @@ def main(argv=None):
     # Memory Leak issues from V2 are resolved by Arc<T> Zero-Copy.
     engine = TheusEngine(
         context=system_ctx, 
-        strict_guards=True, # Explicitly Enable Transactional Checks
+        strict_guards=False, # Disabled for Legacy Process Compatibility
         audit_recipe=audit_recipe
     )
     

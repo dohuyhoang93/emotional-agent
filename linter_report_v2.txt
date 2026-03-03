@@ -1,4 +1,4 @@
-[THEUS-CORE] Loaded Version: 3.0.22 (Target Env Build)
+[THEUS-CORE] Loaded Version: 3.0.23 (Target Env Build)
 🔍 Running POP Linter Check (v3.1) on ....
 ⚠️ Could not parse scripts\legacy_trash\enhanced_fix.py: unterminated string 
 literal (detected at line 33); perhaps you escaped the end quote? (<unknown>, 

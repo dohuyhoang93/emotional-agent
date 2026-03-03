@@ -5,7 +5,7 @@ import numpy as np
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.metrics'],
-    outputs=[],  # v2 compatible - no output mapping
+    outputs=['domain.metrics'],
     side_effects=[],
     errors=[]
 )
@@ -115,6 +115,6 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
     process = psutil.Process(os.getpid())
     metrics['debug_process_memory_mb'] = round(process.memory_info().rss / 1024 / 1024, 2)
     
-    # Update domain.metrics (v2 mutation pattern)
-    set_attr(domain, 'metrics', metrics)
-    return {}
+    return {
+        'domain.metrics': metrics
+    }

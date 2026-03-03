@@ -18,7 +18,7 @@ def save_summary(ctx: OrchestratorSystemContext):
 
     summary_file_path = os.path.join(domain.output_dir, "summary_report.txt")
     with open(summary_file_path, "w", encoding="utf-8") as f:
-        f.write(domain.final_report)
+        f.write(str(domain.final_report))
     
     log(ctx, "info", f"  [Orchestration] Final summary report saved to: {summary_file_path}")
     return {}

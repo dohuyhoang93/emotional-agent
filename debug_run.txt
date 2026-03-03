@@ -1,0 +1,101 @@
+[THEUS-CORE] Loaded Version: 3.0.23 (Target Env Build)
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+17:31:16 - INFO - Experiment 'Optimization_Sanity_Check' started. Metrics: results\Optimization_Sanity_Check\metrics.jsonl
+C:\Users\dohoang\projects\EmotionAgent\.venv\Lib\site-packages\torch\__init__.py:1146: FutureWarning: `torch.distributed.reduce_op` is deprecated, please use `torch.distributed.ReduceOp` instead
+  return isinstance(obj, torch.Tensor)
+[DEBUG] Execute Exception: 'Transaction isolation failure: cannot deepcopy object of type \'dict\' at path Some("domain"). Store non-copyable objects in Heavy Zone instead. Original error: TypeError: cannot pickle \'theus_core.Transaction\' object' | CAS=False | Busy=False
+ERROR: CRITICAL FAILURE: Transaction isolation failure: cannot deepcopy object of type 'dict' at path Some("domain"). Store non-copyable objects in Heavy Zone instead. Original error: TypeError: cannot pickle 'theus_core.Transaction' object
+Traceback (most recent call last):
+  File "C:\Users\dohoang\projects\EmotionAgent\run_experiments.py", line 153, in main
+    asyncio.run(engine.execute_workflow("workflows/orchestrator_flux.yaml"))
+    ~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 204, in run
+    return runner.run(main)
+           ~~~~~~~~~~^^^^^^
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py", line 127, in run
+    return self._loop.run_until_complete(task)
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 383, in execute_workflow
+    executed = await asyncio.to_thread(
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+        wf_engine.execute, ctx, _sync_wrapper
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\asyncio\threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 377, in _sync_wrapper
+    res = self._run_process_sync(name, **kwargs)
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 419, in _run_process_sync
+    return loop.run_until_complete(self.execute(name, **kwargs))
+           ~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py", line 719, in run_until_complete
+    return future.result()
+           ~~~~~~~~~~~~~^^
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 686, in execute
+    raise e
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 631, in execute
+    result = await self._attempt_execute(func, tx, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 798, in _attempt_execute
+    raise e
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 791, in _attempt_execute
+    result = await self._core.execute_process_async(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func.__name__, target_func, tx
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\asyncio\threads.py", line 25, in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 86, in run
+    result = ctx.run(self.task)
+  File "C:\Users\dohoang\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py", line 73, in run
+    return fn(*args, **kwargs)
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\engine.py", line 784, in arg_binder
+    return func(native_guard, *args, **kwargs)
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 172, in wrapper
+    raise e
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\contracts.py", line 170, in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+  File "C:\Users\dohoang\projects\EmotionAgent\src/orchestrator/processes\p_log_metrics.py", line 17, in log_episode_metrics
+    domain, is_dict = get_domain_ctx(ctx)
+                      ~~~~~~~~~~~~~~^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\src\orchestrator\context_helpers.py", line 18, in get_domain_ctx
+    domain = ctx['domain']
+             ~~~^^^^^^^^^^
+  File "C:\Users\dohoang\projects\EmotionAgent\theus_framework\theus\guards.py", line 377, in __getitem__
+    val = self._inner[key]
+          ~~~~~~~~~~~^^^^^
+RuntimeError: Transaction isolation failure: cannot deepcopy object of type 'dict' at path Some("domain"). Store non-copyable objects in Heavy Zone instead. Original error: TypeError: cannot pickle 'theus_core.Transaction' object
+✅ Loading Multi-Agent Audit Recipe...
+[ManagedAllocator] Registry initialized successfully.
+--- STARTING ORCHESTRATION WORKFLOW ---
+▶️ Loading Orchestrator Workflow: workflows/orchestrator_flux.yaml
+  [Orchestration] Loading experiment configuration from experiments_sanity.json...
+  [Orchestration] Loaded 1 experiments.
+Initialize a multi-agent GridWorld with a Complex Logic Maze...
+DEBUG: Placing switch at (3, 3)
+[ManagedAllocator] Registry initialized successfully.
+[ManagedAllocator] Registry initialized successfully.
+[ManagedAllocator] Registry initialized successfully.
+[ManagedAllocator] Registry initialized successfully.
+[ManagedAllocator] Registry initialized successfully.
+Experiment Optimization_Sanity_Check initialized ready for FSM loop.
+DEBUG: Starting Episode 0
+DEBUG: Finished Episode 0
+Debug injection failed: Illegal Read: 'state'

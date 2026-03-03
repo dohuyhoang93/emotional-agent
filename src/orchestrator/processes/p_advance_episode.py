@@ -4,7 +4,7 @@ from src.orchestrator.context_helpers import get_domain_ctx, get_attr, set_attr
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.active_experiment_episode_idx'],
-    outputs=[],  
+    outputs=['domain.sig_episode_counter', 'domain.active_experiment_episode_idx'],
     side_effects=[],
     errors=[]
 )
@@ -45,9 +45,8 @@ def advance_episode_index(ctx: OrchestratorSystemContext):
                 for agent in runner.coordinator.agents:
                     agent.snn_ctx.global_ctx.current_episode = new_sig_counter
     
-    # 1. Update Python Domain Object (In-Place)
-    set_attr(domain, 'sig_episode_counter', new_sig_counter)
-    set_attr(domain, 'active_experiment_episode_idx', new_idx_legacy) # Keep legacy sync
-    
-    # Return nothing
-    return {}
+    # Return StateUpdate Delta
+    return {
+        'domain.sig_episode_counter': new_sig_counter,
+        'domain.active_experiment_episode_idx': new_idx_legacy
+    }

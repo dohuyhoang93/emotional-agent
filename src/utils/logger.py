@@ -101,9 +101,14 @@ class ExperimentLogger:
                 elif isinstance(obj, np.ndarray):
                     return obj.tolist()
                 elif hasattr(obj, '__iter__') and not isinstance(obj, (str, bytes)):
-                    if hasattr(obj, 'items'):  # Dict-like (FrozenDict)
-                        return {k: to_serializable(v) for k, v in obj.items()}
-                    else:  # List-like (FrozenList, tuple)
+                    # Check for dict-like behavior explicitly and safely
+                    if isinstance(obj, dict) or (hasattr(obj, 'keys') and hasattr(obj, 'items') and callable(getattr(obj, 'items', None))):
+                        try:
+                            return {k: to_serializable(v) for k, v in obj.items()}
+                        except AttributeError:
+                            # Fallback if proxy lied about having items
+                            return [to_serializable(item) for item in obj]
+                    else:  # List-like
                         return [to_serializable(item) for item in obj]
                 return obj
             

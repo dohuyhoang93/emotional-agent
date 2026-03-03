@@ -176,9 +176,33 @@ class RLAgent:
         3. Decode Dream State (Visualizing the dream)
         4. (Optional) Run Post-Cycle logic (Darwinism, etc.) - maybe skipped for stability.
         """
-        # Execute Dream Workflow YAML
-        # print(f"DEBUG: Agent {self.agent_id} dreaming step {time_step}")
-        self.engine.execute_workflow("workflows/agent_dream.yaml")
+        # NOTE: Dream processes access domain_ctx.snn_context which is a live Python object.
+        # Routing through self.engine.execute() serializes context into Rust Core,
+        # which LOSES complex Python refs (snn_context becomes a flat dict).
+        # We call process functions directly with self.rl_ctx to preserve live references.
+        from src.processes.snn_dream_processes import (
+            process_inject_dream_stimulus, apply_dream_reward
+        )
+        from src.processes.snn_core_theus import process_integrate, process_fire
+        from src.processes.snn_advanced_features_theus import (
+            process_lateral_inhibition, process_hysteria_dampener
+        )
+        from src.processes.snn_learning_3factor_theus import process_stdp_3factor
+        from src.processes.p_dream_decoder import process_decode_dream
+        
+        ctx = self.rl_ctx
+        try:
+            process_inject_dream_stimulus(ctx)
+            process_hysteria_dampener(ctx)
+            process_integrate(ctx)
+            process_lateral_inhibition(ctx)
+            process_fire(ctx)
+            apply_dream_reward(ctx)
+            process_stdp_3factor(ctx)
+            process_decode_dream(ctx)
+        except Exception as e:
+            import logging
+            logging.getLogger("Theus").warning(f"Dream step {time_step} failed: {e}")
     
     # _register_all_processes removed (Refactoring Phase 1.3)
     # Reliance on engine.scan_and_register('src/processes')

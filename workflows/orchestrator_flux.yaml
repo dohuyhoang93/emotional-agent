@@ -7,7 +7,7 @@ steps:
   
   # Experiment Loop (Signal-Based)
   - flux: while
-    condition: "domain.sig_experiment_active_idx < domain.sig_total_experiments"
+    condition: "domain['sig_experiment_active_idx'] < domain['sig_total_experiments']"
     do:
        # Initialize Runner & Signals
        - process: initialize_active_experiment
@@ -15,7 +15,7 @@ steps:
        # Episode Loop (Signal-Based)
        - flux: while
          # Clean comparison of integers!
-         condition: "domain.sig_episode_counter < domain.sig_max_episodes"
+         condition: "domain['sig_episode_counter'] < domain['sig_max_episodes']"
          do:
             - process: run_single_episode
             - process: decay_exploration_all_agents  # FIX: Decay epsilon 1 lần/episode (không phải mỗi step)
@@ -25,19 +25,27 @@ steps:
             # Event checks BEFORE advancing episode
             # Social Learning Trigger (Every 25 eps)
             - flux: if
-              condition: "domain.sig_episode_counter > 0 and domain.sig_episode_counter % 25 == 0"
+              condition: "domain['sig_episode_counter'] > 0 and domain['sig_episode_counter'] % 25 == 0"
               then:
                  - process: execute_social_learning_if_needed
             
             # Sleep Cycle (Every 25 eps, same phase as social)
             - flux: if
-              condition: "domain.sig_episode_counter > 0 and domain.sig_episode_counter % 25 == 0"
+              condition: "domain['sig_episode_counter'] > 0 and domain['sig_episode_counter'] % 25 == 0"
               then:
-                 - process: run_sleep_cycle_process
+                 - process: prepare_sleep_cycle
+                 
+                 - flux: while
+                   condition: "domain['sig_sleep_step'] < domain['sig_sleep_duration']"
+                   do:
+                      - process: execute_dream_step
+                      - process: advance_sleep_step
+                      
+                 - process: finalize_sleep_cycle
 
             # Revolution Protocol (Every 100 eps)
             - flux: if
-              condition: "domain.sig_episode_counter > 0 and domain.sig_episode_counter % 100 == 0"
+              condition: "domain['sig_episode_counter'] > 0 and domain['sig_episode_counter'] % 100 == 0"
               then:
                  - process: perform_revolution_protocol
 

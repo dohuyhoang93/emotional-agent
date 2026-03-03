@@ -512,7 +512,6 @@ def process_revolution_protocol(
     """
     Cultural Evolution: Update ancestor khi quần thể vượt trội.
     """
-    return _revolution_impl(snn_ctx, rl_ctx, population_contexts)
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
     

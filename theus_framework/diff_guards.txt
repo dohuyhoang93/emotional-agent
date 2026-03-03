@@ -1,0 +1,359 @@
+diff --git a/theus_framework/theus/guards.py b/theus_framework/theus/guards.py
+index 73885fd..8a73627 100644
+--- a/theus_framework/theus/guards.py
++++ b/theus_framework/theus/guards.py
+@@ -86,6 +86,7 @@ class ContextGuard:
+         object.__setattr__(self, "strict_guards", strict_guards)
+         object.__setattr__(self, "parent", parent)
+         object.__setattr__(self, "name", name)
++        object.__setattr__(self, "_target", target_obj)
+ 
+         if _inner:
+             self._inner = _inner
+@@ -135,7 +136,7 @@ class ContextGuard:
+         # path may be 'domain.const_config', 'domain.nested.const_value', etc.
+         segments = path.replace("[", ".").replace("]", "").split(".")
+         for segment in segments:
+-            # [RFC-001 §5] CONSTANT zone — unbreakable ceiling
++            # [RFC-001 §5] CONSTANT zone \u2014 unbreakable ceiling
+             if segment.startswith("const_"):
+                 if mode in ("write", "append", "delete"):
+                     # [RFC-001 §7] Check if an explicit Annotated override exists
+@@ -157,7 +158,7 @@ class ContextGuard:
+                             f"Illegal {mode.capitalize()}: 'const_' field '{path}' is CONSTANT. "
+                             "No process, including Admin, can mutate a CONSTANT field (RFC-001 §5)."
+                         )
+-            # [RFC-001 Handbook §1.1] PRIVATE zone — hidden from non-admin
++            # [RFC-001 Handbook §1.1] PRIVATE zone \u2014 hidden from non-admin
+             if segment.startswith("internal_"):
+                 if mode == "read" and not self._local_is_admin:
+                     # NOTE: Raise special sentinel to tell caller to return None.
+@@ -189,7 +190,7 @@ class ContextGuard:
+         top_level = norm_path.split(".")[0]
+         
+         if top_level not in registry._namespaces:
+-            # Not a registered namespace path → pass through freely to Rust guard.
++            # Not a registered namespace path \u2192 pass through freely to Rust guard.
+             return True
+         
+         # --- PATH IS IN A REGISTERED NAMESPACE --- enforce whitelist ---
+@@ -245,74 +246,83 @@ class ContextGuard:
+ 
+     def __getattr__(self, name: str) -> Any:
+         # [RFC-001 §10] Block __dict__ access to prevent bypassing Zone Physics.
+-        # NOTE: On ContextGuard instances, __dict__ access from user code triggers
+-        # __getattr__ because ContextGuard has __slots__-like behavior through its
+-        # __init__ using object.__setattr__. This is a safe interception point.
+         if name == "__dict__":
+             raise PermissionError(
+                 "Direct access to '__dict__' is forbidden. "
+                 "Use the Context API to read/write fields safely."
+             )
+         # 1. Immediate bypass for whitelisted Python-side attributes
+-        if name in ("_inner", "_local_is_admin", "log", "_elevate", "is_admin", "is_proxy", "_outbox", "path_prefix", "allowed_inputs", "allowed_outputs", "transaction", "strict_guards"):
++        if name in ("_inner", "_local_is_admin", "_target", "log", "_elevate", "is_admin", "is_proxy", "_outbox", "path_prefix", "allowed_inputs", "allowed_outputs", "transaction", "strict_guards"):
+             return object.__getattribute__(self, name)
+ 
+         full_path = name if self.path_prefix == "" else f"{self.path_prefix}.{name}"
+-        # [RFC-001 §5] Zone physics check first (const_/internal_)
+         try:
+-            self._check_zone_physics(full_path, "read")
+-        except _PrivateZoneReadAccess:
+-            return None  # internal_ field: return None silently for non-admin
+-        if not self._is_allowed(full_path, "read"):
+-             # For discovery, we allow 'domain' or 'global' prefixes even if not explicitly in inputs, 
+-             # provided a sub-path IS allowed. _is_allowed already handles this parent-path check.
+-             raise PermissionError(f"Illegal Read: Path '{full_path}' is restricted by Process Contract.")
+-
+-        val = None
+-        # 2. Rust delegation
+-        try:
+-            val = getattr(self._inner, name) if self._inner is not None else None
+-            if val is None and self._target:
+-                 # Try target (Hybrid Bridge)
+-                 val = getattr(self._target, name, None)
+-        except AttributeError:
+-             # [RFC-002] Support attribute-style access for DICT proxies or items (e.g. state.domain.balance)
+-            if hasattr(self._inner, "__getitem__") and not name.startswith("_"):
+-                 try:
+-                     return self._inner[name]
+-                 except (KeyError, TypeError, AttributeError):
+-                     pass
+-             
+-            # [RFC-002] Dynamic Namespace Fallback
+-            # [RFC-002] Dynamic Namespace Fallback
+-            from .context import NamespaceRegistry
+-            if name in NamespaceRegistry()._namespaces:
+-                try:
+-                    # Reach into Rust Core: ProcessContext -> State -> Data
+-                    pc = self._inner._target
+-                    state_data = pc.state.data
+-                    val = state_data[name]
+-                    
+-                    full_path = name if self.path_prefix == "" else f"{self.path_prefix}.{name}"
+-                    
+-                    if isinstance(val, (dict, list)):
+-                        return ContextGuard(
+-                            target_obj=None,
+-                            allowed_inputs=self.allowed_inputs,
+-                            allowed_outputs=self.allowed_outputs,
+-                            path_prefix=full_path,
+-                            transaction=self.transaction,
+-                            strict_guards=self.strict_guards,
+-                            process_name=self.log.extra.get("process_name", "Unknown"),
+-                            _inner=val,
+-                            parent=self,
+-                            name=name,
+-                        )
+-                    return val
+-                except Exception:
+-                    raise
++            # [RFC-001 §5] Zone physics check first (const_/internal_)
++            try:
++                self._check_zone_physics(full_path, "read")
++            except _PrivateZoneReadAccess:
++                return None  # internal_ field: return None silently for non-admin
+             
+-            raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
++            if not self._is_allowed(full_path, "read"):
++                 raise PermissionError(f"Illegal Read: Path '{full_path}' is restricted by Process Contract.")
++
++            val = None
++            # 2. Rust delegation
++            try:
++                val = getattr(self._inner, name) if self._inner is not None else None
++            except AttributeError:
++                val = None
++
++            # [RFC-001 §10] Hybrid Bridge: If Rust doesn't know the field, check the Python target
++            if val is None:
++                target = getattr(self, "_target", None)
++                if target is not None:
++                    val = getattr(target, name, None)
++
++            if val is None:
++                 # [RFC-002] Support attribute-style access for DICT proxies or items (e.g. state.domain.balance)
++                if hasattr(self._inner, "__getitem__") and not name.startswith("_"):
++                     try:
++                         return self._inner[name]
++                     except (KeyError, TypeError, AttributeError):
++                         pass
++                 
++                # [RFC-002] Dynamic Namespace Fallback
++                from .context import NamespaceRegistry
++                if name in NamespaceRegistry()._namespaces or name in ("domain", "global", "signal", "meta"):
++                    try:
++                        # Reach into Rust Core: ProcessContext -> State -> Data
++                        pc = self._inner
++                        if not hasattr(pc, "state") and hasattr(pc, "_target"):
++                             pc = pc._target
++                        
++                        if hasattr(pc, "state"):
++                            state_data = pc.state.data
++                            val = state_data[name]
++                        else:
++                            raise AttributeError() # Fallthrough to error if no PC found
++                        
++                        full_path = name if self.path_prefix == "" else f"{self.path_prefix}.{name}"
++                        
++                        if isinstance(val, (dict, list)) or getattr(type(val), "__name__", "") == "SupervisorProxy" or type(val) is _RustSupervisorProxy:
++                            _nested_target = getattr(self._target, name, None) if hasattr(self, "_target") and self._target is not None else None
++                            return ContextGuard(
++                                target_obj=_nested_target,
++                                allowed_inputs=self.allowed_inputs,
++                                allowed_outputs=self.allowed_outputs,
++                                path_prefix=full_path,
++                                transaction=self.transaction,
++                                strict_guards=self.strict_guards,
++                                process_name=self.log.extra.get("process_name", "Unknown"),
++                                _inner=val,
++                                parent=self,
++                                name=name,
++                            )
++                        return val
++                    except Exception:
++                        raise
++                
++                raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+ 
+         except PermissionError as e:
+             raise e
+@@ -325,12 +335,10 @@ class ContextGuard:
+             else:
+                  for attr in ["capabilities", "_capabilities", "caps"]:
+                       if hasattr(val, attr):
+-                           try: setattr(val, attr, 31)
+-                           except: pass
++                           setattr(val, attr, 31)
+ 
+             # 2. Return elevated wrapper
+             if not isinstance(val, ContextGuard) and not isinstance(val, (int, float, str, bool, type(None))):
+-                 # RECONCILE INNER PROXY (Hybrid Bridge)
+                  sub_inner = getattr(val, "_theus_proxy", None)
+                  new_guard = ContextGuard(
+                     target_obj=val,
+@@ -346,9 +354,10 @@ class ContextGuard:
+                  return new_guard
+         
+         # 4. Nested Guard wrapping (Normal flow)
+-        if isinstance(val, _RustContextGuard):
++        if isinstance(val, _RustContextGuard) or getattr(type(val), "__name__", "") == "SupervisorProxy" or type(val) is _RustSupervisorProxy:
++            _nested_target = getattr(self._target, name, None) if hasattr(self, "_target") and self._target is not None else None
+             return ContextGuard(
+-                target_obj=None,
++                target_obj=_nested_target,
+                 allowed_inputs=self.allowed_inputs,
+                 allowed_outputs=self.allowed_outputs,
+                 path_prefix=full_path,
+@@ -372,19 +381,22 @@ class ContextGuard:
+             # [RFC-002] Dynamic Namespace Fallback for Item Access
+             if isinstance(key, str):
+                 from .context import NamespaceRegistry
+-                if key in NamespaceRegistry()._namespaces:
++                if key in NamespaceRegistry()._namespaces or key in ("domain", "global", "signal", "meta"):
+                     try:
+-                         # Attempt to reach into Rust Core for Namespace resolution
+-                         pc = getattr(self._inner, "_target", None)
+-                         if pc:
++                         pc = self._inner
++                         if not hasattr(pc, "state") and hasattr(pc, "_target"):
++                             pc = pc._target
++                         
++                         if hasattr(pc, "state"):
+                             state_data = pc.state.data
+                             val = state_data[key]
+                             
+                             full_path = key if self.path_prefix == "" else f"{self.path_prefix}.{key}"
+                             
+-                            if isinstance(val, (dict, list)):
++                            if isinstance(val, (dict, list)) or getattr(type(val), "__name__", "") == "SupervisorProxy" or type(val) is _RustSupervisorProxy:
++                                _nested_target = getattr(self._target, key, None) if hasattr(self, "_target") and self._target is not None else None
+                                 return ContextGuard(
+-                                    target_obj=None,
++                                    target_obj=_nested_target,
+                                     allowed_inputs=self.allowed_inputs,
+                                     allowed_outputs=self.allowed_outputs,
+                                     path_prefix=full_path,
+@@ -418,43 +430,30 @@ class ContextGuard:
+ 
+         return val
+ 
+-    # [RFC-001] SHADOW METHODS FOR ADMIN BYPASS + ZONE PHYSICS ENFORCEMENT
+-    # We must intercept these methods because they do NOT go through __setattr__.
+-    # The flow: ctx.domain.const_list.append(x)
+-    #   -> __getattr__("const_list") returns nested ContextGuard with path_prefix="domain.const_list"
+-    #   -> .append(x) calls THIS method (not __setattr__)
+-    # So we enforce zone physics here too.
+-
+     def append(self, *args, **kwargs):
+-        """[RFC-001 §5] Check CONSTANT zone before append."""
+         self._check_zone_physics(self.path_prefix or "?", "append")
+         if hasattr(self._inner, "append"):
+             return self._inner.append(*args, **kwargs)
+ 
+     def extend(self, *args, **kwargs):
+-        """[RFC-001 §5] Check CONSTANT zone before extend."""
+         self._check_zone_physics(self.path_prefix or "?", "append")
+         if hasattr(self._inner, "extend"):
+             return self._inner.extend(*args, **kwargs)
+ 
+     def insert(self, *args, **kwargs):
+-        """[RFC-001 §5] Check CONSTANT zone before insert."""
+         self._check_zone_physics(self.path_prefix or "?", "append")
+         if hasattr(self._inner, "insert"):
+             return self._inner.insert(*args, **kwargs)
+ 
+     def clear(self):
+-        """[RFC-001 §5] Check CONSTANT zone before clear (delete)."""
+         self._check_zone_physics(self.path_prefix or "?", "delete")
+         if hasattr(self._inner, "clear"):
+             try:
+                 return self._inner.clear()
+             except (PermissionError, AttributeError) as e:
+                 if self._local_is_admin:
+-                     # FORCE CLEAR via parent-level assignment
+                      try:
+                          if self.parent:
+-                             # Overwrite on parent (bypass native child clear)
+                              if hasattr(self.parent, "__setitem__"):
+                                  self.parent[self.name] = []
+                              else:
+@@ -465,35 +464,31 @@ class ContextGuard:
+         return None
+ 
+     def pop(self, *args, **kwargs):
+-        """[RFC-001 §5] Check CONSTANT zone before pop (delete)."""
+         self._check_zone_physics(self.path_prefix or "?", "delete")
+         if hasattr(self._inner, "pop"):
+             try:
+                 return self._inner.pop(*args, **kwargs)
+             except (PermissionError, AttributeError) as e:
+                 if self._local_is_admin:
+-                     # Emulate pop via slice deletion
+                      try:
+                          if len(args) == 0:
+-                              val = self._inner[-1]
+-                              del self._inner[-1]
++                               val = self._inner[-1]
++                               del self._inner[-1]
+                          else:
+-                              val = self._inner[args[0]]
+-                              del self._inner[args[0]]
++                               val = self._inner[args[0]]
++                               del self._inner[args[0]]
+                          return val
+                      except: pass
+                 raise e
+         return None
+ 
+     def remove(self, *args, **kwargs):
+-        """[RFC-001 §5] Check CONSTANT zone before remove (delete)."""
+         self._check_zone_physics(self.path_prefix or "?", "delete")
+         if hasattr(self._inner, "remove"):
+             try:
+                 return self._inner.remove(*args, **kwargs)
+             except (PermissionError, AttributeError) as e:
+                 if self._local_is_admin:
+-                     # Emulate remove via index/del
+                      try:
+                          idx = self._inner.index(args[0])
+                          del self._inner[idx]
+@@ -503,21 +498,18 @@ class ContextGuard:
+         return None
+ 
+     def __setattr__(self, name: str, value: Any) -> None:
+-        if name in ("_inner", "_local_is_admin", "log", "_outbox", "path_prefix", "allowed_inputs", "allowed_outputs", "transaction", "strict_guards", "parent", "name"):
++        if name in ("_inner", "_local_is_admin", "log", "_outbox", "path_prefix", "allowed_inputs", "allowed_outputs", "transaction", "strict_guards", "parent", "name", "_target"):
+             object.__setattr__(self, name, value)
+             return
+ 
+         full_path = name if self.path_prefix == "" else f"{self.path_prefix}.{name}"
+-        # [RFC-001 §5] Zone physics check (const_ blocked even for admin)
+         self._check_zone_physics(full_path, "write")
+         if not self._is_allowed(full_path, "write"):
+              raise PermissionError(f"Illegal Write: Path '{full_path}' is restricted by Process Contract.")
+ 
+-        # Unwrap Python ContextGuard before passing to Rust
+         if isinstance(value, ContextGuard):
+             value = value._inner
+             
+-        # Support attribute-style access for dict keys
+         if isinstance(self._inner, dict):
+             self._inner[name] = value
+         else:
+@@ -525,7 +517,6 @@ class ContextGuard:
+ 
+     def __setitem__(self, key: Any, value: Any) -> None:
+         full_path = str(key) if self.path_prefix == "" else f"{self.path_prefix}[{key}]"
+-        # [RFC-001 §5] Zone physics check (const_ blocked even for admin)
+         if isinstance(key, str):
+             self._check_zone_physics(full_path, "write")
+         if isinstance(key, str) and not self._is_allowed(full_path, "write"):
+@@ -537,7 +528,6 @@ class ContextGuard:
+         try:
+             self._inner[key] = value
+         except (TypeError, AttributeError):
+-            # Support attribute-style write if not subscriptable
+             if isinstance(key, str):
+                 setattr(self._inner, key, value)
+             else:

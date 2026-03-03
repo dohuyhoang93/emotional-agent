@@ -1,0 +1,8 @@
+
+name: test
+version: 1.0
+steps:
+  - flux: while
+    condition: domain.counter < 3
+    do:
+      - process: increment

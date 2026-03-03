@@ -1,4 +1,4 @@
-# Theus Framework v3.0.22 — Benchmark Report
+# Theus Framework v3.0.23 — Benchmark Report
 
 > **Date:** 2026-02-27 09:12 UTC+7
 > **System:** Windows, CPython 3.14, Rust (release profile)

@@ -1,17 +1,17 @@
-# Tutorial Audit Report: Theus v3.0.22
+# Tutorial Audit Report: Theus v3.0.23
 
-Báo cáo này liệt kê các điểm sai sót, lỗi thời và thiếu sót trong bộ tài liệu hướng dẫn (`/Documents/tutorials/en`) so với thực trạng của phiên bản Theus v3.0.22 stable.
+Báo cáo này liệt kê các điểm sai sót, lỗi thời và thiếu sót trong bộ tài liệu hướng dẫn (`/Documents/tutorials/en`) so với thực trạng của phiên bản Theus v3.0.23 stable.
 
 ## 1. Core API Discrepancies (Chapter 03 & 06)
 
 ### [ERROR] Cảnh báo về `tx.update`
 - **Tài liệu viết:** "This overwrites data at the keys you specify. Be careful not to wipe out nested data if you provide a partial dictionary!"
-- **Thực tế (v3.0.22):** `tx.update` hiện tại thực hiện **Deep Merge**. Khi gửi một partial dictionary, các key anh em vẫn được giữ nguyên.
+- **Thực tế (v3.0.23):** `tx.update` hiện tại thực hiện **Deep Merge**. Khi gửi một partial dictionary, các key anh em vẫn được giữ nguyên.
 - **Hệ quả:** Cảnh báo này gây lo sợ không cần thiết cho người dùng.
 
 ### [OUTDATED] Phân cấp `engine.edit()`
 - **Tài liệu viết:** Xếp `engine.edit()` vào nhóm "Admin Tool (1% Usage)".
-- **Thực tế (v3.0.22):** Đây là API chính thức, an toàn và được khuyến khích sử dụng cho các trường hợp mutate phức tạp bên ngoài Process.
+- **Thực tế (v3.0.23):** Đây là API chính thức, an toàn và được khuyến khích sử dụng cho các trường hợp mutate phức tạp bên ngoài Process.
 
 ---
 
@@ -24,7 +24,7 @@ Báo cáo này liệt kê các điểm sai sót, lỗi thời và thiếu sót t
 
 ### [RESOLVED] Parallel Mode (Chapter 10 & 19)
 - **Problem**: `theus_core` (Rust) không load được trong Sub-interpreters do giới hạn PyO3 (thiếu slot PEP 489).
-- **Solution (v3.0.22)**: Đã triển khai "Architectural Decoupling". Main Process (Supervisor) nắm giữ Rust Core, Worker chạy thuần Python.
+- **Solution (v3.0.23)**: Đã triển khai "Architectural Decoupling". Main Process (Supervisor) nắm giữ Rust Core, Worker chạy thuần Python.
 - **Status**: **Fully Resilient**. Worker lỗi -> Main bắt được -> Rust Audit Block. Hệ thống hoạt động đúng cam kết Zero Trust (ở mức Supervisor).
 - **Update**: Tài liệu cần cập nhật để giải thích mô hình "One Brain, Many Hands".
 

@@ -18,14 +18,14 @@ def get_domain_ctx(ctx) -> Tuple[Any, bool]:
             domain = ctx['domain']
             if domain is not None:
                 return domain, True
-        except (KeyError, PermissionError):
+        except (KeyError, PermissionError, RuntimeError):
             pass
             
         try:
             domain_ctx = ctx['domain_ctx']
             if domain_ctx is not None:
                 return domain_ctx, True
-        except (KeyError, PermissionError):
+        except (KeyError, PermissionError, RuntimeError):
             pass
 
     if hasattr(ctx, '_inner'):
@@ -68,6 +68,9 @@ def get_attr(obj: Any, key: str, default: Any = None) -> Any:
     Returns:
         The value or default
     """
+    if hasattr(obj, '_inner') or hasattr(obj, 'is_proxy'):
+        # ContextGuard or SupervisorProxy should be accessed via getattr
+        return getattr(obj, key, default)
     if isinstance(obj, dict):
         return obj.get(key, default)
     else:

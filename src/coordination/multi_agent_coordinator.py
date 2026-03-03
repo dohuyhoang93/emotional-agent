@@ -95,8 +95,10 @@ class MultiAgentCoordinator:
             domain_ctx.snn_context = snn_ctx
             
             # 3. System Context
+            # Unwrap proxy for multi-engine architectures
+            real_global_ctx = getattr(global_ctx, "_inner", global_ctx)
             system_ctx = SystemContext(
-                global_ctx=global_ctx,
+                global_ctx=real_global_ctx,
                 domain_ctx=domain_ctx
             )
             
@@ -112,7 +114,7 @@ class MultiAgentCoordinator:
             engine = TheusEngine(
                 system_ctx,
                 audit_recipe=audit_recipe,
-                strict_mode=True
+                strict_guards=True
             )
             engine.scan_and_register(processes_dir)
             
