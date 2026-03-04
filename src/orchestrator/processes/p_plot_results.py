@@ -1,4 +1,8 @@
-﻿import matplotlib.pyplot as plt
+﻿import matplotlib
+# NOTE: Force non-interactive backend — this process runs on a worker
+# thread (asyncio.to_thread via Flux), so tkinter GUI would crash.
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from theus.contracts import process

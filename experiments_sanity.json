@@ -4,7 +4,7 @@
             "name": "Optimization_Sanity_Check",
             "description": "Quick verification of Vectorized SNN performance.",
             "runs": 1,
-            "episodes_per_run": 110,
+            "episodes_per_run": 51,
             "parameters": {
                 "learning_rate": 0.1,
                 "discount_factor": 0.9,

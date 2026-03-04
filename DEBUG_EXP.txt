@@ -1,5 +1,5 @@
 exp_name: 'Optimization_Sanity_Check' (type: <class 'str'>)
 output_dir: 'results' (type: <class 'str'>)
 isinstance(exp_def, dict): False
-exp_def via type: <class 'theus.guards.ContextGuard'>
+exp_def via type: <class 'theus_core.SupervisorProxy'>
 exp_def.name: 'Optimization_Sanity_Check'

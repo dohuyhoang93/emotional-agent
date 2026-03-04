@@ -10,26 +10,16 @@ from typing import Any, Tuple
 
 def get_domain_ctx(ctx) -> Tuple[Any, bool]:
     """
-    Extract domain context from ContextGuard
+    Extract domain context from ContextGuard.
     Returns: Tuple of (domain_context, is_dict)
+    
+    NOTE: Prioritizes _inner._target path to avoid triggering COW deepcopy
+    which causes RuntimeWarning when Transaction objects are in the data graph.
     """
-    if hasattr(ctx, '__getitem__'):
-        try:
-            domain = ctx['domain']
-            if domain is not None:
-                return domain, True
-        except (KeyError, PermissionError, RuntimeError):
-            pass
-            
-        try:
-            domain_ctx = ctx['domain_ctx']
-            if domain_ctx is not None:
-                return domain_ctx, True
-        except (KeyError, PermissionError, RuntimeError):
-            pass
+    import warnings
 
+    # Priority 1: Direct access via ContextGuard internals (no COW)
     if hasattr(ctx, '_inner'):
-        # We are inside a ContextGuard
         try:
             target = getattr(ctx._inner, '_target', None)
             if target:
@@ -40,7 +30,7 @@ def get_domain_ctx(ctx) -> Tuple[Any, bool]:
         except Exception:
             pass
 
-    # Standard python dataclass
+    # Priority 2: Standard python dataclass
     try:
         if hasattr(ctx, 'domain_ctx') and ctx.domain_ctx is not None:
             return ctx.domain_ctx, isinstance(ctx.domain_ctx, dict)
@@ -52,6 +42,24 @@ def get_domain_ctx(ctx) -> Tuple[Any, bool]:
             return ctx.domain, isinstance(ctx.domain, dict)
     except PermissionError:
         pass
+
+    # Priority 3: Dict-like access (may trigger COW — suppress warnings)
+    if hasattr(ctx, '__getitem__'):
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", RuntimeWarning)
+            try:
+                domain = ctx['domain']
+                if domain is not None:
+                    return domain, True
+            except (KeyError, PermissionError, RuntimeError):
+                pass
+                
+            try:
+                domain_ctx = ctx['domain_ctx']
+                if domain_ctx is not None:
+                    return domain_ctx, True
+            except (KeyError, PermissionError, RuntimeError):
+                pass
 
     raise ValueError(f"CRITICAL: Cannot extract domain context from {type(ctx)}.")
 

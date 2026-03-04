@@ -1,4 +1,4 @@
-{"name":"theus:dd56bc89:16568:test_lifecycle","pid":16568,"session":"dd56bc89","size":400,"ts":0.0}
-{"name":"theus:29f3fbff:16568:key1","pid":16568,"session":"29f3fbff","size":40,"ts":0.0}
-{"name":"theus:29f3fbff:16568:key2","pid":16568,"session":"29f3fbff","size":40,"ts":0.0}
-{"name":"theus:a7f97f8c:16568:my_secret","pid":16568,"session":"a7f97f8c","size":40,"ts":0.0}
+{"name":"theus:46cca10b:11492:test_lifecycle","pid":11492,"session":"46cca10b","size":400,"ts":0.0}
+{"name":"theus:8cd0a2b6:11492:key1","pid":11492,"session":"8cd0a2b6","size":40,"ts":0.0}
+{"name":"theus:8cd0a2b6:11492:key2","pid":11492,"session":"8cd0a2b6","size":40,"ts":0.0}
+{"name":"theus:9939e0b7:11492:my_secret","pid":11492,"session":"9939e0b7","size":40,"ts":0.0}
