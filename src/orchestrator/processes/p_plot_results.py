@@ -3,6 +3,7 @@ import pandas as pd
 import os
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
+from src.orchestrator.context_helpers import get_domain_ctx, get_attr
 from src.logger import log
 
 @process(
@@ -16,9 +17,10 @@ def plot_results(ctx: OrchestratorSystemContext):
     Process: Generate plots for multi-agent experiments (Aesthetic Upgrade).
     """
     log(ctx, "info", "  [Orchestration] Plotting aggregated results (Enhanced)...")
-    domain = ctx.domain_ctx
+    domain, is_dict = get_domain_ctx(ctx)
     
-    plots_dir = os.path.join(domain.output_dir, "plots")
+    output_dir = get_attr(domain, 'output_dir', 'results')
+    plots_dir = os.path.join(output_dir, "plots")
     os.makedirs(plots_dir, exist_ok=True)
     
     # Set Style
@@ -27,13 +29,16 @@ def plot_results(ctx: OrchestratorSystemContext):
     except:
         plt.style.use('ggplot')
 
-    for exp_def in domain.experiments:
-        if not exp_def.aggregated_data:
-            log(ctx, "info", f"  [Plotting] No data for experiment '{exp_def.name}', skipping plots.")
+    experiments = get_attr(domain, 'experiments', [])
+    for exp_def in experiments:
+        exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+        aggregated_data = get_attr(exp_def, 'aggregated_data', []) if isinstance(exp_def, dict) else getattr(exp_def, 'aggregated_data', [])
+        if not aggregated_data:
+            log(ctx, "info", f"  [Plotting] No data for experiment '{exp_name}', skipping plots.")
             continue
         
         try:
-            metrics = exp_def.aggregated_data
+            metrics = aggregated_data
             
             # Helper to safely extract lists
             def get_series(key, default=0.0):
@@ -67,10 +72,10 @@ def plot_results(ctx: OrchestratorSystemContext):
             
             plt.xlabel('Episode', fontsize=12)
             plt.ylabel('Reward', fontsize=12)
-            plt.title(f'Learning Curve: {exp_def.name}', fontsize=14, fontweight='bold')
+            plt.title(f'Learning Curve: {exp_name}', fontsize=14, fontweight='bold')
             plt.legend(frameon=True, fancybox=True, framealpha=0.9)
             plt.tight_layout()
-            plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_rewards.png'), dpi=200)
+            plt.savefig(os.path.join(plots_dir, f'{exp_name}_rewards.png'), dpi=200)
             plt.close()
             
             # --- Plot 2: Social & Revolution (Combined Event Plot) ---
@@ -94,10 +99,10 @@ def plot_results(ctx: OrchestratorSystemContext):
 
                 plt.xlabel('Episode')
                 plt.ylabel('Count')
-                plt.title(f'Social Dynamics: {exp_def.name}', fontsize=14)
+                plt.title(f'Social Dynamics: {exp_name}', fontsize=14)
                 plt.legend()
                 plt.tight_layout()
-                plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_social_dynamics.png'), dpi=200)
+                plt.savefig(os.path.join(plots_dir, f'{exp_name}_social_dynamics.png'), dpi=200)
                 plt.close()
 
             # --- Plot 3: SNN Physiology ---
@@ -130,9 +135,9 @@ def plot_results(ctx: OrchestratorSystemContext):
                 ax2.plot(episodes, syn, color=color, linewidth=2, linestyle='--', alpha=0.8)
                 ax2.tick_params(axis='y', labelcolor=color)
                 
-                plt.title(f'SNN Composition: {exp_def.name}', fontsize=14)
+                plt.title(f'SNN Composition: {exp_name}', fontsize=14)
                 plt.tight_layout()
-                plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_snn_physiology.png'), dpi=200)
+                plt.savefig(os.path.join(plots_dir, f'{exp_name}_snn_physiology.png'), dpi=200)
                 plt.close()
 
             # --- Plot 4: Success Rate (if available) ---
@@ -146,16 +151,16 @@ def plot_results(ctx: OrchestratorSystemContext):
                  plt.ylim(0, 1.05)
                  plt.xlabel('Episode')
                  plt.ylabel('Success Rate')
-                 plt.title(f'Performance Stability: {exp_def.name}', fontsize=14)
+                 plt.title(f'Performance Stability: {exp_name}', fontsize=14)
                  plt.legend()
                  plt.tight_layout()
-                 plt.savefig(os.path.join(plots_dir, f'{exp_def.name}_success_rate.png'), dpi=200)
+                 plt.savefig(os.path.join(plots_dir, f'{exp_name}_success_rate.png'), dpi=200)
                  plt.close()
 
-            log(ctx, "info", f"  [Plotting] Plots saved for '{exp_def.name}'")
+            log(ctx, "info", f"  [Plotting] Plots saved for '{exp_name}'")
             
         except Exception as e:
-            log(ctx, "info", f"  [Plotting] Error generating plots for '{exp_def.name}': {e}")
+            log(ctx, "info", f"  [Plotting] Error generating plots for '{exp_name}': {e}")
             import traceback
             traceback.print_exc()
 

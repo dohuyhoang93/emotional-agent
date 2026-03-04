@@ -31,12 +31,21 @@ def aggregate_results(ctx: OrchestratorSystemContext):
         
         all_runs_metrics = []
         if not list_of_runs:
-            # Fallback for FSM Architecture (Single Run / Implicit)
-            checkpoints_dir = os.path.join(output_dir, f"{exp_name}_checkpoints")
+            # NOTE: FSM Architecture uses {exp_name}/ directly,
+            # Legacy uses {exp_name}_checkpoints/. Try both.
+            checkpoints_dir = os.path.join(output_dir, exp_name)
             metrics_path = os.path.join(checkpoints_dir, "metrics.jsonl")
             
             if not os.path.exists(metrics_path):
-                 # Try legacy json
+                 # Try legacy json in same dir
+                 metrics_path = os.path.join(checkpoints_dir, "metrics.json")
+            
+            if not os.path.exists(metrics_path):
+                 # Try legacy _checkpoints suffix
+                 checkpoints_dir = os.path.join(output_dir, f"{exp_name}_checkpoints")
+                 metrics_path = os.path.join(checkpoints_dir, "metrics.jsonl")
+            
+            if not os.path.exists(metrics_path):
                  metrics_path = os.path.join(checkpoints_dir, "metrics.json")
             
             if os.path.exists(metrics_path):
