@@ -8,7 +8,7 @@ import { Activity, Brain, Trophy } from "lucide-react";
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 
-const socket = io('http://localhost:8001', {
+const socket = io('http://localhost:8000', {
   transports: ['websocket'],
   reconnectionAttempts: 5,
 });

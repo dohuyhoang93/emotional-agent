@@ -13,7 +13,7 @@ import {
     ResponsiveContainer
 } from 'recharts';
 
-const socket = io('http://localhost:8001', {
+const socket = io('http://localhost:8000', {
     transports: ['websocket'],
     reconnectionAttempts: 5,
 });
