@@ -256,6 +256,9 @@ class RLAgent:
                      t['last_fire_times'].fill(-1000)
                 if 'spike_buffer' in t:
                      t['spike_buffer'].fill(0)
+                if 'thresholds' in t:
+                     initial_th = getattr(self.global_ctx, 'initial_threshold', 0.05)
+                     t['thresholds'].fill(initial_th)
             
             # Clear spike queue
             self.snn_ctx.domain_ctx.spike_queue.clear()
@@ -276,8 +279,12 @@ class RLAgent:
                 self.snn_ctx.domain_ctx.metrics['accumulated_spikes'] = 0
             if 'accumulated_ticks' in self.snn_ctx.domain_ctx.metrics:
                 self.snn_ctx.domain_ctx.metrics['accumulated_ticks'] = 0
-            if 'avg_firing_rate' in self.snn_ctx.domain_ctx.metrics:
-                self.snn_ctx.domain_ctx.metrics['avg_firing_rate'] = 0.0
+            
+            # Reset PID Controller States (State of the controller itself)
+            if hasattr(self.snn_ctx.domain_ctx, 'pid_state'):
+                for key in self.snn_ctx.domain_ctx.pid_state:
+                    self.snn_ctx.domain_ctx.pid_state[key]['error_integral'] = 0.0
+                    self.snn_ctx.domain_ctx.pid_state[key]['error_prev'] = 0.0
     
     def step(self, env_adapter: EnvironmentAdapter) -> int:
         """

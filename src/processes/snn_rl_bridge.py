@@ -188,38 +188,44 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
     pvecs = t['potential_vectors']
     N = len(pots)
     
-    amplification = float(snn_ctx.global_ctx.input_amplification_factor)
+    base_amplification = float(snn_ctx.global_ctx.input_amplification_factor)
     
-    # NEW SENSOR MAPPING (Projection via similarity)
-    # Instead of only injecting into the first 16 neurons, we project the sensor
-    # vector onto ALL neurons based on their semantic prototypes (Darwinism compatible).
-    protos = t.get('prototypes')
-    if protos is not None and len(sensor_vector) == 16 and protos.shape[1] == 16:
-        # Normalize sensor vector to prevent explosion
-        sensor_norm = np.linalg.norm(sensor_vector) + 1e-8
-        normed_sensor = sensor_vector / sensor_norm
-        
-        # Calculate cosine similarity (~dot product since protos/sensor are expected to be normalized)
-        sim = np.matmul(protos, normed_sensor)
-        sim = np.maximum(0, sim)
-        
-        # Cubed activation to ensure sparsity (~2-5% firing)
-        sparse_sim = sim ** 3
-        
-        # Add to potentials (Temporal Integration)
-        # We scale back by the original norm to preserve signal strength intent, 
-        # but capped to prevent ridiculous numbers.
-        effective_signal = min(sensor_norm, 2.0)
-        pots += (sparse_sim * effective_signal) * amplification
-        
-        # Add to potential vectors proportionally
-        pvecs += sensor_vector * sparse_sim[:, np.newaxis]
-    else:
-        # Fallback (Legacy)
-        input_end = min(16, N)
-        pots[:input_end] += sensor_vector[:input_end] * amplification
-        pvecs[:input_end] += sensor_vector[:input_end]
+    # === NEW SENSOR MAPPING: DYNAMIC TOPOLOGICAL RECEPTORS ===
+    # Removing mathematically rigid `sim ** 3` and global broadcast.
+    # Restoring biological flow: Inject into a localized receptor grouping,
+    # and adapt the sensitivity (amplification) dynamically based on Homeostasis.
     
+    # 1. Sensory Adaptation (Dynamic Sensitivity)
+    # The agent's sensitivity to the environment changes depending on its internal state.
+    current_fr = snn_ctx.domain_ctx.metrics.get('avg_firing_rate', 0.0)
+    target_fr = float(snn_ctx.global_ctx.target_fire_rate)
+    
+    # If network is quiet, sensitivity goes up (Dilated Pupils).
+    # If network is hyperactive, sensitivity goes down (Squinting).
+    # We clip the sensitivity ratio to prevent infinite exploding gradients or dead zones.
+    sensitivity_ratio = target_fr / (current_fr + 1e-6)
+    sensitivity = float(np.clip(sensitivity_ratio, 0.1, 10.0))
+    
+    dynamic_amp = base_amplification * sensitivity
+    
+    # 2. Topological Receptors Grouping
+    # Map the N-dimensional sensor vector into a receptor pool.
+    # We map to roughly 20% of the network (or minimum 16) to ensure 
+    # enough signal propagation down the rest of the randomly connected network,
+    # regardless if N=100 or N=1024.
+    receptor_count = max(16, int(N * 0.2))
+    
+    # Safe broadcasting modulo for input vectors < receptor_count
+    # E.g., 16-dim sensor spreads across 64 receptors by looping.
+    sensor_len = len(sensor_vector)
+    
+    for i in range(receptor_count):
+        val = sensor_vector[i % sensor_len]
+        # Inject current (scaled by our dynamic sensitivity)
+        pots[i] += val * dynamic_amp
+        # Inject semantic concept
+        pvecs[i] += sensor_vector
+        
     # Sync back for audit/object compatibility
     sync_from_heavy_tensors(snn_ctx)
     

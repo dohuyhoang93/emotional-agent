@@ -229,7 +229,7 @@ def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
         global_ctx = ctx.global_ctx
     
     try:
-        current_fire_rate = domain.metrics.get('fire_rate', 0.0)
+        current_fire_rate = domain.metrics.get('avg_firing_rate', 0.0)
         target_fire_rate = float(global_ctx.target_fire_rate)
         
         # Tính error

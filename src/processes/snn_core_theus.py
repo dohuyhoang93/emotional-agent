@@ -124,8 +124,16 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
         # GLOBAL INHIBITION (Prevent Seizures)
         # Normalize synaptic input by the level of network activity
         activity_level = len(spike_indices) / max(1, N)
-        # Cap the scaling to prevent dying out completely, but strong enough to stop avalanches
-        norm_factor = 1.0 + (len(spike_indices) / 10.0)
+        
+        # We expect a baseline sparse activity (e.g., 2% of network = ~20 neurons for N=1024)
+        # We only start throttling heavily if spikes exceed expected sparse baseline.
+        expected_spikes = max(10, int(N * 0.02))
+        
+        if len(spike_indices) > expected_spikes:
+            norm_factor = 1.0 + ((len(spike_indices) - expected_spikes) / (expected_spikes * 2.0))
+        else:
+            norm_factor = 1.0
+            
         delta_pots /= norm_factor
         
         pots += delta_pots

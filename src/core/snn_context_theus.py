@@ -68,12 +68,10 @@ class SNNGlobalContext(BaseGlobalContext):
     
     # === Homeostasis Parameters ===
     target_fire_rate: float = 0.02  # 2%
-    target_fire_rate: float = 0.02  # 2%
-    homeostasis_rate: float = 0.0001
-    local_homeostasis_rate: float = 0.0005 # Faster local adaptation
+    homeostasis_rate: float = 0.005 # Increased from 0.0001
+    local_homeostasis_rate: float = 0.01 # Increased from 0.0005
     trace_decay: float = 0.999 # Slow decay for stable local average
     
-    # === Meta-Homeostasis (PID) ===
     # === Meta-Homeostasis (PID) ===
     use_meta_homeostasis: bool = True
     pid_kp: float = 0.001
@@ -81,7 +79,7 @@ class SNNGlobalContext(BaseGlobalContext):
     pid_kd: float = 0.0005
     pid_max_integral: float = 5.0
     pid_max_output: float = 0.01
-    pid_scale_factor: float = 0.0001
+    pid_scale_factor: float = 1.0 # Removed the 0.0001 bottleneck, let pid_max_output control it
     
     # === Imagination Parameters ===
     use_imagination: bool = True
