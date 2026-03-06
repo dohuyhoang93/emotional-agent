@@ -102,7 +102,8 @@ def process_snn_cycle(ctx: SystemContext):
     _stdp_3factor_impl(ctx)
     
     # 4. READOUT & MAINTENANCE (Object Mode)
-    _encode_emotion_vector_impl(ctx)
+    emo_delta = _encode_emotion_vector_impl(ctx)
+    if emo_delta is None: emo_delta = {}
     
     # --- METRIC COLLECTION (Dashboard Phase 5) ---
     # Calculate Instantaneous Firing Rate
@@ -117,5 +118,9 @@ def process_snn_cycle(ctx: SystemContext):
         # print(f"DEBUG: SNN Firing Rate: {instant_fr*100:.2f}%, Avg: {new_fr:.4f}")
 
     # 5. TICK (Advance Time)
-    _tick_impl(ctx)
-    return {}
+    tick_delta = _tick_impl(ctx)
+    if tick_delta is None: tick_delta = {}
+    
+    # Marge deltas
+    final_delta = {**emo_delta, **tick_delta}
+    return final_delta

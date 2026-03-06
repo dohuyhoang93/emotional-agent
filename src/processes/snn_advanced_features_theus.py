@@ -394,18 +394,27 @@ def process_neural_darwinism(
     
     connection_prob = global_ctx.connectivity
     
+    # NOTE: Pre-compute solid_map — O(S) một lần thay vì O(N×S).
+    # Ghi lại neuron nào có ít nhất 1 synapse SOLID.
+    solid_neuron_ids = set()
+    for s in domain.synapses:
+        if s.commit_state == COMMIT_STATE_SOLID:
+            solid_neuron_ids.add(s.pre_neuron_id)
+            solid_neuron_ids.add(s.post_neuron_id)
+    
+    MAX_RECYCLE_PER_INTERVAL = 10  # NOTE: Cap để tránh rewiring quá nhiều
+    
     for neuron in domain.neurons:
+        if recycled_count >= MAX_RECYCLE_PER_INTERVAL:
+            break
+        
         # Check if dead
         is_dead = (domain.current_time - neuron.last_fire_time) > DEAD_THRESHOLD
         
-        # FIX: Do not kill SOLID neurons (neurons with many SOLID synapses)
-        # Scan synapses to check solidity
-        # Optimization: Pre-calculate solid map? Naive Check for now.
-        solid_connections = sum(1 for s in domain.synapses 
-                                if (s.pre_neuron_id == neuron.neuron_id or s.post_neuron_id == neuron.neuron_id) 
-                                and s.commit_state == COMMIT_STATE_SOLID)
+        # O(1) lookup thay vì O(S) scan mỗi neuron
+        has_solid = neuron.neuron_id in solid_neuron_ids
         
-        if is_dead and solid_connections == 0:
+        if is_dead and not has_solid:
             # RECYCLE
             recycled_count += 1
             

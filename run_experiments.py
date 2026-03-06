@@ -133,7 +133,8 @@ def main(argv=None):
     engine = TheusEngine(
         context=system_ctx, 
         strict_guards=False, # Disabled for Legacy Process Compatibility
-        audit_recipe=audit_recipe
+        audit_recipe=audit_recipe,
+        write_timeout_ms=50000 # Override default timeout from 30s to 50s for complex maze
     )
     
     # 3. Auto-Discovery

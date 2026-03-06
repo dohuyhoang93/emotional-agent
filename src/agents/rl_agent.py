@@ -244,6 +244,18 @@ class RLAgent:
                 neuron.potential_vector = np.zeros(16)
                 neuron.fire_count = 0
                 neuron.last_fire_time = -1000  # Reset to ensure valid refractory check
+                
+            # NEW SNN POP FIX: Reset heavy tensors (Source of Truth for Vectorized Logic)
+            if hasattr(self.snn_ctx.domain_ctx, 'heavy_tensors') and self.snn_ctx.domain_ctx.heavy_tensors:
+                t = self.snn_ctx.domain_ctx.heavy_tensors
+                if 'potentials' in t:
+                     t['potentials'].fill(0.0)
+                if 'potential_vectors' in t:
+                     t['potential_vectors'].fill(0.0)
+                if 'last_fire_times' in t:
+                     t['last_fire_times'].fill(-1000)
+                if 'spike_buffer' in t:
+                     t['spike_buffer'].fill(0)
             
             # Clear spike queue
             self.snn_ctx.domain_ctx.spike_queue.clear()
@@ -258,6 +270,14 @@ class RLAgent:
                 'success': False,
                 'steps_to_goal': None
             }
+            
+            # Reset SNN metrics
+            if 'accumulated_spikes' in self.snn_ctx.domain_ctx.metrics:
+                self.snn_ctx.domain_ctx.metrics['accumulated_spikes'] = 0
+            if 'accumulated_ticks' in self.snn_ctx.domain_ctx.metrics:
+                self.snn_ctx.domain_ctx.metrics['accumulated_ticks'] = 0
+            if 'avg_firing_rate' in self.snn_ctx.domain_ctx.metrics:
+                self.snn_ctx.domain_ctx.metrics['avg_firing_rate'] = 0.0
     
     def step(self, env_adapter: EnvironmentAdapter) -> int:
         """

@@ -422,8 +422,11 @@ def ensure_heavy_tensors_initialized(ctx: SNNSystemContext):
     neurons = domain.neurons
     N = len(neurons)
     
+    initialized_something = False
+    
     # Initialize if missing or size mismatch
     if 'potentials' not in domain.heavy_tensors or domain.heavy_tensors['potentials'].shape[0] != N:
+        initialized_something = True
         # Potentials & Thresholds
         def _sf(x):
             try: return float(x)
@@ -509,7 +512,8 @@ def ensure_heavy_tensors_initialized(ctx: SNNSystemContext):
          domain.heavy_tensors['solidity_ratios'] = np.array([n.solidity_ratio for n in neurons], dtype=np.float32)
 
     # FULL SYNC (Objects -> Tensors)
-    sync_to_heavy_tensors(ctx)
+    if initialized_something:
+        sync_to_heavy_tensors(ctx)
 
 def sync_to_heavy_tensors(ctx: SNNSystemContext):
     """

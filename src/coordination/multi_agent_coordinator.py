@@ -18,6 +18,7 @@ from src.core.snn_context_theus import SNNGlobalContext, create_snn_context_theu
 from src.adapters.environment_adapter import EnvironmentAdapter
 from src.coordination.revolution_protocol import RevolutionProtocolManager
 from theus.config import ConfigFactory
+from src.utils.shm_tensor_store import ShmTensorStore
 
 
 class MultiAgentCoordinator:
@@ -49,11 +50,16 @@ class MultiAgentCoordinator:
         self.global_ctx = global_ctx
         self.snn_global_ctx = snn_global_ctx
         
-        # Create agents
-        self.agents: List[RLAgent] = []
-        # Shared Engine Configuration
-        # self.engine_factory = self._create_engine_factory(global_ctx) # Removed factory for inline logic
-
+        # NOTE: Shared HeavyZoneAllocator cho tất cả agents.
+        # Cho phép zero-copy access khi social learning / revolution protocol.
+        self._shm_allocator = None
+        try:
+            from theus.context import HeavyZoneAllocator
+            self._shm_allocator = HeavyZoneAllocator()
+            print("[Coordinator] SHM Allocator initialized.")
+        except Exception as e:
+            print(f"[Coordinator] SHM Allocator unavailable, using plain dict: {e}")
+        
         # Create agents
         self.agents: List[RLAgent] = []
         processes_dir = os.path.join(
@@ -91,6 +97,12 @@ class MultiAgentCoordinator:
                 initial_threshold=snn_global_ctx.initial_threshold,
                 tau_decay=snn_global_ctx.tau_decay,
                 threshold_min=snn_global_ctx.threshold_min
+            )
+            # NOTE: Inject ShmTensorStore vao SNN context.
+            # Dict-like interface, backing bằng SharedMemory.
+            snn_ctx.domain_ctx.heavy_tensors = ShmTensorStore(
+                allocator=self._shm_allocator,
+                prefix=f"agent_{i}"
             )
             domain_ctx.snn_context = snn_ctx
             
@@ -334,3 +346,14 @@ class MultiAgentCoordinator:
             3: 'right'
         }
         return mapping.get(action_id, 'stay')
+
+    def cleanup(self):
+        """Release shared memory resources."""
+        if self._shm_allocator is not None:
+            try:
+                self._shm_allocator.cleanup()
+            except Exception:
+                pass
+
+    def __del__(self):
+        self.cleanup()

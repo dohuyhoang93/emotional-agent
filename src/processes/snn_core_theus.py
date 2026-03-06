@@ -64,8 +64,10 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
         tau_decay = 0.9
     
     # 2. Vectorized Decay
+    print(f"DEBUG INTEGRATE: BEFORE Decay, pots[:3]={pots[:3]}")
     pots *= tau_decay
     p_vecs *= tau_decay
+    print(f"DEBUG INTEGRATE: AFTER Decay, pots[:3]={pots[:3]}")
     
     # 3. Handle Spikes (Vectorized Buffer)
     try:
@@ -118,6 +120,14 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
         # 4. Integrate Scalar Potential: (N,)
         # Sum contributions from all K spikes for each neuron j
         delta_pots = np.sum(eff_weights, axis=0) # Sum over K (rows) -> (N,)
+        
+        # GLOBAL INHIBITION (Prevent Seizures)
+        # Normalize synaptic input by the level of network activity
+        activity_level = len(spike_indices) / max(1, N)
+        # Cap the scaling to prevent dying out completely, but strong enough to stop avalanches
+        norm_factor = 1.0 + (len(spike_indices) / 10.0)
+        delta_pots /= norm_factor
+        
         pots += delta_pots
         
         # 5. Integrate Vector Potential: (N, D)
@@ -129,7 +139,7 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
     # 6. Sync Back to Objects (Audit Compatibility)
     if sync:
         sync_from_heavy_tensors(snn_ctx)
-        
+
     return {'heavy_tensors': t}
 
 

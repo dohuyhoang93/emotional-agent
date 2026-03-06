@@ -189,11 +189,36 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
     N = len(pots)
     
     amplification = float(snn_ctx.global_ctx.input_amplification_factor)
-    input_end = min(16, N)
     
-    # Apply to tensors (Vectorized)
-    pots[:input_end] = sensor_vector[:input_end] * amplification
-    pvecs[:input_end] = sensor_vector[:input_end]
+    # NEW SENSOR MAPPING (Projection via similarity)
+    # Instead of only injecting into the first 16 neurons, we project the sensor
+    # vector onto ALL neurons based on their semantic prototypes (Darwinism compatible).
+    protos = t.get('prototypes')
+    if protos is not None and len(sensor_vector) == 16 and protos.shape[1] == 16:
+        # Normalize sensor vector to prevent explosion
+        sensor_norm = np.linalg.norm(sensor_vector) + 1e-8
+        normed_sensor = sensor_vector / sensor_norm
+        
+        # Calculate cosine similarity (~dot product since protos/sensor are expected to be normalized)
+        sim = np.matmul(protos, normed_sensor)
+        sim = np.maximum(0, sim)
+        
+        # Cubed activation to ensure sparsity (~2-5% firing)
+        sparse_sim = sim ** 3
+        
+        # Add to potentials (Temporal Integration)
+        # We scale back by the original norm to preserve signal strength intent, 
+        # but capped to prevent ridiculous numbers.
+        effective_signal = min(sensor_norm, 2.0)
+        pots += (sparse_sim * effective_signal) * amplification
+        
+        # Add to potential vectors proportionally
+        pvecs += sensor_vector * sparse_sim[:, np.newaxis]
+    else:
+        # Fallback (Legacy)
+        input_end = min(16, N)
+        pots[:input_end] += sensor_vector[:input_end] * amplification
+        pvecs[:input_end] += sensor_vector[:input_end]
     
     # Sync back for audit/object compatibility
     sync_from_heavy_tensors(snn_ctx)
