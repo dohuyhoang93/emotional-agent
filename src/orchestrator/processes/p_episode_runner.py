@@ -133,8 +133,7 @@ def run_single_episode(ctx: OrchestratorSystemContext):
         log(ctx, "info", f"DEBUG: Starting Episode {current_episode}")
         runner.perf_monitor.start_episode()
         metrics = runner.coordinator.run_episode(runner.env, runner.adapter)
-        log(ctx, "info", f"DEBUG: Finished Episode {current_episode}")
-        runner.perf_monitor.end_episode()
+        log(ctx, "info", f"DEBUG: Finished Episode {current_episode}. Metrics Type from coordinator: {type(metrics)}")
         
         # Episode Done (Normal)
         if bus:

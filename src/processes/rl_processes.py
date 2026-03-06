@@ -229,14 +229,19 @@ def update_q_learning(ctx: SystemContext):
     """
     # 0. Check Initialization
     if ctx.domain_ctx.previous_observation is None:
+        ctx.log("DEBUG: previous_observation is None, skipping Q-learning", level="debug")
         return {'td_error': 0.0}
-
-    # 1. State Keys
-    prev_obs = ctx.domain_ctx.previous_observation
-    curr_obs = ctx.domain_ctx.current_observation
     
-    prev_state_key = observation_to_state_key(prev_obs)
-    next_state_key = observation_to_state_key(curr_obs)
+    # 1. Prepare State Keys
+    obs_prev = ctx.domain_ctx.previous_observation
+    obs_next = ctx.domain_ctx.current_observation
+    
+    if obs_prev is None or obs_next is None:
+        ctx.log("DEBUG: One observation is None, skipping Q-learning", level="debug")
+        return {'td_error': 0.0}
+    
+    prev_state_key = observation_to_state_key(obs_prev)
+    next_state_key = observation_to_state_key(obs_next)
     
     action = ctx.domain_ctx.last_action
     
@@ -250,35 +255,35 @@ def update_q_learning(ctx: SystemContext):
         except:
             reward = 0.0
     
-    # Creation of entries is still "mutation" if done on ctx.domain_ctx directly
-    # But often we can't avoid it for large structures unless we return the whole structure.
-    # However, for POP, we should ideally treat the table as a dict to be updated.
-    
-    delta_q_table = {} # We'll return updates to the table
+    # MIGRATION FIX: Không tạo dict RỖNG để chứa delta.
+    # Engine trong Theus thiết kế theo kiểu Ghi đè (Overwrite) State,
+    # Do đó, nếu ta trả về {key: value}, toàn bộ Q-Table sẽ bị xoá và thay bằng 1 cặp {key: value} này.
+    # Giải pháp: Lấy nguyên bộ Q-Table hiện tại, cập nhật trực tiếp (mutate), và trả về nguyên bộ đó.
+    full_q_table = ctx.domain_ctx.heavy_q_table
 
     # Check Prev State
-    if prev_state_key not in ctx.domain_ctx.heavy_q_table:
-        delta_q_table[prev_state_key] = [0.0] * 8
+    if prev_state_key not in full_q_table:
+        full_q_table[prev_state_key] = [0.0] * 8
     else:
-        # Self-Healing: If it's not a list (e.g. float corruption), Reset it.
-        val = ctx.domain_ctx.heavy_q_table[prev_state_key]
+        # Self-Healing: Nếu bị hỏng định dạng float do lỗi serialize, Reset.
+        val = full_q_table[prev_state_key]
         is_valid = isinstance(val, (list, tuple)) or (hasattr(val, '__class__') and val.__class__.__name__ == 'TrackedList')
         if not is_valid: 
              ctx.log(f"WARNING: Q-Table Corruption detected at {prev_state_key}. Resetting.", level="warn")
-             delta_q_table[prev_state_key] = [0.0] * 8
+             full_q_table[prev_state_key] = [0.0] * 8
 
     # Check Next State (for max_q)
-    if next_state_key not in ctx.domain_ctx.heavy_q_table:
-        delta_q_table[next_state_key] = [0.0] * 8
+    if next_state_key not in full_q_table:
+        full_q_table[next_state_key] = [0.0] * 8
     else:
-        val = ctx.domain_ctx.heavy_q_table[next_state_key]
+        val = full_q_table[next_state_key]
         is_valid = isinstance(val, (list, tuple)) or (hasattr(val, '__class__') and val.__class__.__name__ == 'TrackedList')
         if not is_valid:
-             delta_q_table[next_state_key] = [0.0] * 8
+             full_q_table[next_state_key] = [0.0] * 8
     
     # Calculation
-    current_q_list = delta_q_table.get(prev_state_key, ctx.domain_ctx.heavy_q_table[prev_state_key])
-    next_q_list = delta_q_table.get(next_state_key, ctx.domain_ctx.heavy_q_table[next_state_key])
+    current_q_list = full_q_table[prev_state_key]
+    next_q_list = full_q_table[next_state_key]
     
     current_q = current_q_list[action]
     max_next_q = max(next_q_list)
@@ -287,19 +292,19 @@ def update_q_learning(ctx: SystemContext):
     td_error = reward + gamma * max_next_q - current_q
     
     alpha = 0.1
-    # Update In-Place on a COPIED list for the Delta
+    # Cập nhật mảng trên Q-Table toàn cục
     updated_q_list = list(current_q_list)
     try:
         updated_q_list[action] += alpha * td_error
-        delta_q_table[prev_state_key] = updated_q_list
+        full_q_table[prev_state_key] = updated_q_list
     except Exception as e:
         ctx.log(f"CRITICAL ERROR: {e}. Key: {prev_state_key}. Resetting.", level="error")
-        delta_q_table[prev_state_key] = [0.0] * 8
+        full_q_table[prev_state_key] = [0.0] * 8
     
-    # Final Result
+    # Final Result: Trả về ENTIRE TABLE để Engine đồng bộ đè lên State mà không làm mất dữ liệu
     result_delta = {
         'td_error': td_error,
-        'heavy_q_table': delta_q_table
+        'heavy_q_table': full_q_table
     }
     
     # 4. Neural Network Training (Deep RL)
@@ -312,8 +317,8 @@ def update_q_learning(ctx: SystemContext):
         
         if prev_emo is not None and curr_emo is not None:
             # Conversion
-            state_tensor = observation_to_tensor(prev_obs)
-            next_state_tensor = observation_to_tensor(curr_obs)
+            state_tensor = observation_to_tensor(obs_prev)
+            next_state_tensor = observation_to_tensor(obs_next)
             
             # Forward Q(s,a)
             # Ensure emotion is tensor compatible

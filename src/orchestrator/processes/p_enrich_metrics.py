@@ -16,6 +16,7 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
     """
     domain, is_dict = get_domain_ctx(ctx)
     metrics = get_attr(domain, 'metrics', {})
+    print(f"DEBUG enrich_episode_metrics: metrics type={type(metrics)}, value={metrics}")
     
     # Get experiment info
     active_idx = get_attr(domain, 'active_experiment_idx', 0)

@@ -64,10 +64,10 @@ def _integrate_impl(ctx: SystemContext, sync: bool = True):
         tau_decay = 0.9
     
     # 2. Vectorized Decay
-    print(f"DEBUG INTEGRATE: BEFORE Decay, pots[:3]={pots[:3]}")
+    # print(f"DEBUG INTEGRATE: BEFORE Decay, pots[:3]={pots[:3]}")
     pots *= tau_decay
     p_vecs *= tau_decay
-    print(f"DEBUG INTEGRATE: AFTER Decay, pots[:3]={pots[:3]}")
+    # print(f"DEBUG INTEGRATE: AFTER Decay, pots[:3]={pots[:3]}")
     
     # 3. Handle Spikes (Vectorized Buffer)
     try:
@@ -253,14 +253,12 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
     metrics['fire_rate'] = fire_rate
     metrics['fired_count'] = len(fired_indices)
     
-    # Cumulative Update (Running Average)
-    metrics['accumulated_spikes'] = metrics.get('accumulated_spikes', 0) + len(fired_indices)
-    metrics['accumulated_ticks'] = metrics.get('accumulated_ticks', 0) + 1
-    
-    if metrics['accumulated_ticks'] > 0 and len(pots) > 0:
-        metrics['avg_firing_rate'] = metrics['accumulated_spikes'] / (metrics['accumulated_ticks'] * len(pots))
-    else:
-        metrics['avg_firing_rate'] = 0.0
+    # Cumulative Update (Running Average) -> Thay bằng Exponential Moving Average (EMA)
+    # Điều này loại bỏ hoàn toàn sự phụ thuộc vào số ticks tích lũy từ đầu, 
+    # giúp Rate phản ánh chính xác hoạt động của Episode hiện tại.
+    alpha_ema = 0.05 # Tốc độ cập nhật trung bình (5% step mới, 95% lịch sử gần)
+    current_avg = metrics.get('avg_firing_rate', 0.0)
+    metrics['avg_firing_rate'] = (1.0 - alpha_ema) * current_avg + alpha_ema * fire_rate
 
     # Final Delta construction
     delta = {

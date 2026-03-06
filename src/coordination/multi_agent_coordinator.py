@@ -218,7 +218,8 @@ class MultiAgentCoordinator:
                     consecutive_errors += 1
                     if consecutive_errors > 5:
                         print("🚨 CIRCUIT BREAKER TRIPPED: Too many consecutive errors. Aborting Episode.")
-                        return float('-inf') # Abort execution
+                        # FIX INC-001: Trả về dict chuẩn thay vì float('-inf') để tránh crash TypeError
+                        return {'error': 'circuit_breaker', 'avg_reward': float('-inf')}
                     continue
                 
                 # Reset circuit breaker on success

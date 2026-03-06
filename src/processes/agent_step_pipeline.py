@@ -24,6 +24,18 @@ from src.processes.snn_resync_theus import process_periodic_resync
 from src.processes.rl_snn_integration import execute_action_with_env, combine_rewards
 from src.processes.snn_recorder_process import process_record_snn_step
 
+def _apply_delta(ctx: SystemContext, delta: dict):
+    """
+    Helper to manually merge process outputs into context, 
+    since we bypass TheusEngine's _apply_outputs.
+    """
+    if not isinstance(delta, dict):
+        return
+    for k, v in delta.items():
+        if k.startswith('domain_ctx.'):
+            k = k.replace('domain_ctx.', '')
+        setattr(ctx.domain_ctx, k, v)
+
 # Pipeline Function
 def run_agent_step_pipeline(ctx: SystemContext):
     """
@@ -32,40 +44,40 @@ def run_agent_step_pipeline(ctx: SystemContext):
     """
     
     # 1. Perception
-    perception(ctx)
+    _apply_delta(ctx, perception(ctx))
     
     # 2. SNN Safety Checks
-    monitor_safety_triggers(ctx)
+    _apply_delta(ctx, monitor_safety_triggers(ctx))
     
     # 3. Attention Modulation
-    restore_snn_attention(ctx)
-    modulate_snn_attention(ctx)
+    _apply_delta(ctx, restore_snn_attention(ctx))
+    _apply_delta(ctx, modulate_snn_attention(ctx))
     
     # 4. SNN Cycle (Composite)
-    process_snn_cycle(ctx)
+    _apply_delta(ctx, process_snn_cycle(ctx))
     
     # 5. Fast Homeostasis
-    process_homeostasis(ctx)
+    _apply_delta(ctx, process_homeostasis(ctx))
     
     # 6. Advanced Features (Post-Cycle)
-    process_commitment(ctx)
-    process_neural_darwinism(ctx)
-    process_assimilate_ancestor(ctx)
+    _apply_delta(ctx, process_commitment(ctx))
+    _apply_delta(ctx, process_neural_darwinism(ctx))
+    _apply_delta(ctx, process_assimilate_ancestor(ctx))
     
     # 7. RL Decision Making
-    compute_intrinsic_reward_snn(ctx)
-    select_action_gated(ctx)
+    _apply_delta(ctx, compute_intrinsic_reward_snn(ctx))
+    _apply_delta(ctx, select_action_gated(ctx))
     
     # 8. Social / Meta (Sandbox)
-    process_inject_viral_with_quarantine(ctx)
-    process_quarantine_validation(ctx)
-    process_meta_homeostasis_fixed(ctx)
-    process_periodic_resync(ctx)
+    _apply_delta(ctx, process_inject_viral_with_quarantine(ctx))
+    _apply_delta(ctx, process_quarantine_validation(ctx))
+    _apply_delta(ctx, process_meta_homeostasis_fixed(ctx))
+    _apply_delta(ctx, process_periodic_resync(ctx))
     
     # 9. Execution & Learning
-    execute_action_with_env(ctx)
-    combine_rewards(ctx)
-    update_q_learning(ctx)
+    _apply_delta(ctx, execute_action_with_env(ctx))
+    _apply_delta(ctx, combine_rewards(ctx))
+    _apply_delta(ctx, update_q_learning(ctx))
     
     # 10. Recording
-    process_record_snn_step(ctx)
+    _apply_delta(ctx, process_record_snn_step(ctx))
