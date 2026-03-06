@@ -80,6 +80,10 @@ class GridWorld:
         self.switch_states = {switch_id: False for switch_id in self.switches.values()}
         self.dynamic_wall_states = {wall_id: True for wall_id in self.dynamic_walls.keys()}
         self._update_dynamic_walls()
+        
+        # FIX INC-003: Theo dõi va chạm mở rộng (Extended Proprioceptive Feedback)
+        self.last_bump_types = {i: None for i in range(self.num_agents)}
+        
         return self.get_all_observations()
 
     def get_sensor_vector(self, agent_id: int) -> 'np.ndarray':
@@ -160,8 +164,21 @@ class GridWorld:
                         break
                 idx += 1
         
-        # Kênh 12-15: Dự phòng (có thể dùng cho môi trường khác)
-        # Để trống cho future use
+        # Kênh 12-15: Extended Proprioceptive & Arousal (INC-003 Extended)
+        # Kênh 12: Static Wall Bump
+        if self.last_bump_types.get(agent_id) == 'static':
+            vector[12] = 1.0
+            
+        # Kênh 13: Dynamic Gate Bump (Cảm giác về vật thể di động chặn đường)
+        if self.last_bump_types.get(agent_id) == 'dynamic':
+            vector[13] = 1.0
+            
+        # Kênh 14: Action Strobe (SNN Nhịp sinh học)
+        vector[14] = 1.0
+        
+        # Kênh 15: Internal Pressure / Time Urgency (Pain Signal)
+        # Tín hiệu tăng dần từ 0.0 đến 1.0 khi tiến gần max_steps
+        vector[15] = min(1.0, self.current_step / max(1, self.max_steps))
         
         return vector
     
@@ -191,14 +208,19 @@ class GridWorld:
         new_pos = (r, c)
 
         is_valid_move = True
+        bump_type = None
+        
         if not (0 <= r < self.size and 0 <= c < self.size):
             is_valid_move = False
+            bump_type = 'static' # Out of bounds is static boundary
         elif new_pos in self.static_walls:
             is_valid_move = False
+            bump_type = 'static'
         else:
             for wall_id, is_closed in self.dynamic_wall_states.items():
                 if is_closed and new_pos in self.dynamic_walls.get(wall_id, []):
                     is_valid_move = False
+                    bump_type = 'dynamic'
                     break
         
         # Base reward
@@ -252,6 +274,9 @@ class GridWorld:
         else:
             # Invalid move penalty
             reward = -0.5
+        
+        # FIX INC-003: Lưu phân loại va chạm để truyền vào sensor bước sau
+        self.last_bump_types[agent_id] = bump_type
 
         # Goal reward (highest priority)
         if tuple(self.agent_positions[agent_id]) == self.goal_pos:

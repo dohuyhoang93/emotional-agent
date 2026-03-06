@@ -192,11 +192,23 @@ class MultiAgentCoordinator:
                 try:
                     action = agent.step(env_adapter)
                     
-                    # Execute action in environment
+                    # Execute action in environment (THE ONLY MOVE)
                     reward = env.perform_action(i, self._action_to_string(action))
                     
-                    # Feed reward back to agent
-                    agent.observe_reward(reward)
+                    # Get next observation after move
+                    next_obs = env.get_observation(i)
+                    
+                    # Feed reward and observation back to agent for Learning
+                    agent.observe_reward_and_learn(reward, next_obs)
+
+                    # DEBUG PROBE: Theo dõi sensor 12-15 (Re-enabled by user request)
+                    if i == 0:
+                        s = env.get_sensor_vector(0)
+                        bump_msg = f"BUMP({env.last_bump_types.get(0)})" if env.last_bump_types.get(0) else "Sensing"
+                        print(f"🔍 [INC-003 PROBE] Agent 0 Step {step_count} | {bump_msg} | Ch12={s[12]} Ch13={s[13]} Ch14={s[14]} Ch15={s[15]:.3f}", flush=True)
+                    elif env.last_bump_types.get(i) == 'dynamic':
+                        s = env.get_sensor_vector(i)
+                        print(f"🔥 [INC-003 GATE-HIT] Agent {i} HIT DYNAMIC GATE at step {step_count} | Ch13={s[13]}", flush=True)
                     
                     # NEW: Check Goal Achievement explicitly
                     if tuple(env.agent_positions[i]) == env.goal_pos:

@@ -74,10 +74,10 @@ def run_agent_step_pipeline(ctx: SystemContext):
     _apply_delta(ctx, process_meta_homeostasis_fixed(ctx))
     _apply_delta(ctx, process_periodic_resync(ctx))
     
-    # 9. Execution & Learning
-    _apply_delta(ctx, execute_action_with_env(ctx))
-    _apply_delta(ctx, combine_rewards(ctx))
-    _apply_delta(ctx, update_q_learning(ctx))
+    # 9. Execution & Learning (MOVED TO COORDINATOR to fix Double Move)
+    # _apply_delta(ctx, execute_action_with_env(ctx))
+    # _apply_delta(ctx, combine_rewards(ctx))
+    # _apply_delta(ctx, update_q_learning(ctx))
     
     # 10. Recording
     _apply_delta(ctx, process_record_snn_step(ctx))

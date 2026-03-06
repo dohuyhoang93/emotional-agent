@@ -39,8 +39,10 @@ class FSMExperimentRunner:
         from src.core.context import GlobalContext
         from src.core.snn_context_theus import SNNGlobalContext
         
-        num_agents = env_config.get('num_agents', 1)
-        max_steps = env_config.get('max_steps_per_episode', 100)
+        num_agents = env_config.get('num_agents', self.config.get('num_agents', 1))
+        max_steps = env_config.get('max_steps_per_episode', self.config.get('max_steps_per_episode', 100))
+        
+        print(f"DEBUG INIT: num_agents={num_agents}, max_steps={max_steps}", flush=True)
         
         # HACK: Create GlobalContext from config
         global_ctx = GlobalContext()

@@ -319,30 +319,39 @@ class RLAgent:
             
         return self.domain_ctx.last_action
     
-    def observe_reward(self, extrinsic_reward: float):
+    def observe_reward_and_learn(self, extrinsic_reward: float, next_obs: Dict[str, Any]):
         """
-        Receive extrinsic reward from environment and update metrics.
-        Called by Coordinator after action execution.
+        Receive extrinsic reward and next observation, then update SNN/RL models.
+        This fixes the 'Double Move' bug by decoupling thinking from execution.
         """
-        # Calculate total reward
-        intrinsic = self.domain_ctx.intrinsic_reward if hasattr(self.domain_ctx, 'intrinsic_reward') else 0.0
+        from src.processes.rl_snn_integration import combine_rewards
+        from src.processes.rl_processes import update_q_learning
         
-        # Apply weighting (Prevent Curiosity Hacking)
-        weight = getattr(self.global_ctx, 'intrinsic_reward_weight', 0.1)
-        
-        total = extrinsic_reward + (intrinsic * weight)
-        
-        # Update context within transaction
+        # 1. Update context with external feedback
         with self.engine.edit():
+            self.domain_ctx.current_observation = next_obs
             self.domain_ctx.last_reward = {
                 'extrinsic': extrinsic_reward,
-                'intrinsic': intrinsic,
-                'total': total
+                'intrinsic': 0.0, # Will be updated by combine_rewards
+                'total': extrinsic_reward
             }
         
-        # Accumulate metrics (Local field, not guarded? Wait, episode_metrics is dict on self)
-        # self.episode_metrics is NOT a Context field. It is instance attr. Safe to write?
-        # Yes, LockViolationError was on 'last_reward' which is domain_ctx.
+        # 2. Sync with Pipeline delta application style
+        def _apply(delta):
+            if not isinstance(delta, dict): return
+            for k, v in delta.items():
+                if k.startswith('domain_ctx.'): k = k.replace('domain_ctx.', '')
+                setattr(self.domain_ctx, k, v)
+
+        # 3. Execution & Learning steps (Moved from pipeline)
+        _apply(combine_rewards(self.rl_ctx))
+        _apply(update_q_learning(self.rl_ctx))
+        
+        # 4. Accumulate metrics
+        reward_dict = self.domain_ctx.last_reward
+        total = reward_dict.get('total', extrinsic_reward)
+        intrinsic = reward_dict.get('intrinsic', 0.0)
+        
         self.episode_metrics['total_reward'] += total
         self.episode_metrics['intrinsic_reward_total'] += intrinsic
         self.episode_metrics['extrinsic_reward_total'] += extrinsic_reward
