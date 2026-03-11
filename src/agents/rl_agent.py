@@ -296,18 +296,15 @@ class RLAgent:
         Returns:
             Selected action (0-3)
         """
-        # Inject adapter into context for processes to use (v3 Context-based approach)
+        # NOTE: Gọi trực tiếp thay vì qua engine.execute_sync.
+        # execute_sync dùng asyncio, nhưng method này được gọi từ ThreadPoolExecutor
+        # (multi_agent_coordinator.py). asyncio event loop không có trong worker threads
+        # → sẽ deadlock hoặc fail. Direct call là cách đúng ở đây.
         with self.engine.edit():
             self.domain_ctx.env_adapter = env_adapter
 
-        # Run workflow (Manual Pipeline for Performance/Safety)
-        # Bypassing self.engine.execute_workflow to avoid nested loop/thread issues
         from src.processes.agent_step_pipeline import run_agent_step_pipeline
         run_agent_step_pipeline(self.rl_ctx)
-        
-        # Record Step (Phase 15 - Legacy)
-        # REMOVED: Handled by workflow process 'process_record_snn_step'
-        # if self.recorder: ...
         
         # Update metrics
         self.episode_metrics['steps'] += 1
@@ -323,31 +320,33 @@ class RLAgent:
         """
         Receive extrinsic reward and next observation, then update SNN/RL models.
         This fixes the 'Double Move' bug by decoupling thinking from execution.
+        
+        NOTE: Gọi trực tiếp, không qua execute_sync — tránh asyncio deadlock trong thread.
         """
         from src.processes.rl_snn_integration import combine_rewards
         from src.processes.rl_processes import update_q_learning
-        
-        # 1. Update context with external feedback
+
+        # NOTE: previous_observation PHẢI được gán TRƯỚC khi ghi đè current_observation.
+        # Nếu không, update_q_learning sẽ thấy previous_observation=None và luôn skip.
         with self.engine.edit():
+            self.domain_ctx.previous_observation = self.domain_ctx.current_observation
             self.domain_ctx.current_observation = next_obs
             self.domain_ctx.last_reward = {
                 'extrinsic': extrinsic_reward,
-                'intrinsic': 0.0, # Will be updated by combine_rewards
+                'intrinsic': 0.0,
                 'total': extrinsic_reward
             }
-        
-        # 2. Sync with Pipeline delta application style
+
         def _apply(delta):
             if not isinstance(delta, dict): return
             for k, v in delta.items():
                 if k.startswith('domain_ctx.'): k = k.replace('domain_ctx.', '')
                 setattr(self.domain_ctx, k, v)
 
-        # 3. Execution & Learning steps (Moved from pipeline)
         _apply(combine_rewards(self.rl_ctx))
         _apply(update_q_learning(self.rl_ctx))
         
-        # 4. Accumulate metrics
+        # 2. Accumulate metrics from updated context
         reward_dict = self.domain_ctx.last_reward
         total = reward_dict.get('total', extrinsic_reward)
         intrinsic = reward_dict.get('intrinsic', 0.0)

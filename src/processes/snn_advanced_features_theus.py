@@ -472,18 +472,18 @@ def process_neural_darwinism(
     new_metrics = dict(domain.metrics)
     new_metrics['darwinism_survivors'] = len(survivors)
     new_metrics['recycled_neurons'] = recycled_count
-    new_metrics['new_synapses_generated'] = len(new_synapses)
+    new_metrics['new_metrics_generated'] = len(new_synapses)
 
-    # Invalidate cache if needed
-    heavy_tensors = dict(domain.heavy_tensors)
-    if heavy_tensors:
-         heavy_tensors.clear()
-
+    # NOTE: DO NOT clear() heavy_tensors as it is a ShmTensorStore.
+    # Clearing it destroys the memory mapping for this agent.
+    # Instead, we just signal that keys might need re-sync if Darwinism was aggressive,
+    # but for ndarray state (potentials, etc), they are already in SHM.
+    
     return {
-        'synapses': survivors + new_synapses, # Note: update_synapses_generated? No, just the list
-        'neurons': domain.neurons, # Updated in loop
+        'synapses': survivors + new_synapses,
+        'neurons': domain.neurons,
         'metrics': new_metrics,
-        'heavy_tensors': heavy_tensors
+        'heavy_tensors': domain.heavy_tensors
     }
 
 

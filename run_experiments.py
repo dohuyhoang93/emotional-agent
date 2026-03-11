@@ -134,7 +134,8 @@ def main(argv=None):
         context=system_ctx, 
         strict_guards=False, # Disabled for Legacy Process Compatibility
         audit_recipe=audit_recipe,
-        write_timeout_ms=600000 # Override default timeout from 30s to 10m for complex maze
+        write_timeout_ms=3600000 # 60 phút: SNN cycle đầy đủ cần nhiều thời gian hơn 10 phút cũ
+
     )
     
     # 3. Auto-Discovery

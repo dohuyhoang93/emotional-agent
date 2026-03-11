@@ -495,6 +495,39 @@ class HeavyZoneAllocator:
 
         atexit.register(self.cleanup)
 
+    def __getstate__(self):
+        """[Fix] Skip non-picklable Rust objects (Registry)."""
+        state = self.__dict__.copy()
+        state['_registry'] = None # Re-init on unpickle
+        return state
+
+    def __setstate__(self, state):
+        """[Fix] Restore state and re-init registry if needed."""
+        self.__dict__.update(state)
+        # Re-initialize registry if possible (handles deepcopy isolation)
+        if hasattr(self, "_session_id") and not getattr(self, "_registry", None):
+            try:
+                # Use same discovery logic as __init__
+                import theus_core
+                MemoryRegistry = getattr(theus_core, "MemoryRegistry", None)
+                if MemoryRegistry is None:
+                    # Try submodule
+                    try:
+                        from theus_core.theus_core import MemoryRegistry
+                    except ImportError:
+                        # Try shm
+                        try:
+                            from theus_core.shm import MemoryRegistry
+                        except ImportError:
+                            MemoryRegistry = None
+                
+                if MemoryRegistry:
+                    self._registry = MemoryRegistry(self._session_id)
+                else:
+                    self._registry = None
+            except Exception:
+                self._registry = None
+
     def alloc(self, key: str, shape: tuple, dtype) -> Any:
         """
         Allocate a managed ShmArray.

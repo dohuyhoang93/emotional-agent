@@ -2,6 +2,8 @@ import logging
 import contextvars
 from typing import Any, Dict, List, Optional, Set, Union
 import functools
+import numpy as np
+import torch
 
 # NOTE: Transaction is stored here instead of in ContextGuard instances to prevent
 # Transaction refs from leaking into the serializable object graph. This breaks
@@ -141,6 +143,49 @@ class ContextGuard:
                 is_admin=False,
                 strict_guards=strict_guards,
             )
+
+    def __call__(self, *args, **kwargs):
+        """[RFC-001] Forward pass support for Models and other callables."""
+        # Deep unwrap to avoid passing ContextGuards to native code (e.g. Torch)
+        def _deep_unwrap(v):
+            if isinstance(v, ContextGuard):
+                return _deep_unwrap(v._inner)
+            if isinstance(v, dict):
+                return {k: _deep_unwrap(sv) for k, sv in v.items()}
+            if isinstance(v, (list, tuple)):
+                return [_deep_unwrap(it) for it in v]
+            return v
+            
+        u_args = [_deep_unwrap(a) for a in args]
+        u_kwargs = {k: _deep_unwrap(v) for k, v in kwargs.items()}
+        
+        if hasattr(self._inner, "__call__"):
+            return self._inner(*u_args, **u_kwargs)
+        
+        # Fallback to target if this is a bridge guard
+        target = object.__getattribute__(self, "_target")
+        # print(f"DEBUG: ContextGuard call on target type: {type(target)}")
+        if target is not None and (hasattr(target, "__call__") or callable(target)):
+            return target(*u_args, **u_kwargs)
+            
+        raise TypeError(f"'{self.__class__.__name__}' object is not callable")
+
+    def __bool__(self):
+        """[Fix] Guards are always truthy if the target exists."""
+        return True
+
+    def log(self, message: str, level: str = "info"):
+        """[Extension] Supporting level-aware logging from processes."""
+        level_map = {
+            "debug": logging.DEBUG,
+            "info": logging.INFO,
+            "warning": logging.WARNING,
+            "warn": logging.WARNING,
+            "error": logging.ERROR,
+            "critical": logging.CRITICAL
+        }
+        lvl = level_map.get(level.lower(), logging.INFO)
+        self._log.log(lvl, message)
 
     def _check_zone_physics(self, path: str, mode: str) -> None:
         """[RFC-001 §5] Enforce Zone Physics at Python layer."""
@@ -282,9 +327,20 @@ class ContextGuard:
              raise PermissionError(f"Illegal Read: Path '{full_path}' is restricted by Process Contract.")
 
         val = None
+        # 0. Heavy Zone Bypassing (Zero-Copy)
+        if name.startswith("heavy_"):
+            val = getattr(self._inner, name, None) if self._inner is not None else None
+            if val is None and self._target:
+                 val = getattr(self._target, name, None)
+            if val is not None:
+                return val
         # 2. Rust delegation
         try:
-            val = getattr(self._inner, name) if self._inner is not None else None
+            val = getattr(self._inner, name, None) if self._inner is not None else None
+            # [v3.5] Heavy Prefix Fallback: If 'X' is not found, try 'heavy_X'
+            if val is None and self._inner is not None:
+                val = getattr(self._inner, f"heavy_{name}", None)
+            
             if val is None and self._target:
                  # Try target (Hybrid Bridge)
                  val = getattr(self._target, name, None)
@@ -351,7 +407,7 @@ class ContextGuard:
                            except: pass
 
             # 2. Return elevated wrapper
-            if not isinstance(val, ContextGuard) and not isinstance(val, (int, float, str, bool, type(None))):
+            if not isinstance(val, ContextGuard) and not isinstance(val, (int, float, str, bool, type(None), np.ndarray, torch.Tensor)):
                  # RECONCILE INNER PROXY (Hybrid Bridge)
                  sub_inner = getattr(val, "_theus_proxy", None)
                  new_guard = ContextGuard(
@@ -368,7 +424,7 @@ class ContextGuard:
                  return new_guard
         
         # 4. Nested Guard wrapping (Normal flow)
-        if isinstance(val, _RustContextGuard) or (hasattr(val, "is_proxy") and getattr(val, "is_proxy")()):
+        if (isinstance(val, _RustContextGuard) or (hasattr(val, "is_proxy") and getattr(val, "is_proxy")())) and not isinstance(val, (np.ndarray, torch.Tensor)):
             sub_target = None
             if self._target is not None:
                 sub_target = getattr(self._target, name, None)
@@ -394,6 +450,12 @@ class ContextGuard:
              raise PermissionError(f"Illegal Read: Path '{full_path}' is restricted by Process Contract.")
 
         val = None
+        # 0. Heavy Zone Bypassing (Zero-Copy)
+        if isinstance(key, str) and key.startswith("heavy_"):
+            try:
+                val = self._inner[key]
+                return val
+            except: pass
         try:
             val = self._inner[key]
         except RuntimeError as rt_err:
@@ -438,7 +500,7 @@ class ContextGuard:
             raise e
 
         if self._local_is_admin:
-            if not isinstance(val, ContextGuard) and not isinstance(val, (int, float, str, bool, type(None))):
+            if not isinstance(val, ContextGuard) and not isinstance(val, (int, float, str, bool, type(None), np.ndarray, torch.Tensor)):
                  sub_inner = getattr(val, "_theus_proxy", None)
                  new_guard = ContextGuard(
                     target_obj=val,
@@ -454,7 +516,7 @@ class ContextGuard:
                  return new_guard
 
         # 4. Nested Guard wrapping (Normal flow)
-        if isinstance(val, _RustContextGuard) or (hasattr(val, "is_proxy") and getattr(val, "is_proxy")()):
+        if (isinstance(val, _RustContextGuard) or (hasattr(val, "is_proxy") and getattr(val, "is_proxy")())) and not isinstance(val, (np.ndarray, torch.Tensor)):
             sub_target = None
             if self._target is not None:
                 if hasattr(self._target, "__getitem__"):
@@ -479,6 +541,9 @@ class ContextGuard:
                 parent=self,
                 name=key,
             )
+        # [v3.5 DEBUG] Trace wrapping
+        if val is not None and not isinstance(val, (int, float, str, bool)):
+            print(f"DEBUG: __getitem__({key}) returning {type(val)} (Guard={isinstance(val, ContextGuard)})")
         return val
 
     # [RFC-001] SHADOW METHODS FOR ADMIN BYPASS + ZONE PHYSICS ENFORCEMENT
@@ -632,7 +697,10 @@ class ContextGuard:
         return item in self._inner
 
     def __len__(self):
-        return len(self._inner)
+        try:
+            return len(self._inner) if self._inner is not None else 0
+        except (TypeError, AttributeError):
+            return 0
 
     def __repr__(self):
         return f"<ContextGuard wrapping {repr(self._inner)} admin={self._local_is_admin}>"

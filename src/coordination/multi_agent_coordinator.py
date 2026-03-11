@@ -13,6 +13,7 @@ from theus import TheusEngine
 import os
 import torch
 import gc # Memory management
+from concurrent.futures import ThreadPoolExecutor
 from src.core.context import GlobalContext, DomainContext, SystemContext
 from src.core.snn_context_theus import SNNGlobalContext, create_snn_context_theus
 from src.adapters.environment_adapter import EnvironmentAdapter
@@ -141,6 +142,9 @@ class MultiAgentCoordinator:
         self.population_performance: List[float] = []
         self.episode_count = 0
         
+        # Parallel Execution Engine
+        self._executor = ThreadPoolExecutor(max_workers=num_agents)
+        
         self.ancestor_weights: np.ndarray = None # Deprecated, use snn_global_ctx.domain_ctx.ancestor_weights
         
         # Revolution Protocol Manager (with cooldown)
@@ -154,7 +158,7 @@ class MultiAgentCoordinator:
     
     def run_episode(self, env, env_adapter: EnvironmentAdapter):
         """
-        Run one episode for all agents.
+        Run one episode for all agents (Parallelized Thinking/Learning).
         
         Args:
             env: GridWorld environment
@@ -178,30 +182,36 @@ class MultiAgentCoordinator:
         step_count = 0
         consecutive_errors = 0 # Circuit Breaker
         max_steps = self.global_ctx.max_steps
-        max_steps = self.global_ctx.max_steps
         
         while step_count < max_steps:
             # New step (clear broadcast events)
             env.new_step()
             
-            # Each agent takes a step
-            # if step_count % 10 == 0:
-            #     print(f"DEBUG: Heartbeat Step {step_count}/{max_steps}")
-            
-            for i, agent in enumerate(self.agents):
+            # --- PHASE 1: Parallel Thinking (SNN Inference) ---
+            try:
+                # Mỗi agent tính toán hành động dựa trên quan sát hiện tại
+                futures_step = [
+                    self._executor.submit(agent.step, env_adapter)
+                    for agent in self.agents
+                ]
+                actions = [f.result() for f in futures_step]
+            except Exception as e:
+                print(f"CRITICAL ERROR in Parallel Thinking: {e}")
+                # Fallback hoặc Terminate
+                break
+
+            # --- PHASE 2: Sequential Acting (Environment Dynamics) ---
+            # NOTE: Phải tuần tự vì GridWorld 2D có va chạm vật lý phụ thuộc vào thứ tự di chuyển
+            step_results = [] # (reward, next_obs)
+            for i, action in enumerate(actions):
                 try:
-                    action = agent.step(env_adapter)
-                    
-                    # Execute action in environment (THE ONLY MOVE)
+                    # Execute action in environment
                     reward = env.perform_action(i, self._action_to_string(action))
-                    
                     # Get next observation after move
                     next_obs = env.get_observation(i)
-                    
-                    # Feed reward and observation back to agent for Learning
-                    agent.observe_reward_and_learn(reward, next_obs)
+                    step_results.append((reward, next_obs))
 
-                    # DEBUG PROBE: Theo dõi sensor 12-15 (Re-enabled by user request)
+                    # DEBUG PROBE: Theo dõi sensor 12-15 (Agent 0 only)
                     if i == 0:
                         s = env.get_sensor_vector(0)
                         bump_msg = f"BUMP({env.last_bump_types.get(0)})" if env.last_bump_types.get(0) else "Sensing"
@@ -210,13 +220,12 @@ class MultiAgentCoordinator:
                         s = env.get_sensor_vector(i)
                         print(f"🔥 [INC-003 GATE-HIT] Agent {i} HIT DYNAMIC GATE at step {step_count} | Ch13={s[13]}", flush=True)
                     
-                    # NEW: Check Goal Achievement explicitly
+                    # Check Goal Achievement
                     if tuple(env.agent_positions[i]) == env.goal_pos:
-                        if not agent.episode_metrics.get('success', False):
+                        if not self.agents[i].episode_metrics.get('success', False):
                              print(f"\n🏆 SUCCESS: Agent {i} Reached Goal at Step {step_count}!")
-                             agent.episode_metrics['success'] = True
-                             agent.episode_metrics['steps_to_goal'] = step_count
-                    
+                             self.agents[i].episode_metrics['success'] = True
+                             self.agents[i].episode_metrics['steps_to_goal'] = step_count
                 except Exception as e:
                     # RUST CORE TRAP: Theus catches KeyboardInterrupt and wraps it in ContractViolationError
                     if "KeyboardInterrupt" in str(e):
@@ -226,17 +235,30 @@ class MultiAgentCoordinator:
 
                     import traceback
                     traceback.print_exc()
-                    print(f"Agent {i} error: {e}")
+                    print(f"Error in Sequential Acting for Agent {i}: {e}")
                     consecutive_errors += 1
                     if consecutive_errors > 5:
                         print("🚨 CIRCUIT BREAKER TRIPPED: Too many consecutive errors. Aborting Episode.")
                         # FIX INC-001: Trả về dict chuẩn thay vì float('-inf') để tránh crash TypeError
                         return {'error': 'circuit_breaker', 'avg_reward': float('-inf')}
+                    step_results.append((0.0, env.get_observation(i))) # Placeholder
                     continue
                 
                 # Reset circuit breaker on success
                 consecutive_errors = 0
-            
+
+            # --- PHASE 3: Parallel Learning (RL Optimization) ---
+            try:
+                futures_learn = [
+                    self._executor.submit(self.agents[i].observe_reward_and_learn, step_results[i][0], step_results[i][1])
+                    for i in range(self.num_agents)
+                ]
+                # Wait for all learning tasks to finish
+                for f in futures_learn:
+                    f.result()
+            except Exception as e:
+                print(f"Error in Parallel Learning: {e}")
+
             # Increment step
             env.current_step += 1
             step_count += 1
@@ -356,7 +378,11 @@ class MultiAgentCoordinator:
             0: 'up',
             1: 'down', 
             2: 'left',
-            3: 'right'
+            3: 'right',
+            4: 'up-left',
+            5: 'up-right',
+            6: 'down-left',
+            7: 'down-right'
         }
         return mapping.get(action_id, 'stay')
 

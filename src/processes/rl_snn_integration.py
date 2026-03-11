@@ -231,3 +231,43 @@ def reset_environment(ctx: SystemContext):
     return {
         'current_observation': initial_obs
     }
+
+@process(
+    inputs=['domain_ctx', 'domain_ctx.snn_context'],
+    outputs=['domain_ctx', 'domain_ctx.snn_context'],
+)
+def process_agent_learn_composite(ctx: SystemContext, extrinsic_reward: float = 0.0, next_obs: dict = None):
+    """
+    Composite process combining observation update, reward combination, and Q-learning.
+    Reduces 3 transactions to 1.
+    """
+    from src.processes.rl_processes import update_q_learning
+    
+    # NOTE: previous_observation phải được set TRƯỚC khi ghi đè current_observation.
+    # Nếu không, update_q_learning sẽ thấy previous_observation=None và skip hoàn toàn.
+    # Đây là nguyên nhân gốc rễ khiến Q-table luôn rỗng (q_table_size=0).
+    # 1. Manual update of state in current context (Pre-sync for sub-processes)
+    ctx.domain_ctx.previous_observation = ctx.domain_ctx.current_observation
+    ctx.domain_ctx.current_observation = next_obs
+    ctx.domain_ctx.last_reward = {
+        'extrinsic': extrinsic_reward,
+        'intrinsic': 0.0, # Will be updated by combine_rewards
+        'total': extrinsic_reward
+    }
+    
+    combined_delta = {}
+    
+    # 2. Run Combine Rewards
+    reward_delta = combine_rewards(ctx)
+    if reward_delta:
+        # Apply locally to satisfy next process in the same chain
+        for k, v in reward_delta.items():
+            setattr(ctx.domain_ctx, k, v)
+        combined_delta.update(reward_delta)
+        
+    # 3. Run Q-Learning
+    learn_delta = update_q_learning(ctx)
+    if learn_delta:
+        combined_delta.update(learn_delta)
+        
+    return combined_delta

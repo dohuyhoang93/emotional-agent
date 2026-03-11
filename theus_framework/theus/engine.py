@@ -103,12 +103,17 @@ class TheusEngine:
             if hasattr(obj, "to_dict"): return obj.to_dict()
             if hasattr(obj, "model_dump"): return obj.model_dump()
             if hasattr(obj, "dict"): return obj.dict()
-            if isinstance(obj, dict):
-                 return {k: _dump_context(v) for k, v in obj.items()}
-            if isinstance(obj, (list, tuple, set)):
-                 return [_dump_context(v) for v in obj]
+            if isinstance(obj, (int, float, str, bool, list, dict, set, tuple)):
+                 if isinstance(obj, dict):
+                      return {k: _dump_context(v) for k, v in obj.items()}
+                 if isinstance(obj, (list, tuple, set)):
+                      return [_dump_context(v) for v in obj]
+                 return obj
             if hasattr(obj, "__dict__"):
-                 return {k: _dump_context(v) for k, v in vars(obj).items() if not k.startswith("_")}
+                 # Check if it's a standard dataclass or something we SHOULD dump
+                 # For now, if it's not a primitive/container and has no to_dict, keep it as-is
+                 # to avoid breaking callable models.
+                 return obj 
             return obj
 
         if hasattr(self, "_context"):
@@ -399,6 +404,13 @@ class TheusEngine:
         )
 
         return executed
+
+    def execute_sync(self, func_or_name, **kwargs):
+        """
+        Synchronous wrapper for execute(). 
+        Safe to call from blocking threads (e.g. ThreadPoolExecutor).
+        """
+        return self._run_process_sync(func_or_name, **kwargs)
 
     def _run_process_sync(self, name: str, **kwargs):
         """Run a process synchronously (blocking). Called by Rust Flux Engine."""
@@ -814,7 +826,7 @@ class TheusEngine:
                         raw_outbox = ctx.outbox
                         
                         native_guard = ContextGuard(
-                            target_obj=ctx,
+                            target_obj=self._context,
                             allowed_inputs=set(contract.inputs if contract else []),
                             allowed_outputs=set(contract.outputs if contract else []),
                             path_prefix="",
@@ -848,7 +860,7 @@ class TheusEngine:
                         _current_tx.set(tx)
                         
                         native_guard = ContextGuard(
-                            target_obj=ctx,
+                            target_obj=self._context,
                             allowed_inputs=set(contract.inputs if contract else []),
                             allowed_outputs=set(contract.outputs if contract else []),
                             path_prefix="",

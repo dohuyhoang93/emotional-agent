@@ -15,11 +15,10 @@ from src.core.snn_context_theus import SNNSystemContext, ensure_heavy_tensors_in
     inputs=['domain_ctx', 
         'domain_ctx.snn_context.domain_ctx.neurons',
         'domain_ctx.snn_context.domain_ctx.metrics',
-        'domain_ctx.snn_context.domain_ctx.metrics.fire_rate', # Current Global Rate
         'domain_ctx.snn_context.global_ctx.target_fire_rate',
         'domain_ctx.snn_context.global_ctx.homeostasis_rate',
-        'domain_ctx.snn_context.global_ctx.local_homeostasis_rate', # NEW
-        'domain_ctx.snn_context.global_ctx.trace_decay',             # NEW
+        'domain_ctx.snn_context.global_ctx.local_homeostasis_rate',
+        'domain_ctx.snn_context.global_ctx.trace_decay',
         'domain_ctx.snn_context.global_ctx.threshold_min',
         'domain_ctx.snn_context.global_ctx.threshold_max',
         'domain_ctx.snn_context.domain_ctx.heavy_tensors'
@@ -72,10 +71,13 @@ def process_homeostasis(ctx: SNNSystemContext):
             solidity = np.zeros_like(thresholds)
         
         # 2. Update Vectorized Firing Traces
-        current_time = snn_domain.current_time
+        # NOTE: current_time đã được tăng lên 1 bởi process_tick hoặc process_snn_cycle.
+        # Ta cần đối soát last_fire_times với (now - 1) để tìm các spikes vừa xảy ra.
+        current_time = int(snn_domain.current_time)
+        check_time = current_time - 1
         last_fire_times = t['last_fire_times']
         
-        spikes = (last_fire_times == current_time).astype(np.float32)
+        spikes = (last_fire_times == check_time).astype(np.float32)
         firing_traces[:] = decay * firing_traces + (1.0 - decay) * spikes
         
         # 3. Calculate Errors
@@ -127,6 +129,8 @@ def process_homeostasis(ctx: SNNSystemContext):
     
         # 9. Audit Metrics
         snn_domain.metrics['fire_rate'] = float(current_global_rate)
+        # Đồng bộ với EMA avg_firing_rate để các process khác (Bridge, Meta) nhận diện đúng
+        snn_domain.metrics['avg_firing_rate'] = float(current_global_rate)
         snn_domain.metrics['avg_threshold'] = float(np.mean(thresholds))
         snn_domain.metrics['std_threshold'] = float(np.std(thresholds))
         

@@ -10,6 +10,8 @@ Date: 2025-12-27
 from theus.contracts import process
 from src.core.context import SystemContext
 from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
+import numpy as np
+import torch
 
 # Import Internal Implementations
 
@@ -60,67 +62,76 @@ def process_snn_cycle(ctx: SystemContext):
     2. Core Loop (Tensor Mode): Integrate -> Lateral -> Fire
     3. Post-Processing (Object Mode): Learning, Readout, Tick
     """
+    # 0. CONFIGURATION
+    snn_ctx = ctx.domain_ctx.snn_context
+    # Get ticks per step from config (default 10)
+    ticks_per_step = getattr(snn_ctx.global_ctx, 'ticks_per_step', 10)
+    
     # 1. PERCEPTION & PRE-PROCESSING (Object Mode)
     # Hysteria updates thresholds on objects
     _hysteria_impl(ctx) 
     
-    # Encode State updates potentials on objects
-    _encode_state_to_spikes_impl(ctx)
-    
     # 2. CORE LOOP (Tensor Mode)
     # Sync Objects -> Tensors (Potentials, Thresholds, Weights)
-    # CRITICAL FIX: Explicit Sync required because _encode updated Objects
-    ensure_heavy_tensors_initialized(ctx.domain_ctx.snn_context)
+    ensure_heavy_tensors_initialized(snn_ctx)
     from src.core.snn_context_theus import sync_to_heavy_tensors
-    sync_to_heavy_tensors(ctx.domain_ctx.snn_context)
+    sync_to_heavy_tensors(snn_ctx)
     
-    # DEBUG: Check tensors after sync
-    # t = ctx.domain_ctx.snn_context.domain_ctx.tensors
-    # if 'potentials' in t:
-    #      print(f"DEBUG SYNC: Max Pot: {np.max(t['potentials']):.2f}")
-
-    # Integrate (Updates Potentials Tensor)
-    _integrate_impl(ctx, sync=False)
+    # --- TEMPORAL LOOP ---
+    fire_delta = {}
+    tick_delta = {}
     
-    # Lateral Inhibition (Updates Potentials Tensor)
-    if ctx.domain_ctx.snn_context.global_ctx.use_lateral_inhibition:
-        _lateral_inhibition_vectorized(ctx)
-    
-    # Fire (Updates Potentials Tensor, LastFire Tensor, FireCount Object, SpikeQueue Object[MUTATION])
-    # Note: _fire_impl in tensor mode writes to spike_queue (Object) directly? 
-    # Yes, _fire_impl does:
-    # if not sync: ... logic with tensors ... AND updates spike_queue object?
-    # Let's check _fire_impl in snn_core_theus.py
-    
-    _fire_impl(ctx, sync=False)
+    for _ in range(ticks_per_step):
+        # Encode State updates potentials on objects/tensors 
+        # (Already synced above, but _encode_state_to_spikes_impl still uses objects mostly)
+        # REFACTOR: We want constant input across all ticks
+        _encode_state_to_spikes_impl(ctx)
+        
+        # Integrate (Updates Potentials Tensor)
+        _integrate_impl(ctx, sync=False)
+        
+        # Lateral Inhibition (Updates Potentials Tensor)
+        if snn_ctx.global_ctx.use_lateral_inhibition:
+            _lateral_inhibition_vectorized(ctx)
+        
+        # Fire (Updates Potentials Tensor, LastFire Tensor, FireCount Object, SpikeQueue Object[MUTATION])
+        _fire_delta = _fire_impl(ctx, sync=False)
+        if _fire_delta: 
+            fire_delta.update(_fire_delta)
+        
+        # 3. LEARNING (Object Mode - sees updated Fire state)
+        # NOTE: Learning inside temporal loop is correct for SNN
+        _clustering_impl(ctx)
+        _stdp_3factor_impl(ctx)
+        
+        # 5. TICK (Advance Time)
+        _tick_delta = _tick_impl(ctx)
+        if _tick_delta: 
+            tick_delta.update(_tick_delta)
+            # CRITICAL: Mutate context so NEXT tick in loop sees progress
+            if 'current_time' in _tick_delta:
+                snn_ctx.domain_ctx.current_time = _tick_delta['current_time']
     
     # Sync Tensors -> Objects (Potentials, Weights, LastFire, Thresholds)
-    sync_from_heavy_tensors(ctx.domain_ctx.snn_context)
-    
-    # 3. LEARNING (Object Mode - sees updated Fire state)
-    _clustering_impl(ctx)
-    _stdp_3factor_impl(ctx)
-    
+    sync_from_heavy_tensors(snn_ctx)
+
+    # --- DEBUG PROBE ---
+    t = snn_ctx.domain_ctx.heavy_tensors
+    cur_time = snn_ctx.domain_ctx.current_time
+    max_p = np.max(t['potentials'])
+    avg_th = np.mean(t['thresholds'])
+    if cur_time % 100 < 10: # Log start of some steps
+        print(f"DEBUG SNN Step {cur_time}: Max Pot={max_p:.4f}, Avg Th={avg_th:.4f}")
+    # -------------------
+
     # 4. READOUT & MAINTENANCE (Object Mode)
     emo_delta = _encode_emotion_vector_impl(ctx)
     if emo_delta is None: emo_delta = {}
     
-    # --- METRIC COLLECTION (Dashboard Phase 5) ---
-    # Calculate Instantaneous Firing Rate
-    snn_domain = ctx.domain_ctx.snn_context.domain_ctx
-    if snn_domain.neurons:
-        # Check metrics populated by _fire_impl
-        # Store in Agent Metrics (snn_domain.metrics)
-        # Use values calculated in _fire_impl (Cumulative Average)
-        pass
-        
-        # DEBUG: Print to console to verify activity
-        # print(f"DEBUG: SNN Firing Rate: {instant_fr*100:.2f}%, Avg: {new_fr:.4f}")
-
-    # 5. TICK (Advance Time)
-    tick_delta = _tick_impl(ctx)
-    if tick_delta is None: tick_delta = {}
+    # Merge all deltas for Theus Engine
+    final_delta = {}
+    if fire_delta: final_delta.update(fire_delta)
+    if emo_delta: final_delta.update(emo_delta)
+    if tick_delta: final_delta.update(tick_delta)
     
-    # Marge deltas
-    final_delta = {**emo_delta, **tick_delta}
     return final_delta

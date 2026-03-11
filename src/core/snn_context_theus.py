@@ -39,6 +39,7 @@ class SNNGlobalContext(BaseGlobalContext):
     num_neurons: int = 100
     connectivity: float = 0.15  # 15% synapses
     vector_dim: int = 16
+    ticks_per_step: int = 1  # Standard: 1 tick per RL step
     
     # === Neuron Parameters ===
     tau_decay: float = 0.9  # Leaky decay (90% retention per step)
@@ -398,7 +399,19 @@ def create_snn_context_theus(
         domain_ctx=domain_ctx
     )
     
+    # Dự phòng lỗi Dependency Resolver của Theus
+    # Tạo Dummy Default Keys để không bị Skip ở T=0
+    sys_ctx.domain_ctx.metrics = {
+        'fire_rate': 0.0,
+        'avg_threshold': global_ctx.initial_threshold,
+        'std_threshold': 0.0,
+        'avg_firing_rate': 0.0, # Cho Meta Homeostasis
+        'accumulated_spikes': 0,
+        'accumulated_ticks': 0
+    }
+    
     return sys_ctx
+
 
 
 # ============================================================================

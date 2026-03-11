@@ -205,6 +205,10 @@ class GridWorld:
         elif action == 'down': r += 1
         elif action == 'left': c -= 1
         elif action == 'right': c += 1
+        elif action == 'up-left': r -= 1; c -= 1
+        elif action == 'up-right': r -= 1; c += 1
+        elif action == 'down-left': r += 1; c -= 1
+        elif action == 'down-right': r += 1; c += 1
         new_pos = (r, c)
 
         is_valid_move = True

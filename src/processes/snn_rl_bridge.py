@@ -155,14 +155,14 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
     # else:
     #     print(f"DEBUG OBS RAW: {obs}")
     
-    # Observation ĐÃ LÀ vector 16-dim từ environment.get_sensor_vector()
-    # KHÔNG CẦN encoding nữa!
+    # Observation xử lý linh hoạt: Dict (legacy) hoặc Vector (sensor system)
     if isinstance(obs, np.ndarray):
-        # Đã là vector - dùng trực tiếp
         sensor_vector = obs
+    elif isinstance(obs, dict) and 'sensor_vector' in obs:
+        # NEW SENSOR SYSTEM: Extract vector from dict
+        sensor_vector = obs['sensor_vector']
     else:
         # Fallback: Nếu vẫn là dict (legacy), tạo vector đơn giản
-        # NOTE: Sẽ bỏ sau khi chuyển hoàn toàn sang sensor system
         if 'agent_pos' in obs:
             x, y = obs['agent_pos']
         else:
@@ -172,6 +172,7 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
         pattern = np.zeros(16)
         pattern[x % 8] = 1.0
         pattern[8 + (y % 8)] = 1.0
+        pattern[14] = 1.0 # Action Pulse (Emergency Sync)
         
         norm = np.linalg.norm(pattern)
         if norm > 0:
