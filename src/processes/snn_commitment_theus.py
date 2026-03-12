@@ -12,7 +12,9 @@ from src.core.snn_context_theus import (
     SNNSystemContext,
     COMMIT_STATE_FLUID,
     COMMIT_STATE_SOLID,
-    COMMIT_STATE_REVOKED
+    COMMIT_STATE_REVOKED,
+    ensure_heavy_tensors_initialized,
+    sync_from_heavy_tensors
 )
 from src.core.context import SystemContext
 
@@ -29,173 +31,95 @@ from src.core.context import SystemContext
     ],
     side_effects=[]
 )
-def process_commitment(
-    ctx: SystemContext
-):
+def process_commitment(ctx: SystemContext):
+    """Decorator wrap cho _commitment_impl."""
+    _commitment_impl(ctx)
+    snn_ctx = ctx.domain_ctx.snn_context if hasattr(ctx, 'domain_ctx') else ctx
+    return {
+        'synapses': snn_ctx.domain_ctx.synapses,
+        'metrics': snn_ctx.domain_ctx.metrics
+    }
+
+def _commitment_impl(ctx: SystemContext):
     """
-    Commitment Layer: FLUID → SOLID → REVOKED.
-    
-    Args:
-        ctx: RL System Context
+    Commitment Layer Logic (Vectorized).
     """
-    # Extract Contexts
-    rl_ctx = ctx
-    snn_ctx = ctx.domain_ctx.snn_context
-    
+    if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
+        rl_ctx = ctx
+        snn_ctx = ctx.domain_ctx.snn_context
+    else:
+        rl_ctx = ctx
+        snn_ctx = ctx
+        
     global_ctx = snn_ctx.global_ctx
     domain = snn_ctx.domain_ctx
-    
-    # === DYNAMIC THRESHOLD (POP Logic) ===
-    # Phase 16 Fix: Prevent Premature Solidification on Negative Rewards
-    # Strategy: Only commit if we are SUCCESSFUL (Reward > 0).
-    # If we are suffering (Reward < 0), keep synapses FLUID to allow adaptation.
     
     avg_reward = domain.metrics.get('avg_reward', -1.0)
     base_threshold = int(global_ctx.commitment_threshold)
     
-    # FIX: Relaxed threshold (was 999999 when reward < 0, disabling commitment)
-    # NEW: Gradual scaling allows commitment even during learning
     if avg_reward < -20:
-        # Very bad performance: 5x threshold
-        THRESHOLD_SOLIDIFY = base_threshold * 5  # 50 episodes
+        THRESHOLD_SOLIDIFY = base_threshold * 5
     elif avg_reward < 0:
-        # Still learning: 2x threshold  
-        THRESHOLD_SOLIDIFY = base_threshold * 2  # 20 episodes
+        THRESHOLD_SOLIDIFY = base_threshold * 2
     else:
-        # Success mode: Normal threshold
-        THRESHOLD_SOLIDIFY = base_threshold  # 10 episodes
+        THRESHOLD_SOLIDIFY = base_threshold
         
-    # Log the dynamic threshold
     domain.metrics['commitment_threshold_dynamic'] = THRESHOLD_SOLIDIFY
 
     THRESHOLD_REVOKE = int(global_ctx.revoke_threshold)
     ERROR_THRESHOLD = float(global_ctx.prediction_error_threshold)
-    
     try:
         error = abs(float(rl_ctx.domain_ctx.td_error))
-    except Exception as e:
-        # print(f"DEBUG: process_commitment td_error type: {type(rl_ctx.domain_ctx.td_error)}")
+    except Exception:
         error = 0.0
-    
-    # === VECTORIZED UPDATE ===
-    from src.core.snn_context_theus import ensure_heavy_tensors_initialized, sync_from_heavy_tensors
     
     ensure_heavy_tensors_initialized(snn_ctx)
     t = domain.heavy_tensors
-    
     commit_states = t['commit_states']
     con_correct = t['consecutive_correct']
     con_wrong = t['consecutive_wrong']
     
-    # === FIX: Episode-Gated Counter Update ===
-    # NOTE: Prevent counter overflow (was 15100 at ep 150)
-    # Only update counters ONCE PER EPISODE, not every step
     try:
         current_episode = int(rl_ctx.domain_ctx.current_episode)
     except:
         current_episode = 0
     
-    # 1. Update Counters ONLY if not already done this episode
     if current_episode != domain.last_commitment_update_episode:
         domain.last_commitment_update_episode = current_episode
-        
-        # NOW ONCE PER EPISODE
         if error < ERROR_THRESHOLD:
-            # Good prediction: Increment correct, Reset wrong for ALL synapses
-            t['consecutive_correct'] = con_correct + 1
-            t['consecutive_wrong'] = np.zeros_like(con_wrong)
+            t['consecutive_correct'] += 1
+            t['consecutive_wrong'][:] = 0
         else:
-            # Bad prediction: Increment wrong, Reset correct
-            t['consecutive_wrong'] = con_wrong + 1
-            t['consecutive_correct'] = np.zeros_like(con_correct)
+            t['consecutive_wrong'] += 1
+            t['consecutive_correct'][:] = 0
         
-        # Refresh references after reassignment
-        con_correct = t['consecutive_correct']
-        con_wrong = t['consecutive_wrong']
-        
-    # 2. State Transitions
-    
-    # FLUID -> SOLID
-    # Condition: Is Fluid AND Correct streak met
-    newly_solid_mask = (commit_states == COMMIT_STATE_FLUID) & (con_correct >= THRESHOLD_SOLIDIFY)
+    newly_solid_mask = (commit_states == COMMIT_STATE_FLUID) & (t['consecutive_correct'] >= THRESHOLD_SOLIDIFY)
     commit_states[newly_solid_mask] = COMMIT_STATE_SOLID
-    # Note: Confidence update? Logic says confidence=1.0. Tensors don't store confidence yet.
-    # It will be updated on Sync if we map it, OR we skip it for now.
-    # The original loop updated object immediately.
-    # Sync_from_tensors does NOT update 'confidence'. 
-    # Can we derive confidence from state? Yes.
-    # But for full fidelity, we might need a 'confidence' tensor later.
-    # For now, Commit State is the Source of Truth.
     
-    # SOLID -> REVOKED
-    newly_revoked_mask = (commit_states == COMMIT_STATE_SOLID) & (con_wrong >= THRESHOLD_REVOKE)
+    newly_revoked_mask = (commit_states == COMMIT_STATE_SOLID) & (t['consecutive_wrong'] >= THRESHOLD_REVOKE)
     commit_states[newly_revoked_mask] = COMMIT_STATE_REVOKED
     
-    # === NEW (Phase 10.5): Derived Neuron Commitment ===
-    # Calculate Solidity Ratio for each Neuron
-    # Ratio = Count(Incoming Solid Synapses) / Count(Total Incoming Synapses)
-    
-    # 1. Identify Solid Synapses (Matrix [N, N])
     is_solid = (commit_states == COMMIT_STATE_SOLID)
-    
-    # 2. Sum per Post-Synaptic Neuron (Axis 0 = Pre, Axis 1 = Post)
-    # Result: [N]
     incoming_solid_count = np.sum(is_solid, axis=0)
     
-    # 3. Count Total Incoming (Adjacency)
-    # We use 'weights' or simply count non-zero elements if needed.
-    # But 'commit_states' is dense 0. We need to know which synapses exist.
-    # We can check 'weights' tensor if it exists, or assume commit_states tracks all.
-    # BUT: 'commit_states' was initialized with 0 (FLUID).
-    # Does 'commit_states' include non-existent synapses? 
-    # Yes, it's (N,N). But we only care about ACTUAL synapses.
-    # We need the WEIGHTS matrix to know topology.
-    
     if 'weights' in t:
-        weights = t['weights']
-        # Adjacency: Weight > 0
-        incoming_total_count = np.sum(weights > 0, axis=0)
+        incoming_total_count = np.sum(t['weights'] > 0, axis=0)
     else:
-        # Fallback: Treat all non-REVOKED as existing? 
-        # Or just use commit_states != REVOKED?
-        # A bit risky if weights are 0 but state is tracked.
-        # Let's use weights > 0 as safer proxy.
-        # If weights unavailable, we skip update to avoid INF.
-        incoming_total_count = np.ones(commit_states.shape[0]) # Dummy
+        incoming_total_count = np.ones(commit_states.shape[0])
     
-    # 4. Compute Ratio (Safe Divide)
-    # Avoid div by zero
     incoming_total_count[incoming_total_count == 0] = 1.0 
+    ratios = (incoming_solid_count / incoming_total_count).astype(np.float32)
+    t['solidity_ratios'] = ratios
     
-    ratios = incoming_solid_count / incoming_total_count
-    
-    # 5. Update Tensor
-    t['solidity_ratios'] = ratios.astype(np.float32)
-    
-    # 6. Metrics for Solidity
-    domain.metrics['avg_solidity_ratio'] = float(np.mean(ratios))
-    domain.metrics['solid_neurons_count'] = int(np.sum(ratios > 0.5))
-    
-    # 3. Metrics
-    solidified = np.sum(newly_solid_mask)
-    revoked = np.sum(newly_revoked_mask)
-    
-    domain.metrics['solidified_count'] = \
-        domain.metrics.get('solidified_count', 0) + int(solidified)
-    domain.metrics['revoked_count'] = \
-        domain.metrics.get('revoked_count', 0) + int(revoked)
-    
-    # Sync Back to Objects (O(S) but necessary for Pruning)
-    sync_from_heavy_tensors(snn_ctx)
-    
-    # Count by state (Vectorized)
-    fluid_count = np.sum(commit_states == COMMIT_STATE_FLUID)
-    solid_count = np.sum(commit_states == COMMIT_STATE_SOLID)
-    revoked_count = np.sum(commit_states == COMMIT_STATE_REVOKED)
-    
-    domain.metrics['fluid_synapses'] = int(fluid_count)
-    domain.metrics['solid_synapses'] = int(solid_count)
-    domain.metrics['revoked_synapses'] = int(revoked_count)
+    domain.metrics.update({
+        'avg_solidity_ratio': float(np.mean(ratios)),
+        'solid_neurons_count': int(np.sum(ratios > 0.5)),
+        'solidified_count': domain.metrics.get('solidified_count', 0) + int(np.sum(newly_solid_mask)),
+        'revoked_count': domain.metrics.get('revoked_count', 0) + int(np.sum(newly_revoked_mask)),
+        'fluid_synapses': int(np.sum(commit_states == COMMIT_STATE_FLUID)),
+        'solid_synapses': int(np.sum(commit_states == COMMIT_STATE_SOLID)),
+        'revoked_synapses': int(np.sum(commit_states == COMMIT_STATE_REVOKED))
+    })
     return {}
 
 

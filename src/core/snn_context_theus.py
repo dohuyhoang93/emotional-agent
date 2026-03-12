@@ -430,6 +430,10 @@ def ensure_heavy_tensors_initialized(ctx: SNNSystemContext):
     - prototypes: (N, D)
     """
     domain = ctx.domain_ctx
+    if domain.heavy_tensors is None:
+        # NOTE: Nếu bị mất ShmTensorStore, fallback về dict để không sập hệ thống (mất hiệu năng tí)
+        domain.heavy_tensors = {}
+        
     neurons = domain.neurons
     N = len(neurons)
     
@@ -471,13 +475,24 @@ def ensure_heavy_tensors_initialized(ctx: SNNSystemContext):
                 weights[s.pre_neuron_id, s.post_neuron_id] = s.weight
         domain.heavy_tensors['weights'] = weights
     
-    # If heavy_tensors exist, we assume they are stale if we came from Object-logic land?
-    # NO. The "Sync" strategy assumes Tensors are valid ONLY during compute burst.
-    # But initialization should happen.
-    # For robust Compute-Sync: Always overwrite Tensors from Objects OR 
-    # keep them in sync.
-    # "Load" step says: Sync Objects -> Tensors.
-    
+    # --- DYNAMIC SYNAPSE SIZING (NEW) ---
+    # Nếu số lượng synapses thay đổi (do Pruning/Darwinism), ta phải re-initialize 
+    # các tensors liên quan đến synapses (S,).
+    S = len(domain.synapses)
+    if 'syn_pre_ids' in domain.heavy_tensors:
+        if len(domain.heavy_tensors['syn_pre_ids']) != S:
+            # Xóa các keys cũ để buộc khởi tạo lại bên dưới
+            synapse_keys = [
+                'syn_pre_ids', 'syn_post_ids', 'syn_commit_states',
+                'traces', 'fitnesses', '_fast_traces', '_slow_traces',
+                'commit_states', 'consecutive_correct', 'consecutive_wrong',
+                '_post_synapse_map', 'weights'
+            ]
+            for k in synapse_keys:
+                if k in domain.heavy_tensors:
+                    del domain.heavy_tensors[k]
+            initialized_something = True
+
     # NEW: Add STDP traces tensor
     if 'traces' not in domain.heavy_tensors:
         domain.heavy_tensors['traces'] = np.zeros((N, N), dtype=np.float32)
@@ -517,6 +532,14 @@ def ensure_heavy_tensors_initialized(ctx: SNNSystemContext):
     # NEW (Harmonic Homeostasis): Firing Traces
     if 'firing_traces' not in domain.heavy_tensors:
          domain.heavy_tensors['firing_traces'] = np.zeros(N, dtype=np.float32)
+
+    # NEW (Heavy Vectorization): Synapse Index Arrays (S,)
+    if 'syn_pre_ids' not in domain.heavy_tensors:
+        syn_pre = np.array([s.pre_neuron_id for s in domain.synapses], dtype=np.int32)
+        syn_post = np.array([s.post_neuron_id for s in domain.synapses], dtype=np.int32)
+        domain.heavy_tensors['syn_pre_ids'] = syn_pre
+        domain.heavy_tensors['syn_post_ids'] = syn_post
+        domain.heavy_tensors['syn_commit_states'] = np.array([s.commit_state for s in domain.synapses], dtype=np.int8)
 
     # NEW (Phase 10.5): Derived Neuron Commitment
     if 'solidity_ratios' not in domain.heavy_tensors:
@@ -578,7 +601,7 @@ def sync_from_heavy_tensors(ctx: SNNSystemContext):
     Call this AFTER vectorized computation.
     """
     domain = ctx.domain_ctx
-    if 'potentials' not in domain.heavy_tensors:
+    if domain.heavy_tensors is None or 'potentials' not in domain.heavy_tensors:
         return
         
     pots = domain.heavy_tensors['potentials']
@@ -641,7 +664,9 @@ def sync_from_heavy_tensors(ctx: SNNSystemContext):
                      
                  if commit_states is not None:
                      synapse.commit_state = int(commit_states[u, v])
+                 if consecutive_correct is not None:
                      synapse.consecutive_correct = int(consecutive_correct[u, v])
+                 if consecutive_wrong is not None:
                      synapse.consecutive_wrong = int(consecutive_wrong[u, v])
 
 

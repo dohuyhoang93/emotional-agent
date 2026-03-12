@@ -30,28 +30,27 @@ from src.core.snn_context_theus import SNNSystemContext, ensure_heavy_tensors_in
     side_effects=[]
 )
 def process_homeostasis(ctx: SNNSystemContext):
+    """Decorator wrap cho _homeostasis_impl."""
+    _homeostasis_impl(ctx)
+    snn_ctx = ctx.domain_ctx.snn_context if hasattr(ctx, 'domain_ctx') else ctx
+    return {
+        'heavy_tensors': snn_ctx.domain_ctx.heavy_tensors,
+        'metrics': snn_ctx.domain_ctx.metrics
+    }
+
+def _homeostasis_impl(ctx: SNNSystemContext):
     """
-    Quy trình Harmonic Homeostasis (Elastic Anchoring).
-    
-    Triết lý: Threshold = (1-S)*Global + S*Local
-    - Neuron non trẻ (S~0): Tuân theo Global (Ổn định)
-    - Neuron trưởng thành (S~1): Tự chủ Local (Đa dạng)
+    Quy trình Harmonic Homeostasis (Vectorized).
     """
-    from src.logger import log, log_error
-    import traceback
-    
     try:
-        # Handle context nesting (RL -> SNN)
         if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
             snn_ctx = ctx.domain_ctx.snn_context
         else:
-            # Standalone SNN context
             snn_ctx = ctx
             
         snn_domain = snn_ctx.domain_ctx
         snn_global = snn_ctx.global_ctx
         
-        # 1. Inputs - Cast to float for math safety
         target_fire_rate = float(snn_global.target_fire_rate)
         rate_global = float(snn_global.homeostasis_rate)
         rate_local = float(snn_global.local_homeostasis_rate)
@@ -59,20 +58,14 @@ def process_homeostasis(ctx: SNNSystemContext):
         
         ensure_heavy_tensors_initialized(snn_ctx)
         t = snn_domain.heavy_tensors
-        
         thresholds = t['thresholds']
         firing_traces = t['firing_traces']
         
-        # Solidity Ratio
         if 'solidity_ratios' in t:
-            # Clamp solidity to [0, 1] to prevent numerical errors (negative scale)
             solidity = np.clip(t['solidity_ratios'], 0.0, 1.0)
         else:
             solidity = np.zeros_like(thresholds)
         
-        # 2. Update Vectorized Firing Traces
-        # NOTE: current_time đã được tăng lên 1 bởi process_tick hoặc process_snn_cycle.
-        # Ta cần đối soát last_fire_times với (now - 1) để tìm các spikes vừa xảy ra.
         current_time = int(snn_domain.current_time)
         check_time = current_time - 1
         last_fire_times = t['last_fire_times']
@@ -80,12 +73,10 @@ def process_homeostasis(ctx: SNNSystemContext):
         spikes = (last_fire_times == check_time).astype(np.float32)
         firing_traces[:] = decay * firing_traces + (1.0 - decay) * spikes
         
-        # 3. Calculate Errors
         current_global_rate = np.mean(firing_traces) 
         error_global = current_global_rate - target_fire_rate
         error_local = firing_traces - target_fire_rate
         
-        # 4. Harmonic Blending (Elastic Anchoring)
         base_local_influence = 0.2
         w_local = solidity + (1.0 - solidity) * base_local_influence
         w_global = 1.0 - w_local
@@ -95,15 +86,12 @@ def process_homeostasis(ctx: SNNSystemContext):
         
         delta = w_global * adjustment_global + w_local * adjustment_local
         
-        # 6. Adaptive Noise (Sinh - Lão - Bệnh)
         noise_scale = 0.0001 * (1.0 - solidity)
         adaptive_noise = np.random.normal(0, noise_scale, size=delta.shape)
         delta += adaptive_noise
         
-        # 7. Apply Update
         thresholds += delta
         
-        # 8. Clip
         np.clip(
             thresholds,
             float(snn_global.threshold_min),
@@ -111,44 +99,23 @@ def process_homeostasis(ctx: SNNSystemContext):
             out=thresholds
         )
         
-        # === EMERGENCY RESCUE ===
         if current_global_rate < 1e-6:
-            # RESET with variance to avoid "Dead Zone" uniformity
-            # Triết lý: Khi chết, hồi sinh ở mức thấp + sự đa dạng để không chết lại đồng loạt
             rescue_base = float(snn_global.threshold_min)
             rescue_noise = np.random.uniform(0.0, 0.1, size=thresholds.shape)
-            
             thresholds[:] = rescue_base + rescue_noise
-            
-            # Boost potentials too
             noise_pot = np.random.uniform(0, rescue_base, size=thresholds.shape)
             t['potentials'] += noise_pot
-            
             snn_domain.metrics['emergency_rescue_triggered'] = True
-            # print(f"⚠️ [Harmonic] RESCUE TRIGGERED! Rate: {current_global_rate}")
     
-        # 9. Audit Metrics
         snn_domain.metrics['fire_rate'] = float(current_global_rate)
-        # Đồng bộ với EMA avg_firing_rate để các process khác (Bridge, Meta) nhận diện đúng
         snn_domain.metrics['avg_firing_rate'] = float(current_global_rate)
         snn_domain.metrics['avg_threshold'] = float(np.mean(thresholds))
         snn_domain.metrics['std_threshold'] = float(np.std(thresholds))
         
-        # 10. Sync Back (CRITICAL FIX)
-        # Must sync tensors -> objects immediately, otherwise next cycle's 
-        # sync_to_tensors will overwrite these changes with stale object data!
-        from src.core.snn_context_theus import sync_from_heavy_tensors
-        sync_from_heavy_tensors(snn_ctx)
-        
     except Exception as e:
-        ctx.log(f"CRITICAL ERROR in process_homeostasis: {e}", level="error")
+        if hasattr(ctx, 'log'):
+            ctx.log(f"CRITICAL ERROR in _homeostasis_impl: {e}", level="error")
         raise e
-
-    # 11. Prepare Result Delta
-    return {
-        'heavy_tensors': t,
-        'metrics': snn_domain.metrics
-    }
 
 
 def pid_controller_with_antiwindup(
@@ -218,6 +185,11 @@ def pid_controller_with_antiwindup(
     side_effects=[]
 )
 def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
+    """Decorator wrap cho _meta_homeostasis_impl."""
+    result = _meta_homeostasis_impl(ctx)
+    return result
+
+def _meta_homeostasis_impl(ctx: SNNSystemContext):
     """
     Quy trình Meta-Homeostasis với PID anti-windup (VECTORIZED).
     """
@@ -267,27 +239,25 @@ def process_meta_homeostasis_fixed(ctx: SNNSystemContext):
              out=t['thresholds']
         )
         
-        # 4. Sync back
-        sync_from_heavy_tensors(snn_ctx)
+        # 4. Sync back (DEFERRED)
+        # sync_from_heavy_tensors(snn_ctx)
         
         # Cập nhật metrics để audit
-        new_metrics = dict(domain.metrics)
-        new_metrics.update({
+        domain.metrics.update({
             'meta_threshold_adj': threshold_adjustment,
             'meta_integral': new_pid_substate['error_integral'],
             'meta_fire_rate_error': fire_rate_error
         })
         
-        new_pid_state = dict(domain.pid_state)
-        new_pid_state['threshold'] = new_pid_substate
+        domain.pid_state['threshold'] = new_pid_substate
 
         return {
             'heavy_tensors': t,
-            'pid_state': new_pid_state,
-            'metrics': new_metrics
+            'pid_state': domain.pid_state,
+            'metrics': domain.metrics
         }
         
     except Exception as e:
-        ctx.log(f"CRASH in process_meta_homeostasis_fixed: {e}", level="error")
+        if hasattr(ctx, 'log'):
+            ctx.log(f"CRASH in _meta_homeostasis_impl: {e}", level="error")
         return {'meta_homeostasis_error': 1}
-    return {}

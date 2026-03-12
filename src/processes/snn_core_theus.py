@@ -249,6 +249,10 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
     # Metrics
     fire_rate = len(fired_indices) / len(pots) if len(pots) > 0 else 0.0
     
+    # DEBUG: Log firing activity occasionally
+    if len(fired_indices) > 0: # Added this print as per instruction
+        print(f"DEBUG SNN FIRE: Time={cur_time}, Fired={len(fired_indices)}, Rate={fire_rate:.4f}")
+
     metrics = snn_ctx.domain_ctx.metrics
     metrics['fire_rate'] = fire_rate
     metrics['fired_count'] = len(fired_indices)

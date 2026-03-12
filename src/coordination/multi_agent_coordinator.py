@@ -196,7 +196,9 @@ class MultiAgentCoordinator:
                 ]
                 actions = [f.result() for f in futures_step]
             except Exception as e:
+                import traceback
                 print(f"CRITICAL ERROR in Parallel Thinking: {e}")
+                traceback.print_exc()
                 # Fallback hoặc Terminate
                 break
 

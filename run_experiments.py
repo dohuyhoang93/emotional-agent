@@ -150,9 +150,8 @@ def main(argv=None):
     
     # 4. Execute Workflow (Declarative Flux)
     try:
-        log(system_ctx, "info", "▶️ Loading Orchestrator Workflow: workflows/orchestrator_flux.yaml")
         import asyncio
-        asyncio.run(engine.execute_workflow("workflows/orchestrator_flux.yaml"))
+        asyncio.run(engine.execute_workflow("workflows/orchestrator_flux.yaml", max_ops=1000000))
         
         # Check Final Report
         if "LỖI" in system_ctx.domain_ctx.final_report:

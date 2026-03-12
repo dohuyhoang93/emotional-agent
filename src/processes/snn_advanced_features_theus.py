@@ -479,6 +479,9 @@ def process_neural_darwinism(
     # Instead, we just signal that keys might need re-sync if Darwinism was aggressive,
     # but for ndarray state (potentials, etc), they are already in SHM.
     
+    if domain.current_time % darwinism_interval == 0:
+        print(f"DEBUG DARWINISM: Time={domain.current_time} Synapses {len(survivors) + len(new_synapses)} (Survivors={len(survivors)}, New={len(new_synapses)})")
+
     return {
         'synapses': survivors + new_synapses,
         'neurons': domain.neurons,

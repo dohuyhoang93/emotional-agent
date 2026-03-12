@@ -227,8 +227,8 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
         # Inject semantic concept
         pvecs[i] += sensor_vector
         
-    # Sync back for audit/object compatibility
-    sync_from_heavy_tensors(snn_ctx)
+    # NOTE: sync_from_heavy_tensors moved context level to process_snn_cycle
+    # print(f"DEBUG ENCODE: Tick={snn_ctx.domain_ctx.current_time} DynamicAmp={dynamic_amp:.2f} PotsAvg={np.mean(pots[:receptor_count]):.4f}")
     
     return {'heavy_tensors': t}
 
