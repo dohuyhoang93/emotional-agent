@@ -172,7 +172,7 @@ class MultiAgentCoordinator:
         
         # Reset all agents
         for i, agent in enumerate(self.agents):
-            agent.reset(obs_dict[i])
+            agent.reset(obs_dict[i], full_reset=(self.episode_count == 0))
             # Reset SNN Metrics Accumulators
             if hasattr(agent, 'snn_ctx') and agent.snn_ctx:
                  agent.snn_ctx.domain_ctx.metrics['accumulated_spikes'] = 0

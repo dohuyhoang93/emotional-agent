@@ -7,7 +7,7 @@ def analyze():
     rewards = []
     synapses = []
     
-    with open('results/multi_agent_complex_maze/metrics.jsonl', 'r') as f:
+    with open('results/Optimization_Sanity_Check/metrics.jsonl', 'r') as f:
         for line in f:
             if not line.strip(): continue
             try:

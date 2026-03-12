@@ -364,7 +364,7 @@ def process_neural_darwinism(
             synapse.fitness = np.clip(synapse.fitness, 0.0, 1.0)
     
     # 2. Selection: Remove weak
-    if len(domain.synapses) > 100:  # Keep minimum population
+    if len(domain.synapses) > 20:  # NOTE: Hạ thấp ngưỡng sàn (was 100) để cho phép pruning ở mạng nhỏ
         fitnesses = [s.fitness for s in domain.synapses]
         threshold = np.percentile(fitnesses, selection_pressure * 100)
         
@@ -384,7 +384,7 @@ def process_neural_darwinism(
     
     # === PART 2: NEURON RECYCLING (True Darwinism) ===
     
-    DEAD_THRESHOLD = 2000 # Steps without firing
+    DEAD_THRESHOLD = 500 # NOTE: Giảm từ 2000 xuống 500 để recycling diễn ra thường xuyên hơn
     recycled_count = 0
     new_synapses = []
     

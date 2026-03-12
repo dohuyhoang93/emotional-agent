@@ -39,6 +39,7 @@ def save_snn_agent(
             'num_neurons': len(snn_ctx.domain_ctx.neurons),
             'num_synapses': len(snn_ctx.domain_ctx.synapses),
             'vector_dim': snn_ctx.global_ctx.vector_dim,
+            'current_time': int(snn_ctx.domain_ctx.current_time), # FIX: Phải lưu thời gian hiện tại
         },
         'neurons': [],
         'synapses': [],
@@ -65,6 +66,7 @@ def save_snn_agent(
             'prototype_vector': neuron.prototype_vector.tolist(),
             'threshold': float(neuron.threshold),
             'fire_count': int(neuron.fire_count),
+            'last_fire_time': int(neuron.last_fire_time), # FIX: Phải lưu vết firing cuối
         }
         state['neurons'].append(neuron_data)
     
@@ -120,6 +122,10 @@ def load_snn_agent(
         print(f"Warning: Synapse count mismatch: {len(snn_ctx.domain_ctx.synapses)} vs {state['metadata']['num_synapses']}")
         return False
     
+    # Restore SNN level state
+    if 'current_time' in state['metadata']:
+        snn_ctx.domain_ctx.current_time = state['metadata']['current_time']
+
     # Restore neurons
     for i, neuron_data in enumerate(state['neurons']):
         if i < len(snn_ctx.domain_ctx.neurons):
@@ -127,6 +133,8 @@ def load_snn_agent(
             neuron.prototype_vector = np.array(neuron_data['prototype_vector'], dtype=np.float32)
             neuron.threshold = neuron_data['threshold']
             neuron.fire_count = neuron_data['fire_count']
+            if 'last_fire_time' in neuron_data:
+                neuron.last_fire_time = neuron_data['last_fire_time']
     
     # Restore synapses
     for i, synapse_data in enumerate(state['synapses']):

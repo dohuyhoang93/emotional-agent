@@ -207,26 +207,16 @@ class RLAgent:
     # _register_all_processes removed (Refactoring Phase 1.3)
     # Reliance on engine.scan_and_register('src/processes')
     
-    def reset(self, observation: Dict[str, Any]):
+    def reset(self, observation: Dict[str, Any], full_reset: bool = False):
         """
         Reset agent cho episode mới.
         
         Args:
             observation: Initial observation từ environment
+            full_reset: Nếu True, reset toàn bộ thời gian và lịch sử (dùng khi bắt đầu Run mới)
         """
-        # Flush recorder if active (Handled by process logic? No, reset flushes buffer usually)
-        # In POP, buffer is in context. We can clear it or flush it. 
-        # Ideally, we should flush manually here if we want to save end-of-episode?
-        # Actually, if buffer > 0, we can flush. 
-        # Let's clean buffer on reset.
+        # Flush recorder if active
         if self.domain_ctx.recorder_config:
-             # Explicitly flush remaining?
-             # For simplicity/safety, just clear buffer on reset. 
-             # Or we can invoke process? No process invocation here easily without creating new transaction.
-             # Just clear buffer to prevent leak across episodes. 
-             # Safe Flush logic implies we want to SAVE data.
-             # We will skip saving 'tail' of episode for now to avoid complexity, or implement a manual flush util.
-             # Decision: Clear buffer to solve memory leak absolutely.
              if self.domain_ctx.heavy_recorder_buffer:
                  self.domain_ctx.heavy_recorder_buffer.clear()
         
@@ -238,31 +228,34 @@ class RLAgent:
             self.domain_ctx.last_reward = {'extrinsic': 0.0, 'intrinsic': 0.0}
             self.domain_ctx.last_action = None
             
-            # Reset SNN state
+            # Reset SNN state - CHỈ reset nếu full_reset=True hoặc dữ liệu chưa tồn tại
             for neuron in self.snn_ctx.domain_ctx.neurons:
                 neuron.potential = 0.0
                 neuron.potential_vector = np.zeros(16)
-                neuron.fire_count = 0
-                neuron.last_fire_time = -1000  # Reset to ensure valid refractory check
+                if full_reset:
+                    neuron.fire_count = 0
+                    neuron.last_fire_time = -1000  # Reset tuổi thọ
                 
-            # NEW SNN POP FIX: Reset heavy tensors (Source of Truth for Vectorized Logic)
+            # NEW SNN POP FIX: Reset heavy tensors
             if hasattr(self.snn_ctx.domain_ctx, 'heavy_tensors') and self.snn_ctx.domain_ctx.heavy_tensors:
                 t = self.snn_ctx.domain_ctx.heavy_tensors
                 if 'potentials' in t:
                      t['potentials'].fill(0.0)
                 if 'potential_vectors' in t:
                      t['potential_vectors'].fill(0.0)
-                if 'last_fire_times' in t:
-                     t['last_fire_times'].fill(-1000)
+                if full_reset:
+                    if 'last_fire_times' in t:
+                         t['last_fire_times'].fill(-1000)
+                    if 'thresholds' in t:
+                         initial_th = getattr(self.global_ctx, 'initial_threshold', 0.05)
+                         t['thresholds'].fill(initial_th)
                 if 'spike_buffer' in t:
                      t['spike_buffer'].fill(0)
-                if 'thresholds' in t:
-                     initial_th = getattr(self.global_ctx, 'initial_threshold', 0.05)
-                     t['thresholds'].fill(initial_th)
             
             # Clear spike queue
             self.snn_ctx.domain_ctx.spike_queue.clear()
-            self.snn_ctx.domain_ctx.current_time = 0
+            if full_reset:
+                self.snn_ctx.domain_ctx.current_time = 0
             
             # Reset metrics
             self.episode_metrics = {

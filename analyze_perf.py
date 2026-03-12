@@ -3,7 +3,7 @@ import os
 import sys
 
 def main():
-    path = r'results/Optimization_Sanity_Check_checkpoints/metrics.jsonl'
+    path = r'results/Optimization_Sanity_Check/metrics.jsonl'
     if not os.path.exists(path):
         print(f"File not found: {path}")
         return

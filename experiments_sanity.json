@@ -4,7 +4,7 @@
             "name": "Optimization_Sanity_Check",
             "description": "Quick verification of Vectorized SNN performance.",
             "runs": 1,
-            "episodes_per_run": 51,
+            "episodes_per_run": 5000,
             "parameters": {
                 "learning_rate": 0.1,
                 "discount_factor": 0.9,
@@ -18,7 +18,7 @@
                 "environment_config": {
                     "grid_size": 15,
                     "num_agents": 5,
-                    "max_steps_per_episode": 100,
+                    "max_steps_per_episode": 300,
                     "walls": [
                         [
                             1,
@@ -82,7 +82,8 @@
                     "darwinism_interval": 100,
                     "selection_pressure": 0.1,
                     "reproduction_rate": 0.05,
-                    "sleep_duration": 10
+                    "sleep_duration": 10,
+                    "checkpoint_freq": 100
                 }
             }
         }
