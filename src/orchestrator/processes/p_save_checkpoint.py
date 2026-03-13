@@ -1,4 +1,4 @@
-﻿import os
+import os
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
 from src.orchestrator.context_helpers import get_domain_ctx, get_attr
@@ -41,14 +41,15 @@ def save_periodic_checkpoint(ctx: OrchestratorSystemContext):
     if current_episode > 0 and current_episode % save_freq == 0:
         log(ctx, "info", f"  [Checkpoint] Saving snapshot at episode {current_episode}...")
         
-        # Get SNN Contexts from all agents
-        # Coordinator has `agents` dict {id: RLAgent}
+        # Get Contexts from all agents
+        # Coordinator has `agents` list [RLAgent, ...]
         agents = runner.coordinator.agents
         snn_contexts = [agent.snn_ctx for agent in agents]
+        rl_contexts = [agent.rl_ctx for agent in agents]
         
         # Output Dir
         checkpoint_dir = os.path.join(runner.output_dir, f"checkpoint_ep_{current_episode}")
         
-        # Save
-        save_all_agents(snn_contexts, checkpoint_dir)
+        # Save (V3: Pass rl_contexts to enable Neural Brain checkpoints)
+        save_all_agents(snn_contexts, checkpoint_dir, agents_rl_contexts=rl_contexts)
         log(ctx, "info", f"  [Checkpoint] Saved to {checkpoint_dir}")

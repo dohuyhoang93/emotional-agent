@@ -359,7 +359,8 @@ class RLAgent:
             'rl': {
                 **self.episode_metrics,
                 'exploration_rate': self.domain_ctx.current_exploration_rate,
-                'q_table_size': len(self.domain_ctx.heavy_q_table)
+                'neural_loss': self.domain_ctx.metrics.get('neural_loss', 0.0),
+                'avg_q_predicted': self.domain_ctx.metrics.get('avg_q_predicted', 0.0)
             },
             'snn': {
                 'fire_rate': self.snn_ctx.domain_ctx.metrics.get('fire_rate', 0.0),

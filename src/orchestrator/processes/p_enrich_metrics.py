@@ -72,13 +72,28 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
     metrics['debug_total_synapses'] = total_synapses
     metrics['debug_spike_queue_size'] = total_spike_queue
     
-    # 4. DEBUG: Q-Table Size (Memory Leak Investigation)
+    # 4. Neural Brain Metrics (V3 Migration)
     total_q_table_entries = 0
+    neural_loss_avg = 0.0
+    neural_q_avg = 0.0
+    count_rl = 0
+    
     for agent in runner.coordinator.agents:
         rl_domain = agent.domain_ctx
+        # heavy_q_table is now deprecated, but we keep it for legacy metrics if still present
         if hasattr(rl_domain, 'heavy_q_table'):
             total_q_table_entries += len(rl_domain.heavy_q_table)
-    metrics['debug_q_table_size'] = total_q_table_entries
+            
+        # Add Neural Brain Metrics from metrics dict
+        if 'neural_loss' in rl_domain.metrics:
+            neural_loss_avg += rl_domain.metrics['neural_loss']
+            neural_q_avg += rl_domain.metrics.get('avg_q_predicted', 0.0)
+            count_rl += 1
+            
+    metrics['debug_q_table_size'] = total_q_table_entries # Legacy compat
+    if count_rl > 0:
+        metrics['neural_loss_avg'] = neural_loss_avg / count_rl
+        metrics['avg_q_predicted'] = neural_q_avg / count_rl
 
     # 5. DEBUG: PyTorch Tensor Count & Process Memory
     import gc

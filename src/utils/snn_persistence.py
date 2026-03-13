@@ -9,7 +9,8 @@ Date: 2025-12-25
 import json
 import os
 import numpy as np
-from typing import Any, List
+import torch
+from typing import Any, List, Optional
 from src.core.snn_context_theus import SNNSystemContext
 
 
@@ -89,19 +90,29 @@ def save_snn_agent(
     with open(filepath, 'w') as f:
         json.dump(state, f, indent=2)
     
+    # NEW V3: Save Gated Integration Network Weights (.pt)
+    if rl_ctx and rl_ctx.domain_ctx.heavy_gated_network is not None:
+        net = rl_ctx.domain_ctx.heavy_gated_network
+        weights_path = os.path.join(output_dir, f'agent_{agent_id}_net.pt')
+        torch.save(net.state_dict(), weights_path)
+        # print(f"Saved Neural Brain weights to {weights_path}")
+    
     return filepath
 
 
 def load_snn_agent(
     snn_ctx: SNNSystemContext,
-    filepath: str
+    filepath: str,
+    rl_ctx: Optional[Any] = None
 ) -> bool:
     """
     Load SNN agent từ file JSON.
+    V3: Hỗ trợ load trọng số Neural Brain từ file .pt tương ứng.
     
     Args:
         snn_ctx: SNN system context (sẽ được update)
-        filepath: Path to saved file
+        filepath: Path to saved JSON file
+        rl_ctx: Optional RL system context to load network weights
         
     Returns:
         success: True if loaded successfully
@@ -110,17 +121,17 @@ def load_snn_agent(
         return False
     
     # Load state
-    with open(filepath, 'r') as f:
-        state = json.load(f)
+    try:
+        with open(filepath, 'r') as f:
+            state = json.load(f)
+    except Exception as e:
+        print(f"Error loading JSON: {e}")
+        return False
     
-    # Verify metadata
+    # Verify metadata (Loose check for V3)
     if len(snn_ctx.domain_ctx.neurons) != state['metadata']['num_neurons']:
         print(f"Warning: Neuron count mismatch: {len(snn_ctx.domain_ctx.neurons)} vs {state['metadata']['num_neurons']}")
-        return False
-    
-    if len(snn_ctx.domain_ctx.synapses) != state['metadata']['num_synapses']:
-        print(f"Warning: Synapse count mismatch: {len(snn_ctx.domain_ctx.synapses)} vs {state['metadata']['num_synapses']}")
-        return False
+        # Don't fail immediately, try to restore as many as possible
     
     # Restore SNN level state
     if 'current_time' in state['metadata']:
@@ -145,20 +156,35 @@ def load_snn_agent(
             synapse.consecutive_correct = synapse_data['consecutive_correct']
             synapse.consecutive_wrong = synapse_data['consecutive_wrong']
             synapse.fitness = synapse_data['fitness']
+            
+    # NEW V3: Load Neural Brain Weights (.pt)
+    if rl_ctx and rl_ctx.domain_ctx.heavy_gated_network is not None:
+        # Construct path from JSON path: agent_0_snn.json -> agent_0_net.pt
+        weights_path = filepath.replace('_snn.json', '_net.pt')
+        if os.path.exists(weights_path):
+            try:
+                state_dict = torch.load(weights_path, map_location='cpu')
+                rl_ctx.domain_ctx.heavy_gated_network.load_state_dict(state_dict)
+                # print(f"Successfully loaded Neural Brain weights from {weights_path}")
+            except Exception as e:
+                print(f"Warning: Failed to load Neural weights: {e}")
     
     return True
 
 
 def save_all_agents(
     agents_snn_contexts: List[SNNSystemContext],
-    output_dir: str
+    output_dir: str,
+    agents_rl_contexts: Optional[List[Any]] = None
 ) -> List[str]:
     """
     Lưu tất cả agents.
+    V3: Hỗ trợ lưu RL context (Neural Weights) cho từng agent.
     
     Args:
         agents_snn_contexts: List of SNN contexts
         output_dir: Output directory
+        agents_rl_contexts: Optional list of RL contexts
         
     Returns:
         filepaths: List of saved filepaths
@@ -166,23 +192,30 @@ def save_all_agents(
     filepaths = []
     
     for agent_id, snn_ctx in enumerate(agents_snn_contexts):
-        filepath = save_snn_agent(snn_ctx, None, agent_id, output_dir)
+        rl_ctx = None
+        if agents_rl_contexts and agent_id < len(agents_rl_contexts):
+            rl_ctx = agents_rl_contexts[agent_id]
+            
+        filepath = save_snn_agent(snn_ctx, rl_ctx, agent_id, output_dir)
         filepaths.append(filepath)
-        print(f"Saved agent {agent_id} to {filepath}")
+        # print(f"Saved agent {agent_id} to {filepath}")
     
     return filepaths
 
 
 def load_all_agents(
     agents_snn_contexts: List[SNNSystemContext],
-    input_dir: str
+    input_dir: str,
+    agents_rl_contexts: Optional[List[Any]] = None
 ) -> int:
     """
     Load tất cả agents.
+    V3: Hỗ trợ load RL context (Neural Weights) cho từng agent.
     
     Args:
         agents_snn_contexts: List of SNN contexts (sẽ được update)
         input_dir: Input directory
+        agents_rl_contexts: Optional list of RL contexts
         
     Returns:
         count: Number of agents loaded successfully
@@ -192,8 +225,12 @@ def load_all_agents(
     for agent_id, snn_ctx in enumerate(agents_snn_contexts):
         filepath = os.path.join(input_dir, f'agent_{agent_id}_snn.json')
         
-        if load_snn_agent(snn_ctx, filepath):
-            print(f"Loaded agent {agent_id} from {filepath}")
+        rl_ctx = None
+        if agents_rl_contexts and agent_id < len(agents_rl_contexts):
+            rl_ctx = agents_rl_contexts[agent_id]
+            
+        if load_snn_agent(snn_ctx, filepath, rl_ctx):
+            # print(f"Loaded agent {agent_id} from {filepath}")
             count += 1
         else:
             print(f"Failed to load agent {agent_id} from {filepath}")

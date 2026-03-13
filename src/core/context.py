@@ -96,6 +96,8 @@ class DomainContext(BaseDomainContext):
     # --- Knowledge (Memory & Models) ---
     # [HEAVY ZONE] Prefix 'heavy_' instructions Theus Engine to SKIP shadow copying (optimization).
     # This prevents MemoryError/QuotaPanic for large structures.
+    
+    # NOTE: heavy_q_table is DEPRECATED in V3 (Neural Brain). Use heavy_gated_network instead.
     heavy_q_table: Dict[str, List[float]] = field(default_factory=dict)
     short_term_memory: List[Any] = field(default_factory=list)
     long_term_memory: Dict[str, Any] = field(default_factory=dict)

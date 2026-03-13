@@ -131,7 +131,6 @@ def observation_to_state_key(obs: Union[Mapping[str, Any], np.ndarray, torch.Ten
     inputs=['domain_ctx', 
         'domain_ctx.current_observation',
         'domain_ctx.heavy_snn_emotion_vector',
-        'domain_ctx.heavy_q_table',
         'domain_ctx.current_exploration_rate',
         'domain_ctx.heavy_gated_network'
     ],
@@ -140,58 +139,51 @@ def observation_to_state_key(obs: Union[Mapping[str, Any], np.ndarray, torch.Ten
 )
 def select_action_gated(ctx: SystemContext):
     """
-    Select action using emotion gating from SNN.
+    Select action using Neural Brain (Gated Integration Network).
+    V3: Tabular Q-Table fallback removed.
     """
     obs = ctx.domain_ctx.current_observation
     emotion = ctx.domain_ctx.heavy_snn_emotion_vector
     
-    # 1. Fallback: No Emotion -> Standard Epsilon-Greedy
-    if emotion is None:
-        if np.random.rand() < ctx.domain_ctx.current_exploration_rate:
-            action = np.random.randint(0, 8)
-        else:
-            state_key = observation_to_state_key(obs) # Use helper
-            q_values = ctx.domain_ctx.heavy_q_table.get(state_key, [0.0] * 8)
-            action = int(np.argmax(q_values))
-        
+    # 1. Neural Network Check
+    net = ctx.domain_ctx.heavy_gated_network
+    if net is None:
+        ctx.log("CRITICAL: GatedIntegrationNetwork not found. Falling back to random.", level="error")
+        action = np.random.randint(0, 8)
         return {
             'last_action': action,
             'heavy_last_q_values': torch.tensor([0.0] * 8).detach()
         }
-    
-    # 2. Emotion Magnitude Calculation
-    # Compliant check: 'emotion' usually is list or tensor
-    try:
-        # Convert list to tensor if needed
-        if isinstance(emotion, (list, tuple)):
-            emo_tensor = torch.tensor(emotion, dtype=torch.float32).detach()
-        else:
-            emo_tensor = emotion # Assume tensor or compliant object
-            
-        emotion_magnitude = float(torch.norm(emo_tensor).item())
-    except Exception:
+
+    # 2. Emotion Tensor Preparation (V3: No more manual Q-table fallback)
+    if emotion is None:
+        # If SNN is not active yet or emotion is None, use Neutral (Zero) vector
+        emo_tensor = torch.zeros(16, dtype=torch.float32)
         emotion_magnitude = 0.0
+    else:
+        try:
+            if isinstance(emotion, (list, tuple)):
+                emo_tensor = torch.tensor(emotion, dtype=torch.float32).detach()
+            else:
+                emo_tensor = emotion
+            emotion_magnitude = float(torch.norm(emo_tensor).item())
+        except Exception:
+            emo_tensor = torch.zeros(16, dtype=torch.float32)
+            emotion_magnitude = 0.0
 
     # 3. Dynamic Exploration
     adjusted_exploration = ctx.domain_ctx.current_exploration_rate * (1.0 + 0.5 * emotion_magnitude)
     adjusted_exploration = min(adjusted_exploration, 1.0)
     
-    # 4. Q-Value Prediction (Network vs Table)
-    if ctx.domain_ctx.heavy_gated_network is not None:
-        # Neural Network Path
-        net = ctx.domain_ctx.heavy_gated_network
-        obs_tensor = observation_to_tensor(obs) # Use helper
-        
-        net.eval()
-        with torch.no_grad():
-            q_values_tensor = net(obs_tensor, emo_tensor if 'emo_tensor' in locals() else emotion)
-        net.train()
-        
-        q_values_list = q_values_tensor.tolist()
-    else:
-        # Tabular Path
-        state_key = observation_to_state_key(obs) # Use helper
-        q_values_list = ctx.domain_ctx.heavy_q_table.get(state_key, [0.0] * 8)
+    # 4. Neural Q-Value Prediction
+    obs_tensor = observation_to_tensor(obs)
+    
+    net.eval()
+    with torch.no_grad():
+        q_values_tensor = net(obs_tensor, emo_tensor)
+    net.train()
+    
+    q_values_list = q_values_tensor.tolist()
 
     # 5. Action Selection
     if np.random.rand() < adjusted_exploration:
@@ -207,7 +199,6 @@ def select_action_gated(ctx: SystemContext):
 
 @process(
     inputs=['domain_ctx', 
-        'domain_ctx.heavy_q_table',
         'domain_ctx.last_reward',
         'domain_ctx.current_observation',
         'domain_ctx.last_action',
@@ -215,37 +206,32 @@ def select_action_gated(ctx: SystemContext):
         'domain_ctx.heavy_gated_optimizer',
         'domain_ctx.previous_observation',
         'domain_ctx.heavy_previous_snn_emotion_vector',
-        'domain_ctx.heavy_snn_emotion_vector'
+        'domain_ctx.heavy_snn_emotion_vector',
+        'domain_ctx.metrics'
     ],
     outputs=['domain_ctx', 
-        'domain_ctx.heavy_q_table',
-        'domain_ctx.td_error'
+        'domain_ctx.td_error',
+        'domain_ctx.metrics'
     ],
     side_effects=[]
 )
 def update_q_learning(ctx: SystemContext):
     """
-    Update Q-table and Network with TD-learning.
+    Update Neural Brain via Backpropagation (Deep RL).
+    V3: Tabular Q-Table updates removed.
     """
     # 0. Check Initialization
-    if ctx.domain_ctx.previous_observation is None:
-        ctx.log("DEBUG: previous_observation is None, skipping Q-learning", level="debug")
-        return {'td_error': 0.0}
-    
-    # 1. Prepare State Keys
     obs_prev = ctx.domain_ctx.previous_observation
     obs_next = ctx.domain_ctx.current_observation
     
     if obs_prev is None or obs_next is None:
-        ctx.log("DEBUG: One observation is None, skipping Q-learning", level="debug")
         return {'td_error': 0.0}
     
-    prev_state_key = observation_to_state_key(obs_prev)
-    next_state_key = observation_to_state_key(obs_next)
-    
     action = ctx.domain_ctx.last_action
+    if action is None or action < 0:
+        return {'td_error': 0.0}
     
-    # 2. Reward Extraction
+    # 1. Reward Extraction
     raw_reward = ctx.domain_ctx.last_reward
     if isinstance(raw_reward, dict):
         reward = raw_reward.get('total', 0.0)
@@ -255,89 +241,52 @@ def update_q_learning(ctx: SystemContext):
         except:
             reward = 0.0
     
-    # MIGRATION FIX: Không tạo dict RỖNG để chứa delta.
-    # Engine trong Theus thiết kế theo kiểu Ghi đè (Overwrite) State,
-    # Do đó, nếu ta trả về {key: value}, toàn bộ Q-Table sẽ bị xoá và thay bằng 1 cặp {key: value} này.
-    # Giải pháp: Lấy nguyên bộ Q-Table hiện tại, cập nhật trực tiếp (mutate), và trả về nguyên bộ đó.
-    full_q_table = ctx.domain_ctx.heavy_q_table
-
-    # Check Prev State
-    if prev_state_key not in full_q_table:
-        full_q_table[prev_state_key] = [0.0] * 8
-    else:
-        # Self-Healing: Nếu bị hỏng định dạng float do lỗi serialize, Reset.
-        val = full_q_table[prev_state_key]
-        is_valid = isinstance(val, (list, tuple)) or (hasattr(val, '__class__') and val.__class__.__name__ == 'TrackedList')
-        if not is_valid: 
-             ctx.log(f"WARNING: Q-Table Corruption detected at {prev_state_key}. Resetting.", level="warn")
-             full_q_table[prev_state_key] = [0.0] * 8
-
-    # Check Next State (for max_q)
-    if next_state_key not in full_q_table:
-        full_q_table[next_state_key] = [0.0] * 8
-    else:
-        val = full_q_table[next_state_key]
-        is_valid = isinstance(val, (list, tuple)) or (hasattr(val, '__class__') and val.__class__.__name__ == 'TrackedList')
-        if not is_valid:
-             full_q_table[next_state_key] = [0.0] * 8
+    # 2. Neural Network Training
+    net = ctx.domain_ctx.heavy_gated_network
+    opt = ctx.domain_ctx.heavy_gated_optimizer
     
-    # Calculation
-    current_q_list = full_q_table[prev_state_key]
-    next_q_list = full_q_table[next_state_key]
+    if net is None or opt is None:
+        return {'td_error': 0.0}
+        
+    prev_emo = ctx.domain_ctx.heavy_previous_snn_emotion_vector
+    curr_emo = ctx.domain_ctx.heavy_snn_emotion_vector
     
-    current_q = current_q_list[action]
-    max_next_q = max(next_q_list)
+    # Neutral fallbacks for emotions in V3
+    if prev_emo is None: prev_emo = torch.zeros(16, dtype=torch.float32)
+    if curr_emo is None: curr_emo = torch.zeros(16, dtype=torch.float32)
     
-    gamma = 0.95
-    td_error = reward + gamma * max_next_q - current_q
+    # Ensure tensors
+    if isinstance(prev_emo, list): prev_emo = torch.tensor(prev_emo).float()
+    if isinstance(curr_emo, list): curr_emo = torch.tensor(curr_emo).float()
     
-    alpha = 0.1
-    # Cập nhật mảng trên Q-Table toàn cục
-    updated_q_list = list(current_q_list)
-    try:
-        updated_q_list[action] += alpha * td_error
-        full_q_table[prev_state_key] = updated_q_list
-    except Exception as e:
-        ctx.log(f"CRITICAL ERROR: {e}. Key: {prev_state_key}. Resetting.", level="error")
-        full_q_table[prev_state_key] = [0.0] * 8
+    state_tensor = observation_to_tensor(obs_prev)
+    next_state_tensor = observation_to_tensor(obs_next)
     
-    # Final Result: Trả về ENTIRE TABLE để Engine đồng bộ đè lên State mà không làm mất dữ liệu
-    result_delta = {
+    # Forward Pass
+    q_values = net(state_tensor, prev_emo)
+    current_q_val = q_values[action]
+    
+    # Target Q Computation (Bellman Equation)
+    with torch.no_grad():
+        next_q_values = net(next_state_tensor, curr_emo)
+        max_next_q = torch.max(next_q_values)
+        gamma = 0.95
+        target_q_val = torch.tensor(reward, dtype=torch.float32) + gamma * max_next_q
+    
+    # Backpropagation
+    loss = torch.nn.functional.mse_loss(current_q_val, target_q_val)
+    td_error = float((target_q_val - current_q_val).item())
+    
+    opt.zero_grad()
+    loss.backward()
+    opt.step()
+    
+    # 3. Update Metrics
+    metrics = dict(ctx.domain_ctx.metrics)
+    metrics['neural_loss'] = float(loss.item())
+    metrics['avg_q_predicted'] = float(torch.mean(q_values).item())
+    
+    return {
         'td_error': td_error,
-        'heavy_q_table': full_q_table
+        'metrics': metrics
     }
-    
-    # 4. Neural Network Training (Deep RL)
-    if ctx.domain_ctx.heavy_gated_network is not None and ctx.domain_ctx.heavy_gated_optimizer is not None:
-        net = ctx.domain_ctx.heavy_gated_network
-        opt = ctx.domain_ctx.heavy_gated_optimizer
-        
-        prev_emo = ctx.domain_ctx.heavy_previous_snn_emotion_vector
-        curr_emo = ctx.domain_ctx.heavy_snn_emotion_vector
-        
-        if prev_emo is not None and curr_emo is not None:
-            # Conversion
-            state_tensor = observation_to_tensor(obs_prev)
-            next_state_tensor = observation_to_tensor(obs_next)
-            
-            # Forward Q(s,a)
-            # Ensure emotion is tensor compatible
-            if isinstance(prev_emo, list): prev_emo = torch.tensor(prev_emo).float()
-            if isinstance(curr_emo, list): curr_emo = torch.tensor(curr_emo).float()
-
-            q_values = net(state_tensor, prev_emo)
-            current_q_val = q_values[action]
-            
-            # Target Q
-            with torch.no_grad():
-                next_q_values = net(next_state_tensor, curr_emo)
-                max_next_q_tensor = torch.max(next_q_values)
-                target_q_val = reward + 0.95 * max_next_q_tensor
-            
-            # Backprop
-            loss = torch.nn.functional.mse_loss(current_q_val, target_q_val)
-            opt.zero_grad()
-            loss.backward()
-            opt.step()
-
-    return result_delta
