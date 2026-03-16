@@ -131,6 +131,7 @@ def observation_to_state_key(obs: Union[Mapping[str, Any], np.ndarray, torch.Ten
     inputs=['domain_ctx', 
         'domain_ctx.current_observation',
         'domain_ctx.heavy_snn_emotion_vector',
+        'domain_ctx.heavy_snn_state_vector',
         'domain_ctx.current_exploration_rate',
         'domain_ctx.heavy_gated_network'
     ],
@@ -144,6 +145,7 @@ def select_action_gated(ctx: SystemContext):
     """
     obs = ctx.domain_ctx.current_observation
     emotion = ctx.domain_ctx.heavy_snn_emotion_vector
+    snn_state = ctx.domain_ctx.heavy_snn_state_vector
     
     # 1. Neural Network Check
     net = ctx.domain_ctx.heavy_gated_network
@@ -175,12 +177,26 @@ def select_action_gated(ctx: SystemContext):
     adjusted_exploration = ctx.domain_ctx.current_exploration_rate * (1.0 + 0.5 * emotion_magnitude)
     adjusted_exploration = min(adjusted_exploration, 1.0)
     
+    # SNN State Tensor Preparation
+    if snn_state is None:
+        state_dim = net.snn_state_dim if hasattr(net, 'snn_state_dim') else 100
+        snn_state_tensor = torch.zeros(state_dim, dtype=torch.float32)
+    else:
+        try:
+            if isinstance(snn_state, (list, tuple)):
+                snn_state_tensor = torch.tensor(snn_state, dtype=torch.float32).detach()
+            else:
+                snn_state_tensor = snn_state
+        except Exception:
+            state_dim = net.snn_state_dim if hasattr(net, 'snn_state_dim') else 100
+            snn_state_tensor = torch.zeros(state_dim, dtype=torch.float32)
+
     # 4. Neural Q-Value Prediction
     obs_tensor = observation_to_tensor(obs)
     
     net.eval()
     with torch.no_grad():
-        q_values_tensor = net(obs_tensor, emo_tensor)
+        q_values_tensor = net(obs_tensor, emo_tensor, snn_state_tensor)
     net.train()
     
     q_values_list = q_values_tensor.tolist()
@@ -207,6 +223,8 @@ def select_action_gated(ctx: SystemContext):
         'domain_ctx.previous_observation',
         'domain_ctx.heavy_previous_snn_emotion_vector',
         'domain_ctx.heavy_snn_emotion_vector',
+        'domain_ctx.heavy_previous_snn_state_vector',
+        'domain_ctx.heavy_snn_state_vector',
         'domain_ctx.metrics'
     ],
     outputs=['domain_ctx', 
@@ -251,24 +269,35 @@ def update_q_learning(ctx: SystemContext):
     prev_emo = ctx.domain_ctx.heavy_previous_snn_emotion_vector
     curr_emo = ctx.domain_ctx.heavy_snn_emotion_vector
     
+    prev_snn_state = ctx.domain_ctx.heavy_previous_snn_state_vector
+    curr_snn_state = ctx.domain_ctx.heavy_snn_state_vector
+    
     # Neutral fallbacks for emotions in V3
     if prev_emo is None: prev_emo = torch.zeros(16, dtype=torch.float32)
     if curr_emo is None: curr_emo = torch.zeros(16, dtype=torch.float32)
+    
+    # Neutral fallbacks for SNN state
+    state_dim = net.snn_state_dim if hasattr(net, 'snn_state_dim') else 100
+    if prev_snn_state is None: prev_snn_state = torch.zeros(state_dim, dtype=torch.float32)
+    if curr_snn_state is None: curr_snn_state = torch.zeros(state_dim, dtype=torch.float32)
     
     # Ensure tensors
     if isinstance(prev_emo, list): prev_emo = torch.tensor(prev_emo).float()
     if isinstance(curr_emo, list): curr_emo = torch.tensor(curr_emo).float()
     
+    if isinstance(prev_snn_state, list): prev_snn_state = torch.tensor(prev_snn_state).float()
+    if isinstance(curr_snn_state, list): curr_snn_state = torch.tensor(curr_snn_state).float()
+    
     state_tensor = observation_to_tensor(obs_prev)
     next_state_tensor = observation_to_tensor(obs_next)
     
     # Forward Pass
-    q_values = net(state_tensor, prev_emo)
+    q_values = net(state_tensor, prev_emo, prev_snn_state)
     current_q_val = q_values[action]
     
     # Target Q Computation (Bellman Equation)
     with torch.no_grad():
-        next_q_values = net(next_state_tensor, curr_emo)
+        next_q_values = net(next_state_tensor, curr_emo, curr_snn_state)
         max_next_q = torch.max(next_q_values)
         gamma = 0.95
         target_q_val = torch.tensor(reward, dtype=torch.float32) + gamma * max_next_q

@@ -21,7 +21,10 @@ from src.core.snn_context_theus import sync_to_heavy_tensors
 
 @process(
     inputs=['domain_ctx', 'domain_ctx.snn_context'],
-    outputs=['domain_ctx.heavy_snn_emotion_vector', 'domain_ctx.heavy_previous_snn_emotion_vector'],
+    outputs=[
+        'domain_ctx.heavy_snn_emotion_vector', 'domain_ctx.heavy_previous_snn_emotion_vector',
+        'domain_ctx.heavy_snn_state_vector', 'domain_ctx.heavy_previous_snn_state_vector'
+    ],
     side_effects=[]
 )
 def encode_emotion_vector(ctx: SystemContext):
@@ -109,10 +112,25 @@ def _encode_emotion_vector_impl(ctx: SystemContext):
     
     # Shift current to previous (for RL learning)
     prev_emo = None
-    if ctx.domain_ctx.heavy_snn_emotion_vector is not None:
+    if getattr(ctx.domain_ctx, 'heavy_snn_emotion_vector', None) is not None:
         prev_emo = ctx.domain_ctx.heavy_snn_emotion_vector.detach().clone()
+        
+    prev_state = None
+    if getattr(ctx.domain_ctx, 'heavy_snn_state_vector', None) is not None:
+        prev_state = ctx.domain_ctx.heavy_snn_state_vector.detach().clone()
+        
+    # Extract SNN State from heavy_tensors
+    from src.core.snn_context_theus import ensure_heavy_tensors_initialized
+    ensure_heavy_tensors_initialized(snn_ctx)
+    t = snn_ctx.domain_ctx.heavy_tensors
+    if 'firing_traces' in t:
+        snn_state = t['firing_traces'].copy()
+    else:
+        snn_state = np.zeros(snn_ctx.global_ctx.num_neurons, dtype=np.float32)
+        
+    current_state = torch.tensor(snn_state, dtype=torch.float32).detach()
     
-    # Convert current to tensor
+    # Convert current emotion to tensor
     current_emo = torch.tensor(
         emotion_vector,
         dtype=torch.float32
@@ -120,7 +138,9 @@ def _encode_emotion_vector_impl(ctx: SystemContext):
 
     return {
         'heavy_snn_emotion_vector': current_emo,
-        'heavy_previous_snn_emotion_vector': prev_emo
+        'heavy_previous_snn_emotion_vector': prev_emo,
+        'heavy_snn_state_vector': current_state,
+        'heavy_previous_snn_state_vector': prev_state
     }
 
 

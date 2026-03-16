@@ -1,0 +1,38 @@
+{
+    "experiments": [
+        {
+            "name": "Integration_Test_Bridge",
+            "description": "Short test to verify SNN State (100D) to Deep RL.",
+            "runs": 1,
+            "episodes_per_run": 20,
+            "parameters": {
+                "learning_rate": 0.1,
+                "discount_factor": 0.9,
+                "model_config": {
+                    "obs_dim": 16,
+                    "emotion_dim": 16,
+                    "snn_state_dim": 100,
+                    "hidden_dim": 64,
+                    "action_dim": 8,
+                    "gated_lr": 0.001
+                },
+                "snn_config": {
+                    "num_neurons": 100,
+                    "learning_rate_stdp": 0.01,
+                    "learning_rate_rl": 0.05,
+                    "trace_decay": 0.9,
+                    "reward_modulation_factor": 2.0,
+                    "homeostasis_target_rate": 0.1,
+                    "homeostasis_learning_rate": 0.001
+                },
+                "environment_config": {
+                    "grid_size": 10,
+                    "num_agents": 5,
+                    "max_steps_per_episode": 200,
+                    "walls": [],
+                    "logical_switches": []
+                }
+            }
+        }
+    ]
+}

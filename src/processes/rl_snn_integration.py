@@ -118,11 +118,13 @@ def combine_rewards(ctx: SystemContext):
     }
     
     metrics_update = dict(domain.metrics)
+    accum_reward = metrics_update.get('accum_darwinism_reward', 0.0)
     metrics_update.update({
         'confidence': confidence,
         'novelty': novelty,
         'surprise': surprise,
-        'total_reward': total_reward
+        'total_reward': total_reward,
+        'accum_darwinism_reward': accum_reward + total_reward
     })
     
     return {

@@ -72,6 +72,7 @@ class RLAgent:
         
         obs_dim = model_cfg.get('obs_dim', 5)
         emotion_dim = model_cfg.get('emotion_dim', 16)
+        snn_state_dim = model_cfg.get('snn_state_dim', 100)
         hidden_dim = model_cfg.get('hidden_dim', 64)
         action_dim = model_cfg.get('action_dim', 8)
         gated_lr = model_cfg.get('gated_lr', 0.001)
@@ -79,6 +80,7 @@ class RLAgent:
         self.gated_network = GatedIntegrationNetwork(
             obs_dim=obs_dim,
             emotion_dim=emotion_dim,
+            snn_state_dim=snn_state_dim,
             hidden_dim=hidden_dim,
             action_dim=action_dim
         )

@@ -32,33 +32,88 @@ Chúng ta chọn MLP vì **Sự phân công lao động**:
 
 ```mermaid
 graph TD
-    subgraph SNN_Context ["SNN: Cảm xúc & Bộ nhớ"]
+    subgraph SNN_Context ["SNN: Cảm xúc & Bộ nhớ Topology (Num_Neurons)"]
         SNN[SNN Core Cycle]
         Encoder[State-to-Spike Encoder]
     end
 
-    subgraph RL_Context ["Deep RL: Bộ não ra quyết định"]
-        Obs_Enc[Observation Encoder]
-        Emo_Enc[Emotion Encoder]
-        Attn[Cross-Attention Block]
-        MLP[Policy Head / Q-Values]
+    subgraph RL_Context ["Deep RL: Bộ não ra quyết định (12-Layer MLP)"]
+        Obs_Enc[Observation Encoder: 16D -> 128D]
+        Emo_Enc[Emotion Encoder: 16D -> 128D]
+        SNN_Enc[SNN State Encoder: N-D -> 128D]
+        Attn[Cross-Attention Block 4-Lớp]
+        MLP[Policy Head / Q-Values: 128D -> 8 Action]
     end
 
-    ENV[Environment / Maze] -->|16-dim Sensor| Encoder
-    ENV -->|16-dim Sensor| Obs_Enc
+    ENV[Environment / Maze] -->|Sensor 16-dim| Encoder
+    ENV -->|Sensor 16-dim| Obs_Enc
     
     Encoder --> SNN
-    SNN -->|Emotion Vector| Emo_Enc
+    SNN -->|Emotion Vector 16D| Emo_Enc
+    SNN -->|Firing Traces N-dim| SNN_Enc
     
-    Obs_Enc --> Attn
-    Emo_Enc --> Attn
+    Obs_Enc -->|Value| Attn
+    SNN_Enc -->|Value| Attn
+    Emo_Enc -->|Query| Attn
     
-    Attn --> MLP
+    Attn -->|Residual Fusion| MLP
     MLP -->|Action| ENV
     MLP -->|Top-Down Modulation| SNN
 ```
 
-## 4. Lợi ích của việc gỡ bỏ Tabular Q-Learning
+## 4. Giải phẫu Mạng Quyết định (Gated Integration Network)
+
+Sau đại tu cấu trúc (Bridge Upgrade), mạng Neural Brain không hề đơn giản, mà là một cỗ máy phân tích Multi-branch đồ sộ bao gồm tổng cộng **12 Lớp Nơ-ron (Layers)** truyền thẳng:
+
+1.  **3 Bộ Mã hóa Song song (6 Lớp):** Môi trường (16D), SNN Trạng thái (N-Dim), và SNN Cảm xúc (16D) được tách riêng và mỗi kênh đi qua 2 lớp tuyến tính để phóng chiều lên `hidden_dim` (Ví dụ 128) để tạo không gian đặc trưng chung.
+2.  **Khối Chú ý Chéo (Cross-Attention - 4 Lớp) - Sự Thay Đổi Bản Lề:** 
+    Sự Tiến hóa ở đây nằm ở việc thay đổi mục tiêu mà Cảm xúc rọi vào (Query vs Key/Value):
+    *   *Trong phiên bản cũ:* Mạng dùng Cảm xúc nén (16D) rọi vào Cảm biến Môi trường (16D). Nhược điểm là tác tử mù lòa về không gian sâu và độ dài ký ức. 
+    *   *Trong phiên bản V3 hiện tại:* Thuật toán hợp nhất (Addition Fusion) Mảnh ghép Không gian (Môi trường) và Mảnh ghép Thời gian (Mảng SNN Ký ức 100D+) lại thành một Căn phòng duy nhất. Vector Cảm xúc (16D) lúc này đóng vai trò như một **Chiếc đèn pin Chỉ hướng** soi vào Tổ hợp Không-Thời gian đó để nhận thức: *"Trong hàng trăm nơ-ron đang nháy sáng phức tạp kia, đâu là nhịp điệu cốt lõi sinh ra cảm giác sợ hãi này? Và tôi nên phản ứng ra sao?"*. Cơ chế này mang lại khả năng Lập luận (Reasoning) vô tiền khoáng hậu cho hệ thống RL.
+3.  **Khối Hành động (Q-Head - 2 Lớp):** Tín hiệu sau chú ý được gộp lại qua Layer Norm và điền vào 2 lớp suy luận sâu để đánh giá Q-value cho 8 hành động độc lập.
+
+Sự chia nhánh này giúp hệ thống nhận diện bức tranh tổng thể đa chiều $1000+$ cảm biến (khi SNN scale-up) mà không bị Nghẽn Cổ chai (Information Bottleneck) hay Suy thoái (Catastrophic Forgetting).
+
+## 5. Phá vỡ Nút thắt Cổ chai (SNN-DeepRL Interface)
+
+Trước khi nâng cấp, cầu nối dữ liệu (Bridge) giữa SNN và các hệ thống RL (kể cả Bảng Q-Table lẫn Mạng MLP sơ khai) đều tồn tại một yếu huyệt tàn khốc: **Nén trung bình (Average Pooling) thành 16-chiều**.
+
+### Vấn đề của Kiến trúc cũ
+Dù mạng SNN có sở hữu 100 hay 1000 nơ-ron với mạng lưới Topology phân tán tới đâu, khi đi qua `encode_emotion_vector`, hệ thống đều lấy tất cả các nơ-ron đang nháy sáng (Active Firing) cộng gộp lại và chia trung bình để nhồi nhét vào một Vector Cảm xúc 16-chiều (Emotion Vector 16D). Quá trình "Information Collapse" này khiến mạng PyTorch phía sau bị mù lòa không gian: Nó không thể biết nơ-ron nào ở phương hướng nào đang chớp sáng, mà chỉ thấy một màn sương mờ mờ 16-chiều nhạt nhòa. Điều này khiến cho Reward bị kẹt cứng triền miên ở mức âm do trạng thái môi trường bị trùng lặp (Aliasing).
+
+### Giải pháp Truyền thẳng V3 (Raw State Injection)
+Trong phiên bản **12-Layer MLP** hiện tại, nút thắt 16D này đã bị bãi bỏ. Bầu trời dữ liệu được khai mở hoàn toàn:
+- Mạng SNN giờ đây cung cấp **nguyên trạng toàn bộ Mảng trạng thái nháy sáng (Firing Traces Array)**. Nếu SNN có $N$ Nơ-ron, một khối dữ liệu $N$-chiều (`snn_state_dim`) sẽ được bơm thẳng xuống PyTorch.
+- Mảng Firing Traces này chứa đựng trọn vẹn đặc trưng Không gian - Thời gian (Biết biến cố xảy ra ở đâu và bao lâu trước đó).
+- Emotion Vector 16D cũ giờ đây thoái lui, chỉ còn đóng vai trò phụ trợ làm `Query` (Hệ giá trị mong muốn) để hệ thống Cross-Attention (Phễu Chú ý) biết rằng **"Nên chú ý vào vùng nào của Mảng 100D Firing Traces kia"**.
+
+## 6. Cơ chế Tự động Co giãn (Auto-Scaling Dimensionality)
+
+Kiến trúc SNN-DeepRL được thiết kế theo triết lý "Plug-and-Play". Bạn hoàn toàn có thể thổi phồng bộ não SNN lên 1,024 hay 10,240 Nơ-ron (để đạt quy mô sinh học thực sự) mà **không cần sửa một dòng Code Python nào**.
+
+### Hướng dẫn Cấu hình (JSON)
+Mọi việc điều phối kích thước cổng giao tiếp đều nằm trong file cấu hình (ví dụ `experiments.json`). Bạn chỉ cần đảm bảo sự đồng bộ giữa Tổng số Nơ-ron SNN và Đầu vào MLP:
+
+```json
+{
+    "snn_config": {
+        "num_neurons": 1024
+    },
+    "model_config": {
+        "snn_state_dim": 1024,
+        "hidden_dim": 256
+    }
+}
+```
+
+### Nguyên tắc chọn Kích thước Lớp ẩn (hidden_dim)
+Khi bạn bơm $N$ tín hiệu đầu vào từ SNN, Mạng ẩn (Hidden Layer) của RL không được phép nhỏ bé. Cần thiết lập `hidden_dim` theo "Quy tắc Cổ chai Vàng" (Tỷ lệ 1/2 hoặc 1/4 so với dữ liệu đầu vào):
+*   **Scale vừa phải (1,024 Neurons):** Đặt `hidden_dim` = `256`. PyTorch sẽ tự sinh ra một bộ giải mã (Encoder) có $1024 \times 256 = 262,400$ tham số. Đủ để chắt lọc quy luật mà hệ thống vẫn chạy rất nhẹ trên Laptop.
+*   **Scale khổng lồ (10,240 Neurons):** Đặt `hidden_dim` = `512` (hoặc 1024). Bộ giải mã sẽ phình to thành hàng triệu tham số. Khả năng nhìn thấu Mê cung Rộng lớn sẽ xấp xỉ vô cực, nhưng bù lại mỗi vòng lặp `train_step` sẽ cực kỳ ngốn tài nguyên CPU/GPU.
+
+*Nhờ cơ chế **Layer Normalization** chặn hai đầu, bạn có thể truyền ma trận 10,240 chiều vào hệ thống Attention mà không bao giờ gặp lỗi Gradients bùng nổ (Exploding).*
+
+## 7. Lợi ích của việc gỡ bỏ Tabular Q-Learning
 
 Việc chuyển hoàn toàn sang Neural Brain giải quyết các vấn đề cốt lõi:
 - **Hóa giải "Bùng nổ trạng thái":** Không còn giới hạn bởi bảng tọa độ (X, Y). Mạng Neural có thể xử lý các trạng thái môi trường liên tục và phức tạp.

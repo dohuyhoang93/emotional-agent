@@ -1,0 +1,40 @@
+{
+    "experiments": [
+        {
+            "name": "Test_Decay_Config",
+            "description": "Short test to verify custom exploration_decay overwrite.",
+            "runs": 1,
+            "episodes_per_run": 5,
+            "parameters": {
+                "learning_rate": 0.1,
+                "discount_factor": 0.9,
+                "exploration_decay": 0.90,
+                "min_exploration": 0.05,
+                "model_config": {
+                    "obs_dim": 16,
+                    "emotion_dim": 16,
+                    "snn_state_dim": 100,
+                    "hidden_dim": 64,
+                    "action_dim": 8,
+                    "gated_lr": 0.001
+                },
+                "snn_config": {
+                    "num_neurons": 100,
+                    "learning_rate_stdp": 0.01,
+                    "learning_rate_rl": 0.05,
+                    "trace_decay": 0.9,
+                    "reward_modulation_factor": 2.0,
+                    "homeostasis_target_rate": 0.1,
+                    "homeostasis_learning_rate": 0.001
+                },
+                "environment_config": {
+                    "grid_size": 10,
+                    "num_agents": 2,
+                    "max_steps_per_episode": 50,
+                    "walls": [],
+                    "logical_switches": []
+                }
+            }
+        }
+    ]
+}

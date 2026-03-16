@@ -339,18 +339,24 @@ def process_neural_darwinism(
     if domain.current_time % darwinism_interval != 0:
         return {}
     
-    error = abs(rl_ctx.domain_ctx.td_error)
+    error = rl_ctx.domain_ctx.td_error
+    accum_reward = domain.metrics.get('accum_darwinism_reward', 0.0)
     
     # === PART 1: SYNAPSE EVOLUTION ===
     
-    # 1. Update fitness (FIX: Multiplicative instead of additive)
+    # 1. Update fitness (Goal-driven Darwinism)
     for synapse in domain.synapses:
-        if error < 0.1:
-            # Good prediction: 5% boost (was +0.1 additive)
-            synapse.fitness = min(1.0, synapse.fitness * 1.05)
+        if accum_reward > 0.0:
+            # Ngôi sao hi vọng: Phá đảo hoặc đạt thưởng lớn
+            synapse.fitness = min(1.0, synapse.fitness * 1.5)  # +50% boost
         else:
-            # Bad prediction: 10% penalty (was -0.05 additive)
-            synapse.fitness = max(0.0, synapse.fitness * 0.90)
+            # Nếu không có thưởng rực rỡ, phạt/thưởng dựa trên TD-Error định hướng (không lấy trị tuyệt đối)
+            if error > 0.1:
+                # Bất ngờ tích cực (Tốt hơn dự kiến)
+                synapse.fitness = min(1.0, synapse.fitness * 1.1)
+            elif error < -0.1:
+                # Bất ngờ tiêu cực (Tệ hơn dự kiến)
+                synapse.fitness = max(0.0, synapse.fitness * 0.8)
         
         # Apply decay
         synapse.fitness *= fitness_decay
@@ -384,7 +390,16 @@ def process_neural_darwinism(
     
     # === PART 2: NEURON RECYCLING (True Darwinism) ===
     
-    DEAD_THRESHOLD = 500 # NOTE: Giảm từ 2000 xuống 500 để recycling diễn ra thường xuyên hơn
+    BASE_DEAD_THRESHOLD = 500 # Ngưỡng cơ sở để cho một nơ-ron là chết
+    if accum_reward > 0.5:
+        # Cả đội đang chiến thắng, khoan dung với các nơ-ron lười (có thể chúng chờ kịch bản hẹp)
+        effective_dead_threshold = BASE_DEAD_THRESHOLD * 3
+    elif accum_reward < -0.5:
+        # Cả đội đang thua đậm, thanh trừng mạnh tay các nơ-ron không hoạt động để sinh mới
+        effective_dead_threshold = BASE_DEAD_THRESHOLD // 2
+    else:
+        effective_dead_threshold = BASE_DEAD_THRESHOLD
+        
     recycled_count = 0
     new_synapses = []
     
@@ -409,7 +424,7 @@ def process_neural_darwinism(
             break
         
         # Check if dead
-        is_dead = (domain.current_time - neuron.last_fire_time) > DEAD_THRESHOLD
+        is_dead = (domain.current_time - neuron.last_fire_time) > effective_dead_threshold
         
         # O(1) lookup thay vì O(S) scan mỗi neuron
         has_solid = neuron.neuron_id in solid_neuron_ids
@@ -473,6 +488,7 @@ def process_neural_darwinism(
     new_metrics['darwinism_survivors'] = len(survivors)
     new_metrics['recycled_neurons'] = recycled_count
     new_metrics['new_metrics_generated'] = len(new_synapses)
+    new_metrics['accum_darwinism_reward'] = 0.0  # Reset for the next interval
 
     # NOTE: DO NOT clear() heavy_tensors as it is a ShmTensorStore.
     # Clearing it destroys the memory mapping for this agent.

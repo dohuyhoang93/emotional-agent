@@ -79,6 +79,8 @@ class DomainContext(BaseDomainContext):
     heavy_snn_context: Any = None  # SNNSystemContext (nested context)
     heavy_snn_emotion_vector: Optional[torch.Tensor] = None  # Emotion từ SNN
     heavy_previous_snn_emotion_vector: Optional[torch.Tensor] = None # Emotion cũ (t-1)
+    heavy_snn_state_vector: Optional[torch.Tensor] = None # SNN firing traces/state
+    heavy_previous_snn_state_vector: Optional[torch.Tensor] = None # SNN firing traces cũ (t-1)
     intrinsic_reward: float = 0.0  # Novelty signal từ SNN
     
     # Property alias for backward compatibility

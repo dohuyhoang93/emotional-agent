@@ -98,6 +98,7 @@ class GatedIntegrationNetwork(nn.Module):
         self,
         obs_dim: int = 10,
         emotion_dim: int = 16,
+        snn_state_dim: int = 100,
         hidden_dim: int = 64,
         action_dim: int = 4
     ):
@@ -105,6 +106,7 @@ class GatedIntegrationNetwork(nn.Module):
         
         self.obs_dim = obs_dim
         self.emotion_dim = emotion_dim
+        self.snn_state_dim = snn_state_dim
         self.hidden_dim = hidden_dim
         self.action_dim = action_dim
         
@@ -118,6 +120,14 @@ class GatedIntegrationNetwork(nn.Module):
         
         self.emotion_encoder = nn.Sequential(
             nn.Linear(emotion_dim, hidden_dim),
+            nn.ReLU(),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.ReLU()
+        )
+        
+        # === SNN State Encoder ===
+        self.snn_state_encoder = nn.Sequential(
+            nn.Linear(snn_state_dim, hidden_dim),
             nn.ReLU(),
             nn.Linear(hidden_dim, hidden_dim),
             nn.ReLU()
@@ -140,11 +150,13 @@ class GatedIntegrationNetwork(nn.Module):
         # Layer Norm for stability (Anti-Imbalance)
         self.ln_obs = nn.LayerNorm(hidden_dim)
         self.ln_emo = nn.LayerNorm(hidden_dim)
+        self.ln_snn = nn.LayerNorm(hidden_dim)
     
     def forward(
         self,
         observation: torch.Tensor,
-        emotion_vector: torch.Tensor
+        emotion_vector: torch.Tensor,
+        snn_state: torch.Tensor
     ) -> torch.Tensor:
         """
         Forward pass.
@@ -154,24 +166,30 @@ class GatedIntegrationNetwork(nn.Module):
             observation = observation.unsqueeze(0)
         if emotion_vector.dim() == 1:
             emotion_vector = emotion_vector.unsqueeze(0)
+        if snn_state.dim() == 1:
+            snn_state = snn_state.unsqueeze(0)
         
         # Encode
         h_obs = self.obs_encoder(observation)
         h_emo = self.emotion_encoder(emotion_vector)
+        h_snn = self.snn_state_encoder(snn_state)
         
         # Normalize (Crucial for Attention)
         h_obs = self.ln_obs(h_obs)
         h_emo = self.ln_emo(h_emo)
+        h_snn = self.ln_snn(h_snn)
         
-        # Cross-Attention: Emotion acts as Query to filter Observation
-        # "Contextual Focus": Which parts of Observation align with current Emotion?
+        # Fusion Context for KV: Observation + Spatio-Temporal SNN State
+        h_kv = h_obs + h_snn
+        
+        # Cross-Attention: Emotion acts as Query to filter Observation+SNN State
+        # "Contextual Focus": Which parts of Env+SNN State align with current Emotion?
         # context: [Batch, Hidden]
-        context, _ = self.attention(query=h_emo, key_value=h_obs)
+        context, _ = self.attention(query=h_emo, key_value=h_kv)
         
         # Residual Fusion
-        # We start with Observation (Rational), and add Emotional Context
-        # Output = Obs + Attention(Obs given Emotion)
-        h_fused = h_obs + context
+        # Output = Obs + SNN State + Attention(Obs+SNN given Emotion)
+        h_fused = h_kv + context
         
         # Stabilization (Option 3 from Feedback)
         h_fused = self.ln_fusion(h_fused)
@@ -188,18 +206,23 @@ class GatedIntegrationNetwork(nn.Module):
     def get_attention_weights(
         self,
         observation: torch.Tensor,
-        emotion_vector: torch.Tensor
+        emotion_vector: torch.Tensor,
+        snn_state: torch.Tensor
     ) -> torch.Tensor:
         """Get attention weights [Batch, Num_Heads]"""
         if observation.dim() == 1:
             observation = observation.unsqueeze(0)
         if emotion_vector.dim() == 1:
             emotion_vector = emotion_vector.unsqueeze(0)
+        if snn_state.dim() == 1:
+            snn_state = snn_state.unsqueeze(0)
             
         h_obs = self.ln_obs(self.obs_encoder(observation))
         h_emo = self.ln_emo(self.emotion_encoder(emotion_vector))
+        h_snn = self.ln_snn(self.snn_state_encoder(snn_state))
         
-        _, weights = self.attention(h_emo, h_obs)
+        h_kv = h_obs + h_snn
+        _, weights = self.attention(h_emo, h_kv)
         # weights: [Batch, Num_Heads, 1, 1]
         # FIX: Use view ensures batch dimension is preserved even if batch_size=1
         return weights.view(weights.size(0), self.attention.num_heads)
@@ -218,12 +241,13 @@ class GatedIntegrationTrainer:
         self.optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
         self.criterion = nn.MSELoss()
     
-    def train_step(self, observation, emotion_vector, target_q) -> float:
+    def train_step(self, observation, emotion_vector, snn_state, target_q) -> float:
         observation = observation.to(self.device)
         emotion_vector = emotion_vector.to(self.device)
+        snn_state = snn_state.to(self.device)
         target_q = target_q.to(self.device)
         
-        pred_q = self.model(observation, emotion_vector)
+        pred_q = self.model(observation, emotion_vector, snn_state)
         loss = self.criterion(pred_q, target_q)
         
         self.optimizer.zero_grad()

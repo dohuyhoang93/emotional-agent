@@ -1,0 +1,44 @@
+{
+    "experiments": [
+        {
+            "name": "Optimization_Sanity_DeepRL_Path_Darwinism_10k",
+            "description": "Thử nghiệm 10.000 Episodes sau khi tháo gỡ điểm nghẽn Bridge SNN-DeepRL 16D -> 100D.",
+            "runs": 1,
+            "episodes_per_run": 10000,
+            "parameters": {
+                "learning_rate": 0.1,
+                "discount_factor": 0.9,
+                "exploration_decay": 0.9995,
+                "min_exploration": 0.05,
+                "model_config": {
+                    "obs_dim": 16,
+                    "emotion_dim": 16,
+                    "snn_state_dim": 100,
+                    "hidden_dim": 128,
+                    "action_dim": 8,
+                    "gated_lr": 0.001
+                },
+                "snn_config": {
+                    "num_neurons": 100,
+                    "learning_rate_stdp": 0.01,
+                    "learning_rate_rl": 0.05,
+                    "trace_decay": 0.9,
+                    "reward_modulation_factor": 2.0,
+                    "homeostasis_target_rate": 0.1,
+                    "homeostasis_learning_rate": 0.001
+                },
+                "environment_config": {
+                    "grid_size": 15,
+                    "num_agents": 5,
+                    "max_steps_per_episode": 300,
+                    "walls": [
+                        [2, 2], [2, 3], [2, 4], [2, 5], [2, 6], [2, 7],
+                        [7, 7], [7, 8], [7, 9], [7, 10], [7, 11], [7, 12],
+                        [12, 2], [12, 3], [12, 4], [12, 5]
+                    ],
+                    "logical_switches": []
+                }
+            }
+        }
+    ]
+}
