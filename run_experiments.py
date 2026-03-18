@@ -66,6 +66,13 @@ def main(argv=None):
     
     args = parser.parse_args(argv)
 
+    # V3 Optimization: Auto-silent in headless mode if not specified
+    if args.headless and args.log_level is None:
+        args.log_level = 'silent'
+        # Inform the user once that we are entering silent mode
+        print("\n  [Headless Mode] Silent execution enabled. Terminal logs suppressed.")
+        print(f"  [Headless Mode] Workflow progress will be logged to: logs/audit.log\n")
+
     # Construct Settings Override
     override_dict = {}
     if args.settings_override:
@@ -89,14 +96,15 @@ def main(argv=None):
     global_ctx = OrchestratorGlobalContext(
         config_path=args.config,
         cli_log_level=args.log_level,
-        settings_override=settings_override_json
+        settings_override=settings_override_json,
+        log_level=args.log_level if args.log_level else "info"
     )
     # Inject headless flag
     global_ctx.headless = args.headless
     
     domain_ctx = OrchestratorDomainContext(
         output_dir="results", # Default, updated by p_load_config
-        effective_log_level="info" # Default
+        effective_log_level=args.log_level if args.log_level else "info"
     )
     
     system_ctx = OrchestratorSystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)

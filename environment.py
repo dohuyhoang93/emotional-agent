@@ -1,13 +1,17 @@
 import os
 import copy
 import numpy as np
+from src.logger import log
 
 class GridWorld:
     """
     The Grid World environment supports multiple agents and complex logic mazes.
     """
     def __init__(self, settings):
-        print("Initialize a multi-agent GridWorld with a Complex Logic Maze...")
+        # Attempt to get log_level from settings or env
+        self.log_level = settings.get("log_level", "info")
+        
+        log(self, "info", "Initialize a multi-agent GridWorld with a Complex Logic Maze...")
         
         env_config = settings.get("environment_config", {})
         self.size = env_config.get("grid_size", 15)
@@ -42,12 +46,12 @@ class GridWorld:
             if 0 <= r < self.size and 0 <= c < self.size:
                 grid[r][c] = '#'
         for r, c in self.switches.keys():
-            print(f"DEBUG: Placing switch at ({r}, {c})")
+            log(self, "debug", f"DEBUG: Placing switch at ({r}, {c})")
             if 0 <= r < self.size and 0 <= c < self.size:
                 if grid[r][c] == '.':
                     grid[r][c] = 'S'
                 else:
-                    print(f"DEBUG: Cannot place switch at ({r}, {c}), occupied by '{grid[r][c]}'")
+                    log(self, "debug", f"DEBUG: Cannot place switch at ({r}, {c}), occupied by '{grid[r][c]}'")
         return grid
 
     def _update_dynamic_walls(self):

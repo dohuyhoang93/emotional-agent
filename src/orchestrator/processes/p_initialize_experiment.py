@@ -125,7 +125,7 @@ class FSMExperimentRunner:
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'domain.output_dir', 'log_level'],
-    outputs=['domain.sig_episode_counter', 'domain.sig_max_episodes', 'domain.active_experiment_episode_idx'],
+    outputs=['domain.sig_episode_counter', 'domain.sig_max_episodes', 'domain.active_experiment_episode_idx', 'domain.sig_start_episode'],
     side_effects=['memory.allocate'],
     errors=[]
 )
@@ -185,5 +185,6 @@ def initialize_active_experiment(ctx: OrchestratorSystemContext):
     return {
         'domain.sig_episode_counter': 0,
         'domain.sig_max_episodes': episodes_per_run,
-        'domain.active_experiment_episode_idx': 0
+        'domain.active_experiment_episode_idx': 0,
+        'domain.sig_start_episode': getattr(runner, 'start_episode', 0)
     }

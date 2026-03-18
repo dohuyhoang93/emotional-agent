@@ -111,8 +111,6 @@ def run_single_episode(ctx: OrchestratorSystemContext):
     start_episode = getattr(runner, 'start_episode', 0)
     if current_episode < start_episode:
         log(ctx, "info", f"⏭️  Skipping episode {current_episode} (resume starts at {start_episode})")
-        if not is_dict:
-            domain.active_experiment_episode_idx += 1
         if bus: bus.emit("EPISODE_DONE")
         return {}
     
@@ -130,10 +128,10 @@ def run_single_episode(ctx: OrchestratorSystemContext):
 
     # --- EXECUTE EPISODE ---
     try:
-        log(ctx, "info", f"DEBUG: Starting Episode {current_episode}")
+        log(ctx, "debug", f"DEBUG: Starting Episode {current_episode}")
         runner.perf_monitor.start_episode()
         metrics = runner.coordinator.run_episode(runner.env, runner.adapter)
-        log(ctx, "info", f"DEBUG: Finished Episode {current_episode}. Metrics Type from coordinator: {type(metrics)}")
+        log(ctx, "debug", f"DEBUG: Finished Episode {current_episode}. Metrics Type from coordinator: {type(metrics)}")
         
         # Episode Done (Normal)
         if bus:

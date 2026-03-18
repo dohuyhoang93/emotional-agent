@@ -12,6 +12,8 @@
                 "total_episodes": 5000,
                 "snn_config": {
                     "num_neurons": 1024,
+                    "learning_rate_stdp": 0.01,
+                    "learning_rate_rl": 0.05,
                     "vector_dim": 16,
                     "connectivity": 0.1,
                     "initial_threshold": 0.05,
@@ -40,6 +42,7 @@
                 },
                 "initial_exploration": 1.0,
                 "exploration_decay": 0.999,
+                "min_exploration": 0.05,
                 "intrinsic_reward_weight": 0.05,
                 "use_dynamic_curiosity": true,
                 "use_adaptive_fatigue": true,
@@ -50,7 +53,8 @@
                 "model_config": {
                     "obs_dim": 16,
                     "emotion_dim": 16,
-                    "hidden_dim": 64,
+                    "snn_state_dim": 1024,
+                    "hidden_dim": 256,
                     "action_dim": 8,
                     "gated_lr": 0.001
                 },

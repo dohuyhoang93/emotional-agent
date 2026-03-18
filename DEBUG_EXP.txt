@@ -1,5 +1,5 @@
-exp_name: 'Optimization_Sanity_DeepRL_Path_Darwinism_10k' (type: <class 'str'>)
+exp_name: 'multi_agent_complex_maze' (type: <class 'str'>)
 output_dir: 'results' (type: <class 'str'>)
 isinstance(exp_def, dict): False
 exp_def via type: <class 'theus_core.SupervisorProxy'>
-exp_def.name: 'Optimization_Sanity_DeepRL_Path_Darwinism_10k'
+exp_def.name: 'multi_agent_complex_maze'

@@ -36,6 +36,7 @@ class OrchestratorGlobalContext(BaseGlobalContext):
     config_path: str
     cli_log_level: Optional[str] = None
     settings_override: Optional[str] = None
+    log_level: str = "info" # Added for initialization phase logging
 
     def __getitem__(self, item):
         return getattr(self, item)

@@ -25,7 +25,15 @@ def log(context, message_level: str, message: str):
         context_log_level_str = 'info'
     else:
         try:
-            context_log_level_str = getattr(context, 'log_level', 'info')
+            # Try primary context log_level
+            context_log_level_str = getattr(context, 'log_level', None)
+            
+            # Fallback to global_ctx if missing (e.g. nested SNN/RL contexts)
+            if context_log_level_str is None and hasattr(context, 'global_ctx'):
+                context_log_level_str = getattr(context.global_ctx, 'log_level', 'info')
+            
+            if context_log_level_str is None:
+                context_log_level_str = 'info'
         except (PermissionError, RuntimeError):
             context_log_level_str = 'info'  # Default when guard blocks access
         

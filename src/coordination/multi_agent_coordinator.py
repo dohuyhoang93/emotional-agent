@@ -20,6 +20,7 @@ from src.adapters.environment_adapter import EnvironmentAdapter
 from src.coordination.revolution_protocol import RevolutionProtocolManager
 from theus.config import ConfigFactory
 from src.utils.shm_tensor_store import ShmTensorStore
+from src.logger import log, log_error
 
 
 class MultiAgentCoordinator:
@@ -57,9 +58,9 @@ class MultiAgentCoordinator:
         try:
             from theus.context import HeavyZoneAllocator
             self._shm_allocator = HeavyZoneAllocator()
-            print("[Coordinator] SHM Allocator initialized.")
+            log(self, "debug", "[Coordinator] SHM Allocator initialized.")
         except Exception as e:
-            print(f"[Coordinator] SHM Allocator unavailable, using plain dict: {e}")
+            log(self, "debug", f"[Coordinator] SHM Allocator unavailable, using plain dict: {e}")
         
         # Create agents
         self.agents: List[RLAgent] = []
@@ -217,30 +218,30 @@ class MultiAgentCoordinator:
                     if i == 0:
                         s = env.get_sensor_vector(0)
                         bump_msg = f"BUMP({env.last_bump_types.get(0)})" if env.last_bump_types.get(0) else "Sensing"
-                        print(f"🔍 [INC-003 PROBE] Agent 0 Step {step_count} | {bump_msg} | Ch12={s[12]} Ch13={s[13]} Ch14={s[14]} Ch15={s[15]:.3f}", flush=True)
+                        log(self.global_ctx, "debug", f"🔍 [INC-003 PROBE] Agent 0 Step {step_count} | {bump_msg} | Ch12={s[12]} Ch13={s[13]} Ch14={s[14]} Ch15={s[15]:.3f}")
                     elif env.last_bump_types.get(i) == 'dynamic':
                         s = env.get_sensor_vector(i)
-                        print(f"🔥 [INC-003 GATE-HIT] Agent {i} HIT DYNAMIC GATE at step {step_count} | Ch13={s[13]}", flush=True)
+                        log(self.global_ctx, "debug", f"🔥 [INC-003 GATE-HIT] Agent {i} HIT DYNAMIC GATE at step {step_count} | Ch13={s[13]}")
                     
                     # Check Goal Achievement
                     if tuple(env.agent_positions[i]) == env.goal_pos:
                         if not self.agents[i].episode_metrics.get('success', False):
-                             print(f"\n🏆 SUCCESS: Agent {i} Reached Goal at Step {step_count}!")
+                             log(self.global_ctx, "info", f"🏆 SUCCESS: Agent {i} Reached Goal at Step {step_count}!")
                              self.agents[i].episode_metrics['success'] = True
                              self.agents[i].episode_metrics['steps_to_goal'] = step_count
                 except Exception as e:
                     # RUST CORE TRAP: Theus catches KeyboardInterrupt and wraps it in ContractViolationError
                     if "KeyboardInterrupt" in str(e):
-                        print("\n🛑 MASTER INTERRUPT: Received Ctrl+C (Caught by Theus). Terminating...")
+                        log(self.global_ctx, "info", "\n🛑 MASTER INTERRUPT: Received Ctrl+C (Caught by Theus). Terminating...")
                         import sys
                         sys.exit(0)
 
                     import traceback
                     traceback.print_exc()
-                    print(f"Error in Sequential Acting for Agent {i}: {e}")
+                    log(self.global_ctx, "error", f"Error in Sequential Acting for Agent {i}: {e}")
                     consecutive_errors += 1
                     if consecutive_errors > 5:
-                        print("🚨 CIRCUIT BREAKER TRIPPED: Too many consecutive errors. Aborting Episode.")
+                        log(self.global_ctx, "error", "🚨 CIRCUIT BREAKER TRIPPED: Too many consecutive errors. Aborting Episode.")
                         # FIX INC-001: Trả về dict chuẩn thay vì float('-inf') để tránh crash TypeError
                         return {'error': 'circuit_breaker', 'avg_reward': float('-inf')}
                     step_results.append((0.0, env.get_observation(i))) # Placeholder

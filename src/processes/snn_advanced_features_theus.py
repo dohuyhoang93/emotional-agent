@@ -476,8 +476,7 @@ def process_neural_darwinism(
     
     # === MEMORY LEAK FIX: Cap synapse count to prevent unbounded growth ===
     # NOTE: Neural Darwinism adds new synapses but may grow faster than pruning.
-    MAX_SYNAPSES = int(global_ctx.num_neurons) * 20  # ~20 synapses per neuron max
-    MAX_SYNAPSES = int(global_ctx.num_neurons) * 20  # ~20 synapses per neuron max
+    MAX_SYNAPSES = int(global_ctx.num_neurons) * 40  # ~40 synapses per neuron max
     if len(domain.synapses) > MAX_SYNAPSES:
         # Keep strongest synapses by weight (use sorted() for TrackedList compatibility)
         sorted_synapses = sorted(domain.synapses, key=lambda s: abs(s.weight), reverse=True)
