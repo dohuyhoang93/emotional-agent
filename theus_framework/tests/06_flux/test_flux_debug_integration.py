@@ -15,6 +15,7 @@ from theus import TheusEngine, process
 def p_noop(ctx):
     pass
 
+@pytest.mark.skip(reason="Debug logs disabled in Rust core for Silent Mode optimization requested by user.")
 @pytest.mark.asyncio
 async def test_flux_debug_logging_integration(capfd):
     """

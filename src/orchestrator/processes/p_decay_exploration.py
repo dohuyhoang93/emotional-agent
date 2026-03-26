@@ -9,7 +9,6 @@ Date: 2025-01-12
 
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
-from src.orchestrator.context_helpers import get_domain_ctx, get_attr
 from src.logger import log
 
 
@@ -18,9 +17,9 @@ from src.logger import log
         'domain_ctx', 'domain', 
         'domain.active_experiment_idx', 'domain.experiments',
         'global_ctx.exploration_decay', 'global_ctx.min_exploration',
-        'log_level'  # Required for log() function
+        'log_level'
     ],
-    outputs=[],  # v2 compatible - no output mapping
+    outputs=[],
     side_effects=[],
     errors=[]
 )
@@ -33,17 +32,15 @@ def decay_exploration_all_agents(ctx: OrchestratorSystemContext):
     
     Logic: epsilon = max(min_epsilon, epsilon * decay_rate)
     """
-    domain, is_dict = get_domain_ctx(ctx)
-    
-    # Get experiment info (handle both dict and object)
-    active_idx = get_attr(domain, 'active_experiment_idx', 0)
-    experiments = get_attr(domain, 'experiments', [])
+    # Get experiment info
+    active_idx = getattr(ctx.domain, 'active_experiment_idx', 0)
+    experiments = getattr(ctx.domain, 'experiments', [])
     
     if active_idx >= len(experiments):
         return {}
     
     exp_def = experiments[active_idx]
-    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    exp_name = getattr(exp_def, 'name', 'unknown')
     
     # V3 MIGRATION: Fetch Runner from Registry
     from src.orchestrator.runtime_registry import get_runner

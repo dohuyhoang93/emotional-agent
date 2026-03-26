@@ -62,11 +62,11 @@ def process_dream_learning(ctx: SNNContext) -> SNNContext:
     
     # DEBUG: Log fire rate
     if ctx.current_time % 500 == 0:
-        print(f"[DREAM] Step {ctx.current_time}: fire_rate={current_fire_rate:.4f}, threshold=0.02")
+        pass # print(f"[DREAM] Step {ctx.current_time}: fire_rate={current_fire_rate:.4f}, threshold=0.02")
     
     # Nightmare: Fire rate quá cao (giảm từ 10% xuống 2% để demo)
     if current_fire_rate > 0.02:  # >2% (giảm từ 0.10)
-        print(f"[NIGHTMARE] Triggered! fire_rate={current_fire_rate:.4f}")
+        pass # print(f"[NIGHTMARE] Triggered! fire_rate={current_fire_rate:.4f}")
         
         # Tăng ngưỡng cho TẤT CẢ neurons để giảm fire rate (MẠNH HƠN)
         for neuron in ctx.neurons:
@@ -75,7 +75,7 @@ def process_dream_learning(ctx: SNNContext) -> SNNContext:
         
         ctx.metrics['nightmare_count'] = ctx.metrics.get('nightmare_count', 0) + 1
         ctx.social_signals['fear'] = 0.8  # Set fear signal
-        print(f"[NIGHTMARE] Count now: {ctx.metrics['nightmare_count']}")
+        # print(f"[NIGHTMARE] Count now: {ctx.metrics['nightmare_count']}")
     
     # Pleasant dream: Fire rate ổn định
     elif 0.01 < current_fire_rate < 0.02:

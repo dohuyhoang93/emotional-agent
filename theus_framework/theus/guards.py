@@ -2,8 +2,7 @@ import logging
 import contextvars
 from typing import Any, Dict, List, Optional, Set, Union
 import functools
-import numpy as np
-import torch
+import sys
 
 # NOTE: Transaction is stored here instead of in ContextGuard instances to prevent
 # Transaction refs from leaking into the serializable object graph. This breaks
@@ -51,6 +50,7 @@ class ContextGuard:
         transaction: Any = None,
         strict_guards: bool = True,
         process_name: str = "Unknown",
+        process_context: Any = None,
         _inner: Any = None,
         parent: Any = None,
         name: Any = None,
@@ -101,6 +101,7 @@ class ContextGuard:
         object.__setattr__(self, "_parent", parent)
         object.__setattr__(self, "_name", name)
         object.__setattr__(self, "_target", target_obj)
+        object.__setattr__(self, "_process_context", process_context)
 
         if _inner is not None:
             self._inner = _inner
@@ -301,6 +302,17 @@ class ContextGuard:
         # because that triggers ContractViolationError if the proxy-path is not in outputs.
         # Instead, we use Parent-Level Overwrite in destructive methods (clear/pop/remove).
 
+    @property
+    def transaction(self):
+        return getattr(self, "_transaction", None)
+        
+    @property
+    def outbox(self):
+        tx = getattr(self, "_transaction", None)
+        if tx is not None:
+             return getattr(tx, "outbox", None)
+        return None
+
     def __getattr__(self, name: str) -> Any:
         # [RFC-001 §10] Block __dict__ access to prevent bypassing Zone Physics.
         # NOTE: On ContextGuard instances, __dict__ access from user code triggers
@@ -311,9 +323,23 @@ class ContextGuard:
                 "Direct access to '__dict__' is forbidden. "
                 "Use the Context API to read/write fields safely."
             )
+        # [INC-025 Fix] Block direct access to _inner and _target from user-space
+        # code when strict_guards is enabled. These are internal framework attributes
+        # and bypassing them completely circumvents the Delta tracking mechanism.
+        # NOTE: _inner and _target remain accessible to the framework itself via
+        # object.__getattribute__ (used internally in guards.py and engine.py).
+        _strict = object.__getattribute__(self, "_strict_guards")
+        if _strict and name in ("_inner", "_target"):
+            raise PermissionError(
+                f"[INC-025] Direct access to '{name}' is forbidden in Strict Mode. "
+                "All state mutations must go through the ContextGuard proxy. "
+                "If you need to read a value, use the standard attribute access (ctx.field). "
+                "If you need to bypass for heavy objects, prefix the field with 'heavy_'."
+            )
         # 1. Immediate bypass for whitelisted Python-side attributes
         if name in ("_inner", "_local_is_admin", "_log", "_elevate", "is_admin", "is_proxy", "_outbox", "_path_prefix", "_allowed_inputs", "_allowed_outputs", "_transaction", "_strict_guards", "_parent", "_name", "_target"):
             return object.__getattribute__(self, name)
+
 
         full_path = name if self._path_prefix == "" else f"{self._path_prefix}.{name}"
         # [RFC-001 §5] Zone physics check first (const_/internal_)
@@ -339,7 +365,10 @@ class ContextGuard:
             val = getattr(self._inner, name, None) if self._inner is not None else None
             # [v3.5] Heavy Prefix Fallback: If 'X' is not found, try 'heavy_X'
             if val is None and self._inner is not None:
-                val = getattr(self._inner, f"heavy_{name}", None)
+                try:
+                    val = getattr(self._inner, f"heavy_{name}", None)
+                except Exception:
+                    pass
             
             if val is None and self._target:
                  # Try target (Hybrid Bridge)
@@ -352,49 +381,86 @@ class ContextGuard:
                 f"ContextGuard.__getattr__('{name}'): RuntimeError from Rust proxy — {rt_err}",
                 RuntimeWarning, stacklevel=2
             )
-            raise
-        except AttributeError:
-             # [RFC-002] Support attribute-style access for DICT proxies or items (e.g. state.domain.balance)
-            if hasattr(self._inner, "__getitem__") and not name.startswith("_"):
-                 try:
-                     return self._inner[name]
-                 except (KeyError, TypeError, AttributeError):
-                     pass
-             
-            # [RFC-002] Dynamic Namespace Fallback
-            # [RFC-002] Dynamic Namespace Fallback
-            from .context import NamespaceRegistry
-            if name in NamespaceRegistry()._namespaces:
-                try:
-                    # Reach into Rust Core: ProcessContext -> State -> Data
-                    pc = self._inner._target
-                    state_data = pc.state.data
-                    val = state_data[name]
-                    
-                    full_path = name if self._path_prefix == "" else f"{self._path_prefix}.{name}"
-                    
-                    if isinstance(val, (dict, list)):
-                        return ContextGuard(
-                            target_obj=None,
-                            allowed_inputs=self._allowed_inputs,
-                            allowed_outputs=self._allowed_outputs,
-                            path_prefix=full_path,
-                            transaction=_current_tx.get(),
-                            strict_guards=self._strict_guards,
-                            process_name=self._log.extra.get("process_name", "Unknown"),
-                            _inner=val,
-                            parent=self,
-                            name=name,
-                        )
-                    return val
-                except Exception:
-                    raise
-            
-            raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
-
+            val = None
         except PermissionError as e:
             raise e
-        
+        except Exception:
+            # Broad catch for PyO3 errors like missing properties or Rust panics
+            val = None
+
+        # [RFC-002] Explicit Dict Proxy Fallback
+        # NOTE: getattr(..., None) nuốt AttributeError, nên ctx.local/ctx.data trả None
+        # thay vì nhảy vào except. Ta phải chủ động forward xuống __getitem__ của dict proxies.
+        if val is None and not name.startswith("_"):
+             if self._inner is not None and hasattr(self._inner, "__getitem__"):
+                  try:
+                      val = self._inner[name]
+                  except (KeyError, TypeError, AttributeError):
+                      pass
+             if val is None and self._target is not None and hasattr(self._target, "__getitem__"):
+                  try:
+                      val = self._target[name]
+                  except (KeyError, TypeError, AttributeError):
+                      pass
+             # [RFC-002] Dynamic Namespace Fallback
+             if val is None:
+                  from .context import NamespaceRegistry
+                  if name in NamespaceRegistry()._namespaces:
+                      try:
+                          pc = self._inner._target
+                          state_data = pc.state.data
+                          val = state_data[name]
+                          
+                          full_path = name if self._path_prefix == "" else f"{self._path_prefix}.{name}"
+                          
+                          if isinstance(val, (dict, list)):
+                              return ContextGuard(
+                                  target_obj=None,
+                                  allowed_inputs=self._allowed_inputs,
+                                  allowed_outputs=self._allowed_outputs,
+                                  path_prefix=full_path,
+                                  transaction=_current_tx.get(),
+                                  strict_guards=self._strict_guards,
+                                  process_name=self._log.extra.get("process_name", "Unknown"),
+                                  _inner=val,
+                                  parent=self,
+                                  name=name,
+                              )
+                          return val
+                      except Exception:
+                          raise
+
+        if val is None:
+            # Re-fetch special attributes if inner is a State or ProcessContext
+            if name in ("data", "domain", "global", "heavy", "signals", "meta", "local", "outbox", "policy_id", "domain_ctx", "global_ctx"):
+                # NOTE: Try process_context for ALL special attributes, not just local/outbox.
+                # Process context (Rust ProcessContext) exposes data, domain, etc. which may not
+                # exist on the Python target (BaseSystemContext) when engine init is minimal.
+                pc = getattr(self, "_process_context", None)
+                if pc is not None:
+                    try:
+                        val = getattr(pc, name)
+                    except Exception:
+                        pass
+                
+                if val is None and self._inner is not None:
+                    try:
+                        val = getattr(self._inner, name)
+                    except Exception as e:
+                        pass
+                if val is None and self._target is not None:
+                    try:
+                        val = getattr(self._target, name)
+                    except Exception as e:
+                        pass
+                    if val is None and isinstance(self._target, dict):
+                        try:
+                            val = self._target.get(name)
+                        except Exception:
+                            pass
+            if val is None:
+                raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+
         if self._local_is_admin:
             # 1. Aggressive Propagate Elevation to Rust Proxy
             if hasattr(val, "_set_capabilities"):
@@ -407,7 +473,7 @@ class ContextGuard:
                            except: pass
 
             # 2. Return elevated wrapper
-            if not isinstance(val, ContextGuard) and not isinstance(val, (int, float, str, bool, type(None), np.ndarray, torch.Tensor)):
+            if not isinstance(val, ContextGuard) and not isinstance(val, (int, float, str, bool, type(None))) and not hasattr(val, "__array__") and not hasattr(val, "__dlpack__"):
                  # RECONCILE INNER PROXY (Hybrid Bridge)
                  sub_inner = getattr(val, "_theus_proxy", None)
                  new_guard = ContextGuard(
@@ -424,13 +490,34 @@ class ContextGuard:
                  return new_guard
         
         # 4. Nested Guard wrapping (Normal flow)
-        if (isinstance(val, _RustContextGuard) or (hasattr(val, "is_proxy") and getattr(val, "is_proxy")())) and not isinstance(val, (np.ndarray, torch.Tensor)):
+        if (isinstance(val, _RustContextGuard) or (hasattr(val, "is_proxy") and getattr(val, "is_proxy")())) and not (hasattr(val, "__array__") or hasattr(val, "__dlpack__")):
             sub_target = None
             if self._target is not None:
                 sub_target = getattr(self._target, name, None)
                 if sub_target is None and hasattr(self._target, "get"):
                     sub_target = self._target.get(name)
 
+            return ContextGuard(
+                target_obj=sub_target,
+                allowed_inputs=self._allowed_inputs,
+                allowed_outputs=self._allowed_outputs,
+                path_prefix=full_path,
+                _inner=val,
+                process_name=self._log.extra.get("process_name", "Unknown"),
+                transaction=_current_tx.get(),
+                parent=self,
+                name=name,
+            )
+        # [Fix 2.3] Wrap plain dict/list trong ContextGuard để bảo toàn chain-of-custody.
+        # Nếu val là plain dict/list (Rust trả về bản copy, không phải _RustContextGuard),
+        # việc return raw sẽ khiến write đi vào copy tạm thời, không về engine.state.data.
+        # NOTE: Cùng logic với __getitem__, nhưng áp dụng cho path qua dotted attribute access.
+        if isinstance(val, (dict, list)) and not isinstance(val, ContextGuard) and not hasattr(val, "__array__") and not hasattr(val, "__dlpack__"):
+            sub_target = None
+            if self._target is not None:
+                sub_target = getattr(self._target, name, None)
+                if sub_target is None and hasattr(self._target, "get"):
+                    sub_target = self._target.get(name)
             return ContextGuard(
                 target_obj=sub_target,
                 allowed_inputs=self._allowed_inputs,
@@ -468,8 +555,27 @@ class ContextGuard:
             )
             raise
         except (PermissionError, AttributeError, KeyError, IndexError, TypeError) as e:
+            # [v3.5 Fix] Fallback to getattr for non-subscriptable objects (dataclasses, Pydantic)
+            # NOTE: When _inner is a dataclass/Pydantic model, self._inner[key] raises TypeError.
+            # We try getattr as fallback before giving up, analogous to __getattr__ behavior.
+            if isinstance(e, TypeError) and isinstance(key, str):
+                try:
+                    val = getattr(self._inner, key, None)
+                except Exception:
+                    val = None
+                if val is None and self._target is not None:
+                    try:
+                        val = getattr(self._target, key, None)
+                    except Exception:
+                        pass
+                if val is not None:
+                    # Successfully resolved via getattr, skip to wrapping logic below
+                    pass
+                else:
+                    # getattr also failed, continue to namespace fallback
+                    pass
             # [RFC-002] Dynamic Namespace Fallback for Item Access
-            if isinstance(key, str):
+            if val is None and isinstance(key, str):
                 from .context import NamespaceRegistry
                 if key in NamespaceRegistry()._namespaces:
                     try:
@@ -497,10 +603,11 @@ class ContextGuard:
                             return val
                     except Exception:
                         pass
-            raise e
+            if val is None:
+                raise e
 
         if self._local_is_admin:
-            if not isinstance(val, ContextGuard) and not isinstance(val, (int, float, str, bool, type(None), np.ndarray, torch.Tensor)):
+            if not isinstance(val, ContextGuard) and not isinstance(val, (int, float, str, bool, type(None))) and not hasattr(val, "__array__") and not hasattr(val, "__dlpack__"):
                  sub_inner = getattr(val, "_theus_proxy", None)
                  new_guard = ContextGuard(
                     target_obj=val,
@@ -516,7 +623,7 @@ class ContextGuard:
                  return new_guard
 
         # 4. Nested Guard wrapping (Normal flow)
-        if (isinstance(val, _RustContextGuard) or (hasattr(val, "is_proxy") and getattr(val, "is_proxy")())) and not isinstance(val, (np.ndarray, torch.Tensor)):
+        if (isinstance(val, _RustContextGuard) or (hasattr(val, "is_proxy") and getattr(val, "is_proxy")())) and not (hasattr(val, "__array__") or hasattr(val, "__dlpack__")):
             sub_target = None
             if self._target is not None:
                 if hasattr(self._target, "__getitem__"):
@@ -541,9 +648,31 @@ class ContextGuard:
                 parent=self,
                 name=key,
             )
-        # [v3.5 DEBUG] Trace wrapping
-        if val is not None and not isinstance(val, (int, float, str, bool)):
-            print(f"DEBUG: __getitem__({key}) returning {type(val)} (Guard={isinstance(val, ContextGuard)})")
+        # [v3.5 Fix 2.3] Wrap mutable collections (dict, list) trong ContextGuard để bảo toàn
+        # chain-of-custody khi ghi ngược lại. Nếu không wrap, lệnh val["key"] = x sẽ gọi
+        # dict.__setitem__ vào bản copy tạm thời, không về engine.state.data.
+        # NOTE: Chỉ wrap dict/list — primitives và objects khác trả về trực tiếp.
+        if isinstance(val, (dict, list)) and not isinstance(val, ContextGuard):
+            sub_target = None
+            if self._target is not None:
+                if hasattr(self._target, "__getitem__"):
+                    try:
+                        sub_target = self._target[key]
+                    except (KeyError, TypeError):
+                        pass
+                if sub_target is None and isinstance(key, str):
+                    sub_target = getattr(self._target, key, None)
+            return ContextGuard(
+                target_obj=sub_target,
+                allowed_inputs=self._allowed_inputs,
+                allowed_outputs=self._allowed_outputs,
+                path_prefix=full_path,
+                _inner=val,
+                process_name=self._log.extra.get("process_name", "Unknown"),
+                transaction=_current_tx.get(),
+                parent=self,
+                name=key,
+            )
         return val
 
     # [RFC-001] SHADOW METHODS FOR ADMIN BYPASS + ZONE PHYSICS ENFORCEMENT
@@ -641,19 +770,29 @@ class ContextGuard:
         if not self._is_allowed(full_path, "write"):
              raise PermissionError(f"Illegal Write: Path '{full_path}' is restricted by Process Contract.")
 
-        # Unwrap Python ContextGuard before passing to Rust (Deep Unwrap)
-        def _deep_unwrap(v):
-            if isinstance(v, ContextGuard):
-                return _deep_unwrap(v._inner)
-            if isinstance(v, dict):
-                return {k: _deep_unwrap(sub_v) for k, sub_v in v.items()}
-            if isinstance(v, list):
-                 return [_deep_unwrap(sub_v) for sub_v in v]
-            if isinstance(v, tuple):
-                 return tuple(_deep_unwrap(sub_v) for sub_v in v)
-            return v
-            
-        value = _deep_unwrap(value)
+        # [INC-025 Fix] HEAVY Zone Shallow Unwrap:
+        # For fields with 'heavy_' prefix (ContextZone.HEAVY), skip recursive deep unwrap.
+        # The Rust core already skips Delta logging for HEAVY zone so there is no need
+        # to scan the entire structure. A single Guard→raw unwrap is sufficient.
+        # NOTE: This avoids O(N) recursion over large NumPy arrays / SHM matrices.
+        from theus.zones import resolve_zone, ContextZone
+        if resolve_zone(name) == ContextZone.HEAVY:
+            # Shallow unwrap: only remove the outermost ContextGuard wrapper if present
+            if isinstance(value, ContextGuard):
+                value = object.__getattribute__(value, "_inner")
+        else:
+            # Standard Deep Unwrap for non-HEAVY zones
+            def _deep_unwrap(v):
+                if isinstance(v, ContextGuard):
+                    return _deep_unwrap(object.__getattribute__(v, "_inner"))
+                if isinstance(v, dict):
+                    return {k: _deep_unwrap(sub_v) for k, sub_v in v.items()}
+                if isinstance(v, list):
+                     return [_deep_unwrap(sub_v) for sub_v in v]
+                if isinstance(v, tuple):
+                     return tuple(_deep_unwrap(sub_v) for sub_v in v)
+                return v
+            value = _deep_unwrap(value)
             
         # Support attribute-style access for dict keys
         if isinstance(self._inner, dict):
@@ -669,20 +808,88 @@ class ContextGuard:
         if isinstance(key, str) and not self._is_allowed(full_path, "write"):
              raise PermissionError(f"Illegal Write: Path '{full_path}' is restricted by Process Contract.")
 
-        def _deep_unwrap(v):
-            if isinstance(v, ContextGuard):
-                return _deep_unwrap(v._inner)
-            if isinstance(v, dict):
-                return {k: _deep_unwrap(sub_v) for k, sub_v in v.items()}
-            if isinstance(v, list):
-                 return [_deep_unwrap(sub_v) for sub_v in v]
-            if isinstance(v, tuple):
-                 return tuple(_deep_unwrap(sub_v) for sub_v in v)
-            return v
-        value = _deep_unwrap(value)
+        # [INC-025 Fix] HEAVY Zone Shallow Unwrap (same as __setattr__):
+        # Avoid O(N) recursion when assigning large NumPy/SHM objects to heavy_ fields.
+        from theus.zones import resolve_zone, ContextZone
+        _key_for_zone = key if isinstance(key, str) else ""
+        if _key_for_zone and resolve_zone(_key_for_zone) == ContextZone.HEAVY:
+            if isinstance(value, ContextGuard):
+                value = object.__getattribute__(value, "_inner")
+        else:
+            def _deep_unwrap(v):
+                if isinstance(v, ContextGuard):
+                    return _deep_unwrap(object.__getattribute__(v, "_inner"))
+                if isinstance(v, dict):
+                    return {k: _deep_unwrap(sub_v) for k, sub_v in v.items()}
+                if isinstance(v, list):
+                     return [_deep_unwrap(sub_v) for sub_v in v]
+                if isinstance(v, tuple):
+                     return tuple(_deep_unwrap(sub_v) for sub_v in v)
+                return v
+            value = _deep_unwrap(value)
         
         try:
             self._inner[key] = value
+            # [Fix 2.3] Nếu _inner là plain dict/list (bản copy từ Rust, không phải Proxy),
+            # write vào _inner chỉ thay đổi bản copy trong bộ nhớ Python, KHÔNG về Rust state.
+            # Phải propagate write ngược lên parent guard để Rust cập nhật state chính xác.
+            # NOTE: Chỉ kích hoạt khi _inner là plain Python collection (không có _target attr),
+            # tức là đây là nested guard wrapping một plain dict/list trả về từ Rust proxy.
+            if isinstance(self._inner, (dict, list)) and not hasattr(self._inner, "_target"):
+                parent = object.__getattribute__(self, "_parent")
+                parent_name = object.__getattribute__(self, "_name")
+                print(f"[DEBUG-23] plain inner, parent={type(parent).__name__}, parent_name={parent_name}")
+                if parent is not None and parent_name is not None:
+                    try:
+                        current = dict(self._inner)
+                        print(f"[DEBUG-23] propagating to parent[{parent_name}] = {current}")
+                        parent[parent_name] = current
+                        print("[DEBUG-23] propagation SUCCESS")
+                    except Exception as ex:
+                        print(f"[DEBUG-23] propagation FAILED: {ex}")
+        except PermissionError as e:
+            # Bypass Rust Proxy nếu Python PHYSICS OVERRIDE cho phép
+            if isinstance(key, str):
+                has_override = False
+                try:
+                    from theus.context import PYTHON_PHYSICS_OVERRIDES
+                    import re
+                    base_path = re.sub(r'\[.*?\]', '', full_path)
+                    if full_path in PYTHON_PHYSICS_OVERRIDES or base_path in PYTHON_PHYSICS_OVERRIDES:
+                        has_override = True
+                except Exception:
+                    pass
+                if has_override:
+                    py_target = object.__getattribute__(self, "_target")
+                    if py_target is not None and hasattr(py_target, "__setitem__"):
+                        try:
+                            # Log Explicitly sang Rust Transaction (Zero Trust bypass)
+                            from theus.guards import _current_tx
+                            tx = _current_tx.get()
+                            if tx is not None and hasattr(tx, "log_delta"):
+                                old_val = py_target.get(key) if hasattr(py_target, "get") else None
+                                tx.log_delta(full_path, old_val, value)
+                        except Exception:
+                            pass
+                        py_target[key] = value
+                        # Propagate lên parent để về Rust state
+                        parent = object.__getattribute__(self, "_parent")
+                        parent_name = object.__getattribute__(self, "_name")
+                        if parent is not None and parent_name is not None:
+                            try:
+                                parent[parent_name] = py_target
+                            except Exception:
+                                pass
+                        return
+                    # Fallback: thử qua Rust _target nếu Python target không có
+                    rust_target = getattr(self._inner, "_target", None)
+                    if rust_target is not None and hasattr(rust_target, "__setitem__"):
+                        try:
+                            rust_target[key] = value
+                            return
+                        except Exception:
+                            pass
+            raise e
         except (TypeError, AttributeError):
             # Support attribute-style write if not subscriptable
             if isinstance(key, str):

@@ -1,11 +1,10 @@
-﻿from theus.contracts import process
+from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
-from src.orchestrator.context_helpers import get_domain_ctx, get_attr
 from src.logger import log
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.event_bus', 'log_level'],
-    outputs=[],  # v2 compatible
+    outputs=[],
     side_effects=[],
     errors=[]
 )
@@ -13,17 +12,16 @@ def run_population_dreaming(ctx: OrchestratorSystemContext):
     """
     Process: Chạy quy trình Dreaming cho toàn bộ Population.
     """
-    domain, is_dict = get_domain_ctx(ctx)
-    bus = get_attr(domain, 'event_bus', None)
+    bus = getattr(ctx.domain, 'event_bus', None)
     
-    active_idx = get_attr(domain, 'active_experiment_idx', 0)
-    experiments = get_attr(domain, 'experiments', [])
+    active_idx = getattr(ctx.domain, 'active_experiment_idx', 0)
+    experiments = getattr(ctx.domain, 'experiments', [])
     
     if active_idx >= len(experiments):
         return {}
     
     exp_def = experiments[active_idx]
-    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    exp_name = getattr(exp_def, 'name', 'unknown')
     
     # V3 MIGRATION: Fetch Runner from Registry
     from src.orchestrator.runtime_registry import get_runner

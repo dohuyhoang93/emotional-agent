@@ -172,8 +172,8 @@ pub enum FSMState {
 pub struct WorkflowEngine {
     steps: Vec<FluxStep>,
     max_ops: u32,
+    #[allow(dead_code)]
     debug: bool,
-    // Keep original config for legacy 'simulate' method compatibility
     config: Value,
     // FSM State tracking (Mutex for thread-safe interior mutability)
     fsm_state: Mutex<FSMState>,
@@ -198,9 +198,7 @@ impl WorkflowEngine {
             Vec::new()
         };
         
-        if debug {
-            eprintln!("[FLUX-DEBUG] Parsed {} top-level steps", steps.len());
-        }
+
         
         let initial_state = FSMState::Pending;
         let state_history = vec![initial_state];
@@ -424,9 +422,7 @@ impl WorkflowEngine {
                 ));
             }
             
-            if self.debug {
-                eprintln!("[FLUX-DEBUG] Op #{}: {:?}", ops_counter, step);
-            }
+
             
             match step {
                 FluxStep::Process { name } => {
@@ -518,16 +514,12 @@ impl WorkflowEngine {
             globals.set_item(k, v)?;
         }
         
-        if self.debug {
-            eprintln!("[FLUX-DEBUG] Evaluating condition: '{}'", expr);
-        }
+
         
         let result = py.eval_bound(expr, Some(&globals), None)?;
         let is_true = result.is_truthy()?;
         
-        if self.debug {
-            eprintln!("[FLUX-DEBUG] Condition result: {}", is_true);
-        }
+
         
         Ok(is_true)
     }
@@ -554,9 +546,7 @@ impl WorkflowEngine {
             let _ = callback.call1(py, (old_state, new_state));
         }
         
-        if self.debug {
-            eprintln!("[FLUX-DEBUG] FSM State: {:?} -> {:?}", old_state, new_state);
-        }
+
         
         Ok(())
     }

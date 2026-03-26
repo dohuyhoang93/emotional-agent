@@ -174,7 +174,7 @@ def select_action_gated(ctx: SystemContext):
             emotion_magnitude = 0.0
 
     # 3. Dynamic Exploration
-    adjusted_exploration = ctx.domain_ctx.current_exploration_rate * (1.0 + 0.5 * emotion_magnitude)
+    adjusted_exploration = ctx.domain_ctx.current_exploration_rate * (1.0 + 0.2 * emotion_magnitude)
     adjusted_exploration = min(adjusted_exploration, 1.0)
     
     # SNN State Tensor Preparation

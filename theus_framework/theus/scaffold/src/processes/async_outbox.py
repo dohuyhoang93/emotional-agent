@@ -81,29 +81,27 @@ async def p_await_job(ctx: DemoSystemContext):
     """
     Await task.
     Returns (result, updated_tasks_map).
+    NOTE: Uses ephemeral _TASK_REGISTRY as source of truth because
+    asyncio.Task objects cannot be serialized into Rust State.
     """
     active_tasks = ctx.tasks.active_tasks
-    job_status = active_tasks.get("job_1")
 
-    if job_status == "RUNNING":
-        task = _TASK_REGISTRY.get("job_1")
-        if task:
-            ctx.log("[Process] Joining background job...")
-            result = await task
-            ctx.log(f"[Process] Joined. Result: {result}")
+    # NOTE: Check _TASK_REGISTRY directly — state may not reflect the task
+    # due to Hydration Mismatch between Python dataclass and Rust State dict.
+    task = _TASK_REGISTRY.get("job_1")
+    if task is not None:
+        ctx.log("[Process] Joining background job...")
+        result = await task
+        ctx.log(f"[Process] Joined. Result: {result}")
 
-            # Cleanup
-            if "job_1" in _TASK_REGISTRY:
-                del _TASK_REGISTRY["job_1"]
+        # Cleanup ephemeral registry
+        del _TASK_REGISTRY["job_1"]
 
-            new_tasks = active_tasks.copy()
-            if "job_1" in new_tasks:
-                del new_tasks["job_1"]
+        new_tasks = active_tasks.copy() if hasattr(active_tasks, 'copy') else dict(active_tasks)
+        if "job_1" in new_tasks:
+            del new_tasks["job_1"]
 
-            return result, new_tasks
-        else:
-            ctx.log("[Process] Task object missing in registry!")
-            return None, active_tasks
+        return result, new_tasks
     else:
         ctx.log("[Process] No job to join!")
         return None, active_tasks

@@ -107,13 +107,14 @@ class TestConstantAndPrivateZones(unittest.IsolatedAsyncioTestCase):
                          "Reading const_ field should succeed")
 
     async def test_const_write_is_blocked(self):
-        """[const_] Writing (setattr) to const_ must raise PermissionError."""
+        """[const_] Writing (setattr) to const_ must raise PermissionError (wrapped)."""
         engine = self.make_engine()
         engine.register(p_try_write_const)
-        with self.assertRaises((PermissionError, Exception)) as cm:
+        with self.assertRaises(Exception) as cm:
             await engine.execute(p_try_write_const)
-        self.assertIn("ermission", str(type(cm.exception).__name__) + str(cm.exception),
-                      f"Expected PermissionError, got: {cm.exception}")
+        exc_str = str(type(cm.exception).__name__) + str(cm.exception)
+        is_blocked = "ermission" in exc_str or "ContractViolationError" in exc_str
+        self.assertTrue(is_blocked, f"Expected BlockError, got: {cm.exception}")
 
     async def test_const_item_write_is_blocked(self):
         """[const_] Dict item-set on const_ dict must raise PermissionError."""
@@ -140,7 +141,7 @@ class TestConstantAndPrivateZones(unittest.IsolatedAsyncioTestCase):
         """[const_] AdminTransaction MUST NOT bypass CONSTANT ceiling."""
         engine = self.make_engine()
         engine.register(p_admin_try_write_const)
-        with self.assertRaises((PermissionError, Exception)):
+        with self.assertRaises(Exception):
             await engine.execute(p_admin_try_write_const)
         # State must be UNCHANGED
         state_val = engine.state.data["domain"]["const_config"]

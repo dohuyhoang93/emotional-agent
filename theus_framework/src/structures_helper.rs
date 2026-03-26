@@ -234,7 +234,46 @@ pub fn deep_merge_cow(py: Python, target: PyObject, updates: &Bound<'_, PyDict>)
         }
         Ok(new_dict.unbind().into_py(py))
     } else {
-        // Target is not a dict -> Overwrite completely with updates
+        // NOTE: Target is not a plain dict. It may be a Pydantic BaseModel or other object.
+        // We must convert it to a dict first so we can merge field-by-field,
+        // preserving fields NOT in the source (e.g., 'counter' when only 'item_list' changed).
+        let target_bound = target.bind(py);
+        
+        let as_dict_result = if target_bound.hasattr("model_dump").unwrap_or(false) {
+            target_bound.call_method0("model_dump").ok()
+        } else if target_bound.hasattr("dict").unwrap_or(false) {
+            target_bound.call_method0("dict").ok()
+        } else if target_bound.hasattr("to_dict").unwrap_or(false) {
+            target_bound.call_method0("to_dict").ok()
+        } else {
+            None
+        };
+        
+        if let Some(model_dict_obj) = as_dict_result {
+            if let Ok(model_dict) = model_dict_obj.downcast::<PyDict>() {
+                let new_dict = model_dict.copy()?;
+                for (k, v) in updates {
+                    let v_unwrapped = if let Ok(t) = v.getattr("supervisor_target") {
+                        t
+                    } else {
+                        v.clone()
+                    };
+                    let v = &v_unwrapped;
+                    if let Ok(nested_update) = v.downcast::<PyDict>() {
+                        if let Some(existing_val) = new_dict.get_item(&k)? {
+                            if let Ok(_existing_dict) = existing_val.downcast::<PyDict>() {
+                                let merged_val = deep_merge_cow(py, existing_val.unbind(), nested_update)?;
+                                new_dict.set_item(&k, merged_val)?;
+                                continue;
+                            }
+                        }
+                    }
+                    new_dict.set_item(&k, v)?;
+                }
+                return Ok(new_dict.unbind().into_py(py));
+            }
+        }
+        // Target is not a dict and cannot be converted -> overwrite completely with updates
         Ok(updates.clone().unbind().into_py(py))
     }
 }

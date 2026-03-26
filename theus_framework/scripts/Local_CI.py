@@ -81,6 +81,16 @@ def step_clippy(env):
     """Run Cargo Clippy."""
     run_step(["cargo", "clippy", "--", "-D", "warnings"], env, "Running Cargo Clippy")
 
+def step_ruff(env):
+    """Run Ruff linter on Python sources."""
+    # NOTE: Targets theus/ and src/ — where all framework and application code lives.
+    # Ruff is fast and catches most common Python issues (unused imports, wrong types, etc.)
+    run_step(
+        [sys.executable, "-m", "ruff", "check", "theus/", "src/"],
+        env,
+        "Running Ruff Python Linter",
+    )
+
 def step_rust_test(env):
     """Run Rust unit tests."""
     run_step(["cargo", "test"], env, "Running Rust Tests")
@@ -101,8 +111,9 @@ def main():
     if not args or args[0] in ["--help", "-h", "help"]:
         print("\nUsage: python scripts/Local_CI.py <command>")
         print("Commands:")
-        print("  full   : Build -> Stubs -> Clippy -> Rust Test -> Pytest -> Manual Test")
+        print("  full   : Build -> Stubs -> Ruff -> Clippy -> Rust Test -> Pytest -> Manual Test")
         print("  build  : Build -> Install")
+        print("  lint   : Ruff Python linter only")
         print("  verify : Build -> Clippy -> Rust Test -> Verify API Parity")
         print("  help   : Show this help message")
         sys.exit(0)
@@ -113,12 +124,15 @@ def main():
     if command == "full":
         step_build_install(env)
         step_gen_stubs(env)
+        step_ruff(env)
         step_clippy(env)
         step_rust_test(env)
         step_test_automated(env)
         step_test_manual(env)
     elif command == "build":
         step_build_install(env)
+    elif command == "lint":
+        step_ruff(env)
     elif command == "verify":
         step_build_install(env)
         step_clippy(env)

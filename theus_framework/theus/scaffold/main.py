@@ -37,44 +37,17 @@ async def run_ecommerce(engine: TheusEngine):
     print("\n[DEMO] Running E-Commerce Example...")
     workflow_path = os.path.join(basedir, "workflows", "ecommerce.yaml")
 
-    # Init Data (Seed)
-    # Init Data (Seed) using Atomic Transaction
-    try:
-        with engine.transaction() as tx:
-            # Force Domain to be a Dict to ensure field persistence in Rust State
-            # and use standard V3 Transaction API
-            tx.update(
-                data={
-                    "global_ctx": {
-                         "meta_app_name": "Theus Universal Demo",
-                         "meta_version": "3.0.2",
-                         "max_retries": 3,
-                    },
-                    "domain": {
-                        "status": "IDLE",
-                        "processed_count": 0,
-                        "parallel_consensus": 0.0,
-                    },
-                    "ecommerce": {
-                        "order_request": {
-                            "id": "ORD-001",
-                            "items": ["Laptop", "Mouse"],
-                            "total": 1500.0,
-                        },
-                        "log_orders": [],
-                        "balance": 0.0,
-                        "log_processed": [],
-                    },
-                    "tasks": {
-                        "active_tasks": {},
-                        "sync_ops_count": 0,
-                        "async_job_result": None,
-                        "log_outbox": [],
-                    }
-                }
-            )
-    except Exception as e:
-        print(f"[WARN] Setup failed: {e}")
+    # NOTE: Seed data using engine.edit() context manager which
+    # modifies the Python dataclass directly, then syncs to Rust State on exit.
+    with engine.edit() as ctx:
+        ctx.ecommerce.order_request = {
+            "id": "ORD-001",
+            "items": ["Laptop", "Mouse"],
+            "total": 1500.0,
+        }
+        ctx.ecommerce.log_orders = []
+        ctx.ecommerce.balance = 0.0
+        ctx.ecommerce.log_processed = []
 
     await engine.execute_workflow(workflow_path)
 

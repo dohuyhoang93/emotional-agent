@@ -1,6 +1,5 @@
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
-from src.orchestrator.context_helpers import get_domain_ctx, get_attr, set_attr
 from src.logger import log
 import os
 import json
@@ -17,13 +16,8 @@ def advance_experiment_index(ctx: OrchestratorSystemContext):
     Increments the active experiment index.
     Returns values for implicit mapping (SIGNAL-BASED).
     """
-    domain, is_dict = get_domain_ctx(ctx)
-    
-    current_sig_idx = get_attr(domain, 'sig_experiment_active_idx', 0)
-    current_idx_legacy = get_attr(domain, 'active_experiment_idx', 0)
-    
-    
-    # log(ctx, "info", f"DEBUG: Process Read sig_experiment_active_idx = {current_sig_idx}, sig_total_experiments = {current_total}")
+    current_sig_idx = getattr(ctx.domain, 'sig_experiment_active_idx', 0)
+    current_idx_legacy = getattr(ctx.domain, 'active_experiment_idx', 0)
     
     new_sig_idx = current_sig_idx + 1
     new_idx_legacy = current_idx_legacy + 1
@@ -36,13 +30,13 @@ def advance_experiment_index(ctx: OrchestratorSystemContext):
     except Exception:
         pass
     
-    set_attr(domain, 'sig_experiment_active_idx', new_sig_idx)
-    set_attr(domain, 'active_experiment_idx', new_idx_legacy)
-    
     log(ctx, "info", f"⏩ Advanced to Experiment Index: {new_sig_idx}")
     
-    # Return nothing
-    return {}
+    # Return StateUpdate Delta to Engine
+    return {
+        'domain.sig_experiment_active_idx': new_sig_idx,
+        'domain.active_experiment_idx': new_idx_legacy
+    }
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'domain.metrics', 'domain.active_experiment_episode_idx'],
@@ -58,7 +52,7 @@ def save_metrics_snapshot(ctx: OrchestratorSystemContext):
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.active_experiment_idx', 'domain.experiments', 'log_level'],
-    outputs=[],  # v2 compatible - no output mapping
+    outputs=[],
     side_effects=['synapse.injection'],
     errors=[]
 )
@@ -66,16 +60,14 @@ def execute_social_learning_if_needed(ctx: OrchestratorSystemContext):
     """
     Checks logic and executes social learning.
     """
-    domain, is_dict = get_domain_ctx(ctx)
-    
-    active_idx = get_attr(domain, 'active_experiment_idx', 0)
-    experiments = get_attr(domain, 'experiments', [])
+    active_idx = getattr(ctx.domain, 'active_experiment_idx', 0)
+    experiments = getattr(ctx.domain, 'experiments', [])
     
     if active_idx >= len(experiments): 
         return {}
 
     exp_def = experiments[active_idx]
-    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    exp_name = getattr(exp_def, 'name', 'unknown')
     
     # V3 MIGRATION: Fetch Runner from Registry
     from src.orchestrator.runtime_registry import get_runner

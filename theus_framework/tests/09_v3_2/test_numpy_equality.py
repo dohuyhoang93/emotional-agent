@@ -87,10 +87,14 @@ class TestNumPyEquality:
         Expectation: This is standard assignment, handled by set_item, not infer.
         But let's verify consistent handling.
         """
+        import asyncio
         new_arr = np.array([10, 20])
         
-        with self.engine.transaction() as tx:
-            self.ctx.domain.arrays["simple"] = new_arr
+        @theus.contracts.process(outputs=["domain.arrays.simple"])
+        def proxy_update(ctx):
+            ctx.domain.arrays["simple"] = new_arr
+
+        asyncio.run(self.engine.execute(proxy_update))
             
         res = self.engine.state.data["domain"]["arrays"]["simple"]
         assert np.array_equal(res, new_arr)

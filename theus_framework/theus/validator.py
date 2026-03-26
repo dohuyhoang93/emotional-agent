@@ -7,20 +7,41 @@ from theus.audit import AuditSystem
 
 logger = logging.getLogger(__name__)
 
+# NOTE: Raised when a required input field is missing from both kwargs AND context.
+# This replaces the silent 'continue' behavior identified in INC-023.
+class ContractViolationError(Exception):
+    """Raised when a @process contract is violated (missing required input)."""
+    pass
+
+
 class AuditValidator:
     """
     [v3.1.2] Active Policy Enforcer.
     Parses 'process_recipes' from audit_recipe.yaml and enforces rules
     via the AuditSystem (which handles Counters, Levels, and RingBuffer).
+
+    [v3.2.0] INC-023 Fix — Strict Input Validation:
+    validate_inputs now accepts an optional 'context' argument and raises
+    ContractViolationError when a required input field is missing from
+    BOTH kwargs and the context state. The silent 'continue' bypass is removed.
     """
 
     def __init__(self, definitions: Dict[str, Any], audit_system: AuditSystem):
         self.definitions = definitions or {}
         self.audit_system = audit_system
 
-    def validate_inputs(self, func_name: str, kwargs: Dict[str, Any]) -> None:
+    def validate_inputs(
+        self,
+        func_name: str,
+        kwargs: Dict[str, Any],
+        context: Any = None,
+    ) -> None:
         """
         Input Gate: Checks function arguments against defined rules.
+
+        [INC-023 Fix] Now accepts an optional 'context' argument.
+        If a required field is missing from kwargs, it attempts to resolve
+        it from the context state before raising ContractViolationError.
         """
         recipe = self.definitions.get(func_name)
         if not recipe or "inputs" not in recipe:
@@ -29,11 +50,45 @@ class AuditValidator:
         input_rules = recipe["inputs"]
         for rule in input_rules:
             field = rule.get("field")
-            if not field or field not in kwargs:
+            if not field:
                 continue
 
-            value = kwargs[field]
-            self._check_rule(func_name, f"input:{field}", value, rule)
+            # Step 1: Check in kwargs (direct pass)
+            if field in kwargs:
+                value = kwargs[field]
+                self._check_rule(func_name, f"input:{field}", value, rule)
+                continue
+
+            # NOTE: Step 2: Field not in kwargs — try to resolve from context.
+            # This is the INC-023 fix: we now look into the running context state
+            # before deciding the field is missing. This handles cases where a
+            # @process declares an input that is provided via Context, not directly
+            # via function argument.
+            if context is not None:
+                ctx_val = self._resolve_from_context(context, field)
+                if ctx_val is not None:
+                    self._check_rule(func_name, f"input:{field}", ctx_val, rule)
+                    continue
+
+            # Step 3: Field genuinely missing — check if it's marked as required.
+            # NOTE: If 'required' is not specified in the rule, we default to
+            # True to enforce strict contracts. To make a field optional,
+            # explicitly set required=false in the audit_recipe.yaml.
+            is_required = rule.get("required", True)
+            if is_required:
+                msg = (
+                    f"[INC-023] ContractViolationError in process '{func_name}': "
+                    f"Required input field '{field}' is missing from both kwargs and context. "
+                    f"This is a contract violation. Either provide the input or mark it as "
+                    f"'required: false' in audit_recipe.yaml."
+                )
+                logger.error(msg)
+                raise ContractViolationError(msg)
+            else:
+                # Optional field — skip silently (this is intentional)
+                logger.debug(
+                    f"[Validator] Optional input '{field}' missing for '{func_name}' — skipping."
+                )
 
     def validate_outputs(self, func_name: str, pending_data: Dict[str, Any]) -> None:
         """
@@ -119,7 +174,7 @@ class AuditValidator:
             self.audit_system.log_fail(audit_key, level=audit_level, threshold_max=threshold_override)
 
     def _resolve_path(self, data: Dict[str, Any], path: str) -> Any:
-        # Simple dot-notation resolver
+        """Simple dot-notation resolver for nested dicts/objects."""
         parts = path.split(".")
         current = data
         for part in parts:
@@ -130,4 +185,25 @@ class AuditValidator:
             
             if current is None:
                 return None
+        return current
+
+    def _resolve_from_context(self, context: Any, field: str) -> Any:
+        """
+        [INC-023] Resolve a dot-notation field path from the running context.
+        Attempts both attribute access and dict-style access.
+        Returns None if the field cannot be found.
+        """
+        # NOTE: Context may be a ContextGuard, SystemContext, or plain dict.
+        # We try dot-notation resolution, treating the context as the root.
+        parts = field.split(".")
+        current = context
+        for part in parts:
+            if current is None:
+                return None
+            # Try attribute access (covers ContextGuard, dataclasses, objects)
+            val = getattr(current, part, None)
+            if val is None and isinstance(current, dict):
+                # Try dict access as fallback
+                val = current.get(part)
+            current = val
         return current

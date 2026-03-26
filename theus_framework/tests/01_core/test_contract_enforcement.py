@@ -29,10 +29,7 @@ class SchemaContext(BaseSystemContext):
 @theus.contracts.process(inputs=["domain.allowed"], outputs=["domain.allowed"])
 def contract_limit_process(ctx):
     # Violation!
-    try:
-        ctx.domain.data["illegal"] = "HACK"
-    except:
-        pass
+    ctx.domain.data["illegal"] = "HACK"
     return "done"
 
 

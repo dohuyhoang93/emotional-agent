@@ -452,8 +452,8 @@ def compute_intrinsic_reward_snn(ctx: SystemContext):
             active_vectors.append(neuron.prototype_vector)
     
     if not active_vectors:
-        # No activity → neutral novelty
-        return {'intrinsic_reward': 0.5}
+        # No activity → no intrinsic reward
+        return {'intrinsic_reward': 0.0}
     
     current_pattern = np.mean(active_vectors, axis=0)
     

@@ -1,6 +1,6 @@
-# EmotionAgent: A Process-Oriented Neuro-Symbolic Cognitive Architecture
+# Emotional-Agent: A Process-Oriented Neuro-Symbolic Cognitive Architecture
 
-> **Abstract:** This repository houses the reference implementation of **EmotionAgent**, an autonomous cognitive architecture that integrates Spiking Neural Networks (SNN) with Reinforcement Learning (RL) within a Process-Oriented Programming (POP) framework. Unlike traditional Deep RL models that suffer from catastrophic forgetting and lack interpretability, EmotionAgent employs **True Neural Darwinism** (Structural Plasticity) and a **Strict Audit Trail** to ensure continuous, safe, and transparent learning.
+> **Abstract:** This repository houses the reference implementation of **Emotional-Agent**, an autonomous cognitive architecture that integrates Spiking Neural Networks (SNN) with Deep RL within a Process-Oriented Programming (POP) framework. Unlike traditional Deep RL models that suffer from catastrophic forgetting and lack interpretability, Emotional-Agent employs **True Neural Darwinism** (Structural Plasticity) and a **Strict Audit Trail** to ensure continuous, safe, and transparent learning.
 
 ---
 
@@ -11,11 +11,11 @@ Contemporary AI faces three critical challenges:
 2.  **Black Box Opacity:** It is difficult to trace *why* an agent made a specific decision.
 3.  **Static Topology:** Most models have a fixed number of neurons/layers, unable to adapt to varying problem complexities.
 
-**EmotionAgent** addresses these by proposing a **Hybrid Biological-Computational Model** where the network structure itself evolves (neurogenesis/pruning), and every micro-decision is transactionally audited.
+**Emotional-Agent** addresses these by proposing a **Hybrid Biological-Computational Model** where the network structure itself evolves (neurogenesis/pruning), and every micro-decision is transactionally audited.
 
 ---
 
-## 🏗️ 2. System Architecture (Theus V2)
+## 🏗️ 2. System Architecture (Theus)
 
 The project is built on the **Theus Framework**, a dedicated SDK for Process-Oriented Programming.
 
@@ -42,7 +42,7 @@ Beyond individual learning, the system implements **Population-Level Evolution**
 
 ## 📊 3. State-of-the-Art Comparison
 
-| Feature | DeepMind (IMPALA/A3C) | Intel (Loihi/Lava) | **EmotionAgent (Ours)** |
+| Feature | DeepMind (IMPALA/A3C) | Intel (Loihi/Lava) | **Emotional-Agent (Ours)** |
 | :--- | :--- | :--- | :--- |
 | **Core Paradigm** | Deep RL (LSTM/Transformer) | Neuromorphic SNN | **Hybrid Neuro-Symbolic** |
 | **Learning Rule** | Backpropagation (Global) | Local STDP | **3-Factor STDP + Q-Learning** |
@@ -50,7 +50,7 @@ Beyond individual learning, the system implements **Population-Level Evolution**
 | **Safety** | Reward Hacking Risk | Hardware Constraints | **Strict Audit (Theus Engine)** |
 | **Interpretability**| Low (Black Box) | Medium (Spike Trains) | **High (Transactional Logs)** |
 
-> **Key Advantage:** EmotionAgent achieves "Lifetime Learning" through its Commitment Layer (`SOLID` state), significantly outperforming standard RL in non-stationary environments where rules change dynamically.
+> **Key Advantage:** Emotional-Agent achieves "Lifetime Learning" through its Commitment Layer (`SOLID` state), significantly outperforming standard RL in non-stationary environments where rules change dynamically.
 
 ---
 
@@ -59,7 +59,7 @@ Beyond individual learning, the system implements **Population-Level Evolution**
 The project follows a standardized Process-Oriented Architecture:
 
 ```bash
-EmotionAgent/
+Emotional-Agent/
 ├── theus/                  # [CORE] Theus Framework (The Engine)
 ├── src/
 │   ├── agents/             # Agent Cognitive Modules
@@ -85,8 +85,8 @@ EmotionAgent/
 # 1. Install Dependencies
 pip install -r requirements.txt
 
-# 2. Install Theus Hook
-pip install -e theus
+# 2. Install Theus Hook (Windows)
+$env:PYO3_USE_ABI3_FORWARD_COMPATIBILITY="1"; .venv\Scripts\python.exe -m pip install -e theus_framework
 
 # 3. Install dashboard backend
 pip install fastapi uvicorn python-socketio

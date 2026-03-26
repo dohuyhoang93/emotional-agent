@@ -1,8 +1,7 @@
-﻿import json
+import json
 import os
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext, ExperimentDefinition
-from src.orchestrator.context_helpers import get_domain_ctx, set_attr
 from src.logger import log, log_error
 
 
@@ -41,7 +40,8 @@ def load_config(ctx: OrchestratorSystemContext):
     Process: Load experiment configuration from JSON file.
     Initializes Signals for Flux Control Flow.
     """
-    config_path = ctx['global'].config_path
+    global_ctx = getattr(ctx, 'global')
+    config_path = global_ctx.get('config_path') or global_ctx['config_path']
     log(ctx, "info", f"  [Orchestration] Loading experiment configuration from {config_path}...")
     
     # Error case
@@ -63,14 +63,14 @@ def load_config(ctx: OrchestratorSystemContext):
         }
         
     output_dir = raw_config.get("output_dir", "results")
-    cli_level = ctx['global'].cli_log_level
+    cli_level = global_ctx.get('cli_log_level')
     config_level = raw_config.get("log_level", "info")
     effective_log_level = cli_level if cli_level else config_level
     
     os.makedirs(output_dir, exist_ok=True)
     
     settings_override = {}
-    settings_override_str = ctx['global'].settings_override
+    settings_override_str = global_ctx.get('settings_override')
     if settings_override_str:
         try:
             settings_override = json.loads(settings_override_str)

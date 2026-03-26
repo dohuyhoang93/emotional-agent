@@ -1,0 +1,743 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0
+rootdir: C:\Users\dohoang\projects\EmotionAgent\theus_framework
+configfile: pyproject.toml
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collected 341 items
+
+tests\01_core\test_config_factory.py .....                               [  1%]
+tests\01_core\test_config_schema.py ..                                   [  2%]
+tests\01_core\test_context_immutability.py ...                           [  2%]
+tests\01_core\test_contract_enforcement.py F                             [  3%]
+tests\01_core\test_engine_polymorphism.py .                              [  3%]
+tests\01_core\test_proxy_mutators.py .                                   [  3%]
+tests\01_core\test_supervisor_v31.py ....                                [  4%]
+tests\01_core\test_transaction_rollback.py ..                            [  5%]
+tests\02_safety\repro_deadlock_abba.py ..                                [  6%]
+tests\02_safety\repro_inc011_strict_desync.py .                          [  6%]
+tests\02_safety\repro_silent_loss.py .                                   [  6%]
+tests\02_safety\test_chapter_05_compliance.py .....                      [  8%]
+tests\02_safety\test_concurrency_cas.py ..                               [  8%]
+tests\02_safety\test_hierarchical_scopes.py .                            [  9%]
+tests\02_safety\test_proxy_containment.py .                              [  9%]
+tests\02_safety\test_pure_guard_full_matrix.py .....                     [ 10%]
+tests\02_safety\test_repro_overwrite.py .                                [ 11%]
+tests\02_safety\test_schema_gatekeeper_integration.py .                  [ 11%]
+tests\02_safety\test_semantic_firewall.py ..                             [ 12%]
+tests\02_safety\test_silent_loss_comprehensive.py .                      [ 12%]
+tests\02_safety\test_snapshot_isolation.py F                             [ 12%]
+tests\02_safety\verify_strict_decoupling.py .                            [ 12%]
+tests\03_audit\test_audit_integration.py ..                              [ 13%]
+tests\03_audit\test_validator_unit.py ......                             [ 15%]
+tests\03_audit\verify_audit_boundaries.py ....                           [ 16%]
+tests\03_interop\test_proxy_serialization.py ...                         [ 17%]
+tests\03_mechanics\test_lifecycle_scopes.py .                            [ 17%]
+tests\03_mechanics\test_production_data_hazards.py ..                    [ 18%]
+tests\03_mechanics\test_workflow_graph.py .                              [ 18%]
+tests\04_features\test_conflict_advanced.py ...                          [ 19%]
+tests\04_features\test_heavy_zone.py .                                   [ 19%]
+tests\04_features\test_outbox_comprehensive.py ....                      [ 20%]
+tests\04_features\test_outbox_transaction.py .                           [ 21%]
+tests\04_features\test_output_mapping.py .                               [ 21%]
+tests\04_features\test_sub_interpreter.py .s                             [ 21%]
+tests\04_features\test_universal_mutation.py .                           [ 22%]
+tests\04_features\verify_zombie_cleanup.py .                             [ 22%]
+tests\05_compat\test_async_sync_bridge.py FF.                            [ 23%]
+tests\05_compat\test_workflow_legacy.py ..                               [ 24%]
+tests\06_flux\test_flux_async_4case.py .........                         [ 26%]
+tests\06_flux\test_flux_debug_integration.py .                           [ 26%]
+tests\06_flux\test_flux_fsm_4case.py ..........                          [ 29%]
+tests\06_flux\test_flux_if.py ....                                       [ 31%]
+tests\06_flux\test_flux_if_4case.py .............                        [ 34%]
+tests\06_flux\test_flux_integration_4case.py .......                     [ 36%]
+tests\06_flux\test_flux_nested.py ....                                   [ 38%]
+tests\06_flux\test_flux_parser_4case.py ...........                      [ 41%]
+tests\06_flux\test_flux_signals.py ...                                   [ 42%]
+tests\06_flux\test_flux_while.py ...                                     [ 43%]
+tests\06_flux\test_flux_while_4case.py ............                      [ 46%]
+tests\06_flux\test_workflow_async_4case.py ........                      [ 48%]
+tests\07_audit\test_audit_levels.py ........                             [ 51%]
+tests\07_audit\test_audit_ring_buffer.py ..s...                          [ 53%]
+tests\07_audit\test_fsm_states.py .......                                [ 55%]
+tests\07_audit\test_meta_ring_buffer.py .......                          [ 57%]
+tests\07_audit\test_write_timeout.py ......                              [ 58%]
+tests\08_arch\test_signalhub_async.py ..................                 [ 64%]
+tests\08_arch\test_signalhub_boundary.py ...................             [ 69%]
+tests\08_arch\test_signalhub_concurrent.py .........                     [ 72%]
+tests\08_arch\test_signalhub_stress.py ..........                        [ 75%]
+tests\08_arch\test_tokio_channels.py ...                                 [ 76%]
+tests\08_arch_proofs\test_arch_cow_isolation.py .                        [ 76%]
+tests\08_arch_proofs\test_arch_custom_objects.py .                       [ 76%]
+tests\08_arch_proofs\test_arch_dict_strategy.py .                        [ 77%]
+tests\09_v3_2\test_auto_discovery.py .                                   [ 77%]
+tests\09_v3_2\test_deep_integration.py .                                 [ 77%]
+tests\09_v3_2\test_numpy_equality.py ..F                                 [ 78%]
+tests\09_v3_2\test_schema_enforcement.py ....                            [ 79%]
+tests\09_v3_2\test_shm_import_mechanics.py ....                          [ 80%]
+tests\09_v3_2\test_subinterpreter_parallel.py ...                        [ 81%]
+tests\10_integration\test_outbox_production.py F                         [ 82%]
+tests\11_rfc001\test_rfc001_const_internal.py ..........                 [ 85%]
+tests\integration\test_zero_copy_proof.py .                              [ 85%]
+tests\parallel_suite\test_arch_claims.py .                               [ 85%]
+tests\parallel_suite\test_subinterpreter_resilience.py ......            [ 87%]
+tests\repro_api_consistency.py ..                                        [ 87%]
+tests\test_cas_modes.py ...                                              [ 88%]
+tests\test_cli_linter.py ...                                             [ 89%]
+tests\test_cli_v3.py .                                                   [ 90%]
+tests\test_frozendict_robustness.py ........                             [ 92%]
+tests\test_managed_memory.py ....                                        [ 93%]
+tests\test_namespace_sdk_support.py .....                                [ 95%]
+tests\test_rfc_001_v3_2_full.py .....                                    [ 96%]
+tests\test_rfc_001_zones.py ..                                           [ 97%]
+tests\test_shm_pickling.py ..                                            [ 97%]
+tests\test_smart_cas_zones.py ..                                         [ 98%]
+tests\test_zero_copy_integration.py .                                    [ 98%]
+tests\verify_api_parity.py .                                             [ 98%]
+tests\verify_error_handling.py ..                                        [ 99%]
+tests\verify_flyweight.py .                                              [ 99%]
+tests\verify_rfc_001.py .                                                [100%]
+
+================================== FAILURES ===================================
+_____________ TestContractEnforcement.test_io_contract_strictness _____________
+
+self = <test_contract_enforcement.TestContractEnforcement testMethod=test_io_contract_strictness>
+
+    def test_io_contract_strictness(self):
+        """
+        Verify IO Contract Violations are HARDBLOCKED by default
+        and IGNORE Audit System Campaign Mode.
+        """
+>       asyncio.run(self._run_contract_test())
+
+tests\01_core\test_contract_enforcement.py:42: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+..\..\..\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py:204: in run
+    return runner.run(main)
+           ^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python314\Lib\asyncio\runners.py:127: in run
+    return self._loop.run_until_complete(task)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python314\Lib\asyncio\base_events.py:719: in run_until_complete
+    return future.result()
+           ^^^^^^^^^^^^^^^
+tests\01_core\test_contract_enforcement.py:64: in _run_contract_test
+    await engine.execute("contract_limit_process")
+theus\engine.py:747: in execute
+    raise e
+theus\engine.py:692: in execute
+    result = await self._attempt_execute(func, tx, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+theus\engine.py:898: in _attempt_execute
+    raise e
+theus\engine.py:891: in _attempt_execute
+    result = await self._core.execute_process_async(
+..\..\..\AppData\Local\Programs\Python\Python314\Lib\asyncio\threads.py:25: in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py:86: in run
+    result = ctx.run(self.task)
+             ^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py:73: in run
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+theus\engine.py:880: in arg_binder
+    res = func(native_guard, *args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+theus\contracts.py:172: in wrapper
+    raise e
+theus\contracts.py:170: in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\01_core\test_contract_enforcement.py:32: in contract_limit_process
+    ctx.domain.data["illegal"] = "HACK"
+    ^^^^^^^^^^^^^^^
+theus\guards.py:372: in __getattr__
+    raise e
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+    def __getattr__(self, name: str) -> Any:
+        # [RFC-001 §10] Block __dict__ access to prevent bypassing Zone Physics.
+        # NOTE: On ContextGuard instances, __dict__ access from user code triggers
+        # __getattr__ because ContextGuard has __slots__-like behavior through its
+        # __init__ using object.__setattr__. This is a safe interception point.
+        if name == "__dict__":
+            raise PermissionError(
+                "Direct access to '__dict__' is forbidden. "
+                "Use the Context API to read/write fields safely."
+            )
+        # 1. Immediate bypass for whitelisted Python-side attributes
+        if name in ("_inner", "_local_is_admin", "_log", "_elevate", "is_admin", "is_proxy", "_outbox", "_path_prefix", "_allowed_inputs", "_allowed_outputs", "_transaction", "_strict_guards", "_parent", "_name", "_target"):
+            return object.__getattribute__(self, name)
+    
+        full_path = name if self._path_prefix == "" else f"{self._path_prefix}.{name}"
+        # [RFC-001 §5] Zone physics check first (const_/internal_)
+        try:
+            self._check_zone_physics(full_path, "read")
+        except _PrivateZoneReadAccess:
+            return None  # internal_ field: return None silently for non-admin
+        if not self._is_allowed(full_path, "read"):
+             # For discovery, we allow 'domain' or 'global' prefixes even if not explicitly in inputs,
+             # provided a sub-path IS allowed. _is_allowed already handles this parent-path check.
+             raise PermissionError(f"Illegal Read: Path '{full_path}' is restricted by Process Contract.")
+    
+        val = None
+        # 0. Heavy Zone Bypassing (Zero-Copy)
+        if name.startswith("heavy_"):
+            val = getattr(self._inner, name, None) if self._inner is not None else None
+            if val is None and self._target:
+                 val = getattr(self._target, name, None)
+            if val is not None:
+                return val
+        # 2. Rust delegation
+        try:
+>           val = getattr(self._inner, name, None) if self._inner is not None else None
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E           PermissionError: Illegal Read: 'domain.data'
+
+theus\guards.py:351: PermissionError
+---------------------------- Captured stdout call -----------------------------
+
+=== TEST: Core Contract Enforcement (Strict) ===
+
+[Scenario] AuditLevel.CAMPAIGN (Count) vs Contract Violation
+
+[INIT_DATA] {'domain': {'data': {}}, 'domain_ctx': {'data': {}}}
+[ManagedAllocator] Registry initialized successfully.
+   Executing process (expecting Strict Block)...
+---------------------------- Captured stderr call -----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[DEBUG] Execute Exception: "Illegal Read: 'domain.data'" | CAS=False | Busy=False
+____________________________ test_reader_isolation ____________________________
+
+    @pytest.mark.asyncio
+    async def test_reader_isolation():
+        engine = TheusEngine()
+        # Correct Way to Init State in v3 (Immutable)
+        # We must construct a new state and commit it (or use internal API if needed for setup)
+        # For setup, we can use compare_and_swap from version 1
+        engine.compare_and_swap(1, {"x": 0}, None, None)
+    
+        from theus.contracts import process
+    
+        @process(inputs=["data"], outputs=["data"])
+        async def long_reader(ctx):
+            # Finds x=0
+            val1 = ctx.data["x"]
+            await asyncio.sleep(0.2)
+            # Even if writer changed it globally, THIS context must see snapshot x=0
+            val2 = ctx.data["x"]
+            return val1, val2
+    
+        @process(outputs=["x"])
+        async def fast_writer(ctx):
+            await asyncio.sleep(0.05)
+            return {"x": 99}
+    
+        task_read = asyncio.create_task(engine.execute(long_reader))
+        task_write = asyncio.create_task(engine.execute(fast_writer))
+    
+        await task_write  # Global state is now 99
+    
+>       v1, v2 = await task_read
+                 ^^^^^^^^^^^^^^^
+
+tests\02_safety\test_snapshot_isolation.py:37: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+theus\engine.py:747: in execute
+    raise e
+theus\engine.py:692: in execute
+    result = await self._attempt_execute(func, tx, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+theus\engine.py:898: in _attempt_execute
+    raise e
+theus\engine.py:891: in _attempt_execute
+    result = await self._core.execute_process_async(
+theus\engine.py:845: in arg_binder
+    res = await func(native_guard, *args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+theus\contracts.py:159: in wrapper
+    raise e
+theus\contracts.py:156: in wrapper
+    return await func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\02_safety\test_snapshot_isolation.py:21: in long_reader
+    val1 = ctx.data["x"]
+           ^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <ContextGuard wrapping <builtins.ContextGuard object at 0x0000024A01EB7F90> admin=False>
+name = 'data'
+
+    def __getattr__(self, name: str) -> Any:
+        # [RFC-001 §10] Block __dict__ access to prevent bypassing Zone Physics.
+        # NOTE: On ContextGuard instances, __dict__ access from user code triggers
+        # __getattr__ because ContextGuard has __slots__-like behavior through its
+        # __init__ using object.__setattr__. This is a safe interception point.
+        if name == "__dict__":
+            raise PermissionError(
+                "Direct access to '__dict__' is forbidden. "
+                "Use the Context API to read/write fields safely."
+            )
+        # 1. Immediate bypass for whitelisted Python-side attributes
+        if name in ("_inner", "_local_is_admin", "_log", "_elevate", "is_admin", "is_proxy", "_outbox", "_path_prefix", "_allowed_inputs", "_allowed_outputs", "_transaction", "_strict_guards", "_parent", "_name", "_target"):
+            return object.__getattribute__(self, name)
+    
+        full_path = name if self._path_prefix == "" else f"{self._path_prefix}.{name}"
+        # [RFC-001 §5] Zone physics check first (const_/internal_)
+        try:
+            self._check_zone_physics(full_path, "read")
+        except _PrivateZoneReadAccess:
+            return None  # internal_ field: return None silently for non-admin
+        if not self._is_allowed(full_path, "read"):
+             # For discovery, we allow 'domain' or 'global' prefixes even if not explicitly in inputs,
+             # provided a sub-path IS allowed. _is_allowed already handles this parent-path check.
+             raise PermissionError(f"Illegal Read: Path '{full_path}' is restricted by Process Contract.")
+    
+        val = None
+        # 0. Heavy Zone Bypassing (Zero-Copy)
+        if name.startswith("heavy_"):
+            val = getattr(self._inner, name, None) if self._inner is not None else None
+            if val is None and self._target:
+                 val = getattr(self._target, name, None)
+            if val is not None:
+                return val
+        # 2. Rust delegation
+        try:
+            val = getattr(self._inner, name, None) if self._inner is not None else None
+            # [v3.5] Heavy Prefix Fallback: If 'X' is not found, try 'heavy_X'
+            if val is None and self._inner is not None:
+                try:
+                    val = getattr(self._inner, f"heavy_{name}", None)
+                except Exception:
+                    pass
+    
+            if val is None and self._target:
+                 # Try target (Hybrid Bridge)
+                 val = getattr(self._target, name, None)
+        except RuntimeError as rt_err:
+            # [v3.4] Transaction no longer leaks into data graph.
+            # If RuntimeError occurs here, it is a genuine error — log and re-raise.
+            import warnings
+            warnings.warn(
+                f"ContextGuard.__getattr__('{name}'): RuntimeError from Rust proxy — {rt_err}",
+                RuntimeWarning, stacklevel=2
+            )
+            val = None
+        except PermissionError as e:
+            raise e
+        except Exception:
+            # Broad catch for PyO3 errors like missing properties or Rust panics
+            val = None
+    
+        # [RFC-002] Explicit Dict Proxy Fallback
+        # NOTE: getattr(..., None) nuốt AttributeError, nên ctx.local/ctx.data trả None
+        # thay vì nhảy vào except. Ta phải chủ động forward xuống __getitem__ của dict proxies.
+        if val is None and not name.startswith("_"):
+             if self._inner is not None and hasattr(self._inner, "__getitem__"):
+                  try:
+                      val = self._inner[name]
+                  except (KeyError, TypeError, AttributeError):
+                      pass
+             if val is None and self._target is not None and hasattr(self._target, "__getitem__"):
+                  try:
+                      val = self._target[name]
+                  except (KeyError, TypeError, AttributeError):
+                      pass
+             # [RFC-002] Dynamic Namespace Fallback
+             if val is None:
+                  from .context import NamespaceRegistry
+                  if name in NamespaceRegistry()._namespaces:
+                      try:
+                          pc = self._inner._target
+                          state_data = pc.state.data
+                          val = state_data[name]
+    
+                          full_path = name if self._path_prefix == "" else f"{self._path_prefix}.{name}"
+    
+                          if isinstance(val, (dict, list)):
+                              return ContextGuard(
+                                  target_obj=None,
+                                  allowed_inputs=self._allowed_inputs,
+                                  allowed_outputs=self._allowed_outputs,
+                                  path_prefix=full_path,
+                                  transaction=_current_tx.get(),
+                                  strict_guards=self._strict_guards,
+                                  process_name=self._log.extra.get("process_name", "Unknown"),
+                                  _inner=val,
+                                  parent=self,
+                                  name=name,
+                              )
+                          return val
+                      except Exception:
+                          raise
+    
+        if val is None:
+            # Re-fetch special attributes if inner is a State or ProcessContext
+            if name in ("data", "domain", "global", "heavy", "signals", "meta", "local", "outbox", "policy_id"):
+                if name in ("local", "outbox"):
+                    pc = getattr(self, "_process_context", None)
+                    if pc is not None:
+                        try:
+                            val = getattr(pc, name)
+                        except Exception:
+                            pass
+    
+                if val is None and self._inner is not None:
+                    try:
+                        val = getattr(self._inner, name)
+                    except Exception as e:
+                        pass
+                if val is None and self._target is not None:
+                    try:
+                        val = getattr(self._target, name)
+                    except Exception as e:
+                        if name == "local": print(f"[DEBUG GETATTR] target={type(self._target)} err={repr(e)}")
+                        pass
+                    if val is None and isinstance(self._target, dict):
+                        try:
+                            val = self._target.get(name)
+                        except Exception:
+                            pass
+            if val is None:
+>               raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+E               AttributeError: 'ContextGuard' object has no attribute 'data'
+
+theus\guards.py:447: AttributeError
+---------------------------- Captured stdout call -----------------------------
+
+[INIT_DATA] {}
+[ManagedAllocator] Registry initialized successfully.
+---------------------------- Captured stderr call -----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'data'" | CAS=False | Busy=False
+_______________ TestAsyncSyncBridge.test_direct_async_execution _______________
+
+self = <test_async_sync_bridge.TestAsyncSyncBridge object at 0x0000024A7FDF2C10>
+
+    @pytest.mark.asyncio
+    async def test_direct_async_execution(self):
+        """Verify direct await engine.execute works for both sync and async functions."""
+        engine = TheusEngine(SimpleSystemContext())
+        engine.register(sync_increment)
+        engine.register(async_trigger)
+    
+        # Call sync from async
+        await engine.execute(sync_increment)
+        print("AFTER SYNC_INCREMENT:", str(engine.state.data.get("domain")))
+        assert engine.state.domain.counter == 1
+    
+        # Call async from async
+        await engine.execute(async_trigger)
+        print("AFTER ASYNC_TRIGGER:", str(engine.state.data.get("domain")))
+        assert engine.state.domain.async_triggered is True
+    
+        # Call append
+        engine.register(async_append_const)
+        await engine.execute(async_append_const)
+        print("AFTER ASYNC_APPEND:", str(engine.state.data.get("domain")))
+        assert "hello_from_sync_workflow" in engine.state.domain.item_list
+>       assert engine.state.domain.counter == 1
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'SupervisorProxy[dict]' object has no attribute 'counter'. (Hint: Key 'counter' missing in wrapped dict at path 'domain')
+
+tests\05_compat\test_async_sync_bridge.py:64: AttributeError
+---------------------------- Captured stdout call -----------------------------
+
+[INIT_DATA] {'domain': {'item_list': [], 'counter': 0, 'async_triggered': False}, 'domain_ctx': {'item_list': [], 'counter': 0, 'async_triggered': False}, 'global': {}, 'global_ctx': {}}
+[ManagedAllocator] Registry initialized successfully.
+AFTER SYNC_INCREMENT: item_list=[] counter=1 async_triggered=False
+AFTER ASYNC_TRIGGER: item_list=[] counter=1 async_triggered=True
+AFTER ASYNC_APPEND: {'item_list': ['hello_from_sync_workflow']}
+---------------------------- Captured stderr call -----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+________________ TestAsyncSyncBridge.test_sync_workflow_bridge ________________
+
+self = <test_async_sync_bridge.TestAsyncSyncBridge object at 0x0000024A7FDF2FD0>
+
+        @pytest.mark.asyncio
+        async def test_sync_workflow_bridge(self):
+            """Verify engine.execute_workflow (sync) can call async processes safely."""
+            engine = TheusEngine(SimpleSystemContext())
+            engine.register(sync_increment)
+            engine.register(async_trigger)
+            engine.register(async_append_const)
+    
+            yaml_content = """
+    steps:
+      - process: "sync_increment"
+      - process: "async_trigger"
+      - process: "async_append_const"
+    """
+            import tempfile
+            import os
+    
+            with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w") as f:
+                f.write(yaml_content)
+                tmp_path = f.name
+    
+            try:
+                # Call engine.execute_workflow (now async v3.0)
+                await engine.execute_workflow(tmp_path)
+    
+                # Verify results
+                domain_keys = list(engine.state.data.get('domain', {}).keys()) if hasattr(engine.state.data.get('domain', {}), 'keys') else engine.state.data.get('domain')
+                print(f"\n[DEBUG] domain keys: {domain_keys}")
+                domain = engine.state.domain
+>               assert domain.counter == 1
+                       ^^^^^^^^^^^^^^
+E               AttributeError: 'SupervisorProxy[dict]' object has no attribute 'counter'. (Hint: Key 'counter' missing in wrapped dict at path 'domain')
+
+tests\05_compat\test_async_sync_bridge.py:95: AttributeError
+---------------------------- Captured stdout call -----------------------------
+
+[INIT_DATA] {'domain': {'item_list': [], 'counter': 0, 'async_triggered': False}, 'domain_ctx': {'item_list': [], 'counter': 0, 'async_triggered': False}, 'global': {}, 'global_ctx': {}}
+[ManagedAllocator] Registry initialized successfully.
+
+[DEBUG] domain keys: ['item_list']
+---------------------------- Captured stderr call -----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+__________________ TestNumPyEquality.test_numpy_replacement ___________________
+
+self = <test_numpy_equality.TestNumPyEquality object at 0x0000024A01128180>
+
+    def test_numpy_replacement(self):
+        """
+        Scenario: Replace array with new array.
+        Expectation: This is standard assignment, handled by set_item, not infer.
+        But let's verify consistent handling.
+        """
+        import asyncio
+        new_arr = np.array([10, 20])
+    
+        @theus.contracts.process(outputs=["domain.arrays.simple"])
+        def proxy_update(ctx):
+            ctx.domain.arrays["simple"] = new_arr
+    
+        asyncio.run(self.engine.execute(proxy_update))
+    
+>       res = self.engine.state.data["domain"]["arrays"]["simple"]
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests\09_v3_2\test_numpy_equality.py:99: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+theus\guards.py:572: in __getitem__
+    raise e
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <ContextGuard wrapping NumPyDomain(arrays={'simple': array([10, 20]), 'matrix': array([[0., 0., 0., 0., 0., 0., 0., 0....   [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]])}, mixed={}) admin=False>
+key = 'arrays'
+
+    def __getitem__(self, key: Any) -> Any:
+        full_path = str(key) if self._path_prefix == "" else f"{self._path_prefix}[{key}]"
+        if isinstance(key, str) and not self._is_allowed(full_path, "read"):
+             raise PermissionError(f"Illegal Read: Path '{full_path}' is restricted by Process Contract.")
+    
+        val = None
+        # 0. Heavy Zone Bypassing (Zero-Copy)
+        if isinstance(key, str) and key.startswith("heavy_"):
+            try:
+                val = self._inner[key]
+                return val
+            except: pass
+        try:
+>           val = self._inner[key]
+                  ^^^^^^^^^^^^^^^^
+E           TypeError: 'NumPyDomain' object is not subscriptable
+
+theus\guards.py:532: TypeError
+---------------------------- Captured stdout setup ----------------------------
+
+[INIT_DATA] {'domain': {'arrays': {'simple': array([1, 2, 3]), 'matrix': array([[0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]])}, 'mixed': {}}, 'domain_ctx': {'arrays': {'simple': array([1, 2, 3]), 'matrix': array([[0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]])}, 'mixed': {}}, 'global': {}, 'global_ctx': {}}
+[ManagedAllocator] Registry initialized successfully.
+---------------------------- Captured stderr setup ----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+______________________ test_production_outbox_throughput ______________________
+
+    @pytest.mark.asyncio
+    async def test_production_outbox_throughput():
+        """
+        Integration Test: Production Simulation
+        - Real Async Relay Worker (no mocks for engine logic, but worker callback is simple)
+        - Continuous Load (100 concurrent requests)
+        - Random Failures (20% rollback rate)
+        - Goal: Ensure 'processed' count MATCHES 'successful transactions'.
+                Ensure NO messages from failed transactions appear.
+        """
+        print("\n[Integration] Starting Production Outbox Simulation...")
+        engine = TheusEngine()
+        engine.compare_and_swap(0, {"domain": {}})
+    
+        # Shared State
+        processed = []
+    
+        # 1. Setup Worker (Relay Consumer)
+        # in production, this pushes to Kafka/SQS. Here we push to list.
+        def worker(msg):
+            # verify msg integrity
+            if msg.topic == "fail":
+                raise RuntimeError(f"PHANTOM MESSAGE DETECTED: {msg.payload}")
+            processed.append(msg)
+    
+        engine.attach_worker(worker)
+    
+        # 2. Setup Background Relay Loop
+        # Theus Engine doesn't have built-in background thread for outbox,
+        # typically orchestrator calls process_outbox() periodically.
+        running = True
+        async def relay_loop():
+            while running:
+                try:
+                    # Drains the queue and calls worker() for each msg
+                    engine.process_outbox()
+                except Exception as e:
+                    print(f"Relay Error: {e}")
+                await asyncio.sleep(0.01)
+    
+        relay_task = asyncio.create_task(relay_loop())
+    
+        # 3. Define Producer Process
+        # [Optimization] Use Sharding (Unique Keys) to test Outbox Throughput
+        # without Lock Manager bottlenecks.
+        @process(outputs=["domain"])
+        async def producer_task(ctx, idx: int, should_fail: bool):
+            # Simulate work
+            await asyncio.sleep(random.uniform(0.001, 0.005))
+    
+            # Add Message (potentially rolled back)
+            if should_fail:
+                ctx.outbox.add(OutboxMsg("fail", f"phantom_{idx}"))
+                raise ValueError("Intentional Rollback")
+    
+            # Add Valid Message
+            ctx.outbox.add(OutboxMsg("ok", f"valid_{idx}"))
+    
+            # State Mutation (Sharded Key to avoid 'System Busy' / Lock Contention)
+            # Verify that Outbox works even if state write is trivial
+            ctx.domain[f"task_{idx}"] = "done"
+            return None
+    
+        engine.register(producer_task)
+    
+        # 4. Generate Load
+        TOTAL_REQUESTS = 20
+        FAILURE_RATE = 0.2
+    
+        tasks = []
+    
+        for i in range(TOTAL_REQUESTS):
+            will_fail = random.random() < FAILURE_RATE
+    
+            async def run_req(idx, fail):
+                try:
+                    # [Optimization] Increase retries for high concurrency test
+                    await engine.execute("producer_task", idx=idx, should_fail=fail, retries=20)
+                    return True
+                except Exception:
+                    return False
+    
+            tasks.append(run_req(i, will_fail))
+    
+        print(f"[Input] Requests: {TOTAL_REQUESTS}")
+    
+        # 5. Execute Concurrent Load
+        results = await asyncio.gather(*tasks)
+        actual_success = sum(1 for r in results if r)
+    
+        print(f"[Output] Actual Success: {actual_success}")
+        # assert actual_success == expected_success
+    
+        # 6. Wait for Relay to Drain
+        for _ in range(20): # retry for 2 sec max
+            if len(processed) >= actual_success:
+                break
+            await asyncio.sleep(0.1)
+    
+        print(f"[Assert] Success={actual_success}, Msgs={len(processed)}")
+        if len(processed) != actual_success:
+            raise AssertionError(f"Mismatch! Success={actual_success}, Msgs={len(processed)}")
+            await asyncio.sleep(0.1)
+    
+        # Stop Relay
+        running = False
+        await relay_task
+    
+        # [Verification] We expect inconsistent throughput due to high contention
+        # But we MUST ensure that EVERY successful transaction produced a message (Outbox Reliability)
+>       assert actual_success > 0, "Zero successes! System is completely broken."
+E       AssertionError: Zero successes! System is completely broken.
+E       assert 0 > 0
+
+tests\10_integration\test_outbox_production.py:117: AssertionError
+---------------------------- Captured stdout call -----------------------------
+
+[Integration] Starting Production Outbox Simulation...
+
+[INIT_DATA] {}
+[ManagedAllocator] Registry initialized successfully.
+[Input] Requests: 20
+[Output] Actual Success: 0
+[Assert] Success=0, Msgs=0
+---------------------------- Captured stderr call -----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: 'Intentional Rollback' | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: 'Intentional Rollback' | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: 'Intentional Rollback' | CAS=False | Busy=False
+[DEBUG] Execute Exception: 'Intentional Rollback' | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+============================== warnings summary ===============================
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_dual_threshold_warning
+  C:\Users\dohoang\projects\EmotionAgent\theus_framework\tests\07_audit\test_audit_levels.py:106: AuditWarning: WARNING: Approaching threshold (2/5)
+    audit.log_fail("test_key")  # count=2, warning threshold
+
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_dual_threshold_warning
+  C:\Users\dohoang\projects\EmotionAgent\theus_framework\tests\07_audit\test_audit_levels.py:113: AuditWarning: WARNING: Approaching threshold (4/5)
+    audit.log_fail("test_key")  # count=4
+
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_dual_threshold_warning
+  C:\Users\dohoang\projects\EmotionAgent\theus_framework\tests\07_audit\test_audit_levels.py:114: AuditWarning: WARNING: Approaching threshold (5/5)
+    audit.log_fail("test_key")  # count=5
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/01_core/test_contract_enforcement.py::TestContractEnforcement::test_io_contract_strictness
+FAILED tests/02_safety/test_snapshot_isolation.py::test_reader_isolation - At...
+FAILED tests/05_compat/test_async_sync_bridge.py::TestAsyncSyncBridge::test_direct_async_execution
+FAILED tests/05_compat/test_async_sync_bridge.py::TestAsyncSyncBridge::test_sync_workflow_bridge
+FAILED tests/09_v3_2/test_numpy_equality.py::TestNumPyEquality::test_numpy_replacement
+FAILED tests/10_integration/test_outbox_production.py::test_production_outbox_throughput
+============ 6 failed, 333 passed, 2 skipped, 3 warnings in 46.43s ============

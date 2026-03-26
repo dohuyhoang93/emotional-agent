@@ -1,4 +1,4 @@
-﻿"""
+"""
 Sleep Cycle Manager
 ===================
 Orchestrates the Biological Sleep phase for all agents.
@@ -8,7 +8,7 @@ Date: 2025-12-31
 """
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
-from src.orchestrator.context_helpers import get_domain_ctx, get_attr
+
 from src.logger import log
 
 @process(
@@ -22,15 +22,15 @@ def prepare_sleep_cycle(ctx: OrchestratorSystemContext):
     1. Initialize sleep signals.
     2. Call start_sleep() on all agents.
     """
-    domain, _ = get_domain_ctx(ctx)
-    active_idx = get_attr(domain, 'active_experiment_idx', 0)
-    experiments = get_attr(domain, 'experiments', [])
+    domain = ctx.domain
+    active_idx = getattr(domain, 'active_experiment_idx', 0)
+    experiments = getattr(domain, 'experiments', [])
     
     if active_idx >= len(experiments):
         return {'domain.sig_sleep_step': 0, 'domain.sig_sleep_duration': 0}
     
     exp_def = experiments[active_idx]
-    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    exp_name = getattr(exp_def, 'name', 'unknown') if not isinstance(exp_def, dict) else exp_def.get('name', 'unknown')
     
     from src.orchestrator.runtime_registry import get_runner
     runner = get_runner(exp_name)
@@ -61,22 +61,22 @@ def execute_dream_step(ctx: OrchestratorSystemContext):
     """
     Execute a single dream step for all agents.
     """
-    domain, _ = get_domain_ctx(ctx)
-    active_idx = get_attr(domain, 'active_experiment_idx', 0)
-    experiments = get_attr(domain, 'experiments', [])
+    domain = ctx.domain
+    active_idx = getattr(domain, 'active_experiment_idx', 0)
+    experiments = getattr(domain, 'experiments', [])
     
     if active_idx >= len(experiments):
         return {}
         
     exp_def = experiments[active_idx]
-    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    exp_name = getattr(exp_def, 'name', 'unknown') if not isinstance(exp_def, dict) else exp_def.get('name', 'unknown')
     
     from src.orchestrator.runtime_registry import get_runner
     runner = get_runner(exp_name)
     if not runner or not runner.coordinator:
         return {}
 
-    t = get_attr(domain, 'sig_sleep_step', 0)
+    t = getattr(domain, 'sig_sleep_step', 0)
     for agent in runner.coordinator.agents:
         if hasattr(agent, 'dream_step'):
             agent.dream_step(t)
@@ -94,15 +94,15 @@ def finalize_sleep_cycle(ctx: OrchestratorSystemContext):
     1. Call wake_up() on all agents.
     2. Reset sleep signals.
     """
-    domain, _ = get_domain_ctx(ctx)
-    active_idx = get_attr(domain, 'active_experiment_idx', 0)
-    experiments = get_attr(domain, 'experiments', [])
+    domain = ctx.domain
+    active_idx = getattr(domain, 'active_experiment_idx', 0)
+    experiments = getattr(domain, 'experiments', [])
     
     if active_idx >= len(experiments):
         return {'domain.sig_sleep_step': 0, 'domain.sig_sleep_duration': 0}
         
     exp_def = experiments[active_idx]
-    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    exp_name = getattr(exp_def, 'name', 'unknown') if not isinstance(exp_def, dict) else exp_def.get('name', 'unknown')
     
     from src.orchestrator.runtime_registry import get_runner
     runner = get_runner(exp_name)
@@ -128,6 +128,6 @@ def finalize_sleep_cycle(ctx: OrchestratorSystemContext):
 )
 def advance_sleep_step(ctx: OrchestratorSystemContext):
     """Increment the sleep step counter."""
-    domain, _ = get_domain_ctx(ctx)
-    current = get_attr(domain, 'sig_sleep_step', 0)
+    domain = ctx.domain
+    current = getattr(domain, 'sig_sleep_step', 0)
     return {'domain.sig_sleep_step': current + 1}

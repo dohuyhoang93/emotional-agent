@@ -21,7 +21,7 @@
                     "threshold_min": 0.01,
                     "threshold_max": 2.0,
                     "homeostasis_rate": 0.005,
-                    "target_fire_rate": 0.01,
+                    "target_fire_rate": 0.13,
                     "pid_kp": 0.1,
                     "pid_ki": 0.01,
                     "pid_kd": 0.01,

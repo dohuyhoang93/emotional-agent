@@ -68,7 +68,9 @@ class TestValidatorUnit(unittest.TestCase):
 
     def test_tier_3_block(self):
         """Tier 3: Blocking after threshold."""
-        kwargs = {"age": 5} # Fail
+        # [INC-023] Must provide 'code' since it defaults to required=True,
+        # otherwise ContractViolationError is raised before we can test AuditBlockError
+        kwargs = {"age": 5, "code": "ABC"} # Age fails min=18
         
         # Fail 1
         self.validator.validate_inputs("p_test", kwargs)

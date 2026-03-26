@@ -56,11 +56,14 @@ async def verify_leak():
     # Execute
     print("Executing probe...")
     # engine.execute is async
-    results = await engine.execute("probe_context")
-
-    print("\n[Probe Results]")
-    for k, v in results.items():
-        print(f"  {k}: {v}")
+    results = {}
+    try:
+        results = await engine.execute("probe_context")
+        print("\n[Probe Results]")
+        for k, v in results.items():
+            print(f"  {k}: {v}")
+    except Exception as e:
+        print(f"\n[Probe Blocked by Engine Validation]\nException caught: {type(e).__name__} - {e}")
 
     print("-" * 30)
 

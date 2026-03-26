@@ -48,11 +48,20 @@ class TestAsyncSyncBridge:
 
         # Call sync from async
         await engine.execute(sync_increment)
+        print("AFTER SYNC_INCREMENT:", str(engine.state.data.get("domain")))
         assert engine.state.domain.counter == 1
 
         # Call async from async
         await engine.execute(async_trigger)
+        print("AFTER ASYNC_TRIGGER:", str(engine.state.data.get("domain")))
         assert engine.state.domain.async_triggered is True
+
+        # Call append
+        engine.register(async_append_const)
+        await engine.execute(async_append_const)
+        print("AFTER ASYNC_APPEND:", str(engine.state.data.get("domain")))
+        assert "hello_from_sync_workflow" in engine.state.domain.item_list
+        assert engine.state.domain.counter == 1
 
     @pytest.mark.asyncio
     async def test_sync_workflow_bridge(self):
@@ -80,6 +89,8 @@ steps:
             await engine.execute_workflow(tmp_path)
 
             # Verify results
+            domain_keys = list(engine.state.data.get('domain', {}).keys()) if hasattr(engine.state.data.get('domain', {}), 'keys') else engine.state.data.get('domain')
+            print(f"\n[DEBUG] domain keys: {domain_keys}")
             domain = engine.state.domain
             assert domain.counter == 1
             assert domain.async_triggered is True

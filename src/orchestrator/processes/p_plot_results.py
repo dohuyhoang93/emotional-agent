@@ -1,4 +1,4 @@
-﻿import matplotlib
+import matplotlib
 # NOTE: Force non-interactive backend — this process runs on a worker
 # thread (asyncio.to_thread via Flux), so tkinter GUI would crash.
 matplotlib.use('Agg')
@@ -7,12 +7,11 @@ import pandas as pd
 import os
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
-from src.orchestrator.context_helpers import get_domain_ctx, get_attr
 from src.logger import log
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.experiments', 'domain.output_dir', 'log_level'],
-    outputs=['domain_ctx', ],
+    outputs=[],
     side_effects=['filesystem.write'],
     errors=[]
 )
@@ -21,9 +20,8 @@ def plot_results(ctx: OrchestratorSystemContext):
     Process: Generate plots for multi-agent experiments (Aesthetic Upgrade).
     """
     log(ctx, "info", "  [Orchestration] Plotting aggregated results (Enhanced)...")
-    domain, is_dict = get_domain_ctx(ctx)
     
-    output_dir = get_attr(domain, 'output_dir', 'results')
+    output_dir = getattr(ctx.domain, 'output_dir', 'results')
     plots_dir = os.path.join(output_dir, "plots")
     os.makedirs(plots_dir, exist_ok=True)
     
@@ -33,11 +31,17 @@ def plot_results(ctx: OrchestratorSystemContext):
     except:
         plt.style.use('ggplot')
 
-    experiments = get_attr(domain, 'experiments', [])
+    experiments = getattr(ctx.domain, 'experiments', [])
     for exp_def in experiments:
-        exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
-        aggregated_data = get_attr(exp_def, 'aggregated_data', []) if isinstance(exp_def, dict) else getattr(exp_def, 'aggregated_data', [])
-        if not aggregated_data:
+        exp_name = getattr(exp_def, 'name', 'unknown')
+        aggregated_data = getattr(exp_def, 'aggregated_data', [])
+        # NOTE: aggregated_data có thể là ContextGuard wrapping list/DataFrame,
+        # dùng len() thay vì truth test để tránh ValueError từ pandas DataFrame.
+        try:
+            has_data = len(aggregated_data) > 0
+        except (TypeError, ValueError):
+            has_data = False
+        if not has_data:
             log(ctx, "info", f"  [Plotting] No data for experiment '{exp_name}', skipping plots.")
             continue
         
@@ -69,9 +73,7 @@ def plot_results(ctx: OrchestratorSystemContext):
             plt.plot(episodes, avg_rewards, alpha=0.15, color='tab:blue', label='_nolegend_')
             plt.plot(episodes, avg_rewards.rolling(window=window).mean(), color='tab:blue', linewidth=2.5, label=f'Avg Reward (MA-{window})')
             
-            # Best Reward: Smooth Only (Raw is too spiky usually, or just step-like)
-            # Actually Best Reward is usually cumulative max? If it's per episode max, verify.
-            # Assuming per-episode max.
+            # Best Reward: Smooth Only
             plt.plot(episodes, best_rewards.rolling(window=window).mean(), color='tab:orange', linewidth=2, linestyle='--', label=f'Best Reward (MA-{window})')
             
             plt.xlabel('Episode', fontsize=12)
@@ -91,9 +93,6 @@ def plot_results(ctx: OrchestratorSystemContext):
                 if social.sum() > 0:
                     plt.bar(episodes, social, alpha=0.6, color='tab:green', label='Social Transfers')
                 if revolution.sum() > 0:
-                    # Plot revolutions on secondary axis or just overlay if scale matches?
-                    # Revolutions are rare events (0 or 1). Bar chart is fine.
-                    # Make them stand out.
                     rev_indices = [i for i, x in enumerate(revolution) if x > 0]
                     if rev_indices:
                          for rev_idx in rev_indices:
@@ -110,12 +109,6 @@ def plot_results(ctx: OrchestratorSystemContext):
                 plt.close()
 
             # --- Plot 3: SNN Physiology ---
-            # Helper to extract deep keys if not in top level flat dict (though p_aggregate flattened it)
-            # p_aggregate flattened 'metrics' dict.
-            # But keys might be 'fire_rate' or 'snn.fire_rate' depending on upstream.
-            # Safety checks using pandas logic or list comp.
-            
-            # Try to find columns
             fire_cols = [c for c in df.columns if 'fire_rate' in c]
             syn_cols = [c for c in df.columns if 'synapse' in c and 'count' in c or 'active_synapses' in c]
             
@@ -169,4 +162,3 @@ def plot_results(ctx: OrchestratorSystemContext):
             traceback.print_exc()
 
     log(ctx, "info", f"  [Orchestration] Aesthetics plots saved to {plots_dir}")
-

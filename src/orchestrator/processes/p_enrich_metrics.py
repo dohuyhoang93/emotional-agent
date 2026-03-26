@@ -1,6 +1,5 @@
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
-from src.orchestrator.context_helpers import get_domain_ctx, get_attr, set_attr
 import numpy as np
 
 @process(
@@ -14,19 +13,18 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
     Process: Calculate and enrich the 'metrics' dictionary with SNN and RL statistics.
     Decoupled from execution logic for better SRP.
     """
-    domain, is_dict = get_domain_ctx(ctx)
-    metrics = get_attr(domain, 'metrics', {})
-    print(f"DEBUG enrich_episode_metrics: metrics type={type(metrics)}, value={metrics}")
+    metrics = getattr(ctx.domain, 'metrics', {})
+    # print(f"DEBUG enrich_episode_metrics: metrics type={type(metrics)}, value={metrics}")
     
     # Get experiment info
-    active_idx = get_attr(domain, 'active_experiment_idx', 0)
-    experiments = get_attr(domain, 'experiments', [])
+    active_idx = getattr(ctx.domain, 'active_experiment_idx', 0)
+    experiments = getattr(ctx.domain, 'experiments', [])
     
     if active_idx >= len(experiments):
         return {}
     
     exp_def = experiments[active_idx]
-    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    exp_name = getattr(exp_def, 'name', 'unknown')
     
     # V3 MIGRATION: Fetch Runner from Registry
     from src.orchestrator.runtime_registry import get_runner
@@ -64,7 +62,6 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
         
         # Check buffer type (Vectorized vs Dict)
         if snn_domain.heavy_tensors.get('use_vectorized_queue', False):
-             # Buffer is (Time, N) tensor
              total_spike_queue += np.count_nonzero(snn_domain.heavy_tensors['spike_buffer'])
         else:
              total_spike_queue += sum(len(v) for v in snn_domain.spike_queue.values())
@@ -80,17 +77,15 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
     
     for agent in runner.coordinator.agents:
         rl_domain = agent.domain_ctx
-        # heavy_q_table is now deprecated, but we keep it for legacy metrics if still present
         if hasattr(rl_domain, 'heavy_q_table'):
             total_q_table_entries += len(rl_domain.heavy_q_table)
             
-        # Add Neural Brain Metrics from metrics dict
         if 'neural_loss' in rl_domain.metrics:
             neural_loss_avg += rl_domain.metrics['neural_loss']
             neural_q_avg += rl_domain.metrics.get('avg_q_predicted', 0.0)
             count_rl += 1
             
-    metrics['debug_q_table_size'] = total_q_table_entries # Legacy compat
+    metrics['debug_q_table_size'] = total_q_table_entries
     if count_rl > 0:
         metrics['neural_loss_avg'] = neural_loss_avg / count_rl
         metrics['avg_q_predicted'] = neural_q_avg / count_rl
@@ -102,7 +97,6 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
     import os
     from collections import Counter
     
-    # Count PyTorch tensors in memory AND analyze shapes
     tensor_count = 0
     tensor_memory = 0
     shape_counter = Counter()

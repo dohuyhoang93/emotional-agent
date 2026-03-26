@@ -1,0 +1,59 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\dohoang\projects\EmotionAgent\.venv\Scripts\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\dohoang\projects\EmotionAgent\theus_framework
+configfile: pyproject.toml
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+[THEUS-CORE] Loaded Version: 3.0.25 (Target Env Build)
+collecting ... collected 1 item
+
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+tests/05_compat/test_async_sync_bridge.py::TestAsyncSyncBridge::test_sync_workflow_bridge [ManagedAllocator] Registry initialized successfully.
+
+[DEBUG] domain keys: ['item_list']
+FAILED
+
+================================== FAILURES ===================================
+________________ TestAsyncSyncBridge.test_sync_workflow_bridge ________________
+
+self = <test_async_sync_bridge.TestAsyncSyncBridge object at 0x0000021AE05F02D0>
+
+        @pytest.mark.asyncio
+        async def test_sync_workflow_bridge(self):
+            """Verify engine.execute_workflow (sync) can call async processes safely."""
+            engine = TheusEngine(SimpleSystemContext())
+            engine.register(sync_increment)
+            engine.register(async_trigger)
+            engine.register(async_append_const)
+    
+            yaml_content = """
+    steps:
+      - process: "sync_increment"
+      - process: "async_trigger"
+      - process: "async_append_const"
+    """
+            import tempfile
+            import os
+    
+            with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w") as f:
+                f.write(yaml_content)
+                tmp_path = f.name
+    
+            try:
+                # Call engine.execute_workflow (now async v3.0)
+                await engine.execute_workflow(tmp_path)
+    
+                # Verify results
+                domain_keys = list(engine.state.data.get('domain', {}).keys()) if hasattr(engine.state.data.get('domain', {}), 'keys') else engine.state.data.get('domain')
+                print(f"\n[DEBUG] domain keys: {domain_keys}")
+                domain = engine.state.domain
+>               assert domain.counter == 1
+                       ^^^^^^^^^^^^^^
+E               AttributeError: 'SupervisorProxy[dict]' object has no attribute 'counter'. (Hint: Key 'counter' missing in wrapped dict at path 'domain')
+
+tests\05_compat\test_async_sync_bridge.py:86: AttributeError
+=========================== short test summary info ===========================
+FAILED tests/05_compat/test_async_sync_bridge.py::TestAsyncSyncBridge::test_sync_workflow_bridge
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 failures !!!!!!!!!!!!!!!!!!!!!!!!!!
+============================== 1 failed in 3.22s ==============================

@@ -100,9 +100,9 @@ class TheusEngine:
         def _dump_context(obj):
             """Recursively dump context into primitives for Rust Core."""
             if obj is None: return None
-            if hasattr(obj, "to_dict"): return obj.to_dict()
-            if hasattr(obj, "model_dump"): return obj.model_dump()
-            if hasattr(obj, "dict"): return obj.dict()
+            if hasattr(obj, "to_dict"): return _dump_context(obj.to_dict())
+            if hasattr(obj, "model_dump"): return _dump_context(obj.model_dump())
+            if hasattr(obj, "dict"): return _dump_context(obj.dict())
             if isinstance(obj, (int, float, str, bool, list, dict, set, tuple)):
                  if isinstance(obj, dict):
                       return {k: _dump_context(v) for k, v in obj.items()}
@@ -143,10 +143,16 @@ class TheusEngine:
                 annotations = getattr(obj_class, "__annotations__", {})
 
             for name, ann in annotations.items():
+                meta_list = []
                 if hasattr(ann, "__metadata__"):
+                    meta_list.extend(ann.__metadata__)
+                elif hasattr(ann, "metadata"):
+                    meta_list.extend(ann.metadata)
+                    
+                if meta_list:
                     from theus.context import Mutable, AppendOnly, Immutable, PYTHON_PHYSICS_OVERRIDES
                     full_path = f"{path_prefix}.{name}" if path_prefix else name
-                    for meta in ann.__metadata__:
+                    for meta in meta_list:
                         if meta is Mutable or isinstance(meta, Mutable):
                             # Data CAP: READ | APPEND | UPDATE | DELETE = 15
                             if _HAS_RUST_CORE: theus_core.register_physics_override(full_path, 15)
@@ -215,6 +221,7 @@ class TheusEngine:
         # Initialize Rust Core (Microkernel)
         if _HAS_RUST_CORE:
             # [RFC-002] init_data is now local (collected above)
+            # print(f"\n[INIT_DATA] {init_data}")
             self._core = theus_core.TheusEngine()  # No args
             
             # [POP v3.1] Explicit Decoupling of Strictness Flags
@@ -746,8 +753,10 @@ class TheusEngine:
 
     async def _attempt_execute(self, func, tx, *args, **kwargs):
         # [v3.1.2] Input Gate: Active Validation
+        # [INC-023 Fix] Pass context so validator can resolve fields from State,
+        # not just from kwargs. This prevents silent bypass for context-only inputs.
         if self._validator:
-             self._validator.validate_inputs(func.__name__, kwargs)
+             self._validator.validate_inputs(func.__name__, kwargs, context=self._context)
 
         contract = getattr(func, "_pop_contract", None)
 
@@ -827,6 +836,7 @@ class TheusEngine:
                         
                         native_guard = ContextGuard(
                             target_obj=self._context,
+                            process_context=ctx,
                             allowed_inputs=set(contract.inputs if contract else []),
                             allowed_outputs=set(contract.outputs if contract else []),
                             path_prefix="",
@@ -861,6 +871,7 @@ class TheusEngine:
                         
                         native_guard = ContextGuard(
                             target_obj=self._context,
+                            process_context=ctx,
                             allowed_inputs=set(contract.inputs if contract else []),
                             allowed_outputs=set(contract.outputs if contract else []),
                             path_prefix="",
@@ -882,6 +893,10 @@ class TheusEngine:
                 result = await self._core.execute_process_async(
                     func.__name__, target_func, tx
                 )
+            except PermissionError as perm_err:
+                # NOTE: ContextGuard raises PermissionError for contract violations.
+                # Wrap into ContractViolationError to maintain API contract.
+                raise ContractViolationError(str(perm_err)) from perm_err
             except Exception as e:
                 # Local execution failure
                 # If we have audit, log fail? 

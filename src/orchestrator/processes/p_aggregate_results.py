@@ -2,12 +2,11 @@ import json
 import os
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
-from src.orchestrator.context_helpers import get_domain_ctx, get_attr
 from src.logger import log, log_error
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.experiments', 'log_level', 'domain.output_dir'],
-    outputs=['domain'],  # Fixed ContractViolationError
+    outputs=['domain'],
     side_effects=['filesystem.read', 'filesystem.write'],
     errors=['json.JSONDecodeError']
 )
@@ -18,16 +17,15 @@ def aggregate_results(ctx: OrchestratorSystemContext):
     NOTE: Updated to handle JSON metrics from MultiAgentExperiment.
     """
     log(ctx, "info", "  [Orchestration] Aggregating results...")
-    domain, is_dict = get_domain_ctx(ctx)
     
-    experiments = get_attr(domain, 'experiments', [])
-    output_dir = get_attr(domain, 'output_dir', 'results')
+    experiments = getattr(ctx.domain, 'experiments', [])
+    output_dir = getattr(ctx.domain, 'output_dir', 'results')
 
     for exp_def in experiments:
-        exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+        exp_name = getattr(exp_def, 'name', 'unknown')
         log(ctx, "info", f"    [Experiment: {exp_name}] Aggregating data...")
         
-        list_of_runs = get_attr(exp_def, 'list_of_runs', []) if isinstance(exp_def, dict) else exp_def.list_of_runs
+        list_of_runs = getattr(exp_def, 'list_of_runs', [])
         
         all_runs_metrics = []
         if not list_of_runs:
@@ -37,11 +35,9 @@ def aggregate_results(ctx: OrchestratorSystemContext):
             metrics_path = os.path.join(checkpoints_dir, "metrics.jsonl")
             
             if not os.path.exists(metrics_path):
-                 # Try legacy json in same dir
                  metrics_path = os.path.join(checkpoints_dir, "metrics.json")
             
             if not os.path.exists(metrics_path):
-                 # Try legacy _checkpoints suffix
                  checkpoints_dir = os.path.join(output_dir, f"{exp_name}_checkpoints")
                  metrics_path = os.path.join(checkpoints_dir, "metrics.jsonl")
             
@@ -57,7 +53,6 @@ def aggregate_results(ctx: OrchestratorSystemContext):
                             for line in f:
                                 if line.strip():
                                     entry = json.loads(line)
-                                    # Flatten: Merge 'metrics' into top level
                                     flat_metrics = entry.get('metrics', {}).copy()
                                     flat_metrics['episode'] = entry.get('episode')
                                     flat_metrics['timestamp'] = entry.get('timestamp')
@@ -70,15 +65,12 @@ def aggregate_results(ctx: OrchestratorSystemContext):
                         with open(metrics_path, 'r') as f:
                             run_data = json.load(f)
                         
-                        # FSM Format: List of {'episode': int, 'metrics': dict}
                         if isinstance(run_data, list):
-                            # Flatten metrics for plotter
                             for entry in run_data:
                                 flat_metrics = entry.get('metrics', {}).copy()
                                 flat_metrics['episode'] = entry.get('episode')
-                                flat_metrics['run_id'] = 0 # Single run assumption
+                                flat_metrics['run_id'] = 0
                                 all_runs_metrics.append(flat_metrics)
-                        # Legacy Format fallback
                         elif isinstance(run_data, dict):
                             metrics = run_data.get('metrics', [])
                             all_runs_metrics.extend(metrics)
@@ -91,20 +83,16 @@ def aggregate_results(ctx: OrchestratorSystemContext):
 
         # Legacy Run Logic
         for exp_run in list_of_runs:
-            run_status = get_attr(exp_run, 'status', 'PENDING') if isinstance(exp_run, dict) else exp_run.status
-            output_csv_path = get_attr(exp_run, 'output_csv_path', '') if isinstance(exp_run, dict) else exp_run.output_csv_path
-            run_id = get_attr(exp_run, 'run_id', 0) if isinstance(exp_run, dict) else exp_run.run_id
+            run_status = getattr(exp_run, 'status', 'PENDING')
+            output_csv_path = getattr(exp_run, 'output_csv_path', '')
+            run_id = getattr(exp_run, 'run_id', 0)
             
             if run_status == "COMPLETED" and output_csv_path and os.path.exists(output_csv_path):
                 try:
-                    # Load JSON metrics
                     with open(output_csv_path, 'r') as f:
                         run_data = json.load(f)
                     
-                    # Extract metrics history
                     metrics = run_data.get('metrics', [])
-                    
-                    # Add run_id to each episode
                     for episode_metrics in metrics:
                         episode_metrics['run_id'] = run_id
                     
@@ -118,7 +106,7 @@ def aggregate_results(ctx: OrchestratorSystemContext):
                 log(ctx, "info", f"WARNING: Metrics file '{output_csv_path}' does not exist or run not completed, skipping.")
         
         if all_runs_metrics:
-            # Store as list of dicts
+            # NOTE: Duck-typing — works for both dict and object exp_def
             if isinstance(exp_def, dict):
                 exp_def['aggregated_data'] = all_runs_metrics
             else:
@@ -147,4 +135,6 @@ def aggregate_results(ctx: OrchestratorSystemContext):
                 exp_def.aggregated_data = []
 
     log(ctx, "info", "  [Orchestration] Aggregation complete.")
-    return {}
+    return {
+        'domain.experiments': experiments
+    }

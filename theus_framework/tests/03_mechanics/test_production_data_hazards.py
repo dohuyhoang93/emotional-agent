@@ -83,12 +83,12 @@ class TestProductionDataHazards:
         print(f"DEBUG: Current Version: {engine.state.version}")
 
         # 1. Verify Updater worked (Global State changed)
-        assert engine.state.domain.test_list == [1, 2, 3]
+        assert list(engine.state.domain.test_list) == [1, 2, 3]
         print("   [+] Global State Updated to [1, 2, 3]")
         
         # 2. Verify Reader saw OLD snapshot (Isolation)
         # It should NOT see [1, 2, 3] because it grabbed ref BEFORE update commit
-        assert res_read == [], f"Stale Reference Leak! Reader saw {res_read}, expected []" 
+        assert list(res_read) == [], f"Stale Reference Leak! Reader saw {res_read}, expected []" 
         print(f"   [+] Reader safely isolated (Saw old state: {res_read})")
 
     async def test_silent_mutation_discard(self):
@@ -116,7 +116,7 @@ class TestProductionDataHazards:
             
         # CRITICAL CHECK: Database must be empty
         final_state = engine.state.domain.test_list
-        assert final_state == [], f"Silent Mutation Leaked into DB! Found: {final_state}"
+        assert list(final_state) == [], f"Silent Mutation Leaked into DB! Found: {final_state}"
         print("   [+] Data Integrity Preserved (DB is empty)")
 
 if __name__ == "__main__":

@@ -6,7 +6,7 @@ from src.utils.logger import ExperimentLogger
 from src.coordination.multi_agent_coordinator import MultiAgentCoordinator
 from src.adapters.environment_adapter import EnvironmentAdapter
 from environment import GridWorld as ComplexMazeEnvV2
-from src.orchestrator.context_helpers import get_domain_ctx, get_attr, set_attr
+
 import os
 import json
 import traceback
@@ -42,7 +42,7 @@ class FSMExperimentRunner:
         num_agents = env_config.get('num_agents', self.config.get('num_agents', 1))
         max_steps = env_config.get('max_steps_per_episode', self.config.get('max_steps_per_episode', 100))
         
-        print(f"DEBUG INIT: num_agents={num_agents}, max_steps={max_steps}", flush=True)
+        # print(f"DEBUG INIT: num_agents={num_agents}, max_steps={max_steps}", flush=True)
         
         # HACK: Create GlobalContext from config
         global_ctx = GlobalContext()
@@ -134,11 +134,11 @@ def initialize_active_experiment(ctx: OrchestratorSystemContext):
     Process: Initialize the active experiment (FSM Runner).
     Resets Signal Counters for the Episode Loop.
     """
-    domain, is_dict = get_domain_ctx(ctx)
-    bus = get_attr(domain, 'event_bus', None)
+    domain = ctx.domain
+    bus = getattr(domain, 'event_bus', None)
     
-    active_idx = get_attr(domain, 'active_experiment_idx', 0)
-    experiments = get_attr(domain, 'experiments', [])
+    active_idx = getattr(domain, 'active_experiment_idx', 0)
+    experiments = getattr(domain, 'experiments', [])
     
     import logging
     log_tmp = logging.getLogger("Theus")
@@ -149,11 +149,11 @@ def initialize_active_experiment(ctx: OrchestratorSystemContext):
         return 0, 0, 0
 
     exp_def = experiments[active_idx]
-    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    exp_name = getattr(exp_def, 'name', 'unknown') if not isinstance(exp_def, dict) else exp_def.get('name', 'unknown')
     
     # Create Output Directory
     import os
-    output_dir = get_attr(domain, 'output_dir', 'results')
+    output_dir = getattr(domain, 'output_dir', 'results')
     
     with open("DEBUG_EXP.txt", "w") as f:
         f.write(f"exp_name: {repr(exp_name)} (type: {type(exp_name)})\n")
@@ -167,7 +167,7 @@ def initialize_active_experiment(ctx: OrchestratorSystemContext):
         
     os.makedirs(output_subdir, exist_ok=True)
     
-    parameters = get_attr(exp_def, 'parameters', {}) if isinstance(exp_def, dict) else exp_def.parameters
+    parameters = getattr(exp_def, 'parameters', {}) if not isinstance(exp_def, dict) else exp_def.get('parameters', {})
     
     runner = FSMExperimentRunner(parameters, output_subdir)
     
@@ -179,7 +179,7 @@ def initialize_active_experiment(ctx: OrchestratorSystemContext):
     if bus: bus.emit("INIT_DONE")
     
     # Reset Signals for Episode Loop
-    episodes_per_run = get_attr(exp_def, 'episodes_per_run', 100) if isinstance(exp_def, dict) else exp_def.episodes_per_run
+    episodes_per_run = getattr(exp_def, 'episodes_per_run', 100) if not isinstance(exp_def, dict) else exp_def.get('episodes_per_run', 100)
     
     # Return StateUpdate Delta
     return {

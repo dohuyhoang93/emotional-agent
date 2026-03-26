@@ -1,12 +1,11 @@
 import numpy as np
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
-from src.orchestrator.context_helpers import get_domain_ctx, get_attr, set_attr
 from src.logger import log
 
 @process(
     inputs=['domain_ctx', 'domain', 'domain.experiments', 'domain.output_dir', 'log_level'],
-    outputs=['domain.final_report'],  # Allowed to mutate final_report
+    outputs=['domain.final_report'],
     side_effects=[],
     errors=[]
 )
@@ -17,27 +16,31 @@ def analyze_data(ctx: OrchestratorSystemContext):
     NOTE: Updated to handle JSON metrics format (no 'success' column).
     """
     log(ctx, "info", "  [Orchestration] Analyzing aggregated data...")
-    domain, is_dict = get_domain_ctx(ctx)
     
-    experiments = get_attr(domain, 'experiments', [])
-    output_dir = get_attr(domain, 'output_dir', 'results')
+    experiments = getattr(ctx.domain, 'experiments', [])
+    output_dir = getattr(ctx.domain, 'output_dir', 'results')
 
     summary_report_lines = ["--- MULTI-AGENT EXPERIMENT SUMMARY ---"]
     summary_report_lines.append(f"Output directory: {output_dir}\n")
 
     for exp_def in experiments:
-        exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
-        runs = get_attr(exp_def, 'runs', 1) if isinstance(exp_def, dict) else exp_def.runs
-        episodes_per_run = get_attr(exp_def, 'episodes_per_run', 100) if isinstance(exp_def, dict) else exp_def.episodes_per_run
-        parameters = get_attr(exp_def, 'parameters', {}) if isinstance(exp_def, dict) else exp_def.parameters
-        aggregated_data = get_attr(exp_def, 'aggregated_data', []) if isinstance(exp_def, dict) else exp_def.aggregated_data
+        exp_name = getattr(exp_def, 'name', 'unknown')
+        runs = getattr(exp_def, 'runs', 1)
+        episodes_per_run = getattr(exp_def, 'episodes_per_run', 100)
+        parameters = getattr(exp_def, 'parameters', {})
+        aggregated_data = getattr(exp_def, 'aggregated_data', [])
         
         summary_report_lines.append(f"=== Experiment: {exp_name} ===")
         summary_report_lines.append(f"  Runs: {runs}")
         summary_report_lines.append(f"  Episodes per run: {episodes_per_run}")
         summary_report_lines.append(f"  Parameters: {parameters}\n")
 
-        if aggregated_data:
+        try:
+            has_data = len(aggregated_data) > 0
+        except (TypeError, ValueError):
+            has_data = False
+            
+        if has_data:
             metrics = aggregated_data
             
             # Extract key metrics
@@ -104,6 +107,8 @@ def analyze_data(ctx: OrchestratorSystemContext):
         summary_report_lines.append("\n")
 
     final_report = "\n".join(summary_report_lines)
-    set_attr(domain, 'final_report', final_report)
     log(ctx, "info", "  [Orchestration] Analysis complete.")
-    return {}
+    
+    return {
+        'domain.final_report': final_report
+    }

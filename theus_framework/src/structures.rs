@@ -207,7 +207,9 @@ pub struct State {
 /// Helper: Deep Merge (Copy-on-Write) for State Updates
 /// preserved existing structure while merging new deltas.
 fn deep_merge_cow(py: Python, target: PyObject, source: &Bound<PyDict>) -> PyResult<PyObject> {
+
     if let Ok(target_dict) = target.downcast_bound::<PyDict>(py) {
+
         let new_dict = target_dict.copy()?; // Shallow copy
         for (k, v) in source {
             if let Some(existing_val) = new_dict.get_item(&k)? {
@@ -220,21 +222,78 @@ fn deep_merge_cow(py: Python, target: PyObject, source: &Bound<PyDict>) -> PyRes
             }
             new_dict.set_item(k, v)?;
         }
-        Ok(new_dict.into())
+        return Ok(new_dict.into());
     } else {
-        // Target not a dict, overwrite with source (copy for safety)
-        Ok(source.copy()?.into())
+        // NOTE: Target is not a plain dict. It may be a Pydantic BaseModel or other object.
+        // We must attempt to convert it to a dict first so we can merge field-by-field,
+        // preserving fields that are NOT in the source (e.g., 'counter' when only 'item_list' changed).
+        // Without this, we would silently overwrite the entire domain with a partial dict,
+        // losing fields like 'counter' and 'async_triggered'.
+        let target_bound = target.bind(py);
+        let has_model_dump = target_bound.hasattr("model_dump").unwrap_or(false);
+        let has_dict = target_bound.hasattr("dict").unwrap_or(false);
+        let has_to_dict = target_bound.hasattr("to_dict").unwrap_or(false);
+
+        
+        // Try Pydantic v2 model_dump(), then v1 dict(), then to_dict()
+        let as_dict_result = if has_model_dump {
+            let res = target_bound.call_method0("model_dump");
+
+            res.ok()
+        } else if has_dict {
+            let res = target_bound.call_method0("dict");
+
+            res.ok()
+        } else if has_to_dict {
+            let res = target_bound.call_method0("to_dict");
+
+            res.ok()
+        } else {
+            None
+        };
+        
+        if let Some(model_dict_obj) = as_dict_result {
+
+
+            if let Ok(model_dict) = model_dict_obj.downcast::<PyDict>() {
+
+                // Deep merge: start from model's full dict, apply source on top
+                let new_dict = model_dict.copy()?;
+                for (k, v) in source {
+                    if let Some(existing_val) = new_dict.get_item(&k)? {
+                        if existing_val.is_instance_of::<PyDict>() && v.is_instance_of::<PyDict>() {
+                            let source_sub = v.downcast::<PyDict>()?;
+                            let merged = deep_merge_cow(py, existing_val.unbind().into_py(py), source_sub)?;
+                            new_dict.set_item(k, merged)?;
+                            continue;
+                        }
+                    }
+                    new_dict.set_item(k, v)?;
+                }
+                return Ok(new_dict.unbind().into_py(py));
+            }
+        }
     }
-}
+        
+        // Absolute fallback: overwrite with source if no conversion available
+
+        Ok(source.copy()?.unbind().into_py(py))
+    }
+
+
+
+
 
 #[pymethods]
 impl State {
     #[new]
     #[pyo3(signature = (data=None, heavy=None, signal=None, version=1, meta_capacity=1000))]
     pub fn new(data: Option<PyObject>, heavy: Option<PyObject>, signal: Option<PyObject>, version: u64, meta_capacity: usize, py: Python) -> PyResult<Self> {
+
         let _ = signal; // Suppress unused warning
         let mut state_data = HashMap::new();
         let mut state_heavy = HashMap::new();
+
         
         // Signal logic changed: We ignore input dict for signal (legacy) or use it?
         // v3.2: Signal is transient. We create a fresh Hub unless one is passed (which is opaque).
@@ -320,15 +379,21 @@ impl State {
                 new_state.key_last_modified.insert(zone_key.clone(), new_state.version);
                 
                 // [FIX v3.1] Deep Merge CoW Policy
+
+
                 if let Ok(inner_dict) = v.downcast::<PyDict>() {
+
                     if let Some(existing_arc) = self.data.get(&zone_key) {
+
                         let existing_obj = existing_arc.clone_ref(py);
                         let merged = deep_merge_cow(py, existing_obj, inner_dict)?;
                         new_state.data.insert(zone_key, Arc::new(merged));
                     } else {
+
                         new_state.data.insert(zone_key, Arc::new(v.into_py(py)));
                     }
                 } else {
+
                     new_state.data.insert(zone_key, Arc::new(v.into_py(py)));
                 }
             }
@@ -587,13 +652,9 @@ impl Outbox {
 /// Ephemeral Context passed to Process
 #[pyclass(module = "theus_core")]
 pub struct ProcessContext {
-    #[pyo3(get)]
     pub state: Py<State>,
-    #[pyo3(get)]
     pub local: Py<PyDict>, // Mutable Ephemeral Scope
-    #[pyo3(get)]
     pub outbox: Outbox,
-    #[pyo3(get)]
     pub tx: Option<Py<Transaction>>, // v3.1: Expose active transaction
 }
 
@@ -614,6 +675,23 @@ impl ProcessContext {
         self.tx.as_ref().map(|t| t.clone_ref(py).into_py(py))
     }
 
+    #[getter]
+    fn state(&self, py: Python) -> PyResult<PyObject> {
+        Ok(self.state.clone_ref(py).into_py(py))
+    }
+
+    #[getter]
+    fn local(&self, py: Python) -> PyResult<PyObject> {
+        Ok(self.local.clone_ref(py).into_py(py))
+    }
+
+    #[getter]
+    fn outbox(&self, py: Python) -> PyResult<PyObject> {
+        // Must clone to avoid mutability/borrow issues if needed, or wrap outbox in Py
+        let outbox_py = Py::new(py, self.outbox.clone())?;
+        Ok(outbox_py.into_py(py))
+    }
+
     // v3.2 Safe Alias: global_ctx -> global
     #[getter]
     fn global_ctx(&self, py: Python) -> PyResult<PyObject> {
@@ -626,26 +704,37 @@ impl ProcessContext {
         self.domain(py)
     }
 
-    /// [FIX v3.3] Explicit Domain Getter — Transaction NOT injected into SupervisorProxy.
-    /// SupervisorProxy queries contextvars for Transaction when it needs to log or COW.
     #[getter]
     fn domain(&self, py: Python) -> PyResult<PyObject> {
         let state_bound = self.state.bind(py);
         let state_ref = state_bound.borrow();
         match state_ref.data.get("domain") {
             Some(arc_val) => {
-                 // NOTE: Pass tx to SupervisorProxy.new() so it knows is_mutable,
-                 // but SupervisorProxy internally only stores the boolean is_mutable flag
-                 // (tx object is NOT kept as a field).
                  let tx_opt = self.tx.as_ref().map(|t| t.clone_ref(py).into_py(py));
+                 
+                 let mut is_shadow = false;
+                 // [v3.3 FIX] Core Memory Leak Fix: Root Zones MUST be Shadowed.
+                 // If we don't shadow the root zone, SupervisorProxy assigning directly to `self.inner`
+                 // modifies the global state before commit!
+                 let inner_val = if let Some(ref tx_obj) = tx_opt {
+                     match tx_obj.bind(py).call_method1("get_shadow", (arc_val.clone_ref(py).into_py(py), Some("domain".to_string()))) {
+                         Ok(s) => {
+                             is_shadow = true;
+                             s.unbind()
+                         },
+                         Err(_) => arc_val.clone_ref(py).into_py(py)
+                     }
+                 } else {
+                     arc_val.clone_ref(py).into_py(py)
+                 };
                  
                  let proxy = SupervisorProxy::new(
                      py,
-                     arc_val.clone_ref(py).into_py(py),
+                     inner_val,
                      "domain".to_string(),
                      tx_opt.is_none(), // read_only if no tx
                      tx_opt,
-                     false,
+                     is_shadow,
                      CAP_READ | CAP_UPDATE | CAP_APPEND | CAP_DELETE,
                  );
                  Ok(Py::new(py, proxy)?.into_py(py))
@@ -654,7 +743,6 @@ impl ProcessContext {
         }
     }
 
-    /// [FIX v3.3] Explicit Global Getter — same pattern as domain
     #[getter]
     fn global(&self, py: Python) -> PyResult<PyObject> {
         let state_bound = self.state.bind(py);
@@ -663,13 +751,27 @@ impl ProcessContext {
             Some(arc_val) => {
                  let tx_opt = self.tx.as_ref().map(|t| t.clone_ref(py).into_py(py));
                  
+                 let mut is_shadow = false;
+                 // [v3.3 FIX] Core Memory Leak Fix: Root Zones MUST be Shadowed.
+                 let inner_val = if let Some(ref tx_obj) = tx_opt {
+                     match tx_obj.bind(py).call_method1("get_shadow", (arc_val.clone_ref(py).into_py(py), Some("global".to_string()))) {
+                         Ok(s) => {
+                             is_shadow = true;
+                             s.unbind()
+                         },
+                         Err(_) => arc_val.clone_ref(py).into_py(py)
+                     }
+                 } else {
+                     arc_val.clone_ref(py).into_py(py)
+                 };
+                 
                  let proxy = SupervisorProxy::new(
                      py,
-                     arc_val.clone_ref(py).into_py(py),
+                     inner_val,
                      "global".to_string(),
                      tx_opt.is_none(),
                      tx_opt,
-                     false, 
+                     is_shadow, 
                      CAP_READ | CAP_UPDATE | CAP_APPEND | CAP_DELETE,
                  );
                  Ok(Py::new(py, proxy)?.into_py(py))

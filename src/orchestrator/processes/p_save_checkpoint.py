@@ -1,13 +1,12 @@
 import os
 from theus.contracts import process
 from src.orchestrator.context import OrchestratorSystemContext
-from src.orchestrator.context_helpers import get_domain_ctx, get_attr
 from src.utils.snn_persistence import save_all_agents
 from src.logger import log
 
 @process(
     inputs=['domain', 'domain_ctx', 'domain_ctx.active_experiment_idx', 'domain.experiments', 'domain.output_dir', 'log_level'],
-    outputs=[],  # v2 compatible - no output mapping
+    outputs=[],
     side_effects=['filesystem.write', 'filesystem.mkdir'],
     errors=[]
 )
@@ -15,17 +14,15 @@ def save_periodic_checkpoint(ctx: OrchestratorSystemContext):
     """
     Process: Save SNN Checkpoint periodically.
     """
-    domain, is_dict = get_domain_ctx(ctx)
-    
-    # Get experiment info (handle both dict and object)
-    active_idx = get_attr(domain, 'active_experiment_idx', 0)
-    experiments = get_attr(domain, 'experiments', [])
+    # Get experiment info
+    active_idx = getattr(ctx.domain, 'active_experiment_idx', 0)
+    experiments = getattr(ctx.domain, 'experiments', [])
     
     if active_idx >= len(experiments):
         return {}
     
     exp_def = experiments[active_idx]
-    exp_name = get_attr(exp_def, 'name', 'unknown') if isinstance(exp_def, dict) else exp_def.name
+    exp_name = getattr(exp_def, 'name', 'unknown')
     
     # V3 MIGRATION: Fetch Runner from Registry
     from src.orchestrator.runtime_registry import get_runner
@@ -42,7 +39,6 @@ def save_periodic_checkpoint(ctx: OrchestratorSystemContext):
         log(ctx, "info", f"  [Checkpoint] Saving snapshot at episode {current_episode}...")
         
         # Get Contexts from all agents
-        # Coordinator has `agents` list [RLAgent, ...]
         agents = runner.coordinator.agents
         snn_contexts = [agent.snn_ctx for agent in agents]
         rl_contexts = [agent.rl_ctx for agent in agents]
@@ -52,4 +48,11 @@ def save_periodic_checkpoint(ctx: OrchestratorSystemContext):
         
         # Save (V3: Pass rl_contexts to enable Neural Brain checkpoints)
         save_all_agents(snn_contexts, checkpoint_dir, agents_rl_contexts=rl_contexts)
+        
+        # Save exploration rates to prevent Epsilon Lock
+        import json
+        exp_rates = { str(i): agent.rl_ctx.domain_ctx.current_exploration_rate for i, agent in enumerate(agents) }
+        with open(os.path.join(checkpoint_dir, 'exploration_rates.json'), 'w') as f:
+            json.dump(exp_rates, f)
+            
         log(ctx, "info", f"  [Checkpoint] Saved to {checkpoint_dir}")

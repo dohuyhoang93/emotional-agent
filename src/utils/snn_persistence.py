@@ -56,6 +56,7 @@ def save_snn_agent(
         domain = rl_ctx.domain_ctx
         state['memory']['q_table'] = domain.heavy_q_table
         state['memory']['beliefs'] = domain.believed_switch_states
+        state['memory']['epsilon'] = float(getattr(domain, 'current_exploration_rate', 1.0))
         # Save short term (simplified)
         state['memory']['short_term'] = [str(x) for x in domain.short_term_memory][-10:] # Last 10
 
@@ -157,6 +158,13 @@ def load_snn_agent(
             synapse.consecutive_wrong = synapse_data['consecutive_wrong']
             synapse.fitness = synapse_data['fitness']
             
+    # Restore RL Context factors
+    if rl_ctx:
+        domain = rl_ctx.domain_ctx
+        if 'memory' in state and 'epsilon' in state['memory']:
+            domain.current_exploration_rate = float(state['memory']['epsilon'])
+            # print(f"Restored Epsilon to {domain.current_exploration_rate:.4f}")
+
     # NEW V3: Load Neural Brain Weights (.pt)
     if rl_ctx and rl_ctx.domain_ctx.heavy_gated_network is not None:
         # Construct path from JSON path: agent_0_snn.json -> agent_0_net.pt

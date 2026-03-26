@@ -1,0 +1,986 @@
+============================= test session starts =============================
+platform win32 -- Python 3.14.2, pytest-9.0.2, pluggy-1.6.0 -- C:\Users\dohoang\AppData\Local\Programs\Python\Python314\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\dohoang\projects\EmotionAgent\theus_framework
+configfile: pyproject.toml
+plugins: anyio-4.12.1, asyncio-1.3.0
+asyncio: mode=Mode.STRICT, debug=False, asyncio_default_fixture_loop_scope=function, asyncio_default_test_loop_scope=function
+collecting ... collected 341 items
+
+tests/01_core/test_config_factory.py::TestConfigFactory::test_load_recipe_parses_level_and_thresholds PASSED [  0%]
+tests/01_core/test_config_factory.py::TestConfigFactory::test_load_recipe_supports_level_abbreviations PASSED [  0%]
+tests/01_core/test_config_factory.py::TestConfigFactory::test_load_recipe_defaults_to_block_if_level_missing PASSED [  0%]
+tests/01_core/test_config_factory.py::TestConfigFactory::test_load_recipe_defaults_threshold_min_to_zero PASSED [  1%]
+tests/01_core/test_config_factory.py::TestConfigFactory::test_load_recipe_supports_legacy_max_retries PASSED [  1%]
+tests/01_core/test_config_schema.py::test_config_loader_rejects_unknown_fields PASSED [  1%]
+tests/01_core/test_config_schema.py::test_config_loader_enforces_types PASSED [  2%]
+tests/01_core/test_context_immutability.py::test_context_direct_mutation_fails PASSED [  2%]
+tests/01_core/test_context_immutability.py::test_context_update_returns_new_ref PASSED [  2%]
+tests/01_core/test_context_immutability.py::test_context_deep_structure_sharing PASSED [  2%]
+tests/01_core/test_contract_enforcement.py::TestContractEnforcement::test_io_contract_strictness PASSED [  3%]
+tests/01_core/test_engine_polymorphism.py::test_engine_polymorphism PASSED [  3%]
+tests/01_core/test_proxy_mutators.py::test_proxy_mutators_zero_trust PASSED [  3%]
+tests/01_core/test_supervisor_v31.py::test_supervisor_core_basic PASSED  [  4%]
+tests/01_core/test_supervisor_v31.py::test_supervisor_proxy_transactional PASSED [  4%]
+tests/01_core/test_supervisor_v31.py::test_supervisor_proxy_read_only PASSED [  4%]
+tests/01_core/test_supervisor_v31.py::test_supervisor_proxy_no_transaction_blocks PASSED [  4%]
+tests/01_core/test_transaction_rollback.py::test_transaction_rollback_is_instant PASSED [  5%]
+tests/01_core/test_transaction_rollback.py::test_transaction_commit_advances_pointer PASSED [  5%]
+tests/02_safety/repro_deadlock_abba.py::test_deadlock_abba_concurrency_stress PASSED [  5%]
+tests/02_safety/repro_deadlock_abba.py::test_shadow_inference_logic PASSED [  6%]
+tests/02_safety/repro_inc011_strict_desync.py::test_strict_cas_enforcement PASSED [  6%]
+tests/02_safety/repro_silent_loss.py::test_silent_loss_fix PASSED        [  6%]
+tests/02_safety/test_chapter_05_compliance.py::test_claim_inputs_read_only PASSED [  7%]
+tests/02_safety/test_chapter_05_compliance.py::test_claim_outputs_shadow PASSED [  7%]
+tests/02_safety/test_chapter_05_compliance.py::test_claim_hierarchical_inheritance PASSED [  7%]
+tests/02_safety/test_chapter_05_compliance.py::test_claim_zone_enforcement_edge PASSED [  7%]
+tests/02_safety/test_chapter_05_compliance.py::test_stale_reference_trap PASSED [  8%]
+tests/02_safety/test_concurrency_cas.py::test_cas_ensures_serializability PASSED [  8%]
+tests/02_safety/test_concurrency_cas.py::test_cas_stress_increment PASSED [  8%]
+tests/02_safety/test_hierarchical_scopes.py::test_scope_enforcement PASSED [  9%]
+tests/02_safety/test_proxy_containment.py::test_proxy_containment_leak PASSED [  9%]
+tests/02_safety/test_pure_guard_full_matrix.py::TestPureGuardMatrix::test_sample_case PASSED [  9%]
+tests/02_safety/test_pure_guard_full_matrix.py::TestPureGuardMatrix::test_related_case PASSED [  9%]
+tests/02_safety/test_pure_guard_full_matrix.py::TestPureGuardMatrix::test_edge_case PASSED [ 10%]
+tests/02_safety/test_pure_guard_full_matrix.py::TestPureGuardMatrix::test_conflict_case PASSED [ 10%]
+tests/02_safety/test_pure_guard_full_matrix.py::TestPureGuardMatrix::test_integration_fake PASSED [ 10%]
+tests/02_safety/test_repro_overwrite.py::test_silent_overwrite_repro PASSED [ 11%]
+tests/02_safety/test_schema_gatekeeper_integration.py::TestSchemaGatekeeper::test_cas_schema_enforcement PASSED [ 11%]
+tests/02_safety/test_semantic_firewall.py::test_pure_function_cannot_declare_signal_input PASSED [ 11%]
+tests/02_safety/test_semantic_firewall.py::test_pure_function_runtime_blindness PASSED [ 12%]
+tests/02_safety/test_silent_loss_comprehensive.py::test_silent_loss_comprehensive PASSED [ 12%]
+tests/02_safety/test_snapshot_isolation.py::test_reader_isolation FAILED [ 12%]
+tests/02_safety/verify_strict_decoupling.py::test_strict_matrix PASSED   [ 12%]
+tests/03_audit/test_audit_integration.py::TestAuditIntegration::test_tier_1_valid PASSED [ 13%]
+tests/03_audit/test_audit_integration.py::TestAuditIntegration::test_tier_3_block_flow PASSED [ 13%]
+tests/03_audit/test_validator_unit.py::TestValidatorUnit::test_input_gate_fail_min PASSED [ 13%]
+tests/03_audit/test_validator_unit.py::TestValidatorUnit::test_input_gate_fail_regex PASSED [ 14%]
+tests/03_audit/test_validator_unit.py::TestValidatorUnit::test_input_gate_success PASSED [ 14%]
+tests/03_audit/test_validator_unit.py::TestValidatorUnit::test_output_gate_fail_max PASSED [ 14%]
+tests/03_audit/test_validator_unit.py::TestValidatorUnit::test_output_gate_fail_maxlen PASSED [ 14%]
+tests/03_audit/test_validator_unit.py::TestValidatorUnit::test_tier_3_block PASSED [ 15%]
+tests/03_audit/verify_audit_boundaries.py::TestAuditBoundaries::test_tier_1_standard PASSED [ 15%]
+tests/03_audit/verify_audit_boundaries.py::TestAuditBoundaries::test_tier_2_related_warning PASSED [ 15%]
+tests/03_audit/verify_audit_boundaries.py::TestAuditBoundaries::test_tier_3_edge_block PASSED [ 16%]
+tests/03_audit/verify_audit_boundaries.py::TestAuditBoundaries::test_tier_4_conflict_stop PASSED [ 16%]
+tests/03_interop/test_proxy_serialization.py::test_json_serialization_behavior PASSED [ 16%]
+tests/03_interop/test_proxy_serialization.py::test_pydantic_default_validation_succeeds PASSED [ 17%]
+tests/03_interop/test_proxy_serialization.py::test_pydantic_orm_mode_succeeds PASSED [ 17%]
+tests/03_mechanics/test_lifecycle_scopes.py::test_local_auto_drop FAILED [ 17%]
+tests/03_mechanics/test_production_data_hazards.py::TestProductionDataHazards::test_stale_reference_isolation PASSED [ 17%]
+tests/03_mechanics/test_production_data_hazards.py::TestProductionDataHazards::test_silent_mutation_discard PASSED [ 18%]
+tests/03_mechanics/test_workflow_graph.py::test_workflow_conditional_branching PASSED [ 18%]
+tests/04_features/test_conflict_advanced.py::TestConflictManager::test_exponential_backoff PASSED [ 18%]
+tests/04_features/test_conflict_advanced.py::TestConflictManager::test_vip_locking_mechanic PASSED [ 19%]
+tests/04_features/test_conflict_advanced.py::TestConflictManager::test_vip_contention PASSED [ 19%]
+tests/04_features/test_heavy_zone.py::test_heavy_zone_no_copy PASSED     [ 19%]
+tests/04_features/test_outbox_comprehensive.py::test_outbox_sample_flow PASSED [ 19%]
+tests/04_features/test_outbox_comprehensive.py::test_outbox_related_atomicity PASSED [ 20%]
+tests/04_features/test_outbox_comprehensive.py::test_outbox_boundary_rollback PASSED [ 20%]
+tests/04_features/test_outbox_comprehensive.py::test_outbox_conflict_resolution PASSED [ 20%]
+tests/04_features/test_outbox_transaction.py::test_outbox_does_not_execute_immediately PASSED [ 21%]
+tests/04_features/test_output_mapping.py::test_output_mapping_logic PASSED [ 21%]
+tests/04_features/test_sub_interpreter.py::test_python_version_for_sub_interpreters PASSED [ 21%]
+tests/04_features/test_sub_interpreter.py::test_interpreters_module_exists SKIPPED [ 21%]
+tests/04_features/test_universal_mutation.py::test_universal_mutation_patterns PASSED [ 22%]
+tests/04_features/verify_zombie_cleanup.py::test_zombie_cleanup PASSED   [ 22%]
+tests/05_compat/test_async_sync_bridge.py::TestAsyncSyncBridge::test_direct_async_execution FAILED [ 22%]
+tests/05_compat/test_async_sync_bridge.py::TestAsyncSyncBridge::test_sync_workflow_bridge FAILED [ 23%]
+tests/05_compat/test_async_sync_bridge.py::TestAsyncSyncBridge::test_high_contention_async_retries PASSED [ 23%]
+tests/05_compat/test_workflow_legacy.py::test_legacy_linear_workflow_parsing PASSED [ 23%]
+tests/05_compat/test_workflow_legacy.py::test_legacy_mixed_structure PASSED [ 24%]
+tests/06_flux/test_flux_async_4case.py::TestFluxAsync4Case::test_execute_async_basic PASSED [ 24%]
+tests/06_flux/test_flux_async_4case.py::TestFluxAsync4Case::test_execute_async_with_sync_process PASSED [ 24%]
+tests/06_flux/test_flux_async_4case.py::TestFluxAsync4Case::test_execute_async_fsm_complete PASSED [ 24%]
+tests/06_flux/test_flux_async_4case.py::TestFluxAsync4Case::test_execute_async_observer_fires PASSED [ 25%]
+tests/06_flux/test_flux_async_4case.py::TestFluxAsync4Case::test_execute_async_with_control_flow PASSED [ 25%]
+tests/06_flux/test_flux_async_4case.py::TestFluxAsync4Case::test_execute_async_empty_workflow PASSED [ 25%]
+tests/06_flux/test_flux_async_4case.py::TestFluxAsync4Case::test_execute_async_safety_trip PASSED [ 26%]
+tests/06_flux/test_flux_async_4case.py::TestFluxAsync4Case::test_execute_async_executor_error PASSED [ 26%]
+tests/06_flux/test_flux_async_4case.py::TestFluxAsync4Case::test_execute_async_concurrent_workflows PASSED [ 26%]
+tests/06_flux/test_flux_debug_integration.py::test_flux_debug_logging_integration PASSED [ 26%]
+tests/06_flux/test_flux_fsm_4case.py::TestFluxFSM4Case::test_fsm_initial_state_pending PASSED [ 27%]
+tests/06_flux/test_flux_fsm_4case.py::TestFluxFSM4Case::test_fsm_transitions_to_complete PASSED [ 27%]
+tests/06_flux/test_flux_fsm_4case.py::TestFluxFSM4Case::test_fsm_state_history_recorded PASSED [ 27%]
+tests/06_flux/test_flux_fsm_4case.py::TestFluxFSM4Case::test_fsm_observer_called_on_transition PASSED [ 28%]
+tests/06_flux/test_flux_fsm_4case.py::TestFluxFSM4Case::test_fsm_multiple_observers PASSED [ 28%]
+tests/06_flux/test_flux_fsm_4case.py::TestFluxFSM4Case::test_fsm_observer_exception_does_not_crash PASSED [ 28%]
+tests/06_flux/test_flux_fsm_4case.py::TestFluxFSM4Case::test_fsm_empty_workflow PASSED [ 29%]
+tests/06_flux/test_flux_fsm_4case.py::TestFluxFSM4Case::test_fsm_state_alias PASSED [ 29%]
+tests/06_flux/test_flux_fsm_4case.py::TestFluxFSM4Case::test_fsm_transitions_to_failed_on_error PASSED [ 29%]
+tests/06_flux/test_flux_fsm_4case.py::TestFluxFSM4Case::test_fsm_history_includes_failed PASSED [ 29%]
+tests/06_flux/test_flux_if.py::TestFluxIf::test_if_true_branch PASSED    [ 30%]
+tests/06_flux/test_flux_if.py::TestFluxIf::test_if_false_branch PASSED   [ 30%]
+tests/06_flux/test_flux_if.py::TestFluxIf::test_if_no_else PASSED        [ 30%]
+tests/06_flux/test_flux_if.py::TestFluxIf::test_if_complex_condition PASSED [ 31%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_elif_chain PASSED [ 31%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_with_dict_access PASSED [ 31%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_condition_uses_len_builtin PASSED [ 31%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_condition_uses_min_max PASSED [ 32%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_with_nested_dict_context PASSED [ 32%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_empty_then_block PASSED [ 32%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_condition_always_true PASSED [ 33%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_condition_always_false PASSED [ 33%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_condition_with_none_comparison PASSED [ 33%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_missing_variable_in_condition PASSED [ 34%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_condition_syntax_error PASSED [ 34%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_condition_calls_forbidden_builtin PASSED [ 34%]
+tests/06_flux/test_flux_if_4case.py::TestFluxIf4Case::test_if_executor_raises_in_then PASSED [ 34%]
+tests/06_flux/test_flux_integration_4case.py::TestFluxIntegration4Case::test_full_workflow_with_engine PASSED [ 35%]
+tests/06_flux/test_flux_integration_4case.py::TestFluxIntegration4Case::test_flux_with_strict_guards_disabled PASSED [ 35%]
+tests/06_flux/test_flux_integration_4case.py::TestFluxIntegration4Case::test_flux_sequential_processes PASSED [ 35%]
+tests/06_flux/test_flux_integration_4case.py::TestFluxIntegration4Case::test_flux_workflow_file_not_found PASSED [ 36%]
+tests/06_flux/test_flux_integration_4case.py::TestFluxIntegration4Case::test_flux_empty_workflow_file PASSED [ 36%]
+tests/06_flux/test_flux_integration_4case.py::TestFluxIntegration4Case::test_flux_process_not_registered PASSED [ 36%]
+tests/06_flux/test_flux_integration_4case.py::TestFluxIntegration4Case::test_flux_process_crash_propagates PASSED [ 36%]
+tests/06_flux/test_flux_nested.py::TestFluxNested::test_if_inside_while PASSED [ 37%]
+tests/06_flux/test_flux_nested.py::TestFluxNested::test_while_inside_if PASSED [ 37%]
+tests/06_flux/test_flux_nested.py::TestFluxNested::test_deeply_nested PASSED [ 37%]
+tests/06_flux/test_flux_nested.py::TestFluxNested::test_flux_run_block PASSED [ 38%]
+tests/06_flux/test_flux_parser_4case.py::TestFluxParser4Case::test_parse_simple_process PASSED [ 38%]
+tests/06_flux/test_flux_parser_4case.py::TestFluxParser4Case::test_parse_string_shorthand PASSED [ 38%]
+tests/06_flux/test_flux_parser_4case.py::TestFluxParser4Case::test_parse_invalid_yaml PASSED [ 39%]
+tests/06_flux/test_flux_parser_4case.py::TestFluxParser4Case::test_parse_missing_condition_in_while PASSED [ 39%]
+tests/06_flux/test_flux_parser_4case.py::TestFluxParser4Case::test_parse_missing_do_in_while PASSED [ 39%]
+tests/06_flux/test_flux_parser_4case.py::TestFluxParser4Case::test_parse_missing_condition_in_if PASSED [ 39%]
+tests/06_flux/test_flux_parser_4case.py::TestFluxParser4Case::test_parse_missing_steps_in_run PASSED [ 40%]
+tests/06_flux/test_flux_parser_4case.py::TestFluxParser4Case::test_parse_unknown_flux_type PASSED [ 40%]
+tests/06_flux/test_flux_parser_4case.py::TestFluxParser4Case::test_parse_empty_steps PASSED [ 40%]
+tests/06_flux/test_flux_parser_4case.py::TestFluxParser4Case::test_parse_no_steps_key PASSED [ 41%]
+tests/06_flux/test_flux_parser_4case.py::TestFluxParser4Case::test_parse_if_without_then_block PASSED [ 41%]
+tests/06_flux/test_flux_signals.py::TestFluxSignals::test_signal_get_behavior PASSED [ 41%]
+tests/06_flux/test_flux_signals.py::TestFluxSignals::test_dynamic_signal_update_in_loop PASSED [ 41%]
+tests/06_flux/test_flux_signals.py::TestFluxSignals::test_signal_hub_object_fails PASSED [ 42%]
+tests/06_flux/test_flux_while.py::TestFluxWhile::test_while_basic_counter PASSED [ 42%]
+tests/06_flux/test_flux_while.py::TestFluxWhile::test_while_false_condition_skips PASSED [ 42%]
+tests/06_flux/test_flux_while.py::TestFluxWhile::test_while_safety_trip PASSED [ 43%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_multiple_processes_in_body PASSED [ 43%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_with_modulo_condition PASSED [ 43%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_interacts_with_signal_dict PASSED [ 43%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_respects_max_ops_across_nesting PASSED [ 44%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_zero_iterations PASSED [ 44%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_exactly_one_iteration PASSED [ 44%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_max_ops_equals_1 PASSED [ 45%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_empty_do_block PASSED [ 45%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_condition_type_coercion PASSED [ 45%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_large_iteration_count PASSED [ 46%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_condition_error_mid_loop PASSED [ 46%]
+tests/06_flux/test_flux_while_4case.py::TestFluxWhile4Case::test_while_executor_raises_mid_loop PASSED [ 46%]
+tests/06_flux/test_workflow_async_4case.py::TestWorkflowAsync4Case::test_workflow_sync_processes_via_async PASSED [ 46%]
+tests/06_flux/test_workflow_async_4case.py::TestWorkflowAsync4Case::test_workflow_async_process_real PASSED [ 47%]
+tests/06_flux/test_workflow_async_4case.py::TestWorkflowAsync4Case::test_workflow_mixed_async_sync PASSED [ 47%]
+tests/06_flux/test_workflow_async_4case.py::TestWorkflowAsync4Case::test_workflow_state_updated_between_steps PASSED [ 47%]
+tests/06_flux/test_workflow_async_4case.py::TestWorkflowAsync4Case::test_workflow_max_ops_override PASSED [ 48%]
+tests/06_flux/test_workflow_async_4case.py::TestWorkflowAsync4Case::test_workflow_debug_override PASSED [ 48%]
+tests/06_flux/test_workflow_async_4case.py::TestWorkflowAsync4Case::test_workflow_async_process_crash PASSED [ 48%]
+tests/06_flux/test_workflow_async_4case.py::TestWorkflowAsync4Case::test_workflow_concurrent_execution PASSED [ 48%]
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_level_enum_exists PASSED [ 49%]
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_recipe_with_level PASSED [ 49%]
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_system_stop_level PASSED [ 49%]
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_system_abort_level PASSED [ 50%]
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_system_block_level PASSED [ 50%]
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_system_count_level PASSED [ 50%]
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_dual_threshold_warning PASSED [ 51%]
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_reset_on_success_false_flaky_detector PASSED [ 51%]
+tests/07_audit/test_audit_ring_buffer.py::TestAuditRingBuffer::test_ring_buffer_exists PASSED [ 51%]
+tests/07_audit/test_audit_ring_buffer.py::TestAuditRingBuffer::test_ring_buffer_append_only PASSED [ 51%]
+tests/07_audit/test_audit_ring_buffer.py::TestAuditRingBuffer::test_ring_buffer_capacity SKIPPED [ 52%]
+tests/07_audit/test_audit_ring_buffer.py::TestAuditRingBuffer::test_ring_buffer_thread_safe PASSED [ 52%]
+tests/07_audit/test_audit_ring_buffer.py::TestAuditRingBuffer::test_ring_buffer_entry_structure PASSED [ 52%]
+tests/07_audit/test_audit_ring_buffer.py::TestAuditRingBuffer::test_ring_buffer_immutable_entries PASSED [ 53%]
+tests/07_audit/test_fsm_states.py::TestFSMStates::test_fsm_state_enum_exists PASSED [ 53%]
+tests/07_audit/test_fsm_states.py::TestFSMStates::test_workflow_engine_has_state PASSED [ 53%]
+tests/07_audit/test_fsm_states.py::TestFSMStates::test_state_transitions_to_running PASSED [ 53%]
+tests/07_audit/test_fsm_states.py::TestFSMStates::test_state_waiting_io_on_async_process PASSED [ 54%]
+tests/07_audit/test_fsm_states.py::TestFSMStates::test_state_failed_on_error PASSED [ 54%]
+tests/07_audit/test_fsm_states.py::TestFSMStates::test_state_history PASSED [ 54%]
+tests/07_audit/test_fsm_states.py::TestFSMStates::test_state_observers PASSED [ 55%]
+tests/07_audit/test_meta_ring_buffer.py::TestMetaRingBuffer::test_state_has_meta_zone PASSED [ 55%]
+tests/07_audit/test_meta_ring_buffer.py::TestMetaRingBuffer::test_meta_zone_protected_from_process PASSED [ 55%]
+tests/07_audit/test_meta_ring_buffer.py::TestMetaRingBuffer::test_meta_zone_ring_buffer_log PASSED [ 56%]
+tests/07_audit/test_meta_ring_buffer.py::TestMetaRingBuffer::test_meta_ring_buffer_capacity PASSED [ 56%]
+tests/07_audit/test_meta_ring_buffer.py::TestMetaRingBuffer::test_meta_protected_from_clear PASSED [ 56%]
+tests/07_audit/test_meta_ring_buffer.py::TestMetaRingBuffer::test_meta_includes_timestamps PASSED [ 56%]
+tests/07_audit/test_meta_ring_buffer.py::TestMetaRingBuffer::test_meta_log_automatic_on_state_update PASSED [ 57%]
+tests/07_audit/test_write_timeout.py::TestWriteTimeout::test_transaction_has_timeout_param PASSED [ 57%]
+tests/07_audit/test_write_timeout.py::TestWriteTimeout::test_write_timeout_default PASSED [ 57%]
+tests/07_audit/test_write_timeout.py::TestWriteTimeout::test_write_timeout_triggers_on_long_hold PASSED [ 58%]
+tests/07_audit/test_write_timeout.py::TestWriteTimeout::test_concurrent_writes_with_timeout PASSED [ 58%]
+tests/07_audit/test_write_timeout.py::TestWriteTimeout::test_read_is_lock_free PASSED [ 58%]
+tests/07_audit/test_write_timeout.py::TestWriteTimeout::test_timeout_rollback PASSED [ 58%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsync::test_basic_async_receive PASSED [ 59%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsync::test_timeout_works PASSED [ 59%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsync::test_multiple_sequential_receives PASSED [ 59%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsync::test_concurrent_async_receivers PASSED [ 60%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsync::test_lag_error_async PASSED [ 60%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsync::test_both_apis_coexist PASSED [ 60%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsync::test_unicode_async PASSED [ 60%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsyncRaceConditions::test_concurrent_recv_async_same_receiver PASSED [ 61%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsyncRaceConditions::test_publish_during_recv_async PASSED [ 61%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsyncRaceConditions::test_mixed_api_concurrent PASSED [ 61%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsyncRaceConditions::test_multiple_receivers_race PASSED [ 62%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsyncBoundary::test_exactly_buffer_limit PASSED [ 62%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsyncBoundary::test_empty_channel_blocks PASSED [ 62%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsyncBoundary::test_very_long_message PASSED [ 63%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsyncBoundary::test_rapid_subscribe_unsubscribe PASSED [ 63%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsyncIntegration::test_event_driven_workflow PASSED [ 63%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsyncIntegration::test_graceful_shutdown PASSED [ 63%]
+tests/08_arch/test_signalhub_async.py::TestRecvAsyncIntegration::test_error_recovery_resubscribe PASSED [ 64%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubBoundary::test_exactly_100_messages PASSED [ 64%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubBoundary::test_101_messages_first_overflow PASSED [ 64%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubBoundary::test_exactly_99_messages PASSED [ 65%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubBoundary::test_zero_messages PASSED [ 65%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubBoundary::test_single_message PASSED [ 65%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubBoundary::test_zero_subscribers PASSED [ 65%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubBoundary::test_single_subscriber PASSED [ 66%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubBoundary::test_many_subscribers_boundary PASSED [ 66%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubEdgeCases::test_empty_string_message PASSED [ 66%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubEdgeCases::test_very_long_message PASSED [ 67%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubEdgeCases::test_unicode_messages PASSED [ 67%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubEdgeCases::test_json_escaped_characters PASSED [ 67%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubEdgeCases::test_newline_in_message PASSED [ 68%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubEdgeCases::test_null_bytes_in_message PASSED [ 68%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubEdgeCases::test_rapid_publish_recv_cycle PASSED [ 68%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubEdgeCases::test_receiver_after_many_publishes PASSED [ 68%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubEdgeCases::test_alternating_subscribe_publish PASSED [ 69%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubErrorHandling::test_multiple_lag_errors PASSED [ 69%]
+tests/08_arch/test_signalhub_boundary.py::TestSignalHubErrorHandling::test_lag_error_message_format PASSED [ 69%]
+tests/08_arch/test_signalhub_concurrent.py::TestSignalHubConcurrent::test_concurrent_publishers_single_receiver PASSED [ 70%]
+tests/08_arch/test_signalhub_concurrent.py::TestSignalHubConcurrent::test_concurrent_publishers_multiple_receivers PASSED [ 70%]
+tests/08_arch/test_signalhub_concurrent.py::TestSignalHubConcurrent::test_subscribe_during_publish_race PASSED [ 70%]
+tests/08_arch/test_signalhub_concurrent.py::TestSignalHubConcurrent::test_unsubscribe_simulation_concurrent PASSED [ 70%]
+tests/08_arch/test_signalhub_concurrent.py::TestSignalHubConcurrent::test_stress_rapid_subscribe_unsubscribe PASSED [ 71%]
+tests/08_arch/test_signalhub_concurrent.py::TestSignalHubConcurrent::test_deadlock_scenario_multiple_hubs PASSED [ 71%]
+tests/08_arch/test_signalhub_concurrent.py::TestSignalHubRaceConditions::test_publish_before_subscribe PASSED [ 71%]
+tests/08_arch/test_signalhub_concurrent.py::TestSignalHubRaceConditions::test_receiver_blocking_during_hub_destruction PASSED [ 72%]
+tests/08_arch/test_signalhub_concurrent.py::TestSignalHubRaceConditions::test_multiple_receivers_same_thread PASSED [ 72%]
+tests/08_arch/test_signalhub_stress.py::TestSignalHubLoad::test_sustained_throughput_10k_per_second PASSED [ 72%]
+tests/08_arch/test_signalhub_stress.py::TestSignalHubLoad::test_async_sustained_load PASSED [ 73%]
+tests/08_arch/test_signalhub_stress.py::TestSignalHubStress::test_stress_many_subscribers PASSED [ 73%]
+tests/08_arch/test_signalhub_stress.py::TestSignalHubStress::test_stress_create_destroy_hubs PASSED [ 73%]
+tests/08_arch/test_signalhub_stress.py::TestSignalHubStress::test_stress_rapid_subscribe_unsubscribe_cycles PASSED [ 73%]
+tests/08_arch/test_signalhub_stress.py::TestSignalHubStress::test_stress_concurrent_publish_subscribe PASSED [ 74%]
+tests/08_arch/test_signalhub_stress.py::TestSignalHubStress::test_memory_leak_check PASSED [ 74%]
+tests/08_arch/test_signalhub_stress.py::TestSignalHubPerformance::test_benchmark_publish_latency PASSED [ 74%]
+tests/08_arch/test_signalhub_stress.py::TestSignalHubPerformance::test_benchmark_recv_latency PASSED [ 75%]
+tests/08_arch/test_signalhub_stress.py::TestSignalHubPerformance::test_benchmark_async_recv_overhead PASSED [ 75%]
+tests/08_arch/test_tokio_channels.py::TestTokioChannels::test_basic_pub_sub PASSED [ 75%]
+tests/08_arch/test_tokio_channels.py::TestTokioChannels::test_async_consumption PASSED [ 75%]
+tests/08_arch/test_tokio_channels.py::TestTokioChannels::test_lagged_receiver PASSED [ 76%]
+tests/08_arch_proofs/test_arch_cow_isolation.py::test_arch_cow_isolation_list PASSED [ 76%]
+tests/08_arch_proofs/test_arch_custom_objects.py::test_arch_custom_object_strategies PASSED [ 76%]
+tests/08_arch_proofs/test_arch_dict_strategy.py::test_arch_dict_eager_copy_strategy PASSED [ 77%]
+tests/09_v3_2/test_auto_discovery.py::test_scan_and_register_recursive PASSED [ 77%]
+tests/09_v3_2/test_deep_integration.py::test_deep_signal_integration PASSED [ 77%]
+tests/09_v3_2/test_numpy_equality.py::TestNumPyEquality::test_numpy_shadow_mutation PASSED [ 78%]
+tests/09_v3_2/test_numpy_equality.py::TestNumPyEquality::test_numpy_no_change PASSED [ 78%]
+tests/09_v3_2/test_numpy_equality.py::TestNumPyEquality::test_numpy_replacement FAILED [ 78%]
+tests/09_v3_2/test_schema_enforcement.py::test_schema_valid_update PASSED [ 78%]
+tests/09_v3_2/test_schema_enforcement.py::test_schema_violation_wrong_type PASSED [ 79%]
+tests/09_v3_2/test_schema_enforcement.py::test_schema_violation_missing_field PASSED [ 79%]
+tests/09_v3_2/test_schema_enforcement.py::test_schema_partial_update_on_existingGeneric PASSED [ 79%]
+tests/09_v3_2/test_shm_import_mechanics.py::test_shm_module_existence PASSED [ 80%]
+tests/09_v3_2/test_shm_import_mechanics.py::test_shm_import_pattern PASSED [ 80%]
+tests/09_v3_2/test_shm_import_mechanics.py::test_memory_registry_init PASSED [ 80%]
+tests/09_v3_2/test_shm_import_mechanics.py::test_managed_allocator_integration PASSED [ 80%]
+tests/09_v3_2/test_subinterpreter_parallel.py::test_basic_execution PASSED [ 81%]
+tests/09_v3_2/test_subinterpreter_parallel.py::test_concurrency PASSED   [ 81%]
+tests/09_v3_2/test_subinterpreter_parallel.py::test_kwargs_support PASSED [ 81%]
+tests/10_integration/test_outbox_production.py::test_production_outbox_throughput FAILED [ 82%]
+tests/11_rfc001/test_rfc001_const_internal.py::TestConstantAndPrivateZones::test_const_admin_override_blocked PASSED [ 82%]
+tests/11_rfc001/test_rfc001_const_internal.py::TestConstantAndPrivateZones::test_const_append_is_blocked PASSED [ 82%]
+tests/11_rfc001/test_rfc001_const_internal.py::TestConstantAndPrivateZones::test_const_item_write_is_blocked PASSED [ 82%]
+tests/11_rfc001/test_rfc001_const_internal.py::TestConstantAndPrivateZones::test_const_pop_is_blocked PASSED [ 83%]
+tests/11_rfc001/test_rfc001_const_internal.py::TestConstantAndPrivateZones::test_const_read_is_allowed PASSED [ 83%]
+tests/11_rfc001/test_rfc001_const_internal.py::TestConstantAndPrivateZones::test_const_write_is_blocked PASSED [ 83%]
+tests/11_rfc001/test_rfc001_const_internal.py::TestConstantAndPrivateZones::test_internal_data_unchanged PASSED [ 84%]
+tests/11_rfc001/test_rfc001_const_internal.py::TestConstantAndPrivateZones::test_internal_read_returns_none_for_non_admin PASSED [ 84%]
+tests/11_rfc001/test_rfc001_const_internal.py::TestConstPrivateIntegration::test_const_does_not_affect_normal_data PASSED [ 84%]
+tests/11_rfc001/test_rfc001_const_internal.py::TestConstPrivateIntegration::test_const_read_and_normal_write_in_same_process PASSED [ 85%]
+tests/integration/test_zero_copy_proof.py::TestZeroCopyProof::test_proof PASSED [ 85%]
+tests/parallel_suite/test_arch_claims.py::TestArchitectureClaims::test_rust_supervisor_role PASSED [ 85%]
+tests/parallel_suite/test_subinterpreter_resilience.py::TestSubInterpreterResilience::test_case_standard_echo PASSED [ 85%]
+tests/parallel_suite/test_subinterpreter_resilience.py::TestSubInterpreterResilience::test_case_related_heavy_compute PASSED [ 86%]
+tests/parallel_suite/test_subinterpreter_resilience.py::TestSubInterpreterResilience::test_case_edge_large_payload PASSED [ 86%]
+tests/parallel_suite/test_subinterpreter_resilience.py::TestSubInterpreterResilience::test_case_edge_error_handling PASSED [ 86%]
+tests/parallel_suite/test_subinterpreter_resilience.py::TestSubInterpreterResilience::test_case_conflict_concurrency PASSED [ 87%]
+tests/parallel_suite/test_subinterpreter_resilience.py::TestSubInterpreterResilience::test_integration_chain PASSED [ 87%]
+tests/repro_api_consistency.py::TestAPIConsistency::test_dict_access_simulation PASSED [ 87%]
+tests/repro_api_consistency.py::TestAPIConsistency::test_direct_assignment PASSED [ 87%]
+tests/test_cas_modes.py::test_smart_cas_mode PASSED                      [ 88%]
+tests/test_cas_modes.py::test_strict_cas_mode PASSED                     [ 88%]
+tests/test_cas_modes.py::test_default_is_smart_cas PASSED                [ 88%]
+tests/test_cli_linter.py::TestCLILinter::test_linter_clean PASSED        [ 89%]
+tests/test_cli_linter.py::TestCLILinter::test_linter_violations PASSED   [ 89%]
+tests/test_cli_linter.py::TestCLILinter::test_linter_paradox_and_mutation PASSED [ 89%]
+tests/test_cli_v3.py::TestCLI_v3::test_init_project_universal PASSED     [ 90%]
+tests/test_frozendict_robustness.py::TestFrozenDictRobustness::test_boundary_empty PASSED [ 90%]
+tests/test_frozendict_robustness.py::TestFrozenDictRobustness::test_boundary_large_array PASSED [ 90%]
+tests/test_frozendict_robustness.py::TestFrozenDictRobustness::test_boundary_nested_types PASSED [ 90%]
+tests/test_frozendict_robustness.py::TestFrozenDictRobustness::test_conflict_identity_mismatch PASSED [ 91%]
+tests/test_frozendict_robustness.py::TestFrozenDictRobustness::test_pattern_immutability PASSED [ 91%]
+tests/test_frozendict_robustness.py::TestFrozenDictRobustness::test_pattern_standard_access PASSED [ 91%]
+tests/test_frozendict_robustness.py::TestFrozenDictRobustness::test_related_casting PASSED [ 92%]
+tests/test_frozendict_robustness.py::TestFrozenDictRobustness::test_related_dict_equivalence PASSED [ 92%]
+tests/test_managed_memory.py::TestManagedMemory::test_alloc_lifecycle PASSED [ 92%]
+tests/test_managed_memory.py::TestManagedMemory::test_namespace_audit PASSED [ 92%]
+tests/test_managed_memory.py::TestManagedMemory::test_strict_ownership PASSED [ 93%]
+tests/test_managed_memory.py::TestManagedMemory::test_zombie_recovery PASSED [ 93%]
+tests/test_namespace_sdk_support.py::test_basesystemcontext_dynamic_access PASSED [ 93%]
+tests/test_namespace_sdk_support.py::test_schema_gen_roundtrip_namespaces PASSED [ 94%]
+tests/test_namespace_sdk_support.py::test_linter_namespace_awareness PASSED [ 94%]
+tests/test_namespace_sdk_support.py::test_linter_namespace_physics PASSED [ 94%]
+tests/test_namespace_sdk_support.py::test_declarative_namespace_registration PASSED [ 95%]
+tests/test_rfc_001_v3_2_full.py::test_case_1_sample_basic_ops PASSED     [ 95%]
+tests/test_rfc_001_v3_2_full.py::test_case_2_related_deep_hierarchy PASSED [ 95%]
+tests/test_rfc_001_v3_2_full.py::test_case_3_boundary_physics PASSED     [ 95%]
+tests/test_rfc_001_v3_2_full.py::test_case_4_conflict_smart_cas PASSED   [ 96%]
+tests/test_rfc_001_v3_2_full.py::test_namespace_wiring PASSED            [ 96%]
+tests/test_rfc_001_zones.py::test_zones PASSED                           [ 96%]
+tests/test_rfc_001_zones.py::test_annotated_overrides PASSED             [ 97%]
+tests/test_shm_pickling.py::TestShmPickling::test_round_trip PASSED      [ 97%]
+tests/test_shm_pickling.py::TestShmPickling::test_smart_pickling_size PASSED [ 97%]
+tests/test_smart_cas_zones.py::test_smart_cas_different_zones PASSED     [ 97%]
+tests/test_smart_cas_zones.py::test_smart_cas_same_zone_different_fields PASSED [ 98%]
+tests/test_zero_copy_integration.py::TestZeroCopyIntegration::test_heavy_zone_wrapper_read PASSED [ 98%]
+tests/verify_api_parity.py::TestAPIParity::test_theus_engine_parity PASSED [ 98%]
+tests/verify_error_handling.py::TestErrorHandling::test_broken_contract_input PASSED [ 99%]
+tests/verify_error_handling.py::TestErrorHandling::test_pure_process_mutation PASSED [ 99%]
+tests/verify_flyweight.py::test_flyweight_guards PASSED                  [ 99%]
+tests/verify_rfc_001.py::test_semantic_policy_enforcement PASSED         [100%]
+
+================================== FAILURES ===================================
+____________________________ test_reader_isolation ____________________________
+
+    @pytest.mark.asyncio
+    async def test_reader_isolation():
+        engine = TheusEngine()
+        # Correct Way to Init State in v3 (Immutable)
+        # We must construct a new state and commit it (or use internal API if needed for setup)
+        # For setup, we can use compare_and_swap from version 1
+        engine.compare_and_swap(1, {"x": 0}, None, None)
+    
+        from theus.contracts import process
+    
+        @process(inputs=["data"], outputs=["data"])
+        async def long_reader(ctx):
+            # Finds x=0
+            val1 = ctx.data["x"]
+            await asyncio.sleep(0.2)
+            # Even if writer changed it globally, THIS context must see snapshot x=0
+            val2 = ctx.data["x"]
+            return val1, val2
+    
+        @process(outputs=["x"])
+        async def fast_writer(ctx):
+            await asyncio.sleep(0.05)
+            return {"x": 99}
+    
+        task_read = asyncio.create_task(engine.execute(long_reader))
+        task_write = asyncio.create_task(engine.execute(fast_writer))
+    
+        await task_write  # Global state is now 99
+    
+>       v1, v2 = await task_read
+                 ^^^^^^^^^^^^^^^
+
+tests\02_safety\test_snapshot_isolation.py:37: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+theus\engine.py:747: in execute
+    raise e
+theus\engine.py:692: in execute
+    result = await self._attempt_execute(func, tx, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+theus\engine.py:896: in _attempt_execute
+    raise e
+theus\engine.py:889: in _attempt_execute
+    result = await self._core.execute_process_async(
+theus\engine.py:844: in arg_binder
+    res = await func(native_guard, *args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+theus\contracts.py:159: in wrapper
+    raise e
+theus\contracts.py:156: in wrapper
+    return await func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\02_safety\test_snapshot_isolation.py:21: in long_reader
+    val1 = ctx.data["x"]
+           ^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <ContextGuard wrapping <builtins.ContextGuard object at 0x000001FDD8400510> admin=False>
+name = 'data'
+
+    def __getattr__(self, name: str) -> Any:
+        # [RFC-001 §10] Block __dict__ access to prevent bypassing Zone Physics.
+        # NOTE: On ContextGuard instances, __dict__ access from user code triggers
+        # __getattr__ because ContextGuard has __slots__-like behavior through its
+        # __init__ using object.__setattr__. This is a safe interception point.
+        if name == "__dict__":
+            raise PermissionError(
+                "Direct access to '__dict__' is forbidden. "
+                "Use the Context API to read/write fields safely."
+            )
+        # 1. Immediate bypass for whitelisted Python-side attributes
+        if name in ("_inner", "_local_is_admin", "_log", "_elevate", "is_admin", "is_proxy", "_outbox", "_path_prefix", "_allowed_inputs", "_allowed_outputs", "_transaction", "_strict_guards", "_parent", "_name", "_target"):
+            return object.__getattribute__(self, name)
+    
+        full_path = name if self._path_prefix == "" else f"{self._path_prefix}.{name}"
+        # [RFC-001 §5] Zone physics check first (const_/internal_)
+        try:
+            self._check_zone_physics(full_path, "read")
+        except _PrivateZoneReadAccess:
+            return None  # internal_ field: return None silently for non-admin
+        if not self._is_allowed(full_path, "read"):
+             # For discovery, we allow 'domain' or 'global' prefixes even if not explicitly in inputs,
+             # provided a sub-path IS allowed. _is_allowed already handles this parent-path check.
+             raise PermissionError(f"Illegal Read: Path '{full_path}' is restricted by Process Contract.")
+    
+        val = None
+        # 0. Heavy Zone Bypassing (Zero-Copy)
+        if name.startswith("heavy_"):
+            val = getattr(self._inner, name, None) if self._inner is not None else None
+            if val is None and self._target:
+                 val = getattr(self._target, name, None)
+            if val is not None:
+                return val
+        # 2. Rust delegation
+        try:
+            val = getattr(self._inner, name, None) if self._inner is not None else None
+            # [v3.5] Heavy Prefix Fallback: If 'X' is not found, try 'heavy_X'
+            if val is None and self._inner is not None:
+                try:
+                    val = getattr(self._inner, f"heavy_{name}", None)
+                except PermissionError:
+                    pass
+    
+            if val is None and self._target:
+                 # Try target (Hybrid Bridge)
+                 val = getattr(self._target, name, None)
+        except RuntimeError as rt_err:
+            # [v3.4] Transaction no longer leaks into data graph.
+            # If RuntimeError occurs here, it is a genuine error — log and re-raise.
+            import warnings
+            warnings.warn(
+                f"ContextGuard.__getattr__('{name}'): RuntimeError from Rust proxy — {rt_err}",
+                RuntimeWarning, stacklevel=2
+            )
+            raise
+        except AttributeError:
+            pass
+        except PermissionError as e:
+            raise e
+    
+        # [RFC-002] Explicit Dict Proxy Fallback
+        # NOTE: getattr(..., None) nuốt AttributeError, nên ctx.local/ctx.data trả None
+        # thay vì nhảy vào except. Ta phải chủ động forward xuống __getitem__ của dict proxies.
+        if val is None and not name.startswith("_"):
+             if self._inner is not None and hasattr(self._inner, "__getitem__"):
+                  try:
+                      val = self._inner[name]
+                  except (KeyError, TypeError, AttributeError):
+                      pass
+             if val is None and self._target is not None and hasattr(self._target, "__getitem__"):
+                  try:
+                      val = self._target[name]
+                  except (KeyError, TypeError, AttributeError):
+                      pass
+             # [RFC-002] Dynamic Namespace Fallback
+             if val is None:
+                  from .context import NamespaceRegistry
+                  if name in NamespaceRegistry()._namespaces:
+                      try:
+                          pc = self._inner._target
+                          state_data = pc.state.data
+                          val = state_data[name]
+    
+                          full_path = name if self._path_prefix == "" else f"{self._path_prefix}.{name}"
+    
+                          if isinstance(val, (dict, list)):
+                              return ContextGuard(
+                                  target_obj=None,
+                                  allowed_inputs=self._allowed_inputs,
+                                  allowed_outputs=self._allowed_outputs,
+                                  path_prefix=full_path,
+                                  transaction=_current_tx.get(),
+                                  strict_guards=self._strict_guards,
+                                  process_name=self._log.extra.get("process_name", "Unknown"),
+                                  _inner=val,
+                                  parent=self,
+                                  name=name,
+                              )
+                          return val
+                      except Exception:
+                          raise
+    
+        if val is None:
+>           raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+E           AttributeError: 'ContextGuard' object has no attribute 'data'
+
+theus\guards.py:417: AttributeError
+---------------------------- Captured stdout call -----------------------------
+
+[INIT_DATA] {}
+[ManagedAllocator] Registry initialized successfully.
+---------------------------- Captured stderr call -----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'data'" | CAS=False | Busy=False
+____________________________ test_local_auto_drop _____________________________
+
+    @pytest.mark.asyncio
+    async def test_local_auto_drop():
+        engine = TheusEngine()
+>       await engine.execute(messy_process)
+
+tests\03_mechanics\test_lifecycle_scopes.py:22: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+theus\engine.py:747: in execute
+    raise e
+theus\engine.py:692: in execute
+    result = await self._attempt_execute(func, tx, *args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+theus\engine.py:896: in _attempt_execute
+    raise e
+theus\engine.py:889: in _attempt_execute
+    result = await self._core.execute_process_async(
+..\..\..\AppData\Local\Programs\Python\Python314\Lib\asyncio\threads.py:25: in to_thread
+    return await loop.run_in_executor(None, func_call)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py:86: in run
+    result = ctx.run(self.task)
+             ^^^^^^^^^^^^^^^^^^
+..\..\..\AppData\Local\Programs\Python\Python314\Lib\concurrent\futures\thread.py:73: in run
+    return fn(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^
+theus\engine.py:878: in arg_binder
+    res = func(native_guard, *args, **kwargs)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+theus\contracts.py:172: in wrapper
+    raise e
+theus\contracts.py:170: in wrapper
+    return func(system_ctx, *args, **filtered_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\03_mechanics\test_lifecycle_scopes.py:15: in messy_process
+    ctx.local["temp"] = HeavyObj()
+    ^^^^^^^^^
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+
+self = <ContextGuard wrapping <builtins.ContextGuard object at 0x000001FDD87B4AB0> admin=False>
+name = 'local'
+
+    def __getattr__(self, name: str) -> Any:
+        # [RFC-001 §10] Block __dict__ access to prevent bypassing Zone Physics.
+        # NOTE: On ContextGuard instances, __dict__ access from user code triggers
+        # __getattr__ because ContextGuard has __slots__-like behavior through its
+        # __init__ using object.__setattr__. This is a safe interception point.
+        if name == "__dict__":
+            raise PermissionError(
+                "Direct access to '__dict__' is forbidden. "
+                "Use the Context API to read/write fields safely."
+            )
+        # 1. Immediate bypass for whitelisted Python-side attributes
+        if name in ("_inner", "_local_is_admin", "_log", "_elevate", "is_admin", "is_proxy", "_outbox", "_path_prefix", "_allowed_inputs", "_allowed_outputs", "_transaction", "_strict_guards", "_parent", "_name", "_target"):
+            return object.__getattribute__(self, name)
+    
+        full_path = name if self._path_prefix == "" else f"{self._path_prefix}.{name}"
+        # [RFC-001 §5] Zone physics check first (const_/internal_)
+        try:
+            self._check_zone_physics(full_path, "read")
+        except _PrivateZoneReadAccess:
+            return None  # internal_ field: return None silently for non-admin
+        if not self._is_allowed(full_path, "read"):
+             # For discovery, we allow 'domain' or 'global' prefixes even if not explicitly in inputs,
+             # provided a sub-path IS allowed. _is_allowed already handles this parent-path check.
+             raise PermissionError(f"Illegal Read: Path '{full_path}' is restricted by Process Contract.")
+    
+        val = None
+        # 0. Heavy Zone Bypassing (Zero-Copy)
+        if name.startswith("heavy_"):
+            val = getattr(self._inner, name, None) if self._inner is not None else None
+            if val is None and self._target:
+                 val = getattr(self._target, name, None)
+            if val is not None:
+                return val
+        # 2. Rust delegation
+        try:
+            val = getattr(self._inner, name, None) if self._inner is not None else None
+            # [v3.5] Heavy Prefix Fallback: If 'X' is not found, try 'heavy_X'
+            if val is None and self._inner is not None:
+                try:
+                    val = getattr(self._inner, f"heavy_{name}", None)
+                except PermissionError:
+                    pass
+    
+            if val is None and self._target:
+                 # Try target (Hybrid Bridge)
+                 val = getattr(self._target, name, None)
+        except RuntimeError as rt_err:
+            # [v3.4] Transaction no longer leaks into data graph.
+            # If RuntimeError occurs here, it is a genuine error — log and re-raise.
+            import warnings
+            warnings.warn(
+                f"ContextGuard.__getattr__('{name}'): RuntimeError from Rust proxy — {rt_err}",
+                RuntimeWarning, stacklevel=2
+            )
+            raise
+        except AttributeError:
+            pass
+        except PermissionError as e:
+            raise e
+    
+        # [RFC-002] Explicit Dict Proxy Fallback
+        # NOTE: getattr(..., None) nuốt AttributeError, nên ctx.local/ctx.data trả None
+        # thay vì nhảy vào except. Ta phải chủ động forward xuống __getitem__ của dict proxies.
+        if val is None and not name.startswith("_"):
+             if self._inner is not None and hasattr(self._inner, "__getitem__"):
+                  try:
+                      val = self._inner[name]
+                  except (KeyError, TypeError, AttributeError):
+                      pass
+             if val is None and self._target is not None and hasattr(self._target, "__getitem__"):
+                  try:
+                      val = self._target[name]
+                  except (KeyError, TypeError, AttributeError):
+                      pass
+             # [RFC-002] Dynamic Namespace Fallback
+             if val is None:
+                  from .context import NamespaceRegistry
+                  if name in NamespaceRegistry()._namespaces:
+                      try:
+                          pc = self._inner._target
+                          state_data = pc.state.data
+                          val = state_data[name]
+    
+                          full_path = name if self._path_prefix == "" else f"{self._path_prefix}.{name}"
+    
+                          if isinstance(val, (dict, list)):
+                              return ContextGuard(
+                                  target_obj=None,
+                                  allowed_inputs=self._allowed_inputs,
+                                  allowed_outputs=self._allowed_outputs,
+                                  path_prefix=full_path,
+                                  transaction=_current_tx.get(),
+                                  strict_guards=self._strict_guards,
+                                  process_name=self._log.extra.get("process_name", "Unknown"),
+                                  _inner=val,
+                                  parent=self,
+                                  name=name,
+                              )
+                          return val
+                      except Exception:
+                          raise
+    
+        if val is None:
+>           raise AttributeError(f"'{self.__class__.__name__}' object has no attribute '{name}'")
+E           AttributeError: 'ContextGuard' object has no attribute 'local'
+
+theus\guards.py:417: AttributeError
+---------------------------- Captured stdout call -----------------------------
+
+[INIT_DATA] {}
+[ManagedAllocator] Registry initialized successfully.
+---------------------------- Captured stderr call -----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'local'" | CAS=False | Busy=False
+_______________ TestAsyncSyncBridge.test_direct_async_execution _______________
+
+self = <test_async_sync_bridge.TestAsyncSyncBridge object at 0x000001FDD53EEAD0>
+
+    @pytest.mark.asyncio
+    async def test_direct_async_execution(self):
+        """Verify direct await engine.execute works for both sync and async functions."""
+        engine = TheusEngine(SimpleSystemContext())
+        engine.register(sync_increment)
+        engine.register(async_trigger)
+    
+        # Call sync from async
+        await engine.execute(sync_increment)
+        print("AFTER SYNC_INCREMENT:", str(engine.state.data.get("domain")))
+        assert engine.state.domain.counter == 1
+    
+        # Call async from async
+        await engine.execute(async_trigger)
+        print("AFTER ASYNC_TRIGGER:", str(engine.state.data.get("domain")))
+        assert engine.state.domain.async_triggered is True
+    
+        # Call append
+        engine.register(async_append_const)
+        await engine.execute(async_append_const)
+        print("AFTER ASYNC_APPEND:", str(engine.state.data.get("domain")))
+        assert "hello_from_sync_workflow" in engine.state.domain.item_list
+>       assert engine.state.domain.counter == 1
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+E       AttributeError: 'SupervisorProxy[dict]' object has no attribute 'counter'. (Hint: Key 'counter' missing in wrapped dict at path 'domain')
+
+tests\05_compat\test_async_sync_bridge.py:64: AttributeError
+---------------------------- Captured stdout call -----------------------------
+
+[INIT_DATA] {'domain': {'item_list': [], 'counter': 0, 'async_triggered': False}, 'domain_ctx': {'item_list': [], 'counter': 0, 'async_triggered': False}, 'global': {}, 'global_ctx': {}}
+[ManagedAllocator] Registry initialized successfully.
+AFTER SYNC_INCREMENT: item_list=[] counter=1 async_triggered=False
+AFTER ASYNC_TRIGGER: item_list=[] counter=1 async_triggered=True
+AFTER ASYNC_APPEND: {'item_list': ['hello_from_sync_workflow']}
+---------------------------- Captured stderr call -----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+________________ TestAsyncSyncBridge.test_sync_workflow_bridge ________________
+
+self = <test_async_sync_bridge.TestAsyncSyncBridge object at 0x000001FDD53EEE90>
+
+        @pytest.mark.asyncio
+        async def test_sync_workflow_bridge(self):
+            """Verify engine.execute_workflow (sync) can call async processes safely."""
+            engine = TheusEngine(SimpleSystemContext())
+            engine.register(sync_increment)
+            engine.register(async_trigger)
+            engine.register(async_append_const)
+    
+            yaml_content = """
+    steps:
+      - process: "sync_increment"
+      - process: "async_trigger"
+      - process: "async_append_const"
+    """
+            import tempfile
+            import os
+    
+            with tempfile.NamedTemporaryFile(suffix=".yaml", delete=False, mode="w") as f:
+                f.write(yaml_content)
+                tmp_path = f.name
+    
+            try:
+                # Call engine.execute_workflow (now async v3.0)
+                await engine.execute_workflow(tmp_path)
+    
+                # Verify results
+                domain_keys = list(engine.state.data.get('domain', {}).keys()) if hasattr(engine.state.data.get('domain', {}), 'keys') else engine.state.data.get('domain')
+                print(f"\n[DEBUG] domain keys: {domain_keys}")
+                domain = engine.state.domain
+>               assert domain.counter == 1
+                       ^^^^^^^^^^^^^^
+E               AttributeError: 'SupervisorProxy[dict]' object has no attribute 'counter'. (Hint: Key 'counter' missing in wrapped dict at path 'domain')
+
+tests\05_compat\test_async_sync_bridge.py:95: AttributeError
+---------------------------- Captured stdout call -----------------------------
+
+[INIT_DATA] {'domain': {'item_list': [], 'counter': 0, 'async_triggered': False}, 'domain_ctx': {'item_list': [], 'counter': 0, 'async_triggered': False}, 'global': {}, 'global_ctx': {}}
+[ManagedAllocator] Registry initialized successfully.
+
+[DEBUG] domain keys: ['item_list']
+---------------------------- Captured stderr call -----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+__________________ TestNumPyEquality.test_numpy_replacement ___________________
+
+self = <test_numpy_equality.TestNumPyEquality object at 0x000001FDD656F950>
+
+    def test_numpy_replacement(self):
+        """
+        Scenario: Replace array with new array.
+        Expectation: This is standard assignment, handled by set_item, not infer.
+        But let's verify consistent handling.
+        """
+        new_arr = np.array([10, 20])
+    
+        with self.engine.transaction() as tx:
+            self.ctx.domain.arrays["simple"] = new_arr
+    
+        res = self.engine.state.data["domain"]["arrays"]["simple"]
+>       assert np.array_equal(res, new_arr)
+E       assert False
+E        +  where False = <function array_equal at 0x000001FDD2D3A2B0>(array([1, 2, 3]), array([10, 20]))
+E        +    where <function array_equal at 0x000001FDD2D3A2B0> = np.array_equal
+
+tests\09_v3_2\test_numpy_equality.py:96: AssertionError
+---------------------------- Captured stdout setup ----------------------------
+
+[INIT_DATA] {'domain': {'arrays': {'simple': array([1, 2, 3]), 'matrix': array([[0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]])}, 'mixed': {}}, 'domain_ctx': {'arrays': {'simple': array([1, 2, 3]), 'matrix': array([[0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.],
+       [0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]])}, 'mixed': {}}, 'global': {}, 'global_ctx': {}}
+[ManagedAllocator] Registry initialized successfully.
+---------------------------- Captured stderr setup ----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+______________________ test_production_outbox_throughput ______________________
+
+    @pytest.mark.asyncio
+    async def test_production_outbox_throughput():
+        """
+        Integration Test: Production Simulation
+        - Real Async Relay Worker (no mocks for engine logic, but worker callback is simple)
+        - Continuous Load (100 concurrent requests)
+        - Random Failures (20% rollback rate)
+        - Goal: Ensure 'processed' count MATCHES 'successful transactions'.
+                Ensure NO messages from failed transactions appear.
+        """
+        print("\n[Integration] Starting Production Outbox Simulation...")
+        engine = TheusEngine()
+        engine.compare_and_swap(0, {"domain": {}})
+    
+        # Shared State
+        processed = []
+    
+        # 1. Setup Worker (Relay Consumer)
+        # in production, this pushes to Kafka/SQS. Here we push to list.
+        def worker(msg):
+            # verify msg integrity
+            if msg.topic == "fail":
+                raise RuntimeError(f"PHANTOM MESSAGE DETECTED: {msg.payload}")
+            processed.append(msg)
+    
+        engine.attach_worker(worker)
+    
+        # 2. Setup Background Relay Loop
+        # Theus Engine doesn't have built-in background thread for outbox,
+        # typically orchestrator calls process_outbox() periodically.
+        running = True
+        async def relay_loop():
+            while running:
+                try:
+                    # Drains the queue and calls worker() for each msg
+                    engine.process_outbox()
+                except Exception as e:
+                    print(f"Relay Error: {e}")
+                await asyncio.sleep(0.01)
+    
+        relay_task = asyncio.create_task(relay_loop())
+    
+        # 3. Define Producer Process
+        # [Optimization] Use Sharding (Unique Keys) to test Outbox Throughput
+        # without Lock Manager bottlenecks.
+        @process(outputs=["domain"])
+        async def producer_task(ctx, idx: int, should_fail: bool):
+            # Simulate work
+            await asyncio.sleep(random.uniform(0.001, 0.005))
+    
+            # Add Message (potentially rolled back)
+            if should_fail:
+                ctx.outbox.add(OutboxMsg("fail", f"phantom_{idx}"))
+                raise ValueError("Intentional Rollback")
+    
+            # Add Valid Message
+            ctx.outbox.add(OutboxMsg("ok", f"valid_{idx}"))
+    
+            # State Mutation (Sharded Key to avoid 'System Busy' / Lock Contention)
+            # Verify that Outbox works even if state write is trivial
+            ctx.domain[f"task_{idx}"] = "done"
+            return None
+    
+        engine.register(producer_task)
+    
+        # 4. Generate Load
+        TOTAL_REQUESTS = 20
+        FAILURE_RATE = 0.2
+    
+        tasks = []
+    
+        for i in range(TOTAL_REQUESTS):
+            will_fail = random.random() < FAILURE_RATE
+    
+            async def run_req(idx, fail):
+                try:
+                    # [Optimization] Increase retries for high concurrency test
+                    await engine.execute("producer_task", idx=idx, should_fail=fail, retries=20)
+                    return True
+                except Exception:
+                    return False
+    
+            tasks.append(run_req(i, will_fail))
+    
+        print(f"[Input] Requests: {TOTAL_REQUESTS}")
+    
+        # 5. Execute Concurrent Load
+        results = await asyncio.gather(*tasks)
+        actual_success = sum(1 for r in results if r)
+    
+        print(f"[Output] Actual Success: {actual_success}")
+        # assert actual_success == expected_success
+    
+        # 6. Wait for Relay to Drain
+        for _ in range(20): # retry for 2 sec max
+            if len(processed) >= actual_success:
+                break
+            await asyncio.sleep(0.1)
+    
+        print(f"[Assert] Success={actual_success}, Msgs={len(processed)}")
+        if len(processed) != actual_success:
+            raise AssertionError(f"Mismatch! Success={actual_success}, Msgs={len(processed)}")
+            await asyncio.sleep(0.1)
+    
+        # Stop Relay
+        running = False
+        await relay_task
+    
+        # [Verification] We expect inconsistent throughput due to high contention
+        # But we MUST ensure that EVERY successful transaction produced a message (Outbox Reliability)
+>       assert actual_success > 0, "Zero successes! System is completely broken."
+E       AssertionError: Zero successes! System is completely broken.
+E       assert 0 > 0
+
+tests\10_integration\test_outbox_production.py:117: AssertionError
+---------------------------- Captured stdout call -----------------------------
+
+[Integration] Starting Production Outbox Simulation...
+
+[INIT_DATA] {}
+[ManagedAllocator] Registry initialized successfully.
+[Input] Requests: 20
+[Output] Actual Success: 0
+[Assert] Success=0, Msgs=0
+---------------------------- Captured stderr call -----------------------------
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: 'Intentional Rollback' | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: 'Intentional Rollback' | CAS=False | Busy=False
+[DEBUG] Execute Exception: 'Intentional Rollback' | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+[DEBUG] Execute Exception: 'Intentional Rollback' | CAS=False | Busy=False
+[DEBUG] Execute Exception: "'ContextGuard' object has no attribute 'domain'" | CAS=False | Busy=False
+============================== warnings summary ===============================
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_dual_threshold_warning
+  C:\Users\dohoang\projects\EmotionAgent\theus_framework\tests\07_audit\test_audit_levels.py:106: AuditWarning: WARNING: Approaching threshold (2/5)
+    audit.log_fail("test_key")  # count=2, warning threshold
+
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_dual_threshold_warning
+  C:\Users\dohoang\projects\EmotionAgent\theus_framework\tests\07_audit\test_audit_levels.py:113: AuditWarning: WARNING: Approaching threshold (4/5)
+    audit.log_fail("test_key")  # count=4
+
+tests/07_audit/test_audit_levels.py::TestAuditLevels::test_audit_dual_threshold_warning
+  C:\Users\dohoang\projects\EmotionAgent\theus_framework\tests\07_audit\test_audit_levels.py:114: AuditWarning: WARNING: Approaching threshold (5/5)
+    audit.log_fail("test_key")  # count=5
+
+-- Docs: https://docs.pytest.org/en/stable/how-to/capture-warnings.html
+=========================== short test summary info ===========================
+FAILED tests/02_safety/test_snapshot_isolation.py::test_reader_isolation - At...
+FAILED tests/03_mechanics/test_lifecycle_scopes.py::test_local_auto_drop - At...
+FAILED tests/05_compat/test_async_sync_bridge.py::TestAsyncSyncBridge::test_direct_async_execution
+FAILED tests/05_compat/test_async_sync_bridge.py::TestAsyncSyncBridge::test_sync_workflow_bridge
+FAILED tests/09_v3_2/test_numpy_equality.py::TestNumPyEquality::test_numpy_replacement
+FAILED tests/10_integration/test_outbox_production.py::test_production_outbox_throughput
+============ 6 failed, 333 passed, 2 skipped, 3 warnings in 49.69s ============

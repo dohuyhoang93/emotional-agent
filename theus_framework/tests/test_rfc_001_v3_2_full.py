@@ -20,14 +20,14 @@ async def p_write_data(ctx, value):
     ctx.domain.data = value
     return "ok"
 
-@process(outputs=["domain.log"])
+@process(outputs=["domain.log_list"])
 async def p_append_log(ctx, msg):
-    ctx.domain.log.append(msg)
+    ctx.domain.log_list.append(msg)
     return "ok"
 
 @pytest.mark.asyncio
 async def test_case_1_sample_basic_ops():
-    engine = TheusEngine(context={"domain": {"data": None, "log": []}})
+    engine = TheusEngine(context={"domain": {"data": None, "log_list": []}})
     
     # Write
     await engine.execute(p_write_data, value="hello")
@@ -35,7 +35,7 @@ async def test_case_1_sample_basic_ops():
     
     # Append
     await engine.execute(p_append_log, msg="msg1")
-    assert "msg1" in engine.state.data["domain"]["log"]
+    assert "msg1" in engine.state.data["domain"]["log_list"]
     
     # Namespace existence check (Should be False for now)
     if not HAS_NAMESPACE:
