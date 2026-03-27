@@ -17,7 +17,7 @@
                 },
                 "environment_config": {
                     "grid_size": 15,
-                    "num_agents": 5,
+                    "num_agents": 1,
                     "max_steps_per_episode": 300,
                     "walls": [
                         [

@@ -721,6 +721,7 @@ def process_assimilate_ancestor(ctx: SystemContext):
         noise_std = 0.02
     
     new_synapses = []
+    assimilated_count = 0
     for synapse in domain.synapses:
         # PROTECT SOLID KNOWLEDGE
         if synapse.commit_state == COMMIT_STATE_SOLID:

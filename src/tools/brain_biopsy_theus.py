@@ -342,8 +342,10 @@ class BrainBiopsyTheus:
                     neuron.potential = n_data.get('potential', 0.0)
                     neuron.threshold = n_data.get('threshold', 0.0)
                     neuron.last_fire_time = n_data.get('last_fire_time', -1)
-                    # NOTE: Prototype & Potential vectors are heavy, skipped in JSON?
-                    # If saved, load them. Else keep initialized values.
+                    neuron.fire_count = n_data.get('fire_count', 0)
+                    
+                    if 'prototype_vector' in n_data:
+                        neuron.prototype_vector = np.array(n_data['prototype_vector'], dtype=np.float32)
                     
         # 2. Load Synapses (Critical)
         if 'synapses' in data:
@@ -425,7 +427,7 @@ def demo_basic_inspection():
                 domain_ctx.synapses.append(synapse)
                 synapse_id += 1
     
-    snn_ctx = SNNSystemContext(global_ctx, domain_ctx)
+    snn_ctx = SNNSystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)
     
     # Inspect
     print("\n1. INSPECT NEURON 0:")

@@ -71,7 +71,7 @@ def main(argv=None):
         args.log_level = 'silent'
         # Inform the user once that we are entering silent mode
         print("\n  [Headless Mode] Silent execution enabled. Terminal logs suppressed.")
-        print(f"  [Headless Mode] Workflow progress will be logged to: logs/audit.log\n")
+        print("  [Headless Mode] Workflow progress will be logged to: logs/audit.log\n")
 
     # Construct Settings Override
     override_dict = {}
