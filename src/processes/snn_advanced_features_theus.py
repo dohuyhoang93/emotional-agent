@@ -284,7 +284,7 @@ def _lateral_inhibition_vectorized(ctx: SystemContext):
 
 
 # ============================================================================
-# Phase 11: Neural Darwinism
+# Phase 11: Neural Darwinism v2 — Monotonic Additive Plasticity
 # ============================================================================
 
 @process(
@@ -302,203 +302,172 @@ def process_neural_darwinism(
     ctx: SystemContext
 ):
     """
-    Evolutionary synapse selection and Neuron Recycling ("True Darwinism").
+    Monotonic Additive Plasticity (Phase 11 v2).
+    
+    Nguyên lý: Không bao giờ xóa Synapse khi Weight còn lớn.
+    Chỉ thu hồi "xác chết toán học" (Silent GC) và mọc rễ mới (Synaptogenesis).
     
     Logic:
-    1. Update fitness based on performance
-    2. Selection (remove weak but PROTECT committed)
-    3. Reproduction (clone strong)
-    4. Recycling (reset dead neurons + rewire)
-    
-    Args:
-        ctx: RL System Context
+    1. Silent Garbage Collection — Xóa Synapse có Weight <= threshold (Zero-Shock)
+    2. Targeted Synaptogenesis — Mọc rễ mới qua Dual-Gate (ID Proximity + Cosine)
+    3. Dynamic Skull Limit — Dừng mọc khi chạm trần 30% đồ thị
     """
-    from src.core.snn_context_theus import COMMIT_STATE_SOLID, SynapseState
-    # Extract
-    rl_ctx = ctx
-    rl_ctx = ctx
-    # Resolve SNN Context (Handle nested RL Context vs Standalone SNN Context)
+    from src.core.snn_context_theus import SynapseState, ensure_heavy_tensors_initialized
+    # Resolve SNN Context
     snn_ctx = ctx
     if hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None:
         snn_ctx = ctx.domain_ctx.snn_context
     
     domain = snn_ctx.domain_ctx
     global_ctx = snn_ctx.global_ctx
-    
-    # Safe Cast
+
+    # Safe Cast hyperparameters
     try:
         darwinism_interval = int(global_ctx.darwinism_interval)
-        fitness_decay = float(global_ctx.fitness_decay)
-        selection_pressure = float(global_ctx.selection_pressure)
-    except:
-        darwinism_interval = 1000
-        fitness_decay = 0.95  # FIX: Stronger decay (was 0.999) to prevent saturation
-        selection_pressure = 0.1
+    except (TypeError, AttributeError):
+        darwinism_interval = 100
 
-    # Check interval
+    # Check interval — chỉ chạy theo chu kỳ
     if domain.current_time % darwinism_interval != 0:
         return {}
+
+    # === Hyperparameters (Phase 11 v2) ===
+    try:
+        silent_death_threshold = float(getattr(global_ctx, 'silent_death_threshold', 0.001))
+        synaptogenesis_prob = float(getattr(global_ctx, 'synaptogenesis_prob', 0.01))
+        cluster_radius_ratio = float(getattr(global_ctx, 'cluster_radius_ratio', 0.1))
+        cosine_sim_threshold = float(getattr(global_ctx, 'cosine_similarity_threshold', 0.3))
+        max_connectivity_ratio = float(getattr(global_ctx, 'max_connectivity_ratio', 0.3))
+    except (TypeError, AttributeError):
+        silent_death_threshold = 0.001
+        synaptogenesis_prob = 0.01
+        cluster_radius_ratio = 0.1
+        cosine_sim_threshold = 0.3
+        max_connectivity_ratio = 0.3
+
+    N = len(domain.neurons)
+    # NOTE: Dynamic Skull Limit — trần tỷ lệ thuận với số neuron, không hardcode.
+    MAX_SYNAPSES = int(N * (N - 1) * max_connectivity_ratio)
+    CLUSTER_RADIUS = max(10, int(N * cluster_radius_ratio))
+
+    # === PART 1: SILENT GARBAGE COLLECTION ===
+    # NOTE: Chỉ xóa Synapse khi STDP đã tự nhiên ăn mòn Weight về mức vô hình.
+    # Tại ngưỡng này, xóa vật lý không tạo bất kỳ cú sốc nào cho MLP
+    # vì đóng góp toán học của nó lên Input vector = 0.
+    before_count = len(domain.synapses)
     
-    error = rl_ctx.domain_ctx.td_error
-    accum_reward = domain.metrics.get('accum_darwinism_reward', 0.0)
+    # NOTE: Đọc Weight từ heavy_tensors (authoritative source) thay vì object field
+    # để đảm bảo tính nhất quán sau khi STDP vectorized đã cập nhật ma trận.
+    ensure_heavy_tensors_initialized(snn_ctx)
+    weights_matrix = domain.heavy_tensors.get('weights')
     
-    # === PART 1: SYNAPSE EVOLUTION ===
+    if weights_matrix is not None:
+        survivors = []
+        for s in domain.synapses:
+            if s.pre_neuron_id < N and s.post_neuron_id < N:
+                w = weights_matrix[s.pre_neuron_id, s.post_neuron_id]
+                if w > silent_death_threshold:
+                    survivors.append(s)
+                # NOTE: Synapse với w <= threshold bị loại bỏ tĩnh lặng.
+                # Không gây sốc vì 0.001 * spike ≈ 0.
+            else:
+                survivors.append(s)  # Giữ lại nếu index out-of-range (safety)
+        domain.synapses = survivors
     
-    # 1. Update fitness (Goal-driven Darwinism)
-    for synapse in domain.synapses:
-        if accum_reward > 0.0:
-            # Ngôi sao hi vọng: Phá đảo hoặc đạt thưởng lớn
-            synapse.fitness = min(1.0, synapse.fitness * 1.5)  # +50% boost
-        else:
-            # Nếu không có thưởng rực rỡ, phạt/thưởng dựa trên TD-Error định hướng (không lấy trị tuyệt đối)
-            if error > 0.1:
-                # Bất ngờ tích cực (Tốt hơn dự kiến)
-                synapse.fitness = min(1.0, synapse.fitness * 1.1)
-            elif error < -0.1:
-                # Bất ngờ tiêu cực (Tệ hơn dự kiến)
-                synapse.fitness = max(0.0, synapse.fitness * 0.8)
-        
-        # Apply decay
-        synapse.fitness *= fitness_decay
-    
-    # 1b. Diversity bonus (FIX: Prevent weight homogenization)
-    if len(domain.synapses) > 0:
-        weight_mean = np.mean([s.weight for s in domain.synapses])
-        for synapse in domain.synapses:
-            diversity_factor = abs(synapse.weight - weight_mean)
-            synapse.fitness += diversity_factor * 0.01  # Small bonus for diverse weights
-            synapse.fitness = np.clip(synapse.fitness, 0.0, 1.0)
-    
-    # 2. Selection: Remove weak
-    if len(domain.synapses) > 20:  # NOTE: Hạ thấp ngưỡng sàn (was 100) để cho phép pruning ở mạng nhỏ
-        fitnesses = [s.fitness for s in domain.synapses]
-        threshold = np.percentile(fitnesses, selection_pressure * 100)
-        
-        # FIX: Protect SOLID synapses from culling
-        survivors = [
-            s for s in domain.synapses 
-            if s.fitness >= threshold or s.commit_state == COMMIT_STATE_SOLID
-        ]
-    else:
-        # FIX: Cast to list to ensure survivors is a list, not wrapped TrackedList
-        survivors = list(domain.synapses)
-    
-    # 3. Reproduction: REMOVED (Violates SNN Spec & Causes Memory Explosion)
-    # Neural Darwinism = Selection (Pruning) + Diversity (Neuron Recycling)
-    # We do NOT clone synapses.
-    domain.synapses = survivors
-    
-    # === PART 2: NEURON RECYCLING (True Darwinism) ===
-    
-    BASE_DEAD_THRESHOLD = 500 # Ngưỡng cơ sở để cho một nơ-ron là chết
-    if accum_reward > 0.5:
-        # Cả đội đang chiến thắng, khoan dung với các nơ-ron lười (có thể chúng chờ kịch bản hẹp)
-        effective_dead_threshold = BASE_DEAD_THRESHOLD * 3
-    elif accum_reward < -0.5:
-        # Cả đội đang thua đậm, thanh trừng mạnh tay các nơ-ron không hoạt động để sinh mới
-        effective_dead_threshold = BASE_DEAD_THRESHOLD // 2
-    else:
-        effective_dead_threshold = BASE_DEAD_THRESHOLD
-        
-    recycled_count = 0
+    gc_count = before_count - len(domain.synapses)
+
+    # === PART 2: TARGETED SYNAPTOGENESIS (Dual-Gate Eligibility) ===
+    current_synapse_count = len(domain.synapses)
     new_synapses = []
     
-    max_syn_id = 0
-    if domain.synapses:
-        max_syn_id = max(s.synapse_id for s in domain.synapses)
-    
-    connection_prob = global_ctx.connectivity
-    
-    # NOTE: Pre-compute solid_map — O(S) một lần thay vì O(N×S).
-    # Ghi lại neuron nào có ít nhất 1 synapse SOLID.
-    solid_neuron_ids = set()
-    for s in domain.synapses:
-        if s.commit_state == COMMIT_STATE_SOLID:
-            solid_neuron_ids.add(s.pre_neuron_id)
-            solid_neuron_ids.add(s.post_neuron_id)
-    
-    MAX_RECYCLE_PER_INTERVAL = 10  # NOTE: Cap để tránh rewiring quá nhiều
-    
-    for neuron in domain.neurons:
-        if recycled_count >= MAX_RECYCLE_PER_INTERVAL:
-            break
-        
-        # Check if dead
-        is_dead = (domain.current_time - neuron.last_fire_time) > effective_dead_threshold
-        
-        # O(1) lookup thay vì O(S) scan mỗi neuron
-        has_solid = neuron.neuron_id in solid_neuron_ids
-        
-        if is_dead and not has_solid:
-            # RECYCLE
-            recycled_count += 1
+    if current_synapse_count < MAX_SYNAPSES:
+        # Bước 2a: Tìm Active Neurons (bắn gai gần đây)
+        active_neurons = [
+            n for n in domain.neurons
+            if (domain.current_time - n.last_fire_time) < darwinism_interval
+        ]
+
+        if len(active_neurons) > 1:
+            # Bước 2b: Pre-compute dữ liệu cho Dual-Gate
+            existing_pairs = set(
+                (s.pre_neuron_id, s.post_neuron_id) for s in domain.synapses
+            )
+            prototypes = domain.heavy_tensors.get('prototypes')  # (N, D)
             
-            # Reset Vector (New location in semantic space)
-            new_proto = np.random.randn(neuron.vector_dim)
-            new_proto = new_proto / (np.linalg.norm(new_proto) + 1e-8)
-            neuron.prototype_vector = new_proto
-            
-            # Reset State
-            neuron.potential = 0.0
-            neuron.fire_count = 0
-            neuron.last_fire_time = domain.current_time # Reset timer
-            neuron.threshold = global_ctx.initial_threshold
-            
-            # REWIRE (Generate new synapses for this neuron)
-            # 1. Incoming (Others -> Me)
-            for pre_n in domain.neurons:
-                if pre_n.neuron_id == neuron.neuron_id: continue
-                if np.random.random() < connection_prob:
-                    max_syn_id += 1
-                    syn = SynapseState(
-                        synapse_id=max_syn_id,
-                        pre_neuron_id=pre_n.neuron_id,
-                        post_neuron_id=neuron.neuron_id,
-                        weight=np.random.uniform(0.3, 0.7)
-                    )
-                    new_synapses.append(syn)
-            
-            # 2. Outgoing (Me -> Others)
-            for post_n in domain.neurons:
-                if post_n.neuron_id == neuron.neuron_id: continue
-                if np.random.random() < connection_prob:
-                    max_syn_id += 1
-                    syn = SynapseState(
-                        synapse_id=max_syn_id,
-                        pre_neuron_id=neuron.neuron_id,
-                        post_neuron_id=post_n.neuron_id,
-                        weight=np.random.uniform(0.3, 0.7)
-                    )
-                    new_synapses.append(syn)
-    
+            # NOTE: Tính max_syn_id 1 lần duy nhất để gán ID cho synapse mới
+            max_syn_id = 0
+            if domain.synapses:
+                max_syn_id = max(s.synapse_id for s in domain.synapses)
+
+            for n_a in active_neurons:
+                if current_synapse_count + len(new_synapses) >= MAX_SYNAPSES:
+                    break  # Sọ não đầy
+                    
+                for n_b in active_neurons:
+                    if n_a.neuron_id == n_b.neuron_id:
+                        continue
+                    
+                    # === CỔNG 1: Vật lý (ID Proximity) — O(1) lọc sơ bộ ===
+                    if abs(n_a.neuron_id - n_b.neuron_id) > CLUSTER_RADIUS:
+                        continue
+                    
+                    if (n_a.neuron_id, n_b.neuron_id) in existing_pairs:
+                        continue
+                    
+                    if current_synapse_count + len(new_synapses) >= MAX_SYNAPSES:
+                        break
+
+                    # === CỔNG 2: Ngữ nghĩa (Cosine Similarity) ===
+                    # NOTE: Chỉ tính trên ~10% cặp đã lọt Cổng 1, tiết kiệm CPU.
+                    if prototypes is not None:
+                        proto_a = prototypes[n_a.neuron_id]
+                        proto_b = prototypes[n_b.neuron_id]
+                        dot_product = np.dot(proto_a, proto_b)
+                        norm_product = (np.linalg.norm(proto_a) * np.linalg.norm(proto_b)) + 1e-8
+                        cosine_sim = dot_product / norm_product
+                        if cosine_sim < cosine_sim_threshold:
+                            continue
+                    
+                    # === Cả hai Cổng đều mở → Xác suất mọc ===
+                    if np.random.random() < synaptogenesis_prob:
+                        max_syn_id += 1
+                        syn = SynapseState(
+                            synapse_id=max_syn_id,
+                            pre_neuron_id=n_a.neuron_id,
+                            post_neuron_id=n_b.neuron_id,
+                            weight=np.random.uniform(0.3, 0.5)
+                        )
+                        new_synapses.append(syn)
+                        existing_pairs.add((n_a.neuron_id, n_b.neuron_id))
+
     if new_synapses:
         domain.synapses.extend(new_synapses)
-    
-    # === MEMORY LEAK FIX: Cap synapse count to prevent unbounded growth ===
-    # NOTE: Neural Darwinism adds new synapses but may grow faster than pruning.
-    MAX_SYNAPSES = int(global_ctx.num_neurons) * 40  # ~40 synapses per neuron max
-    if len(domain.synapses) > MAX_SYNAPSES:
-        # Keep strongest synapses by weight (use sorted() for TrackedList compatibility)
-        sorted_synapses = sorted(domain.synapses, key=lambda s: abs(s.weight), reverse=True)
-        domain.synapses = list(sorted_synapses[:MAX_SYNAPSES])
-    
-    # Update metrics
-    new_metrics = dict(domain.metrics)
-    new_metrics['darwinism_survivors'] = len(survivors)
-    new_metrics['recycled_neurons'] = recycled_count
-    new_metrics['new_metrics_generated'] = len(new_synapses)
-    new_metrics['accum_darwinism_reward'] = 0.0  # Reset for the next interval
 
-    # NOTE: DO NOT clear() heavy_tensors as it is a ShmTensorStore.
-    # Clearing it destroys the memory mapping for this agent.
-    # Instead, we just signal that keys might need re-sync if Darwinism was aggressive,
-    # but for ndarray state (potentials, etc), they are already in SHM.
-    
-    if domain.current_time % darwinism_interval == 0:
-        pass # print(f"DEBUG DARWINISM: Time={domain.current_time} Synapses {len(survivors) + len(new_synapses)} (Survivors={len(survivors)}, New={len(new_synapses)})")
+    # === PART 3: TENSOR RESYNC SIGNAL ===
+    # NOTE: Nếu có synapse bị GC hoặc mọc mới, buộc Tensor Engine re-init
+    # để ma trận (N,N) và các index arrays (S,) được cập nhật kích thước mới.
+    if gc_count > 0 or len(new_synapses) > 0:
+        for key in ['syn_pre_ids', 'syn_post_ids', 'syn_commit_states',
+                    '_post_synapse_map', '_fast_traces', '_slow_traces',
+                    'traces', 'fitnesses', 'commit_states',
+                    'consecutive_correct', 'consecutive_wrong']:
+            if key in domain.heavy_tensors:
+                del domain.heavy_tensors[key]
+        # NOTE: Buộc re-build weights matrix từ danh sách synapses mới
+        if 'weights' in domain.heavy_tensors:
+            del domain.heavy_tensors['weights']
+
+    # === METRICS ===
+    new_metrics = dict(domain.metrics)
+    new_metrics['darwinism_gc_count'] = gc_count
+    new_metrics['darwinism_new_synapses'] = len(new_synapses)
+    new_metrics['darwinism_total_synapses'] = len(domain.synapses)
+    new_metrics['darwinism_skull_limit'] = MAX_SYNAPSES
+    new_metrics['darwinism_skull_usage_pct'] = round(len(domain.synapses) / max(MAX_SYNAPSES, 1) * 100, 1)
+    new_metrics['accum_darwinism_reward'] = 0.0  # Reset for next interval
 
     return {
-        'synapses': survivors + new_synapses,
+        'synapses': list(domain.synapses),
         'neurons': domain.neurons,
         'metrics': new_metrics,
         'heavy_tensors': domain.heavy_tensors

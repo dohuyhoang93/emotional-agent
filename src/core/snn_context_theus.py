@@ -114,12 +114,14 @@ class SNNGlobalContext(BaseGlobalContext):
     inhibition_strength: float = 0.2
     wta_k: int = 5  # Top-k winners
     
-    # === Neural Darwinism (Phase 11) ===
+    # === Neural Darwinism v2: Monotonic Additive Plasticity (Phase 11) ===
     use_neural_darwinism: bool = True
-    selection_pressure: float = 0.1  # 10% die
-    reproduction_rate: float = 0.05  # 5% reproduce
-    fitness_decay: float = 0.99
-    darwinism_interval: int = 100 # Run every 100 steps
+    darwinism_interval: int = 100  # Run every 100 steps
+    synaptogenesis_prob: float = 0.01  # 1% xác suất mọc rễ mỗi cặp eligible
+    cluster_radius_ratio: float = 0.1  # Bán kính cụm = 10% tổng số neuron
+    cosine_similarity_threshold: float = 0.3  # Ngưỡng Cosine tối thiểu để mọc rễ
+    max_connectivity_ratio: float = 0.3  # Trần sọ não = 30% đồ thị
+    silent_death_threshold: float = 0.001  # Ngưỡng Weight để Silent GC thu hồi object
     
     # === Revolution Protocol (Phase 12) ===
     use_revolution_protocol: bool = False  # Multi-agent only
@@ -202,9 +204,11 @@ class SynapseState:
     validation_score: float = 0.0  # Performance score
     is_blacklisted: bool = False
     
-    # Neural Darwinism (Phase 11)
-    fitness: float = 0.5
-    generation: int = 0
+    # Neural Darwinism v2 (Phase 11 — Monotonic Additive Plasticity)
+    # NOTE: Fitness và Generation bị bãi bỏ. STDP tự điều tiết Weight.
+    # Giữ lại field để backward-compatible với brain saves cũ.
+    fitness: float = 0.5  # DEPRECATED — không còn được cập nhật
+    generation: int = 0  # DEPRECATED
     
     # Social Learning (Phase 3)
     synapse_type: str = "native"  # "native" or "shadow"

@@ -86,8 +86,6 @@
                     "top_elite_percent": 0.1,
                     "use_neural_darwinism": true,
                     "darwinism_interval": 100,
-                    "selection_pressure": 0.1,
-                    "reproduction_rate": 0.05,
                     "sleep_duration": 2
                 }
             }

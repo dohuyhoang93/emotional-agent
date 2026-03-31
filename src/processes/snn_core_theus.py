@@ -257,6 +257,7 @@ def _fire_impl(ctx: SystemContext, sync: bool = True):
     metrics = snn_ctx.domain_ctx.metrics
     metrics['fire_rate'] = fire_rate
     metrics['fired_count'] = len(fired_indices)
+    metrics['episode_total_spikes'] = metrics.get('episode_total_spikes', 0) + len(fired_indices)
     
     # Cumulative Update (Running Average) -> Thay bằng Exponential Moving Average (EMA)
     # Điều này loại bỏ hoàn toàn sự phụ thuộc vào số ticks tích lũy từ đầu, 

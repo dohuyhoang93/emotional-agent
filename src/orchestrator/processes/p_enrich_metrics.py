@@ -60,11 +60,11 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
         snn_domain = agent.snn_ctx.domain_ctx
         total_synapses += len(snn_domain.synapses)
         
-        # Check buffer type (Vectorized vs Dict)
-        if snn_domain.heavy_tensors.get('use_vectorized_queue', False):
-             total_spike_queue += np.count_nonzero(snn_domain.heavy_tensors['spike_buffer'])
-        else:
-             total_spike_queue += sum(len(v) for v in snn_domain.spike_queue.values())
+        # Thay vì đọc queue hiện tại (đang bằng 0 vì ở cuối episode),
+        # ta lấy tổng số gai đã bắn tích lũy trong episode và reset nó cho episode sau
+        tracked_spikes = snn_domain.metrics.get('episode_total_spikes', 0)
+        total_spike_queue += tracked_spikes
+        snn_domain.metrics['episode_total_spikes'] = 0
     
     metrics['debug_total_synapses'] = total_synapses
     metrics['debug_spike_queue_size'] = total_spike_queue
