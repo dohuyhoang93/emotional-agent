@@ -614,6 +614,14 @@ def process_revolution_protocol(
             new_baseline = np.mean(elite_perfs)
             new_metrics['revolution_new_baseline'] = float(new_baseline)
 
+            # Direct mutation for standalone use (without TheusEngine)
+            domain.revolution_triggered = revolution_triggered
+            domain.last_revolution_episode = last_revolution_episode
+            domain.ancestor_weights = new_ancestor if new_ancestor else domain.ancestor_weights
+            domain.population_performance = []
+            domain.ancestor_baseline_reward = float(new_baseline)
+            domain.metrics = new_metrics
+
             return {
                 'revolution_triggered': revolution_triggered,
                 'last_revolution_episode': last_revolution_episode,

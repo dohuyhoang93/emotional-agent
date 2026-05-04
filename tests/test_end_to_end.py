@@ -30,7 +30,7 @@ def create_test_snn(num_neurons=50, vector_dim=16, connectivity=0.15):
         seed=42
     )
     
-    domain_ctx = SNNDomainContext(global_ctx)
+    domain_ctx = SNNDomainContext()
     
     # Create neurons
     for i in range(num_neurons):
@@ -56,7 +56,7 @@ def create_test_snn(num_neurons=50, vector_dim=16, connectivity=0.15):
                 domain_ctx.synapses.append(synapse)
                 synapse_id += 1
     
-    return SNNSystemContext(global_ctx, domain_ctx)
+    return SNNSystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)
 
 def test_end_to_end():
     """Test end-to-end integration."""
@@ -85,7 +85,7 @@ def test_end_to_end():
     
     # 2. Setup Contexts
     print("\n2. SETUP CONTEXTS:")
-    rl_ctx = SystemContext(GlobalContext(), DomainContext())
+    rl_ctx = SystemContext(global_ctx=GlobalContext(), domain_ctx=DomainContext())
     snn_ctx = create_test_snn()
     rl_ctx.domain_ctx.snn_context = snn_ctx # Link contexts
     

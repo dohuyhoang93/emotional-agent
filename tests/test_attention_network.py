@@ -25,24 +25,27 @@ class TestAttentionNetwork(unittest.TestCase):
         batch_size = 32
         obs = torch.randn(batch_size, self.obs_dim)
         emo = torch.randn(batch_size, self.emotion_dim)
+        snn_state = torch.zeros(batch_size, self.model.snn_state_dim)
         
-        q_values = self.model(obs, emo)
+        q_values = self.model(obs, emo, snn_state)
         self.assertEqual(q_values.shape, (batch_size, self.action_dim))
         
     def test_forward_single_sample(self):
         """Test single sample processing (unbatched)"""
         obs = torch.randn(self.obs_dim)
         emo = torch.randn(self.emotion_dim)
+        snn_state = torch.zeros(self.model.snn_state_dim)
         
-        q_values = self.model(obs, emo)
+        q_values = self.model(obs, emo, snn_state)
         self.assertEqual(q_values.shape, (self.action_dim,))
         
     def test_gradients(self):
         """Test if gradients flow back to both inputs"""
         obs = torch.randn(1, self.obs_dim, requires_grad=True)
         emo = torch.randn(1, self.emotion_dim, requires_grad=True)
+        snn_state = torch.zeros(1, self.model.snn_state_dim)
         
-        q_values = self.model(obs, emo)
+        q_values = self.model(obs, emo, snn_state)
         loss = q_values.sum()
         loss.backward()
         
@@ -50,7 +53,7 @@ class TestAttentionNetwork(unittest.TestCase):
         self.assertIsNotNone(emo.grad)
         
         # Check if attention weights are computed
-        attn_weights = self.model.get_attention_weights(obs, emo)
+        attn_weights = self.model.get_attention_weights(obs, emo, snn_state)
         # Should be [Batch, Num_Heads] -> [1, 4]
         self.assertEqual(attn_weights.shape, (1, 4))
         
@@ -68,9 +71,10 @@ class TestAttentionTrainer(unittest.TestCase):
         batch_size = 4
         obs = torch.randn(batch_size, 10)
         emo = torch.randn(batch_size, 16)
+        snn_state = torch.zeros(batch_size, self.model.snn_state_dim)
         target = torch.randn(batch_size, 4)
         
-        loss = self.trainer.train_step(obs, emo, target)
+        loss = self.trainer.train_step(obs, emo, snn_state, target)
         self.assertIsInstance(loss, float)
 
 if __name__ == '__main__':

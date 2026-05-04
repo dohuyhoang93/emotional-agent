@@ -32,7 +32,7 @@ from src.core.snn_context_theus import SNNSystemContext, ensure_heavy_tensors_in
 def process_homeostasis(ctx: SNNSystemContext):
     """Decorator wrap cho _homeostasis_impl."""
     _homeostasis_impl(ctx)
-    snn_ctx = ctx.domain_ctx.snn_context if hasattr(ctx, 'domain_ctx') else ctx
+    snn_ctx = ctx.domain_ctx.snn_context if (hasattr(ctx, 'domain_ctx') and hasattr(ctx.domain_ctx, 'snn_context') and ctx.domain_ctx.snn_context is not None) else ctx
     return {
         'heavy_tensors': snn_ctx.domain_ctx.heavy_tensors,
         'metrics': snn_ctx.domain_ctx.metrics

@@ -303,6 +303,9 @@ def _tick_impl(ctx: SystemContext):
     old_times = [t for t in spike_queue.keys() if t < now - buffer_window]
     for t in old_times:
         del spike_queue[t]
-        
+
+    # Direct mutation for standalone use (without TheusEngine)
+    snn_ctx.domain_ctx.current_time = now + 1
+
     return {'current_time': now + 1}
 

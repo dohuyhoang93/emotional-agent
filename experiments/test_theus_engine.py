@@ -7,6 +7,7 @@ Author: Do Huy Hoang
 Date: 2025-12-25
 """
 import sys
+import numpy as np
 sys.path.append('.')
 
 from src.core.snn_context_theus import create_snn_context_theus

@@ -127,6 +127,10 @@ def combine_rewards(ctx: SystemContext):
         'accum_darwinism_reward': accum_reward + total_reward
     })
     
+    # Direct mutation for standalone use (without TheusEngine)
+    domain.last_reward = reward_dict
+    domain.metrics = metrics_update
+    
     return {
         'last_reward': reward_dict,
         'metrics': metrics_update

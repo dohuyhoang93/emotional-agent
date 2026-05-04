@@ -40,16 +40,16 @@ def test_manual_registration():
     ctx = SystemContext(global_ctx=global_ctx, domain_ctx=domain_ctx)
     
     # Create engine
-    engine = TheusEngine(ctx, strict_mode=True)
+    engine = TheusEngine(ctx, strict_guards=True)
     
     # Manual register
     print("\n1. Manually registering processes...")
     try:
-        engine.register_process('encode_state_to_spikes', encode_state_to_spikes)
-        engine.register_process('encode_emotion_vector', encode_emotion_vector)
-        engine.register_process('compute_intrinsic_reward_snn', compute_intrinsic_reward_snn)
-        engine.register_process('select_action_gated', select_action_gated)
-        engine.register_process('update_q_learning', update_q_learning)
+        engine.register(encode_state_to_spikes)
+        engine.register(encode_emotion_vector)
+        engine.register(compute_intrinsic_reward_snn)
+        engine.register(select_action_gated)
+        engine.register(update_q_learning)
         print("   ✅ Manual registration successful")
     except Exception as e:
         print(f"   ❌ Error: {e}")
