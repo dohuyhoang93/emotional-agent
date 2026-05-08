@@ -79,11 +79,9 @@ def process_snn_cycle(ctx: SystemContext):
         # Immediate Learning (STDP) — Vectorized (S,) no sync back
         _stdp_3factor_impl(ctx)
         
-        # Advance SNN Time
-        # TRAP: _tick_impl returns values but doesn't update in-place for immutable types.
-        # We must increment manually or use the return value.
-        snn_ctx.domain_ctx.current_time = int(snn_ctx.domain_ctx.current_time) + 1
-        _tick_impl(ctx) # For cleanup queue side-effects
+        # Advance SNN Time once per tick.
+        # _tick_impl already increments current_time and performs queue cleanup.
+        _tick_impl(ctx)
 
     # 4. MAINTENANCE (Post-loop, Once per Step) — Vectorized
     # Homeostasis (Threshold Adaptation)
