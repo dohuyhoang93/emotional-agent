@@ -244,7 +244,7 @@ class GridWorld:
                     break
         
         # Base reward
-        reward = -0.1  # Step penalty
+        reward = self.step_penalty  # Step penalty (from config)
         
         if is_valid_move:
             self.agent_positions[agent_id] = list(new_pos)
@@ -293,7 +293,7 @@ class GridWorld:
                                 reward -= 1.2
         else:
             # Invalid move penalty
-            reward = -0.5
+            reward = self.wall_penalty  # Wall penalty (from config)
         
         # FIX INC-003: Lưu phân loại va chạm để truyền vào sensor bước sau
         self.last_bump_types[agent_id] = bump_type
