@@ -1,0 +1,28 @@
+[THEUS-CORE] Loaded Version: 3.0.26 (Target Env Build)
+[TheusCore] Registry GC: 38 lines read, 0 kept (38 dropped). Rewriting...
+[TheusCore] Cleanup SUCCESS. File rewritten.
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+[TheusCore] Registry GC: No cleanup needed. All records alive?
+16:07:10 - INFO - Experiment 'multi_agent_complex_maze' started. Metrics: results\multi_agent_complex_maze\metrics.jsonl
+c:\Users\dohoang\projects\EmotionAgent\.venv\Lib\site-packages\torch\__init__.py:1146: FutureWarning: `torch.distributed.reduce_op` is deprecated, please use `torch.distributed.ReduceOp` instead
+  return isinstance(obj, torch.Tensor)
+16:10:33 - INFO - Episode 1151: agents=1 R=-25.01
+16:13:54 - INFO - Episode 1152: agents=1 R=-22.43
+16:17:07 - INFO - Episode 1153: agents=1 R=-24.12
+16:20:21 - INFO - Episode 1154: agents=1 R=-23.05
+16:23:38 - INFO - Episode 1155: agents=1 R=-24.44
+16:26:55 - INFO - Episode 1156: agents=1 R=-21.88
+16:30:14 - INFO - Episode 1157: agents=1 R=-24.66
+16:33:35 - INFO - Episode 1158: agents=1 R=-22.14
+16:36:57 - INFO - Episode 1159: agents=1 R=-23.16
+16:40:20 - INFO - Episode 1160: agents=1 R=-23.06
+16:43:45 - INFO - Episode 1161: agents=1 R=-24.60
+16:47:11 - INFO - Episode 1162: agents=1 R=-23.51
+16:50:37 - INFO - Episode 1163: agents=1 R=-23.03
+16:54:06 - INFO - Episode 1164: agents=1 R=-22.00
+16:57:46 - INFO - Episode 1165: agents=1 R=-26.64
+17:01:22 - INFO - Episode 1166: agents=1 R=-21.10
+17:05:10 - INFO - Episode 1167: agents=1 R=-24.02
+17:08:53 - INFO - Episode 1168: agents=1 R=-21.09
+17:12:38 - INFO - Episode 1169: agents=1 R=-26.27
+17:16:20 - INFO - Episode 1170: agents=1 R=-21.21

@@ -1,15 +1,20 @@
 {
     "experiments": [
         {
-            "name": "multi_agent_complex_maze",
-            "description": "Complex Maze experiment with SNN Agents (V2 Standard) - [PERSISTENCE ENABLED]",
+            "name": "random_baseline_ep1150",
+            "description": "Task 1.2 Control: Pure random walk (epsilon=1.0) from checkpoint_ep_1150. Baseline to quantify how much DQN contributes vs random exploration.",
             "runs": 1,
-            "episodes_per_run": 5000,
+            "episodes_per_run": 50,
             "log_level": "info",
             "parameters": {
                 "num_agents": 1,
                 "max_steps_per_episode": 500,
-                "total_episodes": 5000,
+                "total_episodes": 50,
+                "checkpoint_path": "results/multi_agent_complex_maze/checkpoint_ep_1150",
+                "initial_exploration": 1.0,
+                "exploration_decay": 1.0,
+                "min_exploration": 1.0,
+                "checkpoint_freq": 9999,
                 "snn_config": {
                     "num_neurons": 1024,
                     "learning_rate_stdp": 0.01,
@@ -34,20 +39,16 @@
                     "revolution_threshold": 0.5,
                     "revolution_window": 10,
                     "top_elite_percent": 0.1,
-                    "use_neural_darwinism": true,
-                    "darwinism_interval": 500,
+                    "use_neural_darwinism": false,
+                    "darwinism_interval": 9999,
                     "sleep_duration": 5
                 },
-                "initial_exploration": 0.3161381795377863,
-                "exploration_decay": 0.999,
-                "min_exploration": 0.05,
                 "intrinsic_reward_weight": 0.05,
                 "use_dynamic_curiosity": true,
                 "use_adaptive_fatigue": true,
                 "fatigue_growth_rate": 5.0,
                 "emotional_boost_factor": 0.4,
                 "enable_recorder": false,
-                "checkpoint_freq": 50,
                 "model_config": {
                     "obs_dim": 16,
                     "emotion_dim": 16,

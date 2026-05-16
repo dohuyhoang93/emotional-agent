@@ -125,6 +125,16 @@ def enrich_episode_metrics(ctx: OrchestratorSystemContext):
     process = psutil.Process(os.getpid())
     metrics['debug_process_memory_mb'] = round(process.memory_info().rss / 1024 / 1024, 2)
     
+    # 6. Reward Decomposition (Task 2.1)
+    env = getattr(runner, 'env', None)
+    if env is not None and hasattr(env, 'wall_hit_counts'):
+        num_agents = len(runner.coordinator.agents)
+        if num_agents > 0:
+            metrics['avg_wall_hit_count'] = sum(env.wall_hit_counts.values()) / num_agents
+            metrics['avg_toggle_count'] = sum(env.toggle_counts.values()) / num_agents
+            metrics['avg_gate_open_count'] = sum(env.gate_open_counts.values()) / num_agents
+            metrics['avg_gate_close_count'] = sum(env.gate_close_counts.values()) / num_agents
+
     return {
         'domain.metrics': metrics
     }

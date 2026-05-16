@@ -87,7 +87,16 @@ class GridWorld:
         
         # FIX INC-003: Theo dõi va chạm mở rộng (Extended Proprioceptive Feedback)
         self.last_bump_types = {i: None for i in range(self.num_agents)}
-        
+
+        # Task 2.1: Reward decomposition counters (reset each episode)
+        self.wall_hit_counts = {i: 0 for i in range(self.num_agents)}
+        self.toggle_counts = {i: 0 for i in range(self.num_agents)}
+        self.gate_open_counts = {i: 0 for i in range(self.num_agents)}
+        self.gate_close_counts = {i: 0 for i in range(self.num_agents)}
+
+        # Task 2.2: Gate-open reward cap — track which gates have been opened at least once
+        self.gate_first_opened = set()
+
         return self.get_all_observations()
 
     def get_sensor_vector(self, agent_id: int) -> 'np.ndarray':
@@ -255,7 +264,8 @@ class GridWorld:
                 if switch_id in self.switch_states:
                     # Toggle switch
                     self.switch_states[switch_id] = not self.switch_states[switch_id]
-                    
+                    self.toggle_counts[agent_id] += 1
+
                     # Update dynamic walls
                     old_wall_states = self.dynamic_wall_states.copy()
                     self._update_dynamic_walls()
@@ -284,17 +294,22 @@ class GridWorld:
                             })
                             
                             if is_open:
-                                # REWARD: +1.0 for OPENING gate (Progress)
-                                reward += 1.0
+                                # REWARD: +1.0 for OPENING gate, capped to first open per gate per episode (Task 2.2)
+                                if gate_id not in self.gate_first_opened:
+                                    reward += 1.0
+                                    self.gate_first_opened.add(gate_id)
+                                    self.gate_open_counts[agent_id] += 1
                             else:
                                 # PENALTY: -1.2 for CLOSING gate (Sabotage/Mistake)
                                 # CRITICAL FIX: Must be magnitude > (Reward - 2*StepPenalty)
                                 # Loop Calc: +1.0 - 0.1 - 1.2 - 0.1 = -0.4 (Negative Loop)
                                 reward -= 1.2
+                                self.gate_close_counts[agent_id] += 1
         else:
             # Invalid move penalty
             reward = self.wall_penalty  # Wall penalty (from config)
-        
+            self.wall_hit_counts[agent_id] += 1
+
         # FIX INC-003: Lưu phân loại va chạm để truyền vào sensor bước sau
         self.last_bump_types[agent_id] = bump_type
 

@@ -378,3 +378,54 @@ reward = self.wall_penalty   # → -0.1
 See Section 6 (Investigation Plan) for Tasks 2.1, 2.2, 3.1–3.3. Priority order unchanged:
 - **P0 next:** Task 2.1 — reward decomposition logging (zero-risk, additive)
 - **P1 next:** Task 1.2 — verify policy quality with ε=0 exploitation run from Run 2 checkpoint
+
+---
+
+## Task 1.2 Result — ε=0 Exploitation Test (2026-05-16)
+
+**Checkpoint:** `results/multi_agent_complex_maze/checkpoint_ep_1150`  
+**Config:** `experiments_exploit_ep1150.json` (50 episodes, ε=0.0, max_steps=500)  
+**Bugs fixed before run:**
+- DQN weights (`agent_0_net.pt`) now loaded on resume (was SNN-only before)
+- `initial_exploration` config key now correctly maps to `GlobalContext.initial_exploration_rate`
+
+### Result: FAILED — 0% success rate
+
+| Metric | Value |
+|---|---|
+| Episodes run | 50 |
+| Successes | 0/50 (0.0%) |
+| Avg reward (all 50 eps) | **−38.67** |
+| Avg reward ep 0–9 | −34.15 |
+| Avg reward ep 40–49 | −41.59 |
+| Avg Q-value ep 0–9 | −1.046 |
+| Avg Q-value ep 40–49 | −1.668 |
+| SNN firing rate (ep 0) | 0.1262 |
+| SNN firing rate (ep 49) | 0.1997 |
+
+### Analysis
+
+**Q-value collapse observed:** Q-values deteriorated monotonically from −1.05 to −1.67 over 50 episodes. In pure exploitation mode (ε=0), the greedy policy consistently takes actions that receive wall-hit penalties (−1.0/step), which backpropagate to make Q-values more negative. This causes the policy to rate ALL actions as bad, creating a negative feedback loop. No corrective exploration can break this cycle.
+
+**SNN firing rate increase (0.126 → 0.200):** The SNN became progressively more active during exploitation episodes, suggesting the network entered repetitive firing loops. Without exploration to diversify state transitions, the same SNN circuits are repeatedly activated.
+
+**Reward 57% worse than training baseline:** Training avg at ep_1150 was ~−24.0 (with ε=0.316). Pure exploitation gives ~−38.7 — substantially worse. This strongly suggests that the 3.5% success rate during training (ep 0–1150) was driven by **random exploration** (31.6% of actions), not by learned DQN policy.
+
+### Conclusion
+
+**The DQN policy at ep_1150 has NOT learned a functional maze-solving strategy.** All observed successes in Run 2 to this point were epsilon-driven (random exploration stumbling onto the goal path), consistent with the original INC-007 hypothesis.
+
+### Root Cause Confirmation
+
+This confirms the INC-007 hypothesis: `avg_reward` improvements over training were confounded by epsilon decay (more exploitation of a still-random DQN), not genuine policy learning. The fix priorities remain:
+
+1. **Task 2.2 (P0):** Fix switch toggle reward cap — agent earns unbounded toggles, inflating reward without progress
+2. **Task 2.1 (P0):** Add reward decomposition metrics for `gate_open_reward`, `wall_hit_count`, `task_reward`
+3. **Continue Run 2** from ep_1150 (now restarted with correct ε=0.3161, `initial_exploration: 0.3161` in experiments.json). Re-evaluate policy at ep_2000+ when success rate > 5% sustained.
+
+### Run-2 Resume Status (2026-05-16)
+
+- Crashed at ep_1182 (OOM), restarted from checkpoint_ep_1150
+- Episodes 1151–1201 were polluted (ε started at 1.0 due to config mapping bug, not 0.316)
+- **Bug fixed:** `initial_exploration: 0.3161` now set in `experiments.json`; run-2 restarted with PID 3724 (cmd wrapper)
+- Expected ε at ep_1151: **0.3161** (correct)

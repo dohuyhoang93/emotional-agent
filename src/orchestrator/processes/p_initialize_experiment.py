@@ -49,6 +49,9 @@ class FSMExperimentRunner:
         for k, v in self.config.items():
             if hasattr(global_ctx, k):
                 setattr(global_ctx, k, v)
+        # Map config key 'initial_exploration' → GlobalContext field 'initial_exploration_rate'
+        if 'initial_exploration' in self.config:
+            global_ctx.initial_exploration_rate = float(self.config['initial_exploration'])
         
         global_ctx.max_steps = max_steps
         if 'needs' in self.config and not global_ctx.initial_needs:
@@ -93,6 +96,7 @@ class FSMExperimentRunner:
         
         if checkpoint_path and os.path.exists(checkpoint_path):
             try:
+                import torch
                 from src.tools.brain_biopsy_theus import load_all_agents
                 system_log(None, "info", f"🔄 Resuming from checkpoint: {checkpoint_path}")
                 
@@ -101,7 +105,37 @@ class FSMExperimentRunner:
                 
                 for i, agent in enumerate(self.coordinator.agents):
                     agent.snn_ctx = loaded_contexts[i]
+                    # Also load DQN weights (GatedIntegrationNetwork)
+                    net_path = os.path.join(checkpoint_path, f'agent_{i}_net.pt')
+                    if os.path.exists(net_path):
+                        try:
+                            gated_net = getattr(agent, 'domain_ctx', None)
+                            if gated_net is not None:
+                                gated_net = getattr(gated_net, 'heavy_gated_network', None)
+                            if gated_net is not None:
+                                state_dict = torch.load(net_path, map_location='cpu', weights_only=True)
+                                gated_net.load_state_dict(state_dict)
+                                system_log(None, "info", f"✅ DQN weights loaded for agent {i}")
+                            else:
+                                system_log(None, "warning", f"⚠️ Agent {i} has no heavy_gated_network — DQN weights skipped")
+                        except Exception as dqn_err:
+                            system_log(None, "warning", f"⚠️ Failed to load DQN weights for agent {i}: {dqn_err}")
                 
+                # Restore exploration rate from checkpoint when not explicitly set in config
+                if 'initial_exploration' not in self.config:
+                    import json as _json
+                    eps_path = os.path.join(checkpoint_path, 'exploration_rates.json')
+                    if os.path.exists(eps_path):
+                        try:
+                            with open(eps_path) as _f:
+                                saved_rates = _json.load(_f)
+                            for i, agent in enumerate(self.coordinator.agents):
+                                eps = float(saved_rates.get(str(i), saved_rates.get(i, global_ctx.initial_exploration_rate)))
+                                agent.domain_ctx.current_exploration_rate = eps
+                            system_log(None, "info", f"✅ Exploration rate restored from checkpoint: {saved_rates}")
+                        except Exception as eps_err:
+                            system_log(None, "warning", f"⚠️ Could not restore exploration rate: {eps_err}")
+
                 system_log(None, "info", f"✅ Checkpoint loaded. Resuming from episode {self.start_episode}")
             except Exception as e:
                 system_log(None, "error", f"❌ Failed to load checkpoint: {e}")
