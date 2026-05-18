@@ -49,7 +49,7 @@
                 "enable_recorder": false,
                 "checkpoint_freq": 50,
                 "model_config": {
-                    "obs_dim": 16,
+                    "obs_dim": 18,
                     "emotion_dim": 16,
                     "snn_state_dim": 1024,
                     "hidden_dim": 256,

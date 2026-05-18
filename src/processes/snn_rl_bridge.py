@@ -127,8 +127,11 @@ def _encode_emotion_vector_impl(ctx: SystemContext):
         snn_state = t['firing_traces'].copy()
     else:
         snn_state = np.zeros(snn_ctx.global_ctx.num_neurons, dtype=np.float32)
-        
-    current_state = torch.tensor(snn_state, dtype=torch.float32).detach()
+
+    # ADR-004 Fix 1: sqrt normalization — khuếch đại tín hiệu nhỏ (3% firing → 0.173),
+    # nén dynamic range (50% firing → 0.707), bảo toàn cả pattern và intensity.
+    # 1e-8 tránh sqrt(0) exact khi neuron hoàn toàn silent.
+    current_state = torch.tensor(np.sqrt(snn_state + 1e-8), dtype=torch.float32).detach()
     
     # Convert current emotion to tensor
     current_emo = torch.tensor(
@@ -240,12 +243,14 @@ def _encode_state_to_spikes_impl(ctx: SystemContext):
     # E.g., 16-dim sensor spreads across 64 receptors by looping.
     sensor_len = len(sensor_vector)
     
+    pv_len = pvecs.shape[1] if pvecs.ndim > 1 else len(pvecs[0])
+    sv_clip = min(sensor_len, pv_len)  # robust to vector_dim != sensor_len (e.g. old checkpoint)
     for i in range(receptor_count):
         val = sensor_vector[i % sensor_len]
         # Inject current (scaled by our dynamic sensitivity)
         pots[i] += val * dynamic_amp
-        # Inject semantic concept
-        pvecs[i] += sensor_vector
+        # Inject semantic concept (clip to pvecs dimension if mismatch)
+        pvecs[i][:sv_clip] += sensor_vector[:sv_clip]
         
     # NOTE: sync_from_heavy_tensors moved context level to process_snn_cycle
     # print(f"DEBUG ENCODE: Tick={snn_ctx.domain_ctx.current_time} DynamicAmp={dynamic_amp:.2f} PotsAvg={np.mean(pots[:receptor_count]):.4f}")

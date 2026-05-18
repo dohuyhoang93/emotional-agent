@@ -114,7 +114,7 @@ class GridWorld:
         """
         import numpy as np
         
-        vector = np.zeros(16, dtype=np.float32)
+        vector = np.zeros(18, dtype=np.float32)
         pos = self.agent_positions[agent_id]
         idx = 0
         
@@ -192,7 +192,13 @@ class GridWorld:
         # Kênh 15: Internal Pressure / Time Urgency (Pain Signal)
         # Tín hiệu tăng dần từ 0.0 đến 1.0 khi tiến gần max_steps
         vector[15] = min(1.0, self.current_step / max(1, self.max_steps))
-        
+
+        # ADR-004 Fix 3: Goal direction channels (mở rộng 16→18)
+        # Kênnh 16-17: delta row/col tới goal (normalized bởi size)
+        # Cung cấp gradient liên tục → R-STDP nhận dopamine signal mọi step, không chỉ khi đến goal
+        vector[16] = float(np.clip((self.goal_pos[0] - pos[0]) / self.size, -1.0, 1.0))
+        vector[17] = float(np.clip((self.goal_pos[1] - pos[1]) / self.size, -1.0, 1.0))
+
         return vector
     
     def get_observation(self, agent_id: int):

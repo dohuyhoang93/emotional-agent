@@ -118,19 +118,22 @@ class GatedIntegrationNetwork(nn.Module):
             nn.ReLU()
         )
         
+        # ADR-004 Fix 2: tanh thay ReLU — không dead neurons (tanh'(x)>0 ∀x),
+        # bias gradient có mixed sign → phá vỡ runaway loop R1.
+        # Áp dụng cho cả emotion_encoder (cùng vấn đề weight ratio=1.000x).
         self.emotion_encoder = nn.Sequential(
             nn.Linear(emotion_dim, hidden_dim),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU()
+            nn.Tanh()
         )
         
         # === SNN State Encoder ===
         self.snn_state_encoder = nn.Sequential(
             nn.Linear(snn_state_dim, hidden_dim),
-            nn.ReLU(),
+            nn.Tanh(),
             nn.Linear(hidden_dim, hidden_dim),
-            nn.ReLU()
+            nn.Tanh()
         )
         
         # === Attention Mechanism ===

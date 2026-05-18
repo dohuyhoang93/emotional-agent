@@ -9,7 +9,7 @@
         "learning_rate": 0.1,
         "discount_factor": 0.9,
         "model_config": {
-          "obs_dim": 16,
+          "obs_dim": 18,
           "emotion_dim": 16,
           "hidden_dim": 64,
           "action_dim": 8,

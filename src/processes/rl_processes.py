@@ -52,14 +52,14 @@ def observation_to_tensor(obs: Union[Mapping[str, Any], np.ndarray, torch.Tensor
                 tensor = None
                 
         if tensor is not None:
-             # Ensure dimension compatibility with SNN (16-dim)
-             target_dim = 16
+             # Ensure dimension compatibility with network obs_dim (now 18 after ADR-004 Fix 3)
+             target_dim = 18
              if tensor.shape[0] == target_dim:
                   return tensor
              elif tensor.shape[0] > target_dim:
                   return tensor[:target_dim]
              else:
-                  # Pad strictly to 16
+                  # Pad strictly to target_dim
                   padded = torch.zeros(target_dim)
                   padded[:tensor.shape[0]] = tensor
                   # print(f"DEBUG: Padded Tensor Shape: {padded.shape}")

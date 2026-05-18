@@ -50,7 +50,7 @@
                 "emotional_boost_factor": 0.4,
                 "enable_recorder": false,
                 "model_config": {
-                    "obs_dim": 16,
+                    "obs_dim": 18,
                     "emotion_dim": 16,
                     "snn_state_dim": 1024,
                     "hidden_dim": 256,
